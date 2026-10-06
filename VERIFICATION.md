@@ -200,6 +200,17 @@ reviewer should look for next:
     job applies them for real. The rule now parses both forms, refuses to be silent when `deltas/`
     is non-empty but no rows parse, and checks that every delta directory has a row. A green result
     from an empty input set is the most dangerous thing a checker can produce.
+12. **Names that came from a class name's past, not from the mapped class.** The first compile of
+    `common` (which had passed for the other modules) reported two things:
+    `import net.minecraft.client.gui.components.CycleButtonWidget` — that class became `CycleButton`
+    in the 1.19.1 rework, so the import was 1.18-era — and a Mixin target written
+    `renderLevel(float, boolean)`, which the annotation processor rejects outright because descriptors
+    are JVM form. Both are now fixed, the `CycleButton`/`CycleButtonWidget` swap is a per-version delta
+    rule for every row below 1.19.1 (three unique anchors, verified in `deltas/1.18.2/changes.patch`),
+    the invented `renderLevel` overload pair is gone with a comment saying what was wrong with it, and
+    `check_java.py` grew a rule for prose descriptors so the second class cannot come back. The first
+    class is the reminder that "verified against Sodium" covered the injection *points*, not every
+    import in the file.
 
 ## 6. Acceptance criteria against the original brief
 

@@ -18,6 +18,7 @@ Exit code 0 = clean, 1 = problems printed as "file:line: message".
 from __future__ import annotations
 
 import os
+import re
 import sys
 
 SKIP_DIRS = {".git", "build", "out", ".gradle", "node_modules", "__pycache__"}
@@ -197,6 +198,26 @@ def java_files(root: str):
                 yield os.path.join(dirpath, name)
 
 
+PROSE_DESCRIPTOR = re.compile(r'method\s*=\s*\{?\s*"[A-Za-z0-9_$]+\((?:[A-Za-z]+, )+[A-Za-z]+\)')
+
+
+def rule_prose_descriptors(relpath: str, text: str, problems: list[str]) -> None:
+    """A Mixin target descriptor is JVM form: `name(DF)J`, never `name(float, boolean)`.
+
+    The Mixin annotation processor rejects the prose spelling (CI, 2026-10-06), and a prose
+    descriptor is also the fingerprint of a target invented from a javadoc sentence rather than
+    read out of the mapped class - which is the failure this whole checker exists for.
+    """
+    for lineno, line in enumerate(text.splitlines(), 1):
+        # Only the code half of the line counts: the comment explaining this rule quotes the
+        # bad spelling, and a rule that fires on prose about itself stops being trusted.
+        code = line.split("//", 1)[0]
+        if PROSE_DESCRIPTOR.search(code):
+            problems.append(f"{relpath}:{lineno}: mixin method target uses a prose descriptor; use "
+                            "the JVM form `name(XY)V` or the bare method name (which matches every "
+                            "overload) - see GameRendererMixin's note")
+
+
 def main() -> int:
     root = sys.argv[1] if len(sys.argv) > 1 else "."
     if not os.path.isdir(root):
@@ -216,6 +237,11 @@ def main() -> int:
         check_duplicate_methods(masked, problems)
         for line_no, message in sorted(set(problems)):
             print(f"{path}:{line_no}: {message}")
+            reported += 1
+        prose: list[str] = []
+        rule_prose_descriptors(path, text, prose)
+        for message in prose:
+            print(message)
             reported += 1
     if reported:
         print(f"Aetherium Java structure: {reported} problem(s) in {total} files")

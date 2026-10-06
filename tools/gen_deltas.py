@@ -124,6 +124,16 @@ def substitutions(row: dict) -> list[tuple[str, str, str]]:
     for target, extra in (row["facts"].get("append_candidates") or {}).items():
         subs.append((target["file"], target["find"], target["find"][:-1] + ", " + extra + "]"))
 
+    # 3b. CycleButton was named CycleButtonWidget until 1.19.1 (the rename landed with the
+    #     22w11a cycle-button rework). Token-only, three unique anchors; the reference file uses
+    #     the modern name because that is what 1.21.1 has.
+    parts = [int(x) for x in re.findall(r"\d+", version)[:3]]
+    if len(parts) >= 2 and (parts[0], parts[1]) < (1, 19) or (len(parts) >= 3 and (parts[0], parts[1]) == (1, 19) and parts[2] < 1):
+        cb = "net.minecraft.client.gui.components."
+        subs.append(("options", f"import {cb}CycleButton;", f"import {cb}CycleButtonWidget;"))
+        subs.append(("options", "if (child instanceof CycleButton<?>) {", "if (child instanceof CycleButtonWidget) {"))
+        subs.append(("options", "{@link CycleButton}s", "{@link CycleButtonWidget}s"))
+
     # 4. GuiGraphics vs PoseStack for the overlay + HUD --------------------------
     if not row["facts"].get("gui_graphics", True):
         subs.append(("gui", '@Mixin(Gui.class)',

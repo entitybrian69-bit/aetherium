@@ -3,7 +3,7 @@ package com.aetherium.mixin.core;
 import com.aetherium.Aetherium;
 import com.aetherium.config.AetheriumConfig;
 import com.aetherium.gui.AetheriumVideoOptionsScreen;
-import net.minecraft.client.gui.components.CycleButtonWidget;
+import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -85,14 +85,14 @@ public abstract class OptionsScreenMixin extends Screen {
 
     /**
      * Vanilla's own video-settings screen is built from a list of
-     * {@link CycleButtonWidget}s; recording how many we saw is how the Advanced tab
+     * {@link CycleButton}s; recording how many we saw is how the Advanced tab
      * reports "the hijack worked" versus "the fallback is in use".
      */
     @Inject(method = "init(Lnet/minecraft/client/gui/screens/Screen;)V", at = @At("HEAD"), require = 0, expect = 0)
     private void aetherium$countVanillaControls(final Screen previous, final CallbackInfo ci) {
         int cycles = 0;
         for (final var child : ((Screen) (Object) this).children()) {
-            if (child instanceof CycleButtonWidget) {
+            if (child instanceof CycleButton<?>) {
                 cycles++;
             }
         }

@@ -46,26 +46,13 @@ public abstract class GameRendererMixin {
         ClientHooks.endFrame(framebufferWidth(), framebufferHeight());
     }
 
-    /**
-     * 1.21.1 declares {@code renderLevel(float, boolean)} for the fancy/fast cloud
-     * split path. Injecting the same pair keeps frame accounting correct if the
-     * renderer takes that route instead.
-     */
-    @Inject(method = {"renderLevel(float, boolean)"}, at = @At("HEAD"), require = 0, expect = 0)
-    private void aetherium$beginFrameAlt(final float tickDelta, final boolean renderParticles, final CallbackInfo ci) {
-        if (Aetherium.isVanillaPath()) {
-            return;
-        }
-        ClientHooks.beginFrame();
-    }
-
-    @Inject(method = {"renderLevel(float, boolean)"}, at = @At("TAIL"), require = 0, expect = 0)
-    private void aetherium$endFrameAlt(final float tickDelta, final boolean renderParticles, final CallbackInfo ci) {
-        if (Aetherium.isVanillaPath()) {
-            return;
-        }
-        ClientHooks.endFrame(framebufferWidth(), framebufferHeight());
-    }
+    // There is deliberately no second pair of injections for an "alternate renderLevel overload".
+    // One was written here with `method = {"renderLevel(float, boolean)"}` and the Mixin annotation
+    // processor rejected it on 2026-10-06: a target descriptor must be JVM form (`name(DF)J`), not
+    // prose. The claim it rested on - that 1.21.1 has a `renderLevel(float, boolean)` for a
+    // fancy/fast cloud split - was invented from the name of a cloud setting, and even with a legal
+    // descriptor the handler would have failed at apply time, because a handler's arguments must
+    // match the target it chose. `method = {"renderLevel"}` above already matches every overload.
 
     /**
      * Framebuffer size at the end of the level pass. Read from the window rather

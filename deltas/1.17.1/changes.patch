@@ -57,6 +57,36 @@ index 16f9e50..5a02730 100644
  @Mixin(Gui.class)
  public abstract class GuiMixin {
  
+diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
+index 8daae46..20b08e2 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
+@@ -3,7 +3,7 @@ package com.aetherium.mixin.core;
+ import com.aetherium.Aetherium;
+ import com.aetherium.config.AetheriumConfig;
+ import com.aetherium.gui.AetheriumVideoOptionsScreen;
+-import net.minecraft.client.gui.components.CycleButton;
++import net.minecraft.client.gui.components.CycleButtonWidget;
+ import net.minecraft.client.gui.screens.Screen;
+ import net.minecraft.client.gui.screens.options.OptionsScreen;
+ import org.spongepowered.asm.mixin.Mixin;
+@@ -85,14 +85,14 @@ public abstract class OptionsScreenMixin extends Screen {
+ 
+     /**
+      * Vanilla's own video-settings screen is built from a list of
+-     * {@link CycleButton}s; recording how many we saw is how the Advanced tab
++     * {@link CycleButtonWidget}s; recording how many we saw is how the Advanced tab
+      * reports "the hijack worked" versus "the fallback is in use".
+      */
+     @Inject(method = "init(Lnet/minecraft/client/gui/screens/Screen;)V", at = @At("HEAD"), require = 0, expect = 0)
+     private void aetherium$countVanillaControls(final Screen previous, final CallbackInfo ci) {
+         int cycles = 0;
+         for (final var child : ((Screen) (Object) this).children()) {
+-            if (child instanceof CycleButton<?>) {
++            if (child instanceof CycleButtonWidget) {
+                 cycles++;
+             }
+         }
 diff --git a/gradle.properties b/gradle.properties
 index bc3b902..614ba28 100644
 --- a/gradle.properties
