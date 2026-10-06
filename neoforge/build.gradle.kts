@@ -26,10 +26,12 @@ sourceSets {
     }
 }
 
-    // [UNVERIFIED: the ModDev DSL surface used here (neoForge { version, parchment, runs, mods,
-//     unitTest }) for plugin version 2.0.141. Names are read from the pinned NeoForge and
-//     Embeddium build scripts of the same era; a DSL rename is a configuration error that the
-//     first `./gradlew help` on a real machine will name precisely.]
+// The ModDev 2.0.141 DSL surface used here (neoForge { version, parchment, runs, mods }) was a
+// marked uncertainty until 2026-10-06, when CI's script compilation resolved every call: the names
+// and signatures exist as written. What stays unverified is what they *do* (parchment output,
+// run-config wiring) - that needs a real client launch. One call was removed on the same evidence:
+// `unitTest { enabled = ... }` is not this plugin's surface, and it failed script compilation,
+// which takes down every task in the build, not just the tests nobody would have run here.
 neoForge {
     version = project.property("neoforge_version").toString()
 
@@ -67,6 +69,17 @@ neoForge {
 
 repositories {
     mavenLocal()
+}
+
+// A resolvable view over `implementation`. NeoForge has no jar-in-jar for the mod's own
+// dependencies, so MixinExtras is unpacked into this jar (as Embeddium does) - and reading a
+// declarable-only configuration directly is an illegal call, so this is the configuration that is
+// allowed to resolve. Created before `dependencies` below so the extendsFrom edge exists first.
+val embeddable = configurations.create("embeddableRuntime") {
+    extendsFrom(configurations.getByName("implementation"))
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    description = "Files unpacked into the neoforge jar (MixinExtras only); see tasks.withType<Jar>."
 }
 
 dependencies {
@@ -115,11 +128,11 @@ fun nextMinor(v: String): String {
 tasks.withType<Jar> {
     // Embed MixinExtras exactly like Embeddium does; NeoForge has no jar-in-jar
     // for the "mod" configuration the way Fabric's `include` does.
-    // `from({ ... })` would pass a Kotlin lambda where Gradle expects a Closure/Provider and
-    // silently copy nothing. A Provider over the filtered files resolves lazily at execution,
-    // which is also why this does not force the configuration to resolve during configuration.
-    from(configurations.named("implementation").map { cfg ->
-        cfg.copy().files.filter { f -> f.name.contains("mixinextras") }.map { f -> zipTree(f) }
+    // `elements` (not `.files`, not `.copy()`) so nothing resolves during configuration. CI named
+    // the earlier form: "Calling configuration method 'copy()' is not allowed for configuration
+    // 'implementation'" - it is declarable-only, hence the resolvable view declared above.
+    from(embeddable.elements.map { files ->
+        files.filter { f -> f.name.contains("mixinextras") }.map { f -> zipTree(f) }
     })
     manifest {
         attributes(

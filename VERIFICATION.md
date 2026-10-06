@@ -30,7 +30,7 @@ Modules: `common` (engine + GUI + mixins, no loader dependency), `fabric`, `neof
 
 ```
 $ python3 tools/check.py
-Aetherium check: clean (180 files, 20 [UNVERIFIED] marks, 180 text files parsed)
+Aetherium check: clean (180 files, 19 [UNVERIFIED] marks, 180 text files parsed)
 
 $ python3 tools/check_refs.py .
 Aetherium reference check: clean (71 files, 122 types)
@@ -124,7 +124,6 @@ mention of the convention. Each entry: what is uncertain, and what happens if it
 | `neoforge/…/NeoForgePlatformAdapter.java:90` | `net.neoforged.neoforge.internal.versions.neoforge.NeoForgeVersion#mcVersion` vs `…common.NeoForgeVersion` | version lookup returns "unknown"; nothing else depends on it |
 | `neoforge/…/NeoForgePlatformAdapter.java:94` | `net.neoforged.fml.loading.FMLEnvironment#dist` as the client/server test | `isClient()` wrong → the mod could attempt to initialise on a dedicated server; it early-returns on the missing GL context instead |
 | `neoforge/…/NeoForgePlatformAdapter.java:96` | `FMLPaths.GAME_DIRECTORY` / `CONFIG_DIRECTORY` and `ModList#get().getModContainerById` shapes | config lands in the wrong directory on NeoForge only; Fabric unaffected |
-| `neoforge/build.gradle.kts:29` | the ModDev 2.0.141 DSL surface (`neoForge { version, parchment, runs, mods, unitTest }`) | a configuration error naming the exact DSL line on the first `./gradlew help` |
 
 ### Generated and documentation
 
@@ -186,6 +185,9 @@ reviewer should look for next:
    `if` — so the first CI run failed the whole build. The `[UNVERIFIED]` count dropped to 20 when
    the two calls were deleted: a mark on a build script is not the same kind of mark as one on a
    Java file, because a script is compiled even when its output is never executed.
+   The same run retired the module's other build-script mark: the ModDev DSL surface
+   (`neoForge { version, parchment, runs, mods }`) compiled clean, which proves the names and
+   signatures and says nothing about behaviour. Script compilation is a name checker with extras.
 10. **Build scripts written in the wrong DSL dialect.** Three Kotlin DSL violations, each invisible
     to every local check: `java-library` bare (parses as subtraction), `id("…") version
     (project.property("…"))` (a `plugins {}` block is extracted before `project` exists), and
