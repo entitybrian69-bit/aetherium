@@ -266,3 +266,58 @@ startup failure so you can see all of it at once.
 - No entity/block-renderer-level mixin (the brief's "entity+block renderers" is met at the
   `LevelRenderer`/light/Gui level plus the mesher path); making it richer is the natural next
   feature and would need its own marks.
+
+## 9. The first compile report (CI run 37490046457, `:common:compileJava`)
+
+Every defect in §5 items 9-12 was a *build-script* or *tooling* problem, so this is the first list
+about the Java itself. 24 errors, 10 files, and they fall into three groups with three different
+remedies. They are recorded here verbatim (path:line + javac's message) because the CI log they came
+from is only readable to someone with a browser, and the sandbox that writes this file has no
+compiler at all.
+
+```
+common/src/main/java/com/aetherium/lighting/DynamicLightEngine.java:297: error: incompatible types: possible lossy conversion from float to long
+common/src/main/java/com/aetherium/config/AetheriumConfig.java:184: error: incompatible types: Object cannot be converted to CAP#1
+common/src/main/java/com/aetherium/android/AndroidEnvironment.java:99: error: cannot find symbol
+common/src/main/java/com/aetherium/android/AndroidEnvironment.java:130: error: cannot find symbol
+common/src/main/java/com/aetherium/android/AndroidEnvironment.java:200: error: Alternatives in a multi-catch statement cannot be related by subclassing
+common/src/main/java/com/aetherium/android/AndroidEnvironment.java:417: error: cannot find symbol
+common/src/main/java/com/aetherium/android/AndroidEnvironment.java:418: error: cannot find symbol
+common/src/main/java/com/aetherium/android/AndroidEnvironment.java:420: error: cannot find symbol
+common/src/main/java/com/aetherium/android/AndroidEnvironment.java:425: error: cannot find symbol
+common/src/main/java/com/aetherium/config/ConfigValue.java:208: error: incompatible types: Object cannot be converted to T
+common/src/main/java/com/aetherium/render/gl/GlDevice.java:163: error: method submit in class GlIndirectBatch cannot be applied to given types;
+common/src/main/java/com/aetherium/render/hzb/HierarchicalDepthBuffer.java:176: error: cannot find symbol
+common/src/main/java/com/aetherium/render/hzb/HierarchicalDepthBuffer.java:185: error: cannot find symbol
+common/src/main/java/com/aetherium/render/hzb/HierarchicalDepthBuffer.java:221: error: cannot find symbol
+common/src/main/java/com/aetherium/render/hzb/HierarchicalDepthBuffer.java:232: error: cannot find symbol
+common/src/main/java/com/aetherium/render/hzb/HierarchicalDepthBuffer.java:233: error: cannot find symbol
+common/src/main/java/com/aetherium/render/hzb/HierarchicalDepthBuffer.java:294: error: cannot find symbol
+common/src/main/java/com/aetherium/hud/BenchmarkRecorder.java:189: error: cannot find symbol
+common/src/main/java/com/aetherium/gamma/LightmapWriter.java:240: error: cannot find symbol
+common/src/main/java/com/aetherium/render/mesh/ChunkMeshScheduler.java:243: error: incompatible types: Throwable cannot be converted to RuntimeException
+common/src/main/java/com/aetherium/render/gl/GlProcs.java:300: error: cannot find symbol
+common/src/main/java/com/aetherium/render/gl/GlProcs.java:304: error: no suitable method found for glNamedBufferData(int,long,long,int)
+common/src/main/java/com/aetherium/render/gl/GlProcs.java:308: error: incompatible types: ByteBuffer cannot be converted to long
+common/src/main/java/com/aetherium/render/gl/GlProcs.java:321: error: incompatible types: By
+```
+
+The annotation that produced this list is capped at 60 matching lines, so it is a truncation of the
+run's full output, not a complete inventory: treat the last entry as cut off mid-word (it is) and
+re-run `./gradlew :common:compileJava` for the authoritative list.
+
+| group | files | what it needs |
+| --- | --- | --- |
+| **Plain Java errors** | `DynamicLightEngine:297` (float→long, lossy), `ConfigValue:208` + `AetheriumConfig:184` (generics: `Object`→`T`/`CAP#1`), `ChunkMeshScheduler:243` (`Throwable`→`RuntimeException`), `AndroidEnvironment:200` (multi-catch with two types related by subclassing — illegal Java, my bug, no external source needed) | five one-line fixes; each is a cast, a wildcard, or splitting a `catch`. Nothing here is a Minecraft or LWJGL API question, so a human can fix all five without any lookup. |
+| **LWJGL entry points** | `GlProcs:300,304,308,321` (`glNamedBufferData(int,long,long,int)` — no such overload; `ByteBuffer`→`long`), `GlDevice:163` (`GlIndirectBatch#submit` arity) | the real signatures from the pinned jar, not from memory. `lwjgl-opengl-3.3.3.jar` + `lwjgl-3.3.3.jar` from `repo1.maven.org` (links and sizes in docs/BUILD_PINS.md) and `javap -cp … org.lwjgl.opengl.GL45C` answers each one in seconds. This is the §5 "fabricated signature" class showing up where the marks already said it would (DSA, indirect, named buffers). |
+| **Unresolved symbols** | `AndroidEnvironment:99,130,417,418,420,425`, `HierarchicalDepthBuffer:176,185,221,232,233,294`, `BenchmarkRecorder:189`, `LightmapWriter:240` | each needs its import or its constant checked. `HierarchicalDepthBuffer` is the `GL_ARB_parallel_shader_compile` / `GL_QUERY_BUFFER` / image-store path — the same file whose capability gate reads `GL_COMPLETION_STATUS_ARB`; six errors in one file usually means one wrong import or a constant name, not six wrong facts. `LightmapWriter:240` is the field-name guess the mark at `:139` already flagged. |
+
+What this list does **not** say: nothing here contradicts the engine's structure. `:common:compileJava`
+got as far as reporting per-file errors in 10 of 53 files, which means the other 43 parsed and
+resolved; the mixin annotation processor ran (its `Invalid descriptor` error above is an AP error, not
+a javac one), and the mapping layer is right — no error was "class GameRenderer not found". The two
+loader shells never got to compile at all, because `:fabric:compileJava` and `:neoforge:compileJava`
+depend on the same `common` sources; the CycleButton fix in §5 item 12 is theirs.
+
+Order of work, cheapest signal first: the five plain-Java fixes, then `javap` against the pinned LWJGL
+jars for the four `GlProcs` sites, then re-run and take the next list.
