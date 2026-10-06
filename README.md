@@ -66,10 +66,10 @@ Drop `aetherium-fabric-<version>.jar` (or `aetherium-neoforge-<version>.jar`) in
 the manifest says `"environment": "client"`, and there is no server component to install.
 
 Recommended pairs: **Iris** (shaders) and nothing else. Remove Sodium, Embeddium,
-Radium/Magnesium, VulkanMod, OptiFine/OptiFabric — Aetherium detects them at startup,
-explains the conflict on a warning screen, delegates overlapping features, and refuses to
-hook rendering where two renderers cannot coexist. Details:
-[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+Radium/Magnesium, VulkanMod, OptiFine/OptiFabric — Aetherium detects them at startup, prints a
+one-line notice in the top-right HUD under the backend tag (`general.notify_conflicts`),
+delegates overlapping features, and refuses to hook rendering where two renderers cannot
+coexist. Details: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
 ## Build
 
@@ -89,6 +89,14 @@ for the Minecraft/Loom mappings. Versions are pinned exactly in `gradle.properti
 
 Offline builds: `tools/build_all.sh --offline` runs every check that needs no network
 (parsers, cross-references, config/JSON validity, and applying all 32 delta patches).
+
+There is no published download. A push to `main` runs `.github/workflows/build.yml`, whose last
+job attaches `aetherium-fabric-*.jar` and `aetherium-neoforge-*.jar` (plus `unverified.txt`) to a
+**draft** release tagged `v<mod_version>+<minecraft_version>` — `v0.1.0+1.21.1` today. It stays a
+draft on purpose: CI proves the code compiles and its tests pass, not that a GPU likes it. Publish
+with `gh release edit <tag> --draft=false` after you have run it once, or build it yourself from
+the commands above. The jar links for everything this build *needs* are in
+[docs/BUILD_PINS.md](docs/BUILD_PINS.md#the-jars-what-exists-and-what-you-download).
 
 ## Porting to another Minecraft version
 

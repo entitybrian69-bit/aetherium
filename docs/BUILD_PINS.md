@@ -137,6 +137,13 @@ gradle wrapper --gradle-version 9.4.1
 ./gradlew build
 ```
 
+A push to `main` is the one path to a real download link: the `build` workflow compiles on
+ubuntu/windows/macos and its `draft-release` job uploads the two loader jars plus `unverified.txt`
+to a draft release named after these pins (`v0.1.0+1.21.1`). The jar upload uses
+`if-no-files-found: error`, so a run that produced nothing cannot quietly publish an empty release,
+and the draft stays unpublished until a human has run the jar. Branches and pull requests build and
+test but never publish.
+
 ## Changing a pin
 
 1. Edit `tools/porting_pins.json` (the source of truth for all 33 rows), not

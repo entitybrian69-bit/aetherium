@@ -159,7 +159,7 @@ final class ModConflictScannerTest {
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "entityculling"));
         scanner.scan(config);
         assertTrue(config.entityCulling.get(), "the user said no automatic changes, so none may happen");
-        assertTrue(scanner.hasAnything(), "but the report must still be there for the warning screen");
+        assertTrue(scanner.hasAnything(), "but the report must still be there for the HUD notice");
     }
 
     @Test
@@ -205,7 +205,7 @@ final class ModConflictScannerTest {
     @Test
     @DisplayName("every row that matched carries display name, advice and severity")
     void matchedRowsAreComplete() {
-        // A row without advice is a warning screen that tells the user nothing, so every
+        // A row without advice is a HUD notice that tells the user nothing, so every
         // detection path is checked for the fields the GUI renders from.
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "sodium"));
         scanner.scan(AetheriumConfig.createDefaults());

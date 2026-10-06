@@ -7,6 +7,10 @@ name: build
 #   4. a port of the same source to another version still parses (matrix rows).
 # Steps 1 and 4 run without a Mojang download, so a fork with no network secrets
 # still gets a useful signal.
+#
+# Step 5 (draft-release) is the only place a downloadable .jar comes from. It
+# runs on `main` alone, and it can only ever attach jars this run actually built
+# - `if-no-files-found: error` means a green run with no artifacts is impossible.
 
 on:
   push:
@@ -77,13 +81,18 @@ jobs:
         run: ./gradlew --no-daemon :common:build :fabric:build :neoforge:build
       - name: verifyAll (tests + tree checks)
         run: ./gradlew --no-daemon verifyAll
+      # Only the two loader jars: aetherium-common-*.jar is an intermediate whose
+      # mixin refmap is not remapped, so installing it would do nothing useful.
+      - name: what got built
+        shell: bash
+        run: ls -l fabric/build/libs/ neoforge/build/libs/
       - uses: actions/upload-artifact@v4
         with:
           name: jars-${{ matrix.os }}
           path: |
             fabric/build/libs/*.jar
             neoforge/build/libs/*.jar
-          if-no-files-found: warn
+          if-no-files-found: error
 
   ports:
     name: port check ${{ matrix.version }}
@@ -105,3 +114,79 @@ jobs:
           sh tools/port.sh --dry-run ${{ matrix.version }}
           python3 tools/check_refs.py .
           python3 tools/check.py
+
+  # The jars are byte-identical loaders-side regardless of the OS that built them,
+  # so one matrix leg's output is enough for the release; the other legs exist to
+  # prove the build is not Linux-only. Windows/macOS artifacts stay on the run page.
+  draft-release:
+    name: draft release with the jars
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [offline, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: jars-ubuntu-latest
+          path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: unverified-claims
+          path: dist
+        continue-on-error: true
+      - name: publish the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mod=$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')
+          mc=$(sed -n 's/^minecraft_version=//p' gradle.properties | tr -d '[:space:]')
+          tag="v$mod+$mc"
+          assets=$(find dist -maxdepth 1 -type f | sort | tr '\n' ' ')
+          case " $assets " in
+            *\.jar*) ;;
+            *) echo 'no .jar in dist/ - refusing to publish an empty release' >&2; exit 1 ;;
+          esac
+          marks=$(python3 tools/check.py --json | head -1 |
+            sed -n 's/.*"unverified": *\([0-9]*\).*/\1/p')
+          marks=${marks:-unknown}
+          # The notes are written with a quoted heredoc so backticks stay literal,
+          # then the placeholders are substituted - unquoted heredocs would run
+          # every `word` in the text as a command substitution.
+          cat > notes.md <<'EOF'
+          Built by this run of CI from a push to `main`. Left **draft** on purpose: nothing here
+          promises the mod runs.
+
+          * Minecraft @MC@, loader shells for Fabric and NeoForge, mod version `@MOD@`.
+          * What CI establishes: it compiles against real @MC@ mappings, the unit tests pass,
+            checkstyle and the tree checks pass. What it does not: **no GPU was ever attached**,
+            so every GL call in these jars is unexercised.
+          * @MARKS@ `[UNVERIFIED]` marks remain in the source; each one names its own failure mode
+            (VERIFICATION.md), and the raw list is attached as `unverified.txt`.
+          * Install one jar into `mods/`. Fabric additionally needs Fabric API; NeoForge needs
+            nothing extra.
+          * There is no full replacement renderer in here. `advanced.experimental_full_renderer`
+            logs an error and disables itself - that is the shipped behaviour, not a bug.
+          * For other Minecraft versions there is no jar: apply `deltas/<version>/changes.patch`
+            and build (see PORTING_MATRIX.md).
+          EOF
+          sed -i "s|@MC@|$mc|g; s|@MOD@|$mod|g; s|@MARKS@|$marks|g" notes.md
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=true --notes-file notes.md
+            gh release upload "$tag" --repo "$GITHUB_REPOSITORY" --clobber $assets
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft=true \
+              --target "$GITHUB_SHA" --title "Aetherium $mod (Minecraft $mc)" \
+              --notes-file notes.md $assets
+          fi
+          {
+            echo "### Draft release \`$tag\`"
+            echo
+            echo "Publish it once you have run this jar on a real client: \`gh release edit $tag --draft=false\`"
+            for f in $assets; do
+              echo "- \`$(basename "$f")\` - $(stat -c%s "$f") bytes"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
