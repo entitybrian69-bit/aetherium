@@ -4,7 +4,7 @@
 plugins {
     java
     checkstyle
-    id("fabric-loom") version (project.property("fabric_loom_version").toString())
+    alias(libs.plugins.fabric.loom)   // version: gradle/libs.versions.toml, see check.py
 }
 
 base {

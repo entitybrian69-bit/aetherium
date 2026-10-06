@@ -241,6 +241,41 @@ def main() -> int:
             problems.append(f"gradle.properties does not declare '{name}', used by "
                             + ", ".join(sorted(where)))
 
+    # -- Kotlin DSL: a plugins {} block cannot read project properties -------------
+    # Gradle extracts the plugins {} block and evaluates it before `project` exists, so
+    # `id("x") version (project.property("v").toString())` is a compile error, not a
+    # configuration one. It cost a CI cycle on 2026-10-06; it does not get another.
+    for path, text in texts.items():
+        if not path.endswith(".gradle.kts"):
+            continue
+        for block in re.findall(r"\nplugins \{\n(.*?)\n\}", text, re.S):
+            # Comments inside the block explain the rule to whoever edits it next, so the rule
+            # has to ignore them - matching prose about project.property() would flag the fix.
+            code = re.sub(r"/\*.*?\*/", "", re.sub(r"//[^\n]*", "", block), flags=re.S)
+            if re.search(r"project\.property\(|settings\.|gradle\.startParameter", code):
+                problems.append(
+                    f"{rel(root, path)}: plugins {{}} must not read project properties (the block is "
+                    "extracted before `project` exists) - pin the version in gradle/libs.versions.toml "
+                    "and use alias(libs.plugins.…)")
+
+    # -- the catalog and gradle.properties must agree on the loader plugin versions --
+    # gradle.properties is what the deltas rewrite; the catalog is what the build applies.
+    catalog_path = os.path.join(root, "gradle", "libs.versions.toml")
+    if os.path.exists(catalog_path) and os.path.exists(props_path):
+        catalog = open(catalog_path, encoding="utf-8").read()
+        props_text = open(props_path, encoding="utf-8").read()
+        for prop, key in (("fabric_loom_version", "loom"), ("neoforge_moddev_version", "moddev")):
+            want = re.search(rf"^{re.escape(prop)}\s*=\s*(\S+)", props_text, re.M)
+            got = re.search(rf'^{key}\s*=\s*"([^"]+)"', catalog, re.M)
+            if not want or not got:
+                problems.append(f"gradle/libs.versions.toml: needs a '{key}' version and "
+                                f"gradle.properties needs '{prop}' - the build applies the catalog "
+                                "value, the deltas rewrite the property")
+            elif want.group(1) != got.group(1):
+                problems.append(f"gradle/libs.versions.toml {key}=\"{got.group(1)}\" but "
+                                f"gradle.properties {prop}={want.group(1)} - bump both together "
+                                "(check.py treats the property as the one that is right)")
+
     # -- settings.gradle includes vs. directories --------------------------------
     settings_path = os.path.join(root, "settings.gradle.kts")
     if os.path.exists(settings_path):

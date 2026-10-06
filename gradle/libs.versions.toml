@@ -1,9 +1,16 @@
-# Version catalog. Single source of truth for the *tooling* plugins so that
-# deltas only ever have to touch gradle.properties (mechanical, low-risk).
+# Version catalog. Single source of truth for the plugin *versions the build applies*,
+# because a Kotlin DSL plugins {} block is extracted and evaluated before `project` exists
+# and cannot read gradle.properties. The two loader-plugin versions are therefore repeated
+# here as the pinned values; tools/check.py fails if they stop matching gradle.properties,
+# which is the file the porting deltas rewrite.
 [versions]
+loom = "1.16.1"
+moddev = "2.0.141"
 checkstyle = "10.20.1"
 junit = "5.11.4"
 gitversion = "1.0.0"
 
 [plugins]
+fabric-loom = { id = "fabric-loom", version.ref = "loom" }
+neoforge-moddev = { id = "net.neoforged.moddev", version.ref = "moddev" }
 gitversion = { id = "com.palantir.git-version", version.ref = "gitversion" }

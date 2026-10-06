@@ -98,10 +98,16 @@ they are generated and `--check` will fail your build.
 You do not hand-edit `deltas/`. The matrix in `PORTING_MATRIX.md` is the input, and:
 
 ```sh
-sh tools/port.sh 1.20.6            # writes deltas/1.20.6/changes.patch and applies it
-python3 tools/gen_deltas.py 1.20.6 # regenerate from the matrix (mechanical only)
+sh tools/port.sh --regen 1.20.6    # rebuild the patch from tools/porting_pins.json
+sh tools/port.sh 1.20.6            # apply deltas/1.20.6/changes.patch to a clean tree
+sh tools/port.sh --dry-run 1.20.6  # apply to a throwaway copy and check it there instead
 sh tools/verify.sh 1.20.6          # syntax + reference check on the patched tree
 ```
+
+A delta rewrites `gradle.properties`. The loader plugin versions are **also** pinned in
+`gradle/libs.versions.toml`, because a Kotlin DSL `plugins {}` block is evaluated before
+`project` exists and cannot read a property - so bump `loom` / `moddev` there too, or
+`tools/check.py` fails with the mismatch named. One ported tree, two files, one rule.
 
 Rules for a delta: it may change **tokens** (method names, descriptors, mixin ids,
 version ranges, mapping channel) and it may add a version-specific target name to a

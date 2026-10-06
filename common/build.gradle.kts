@@ -2,9 +2,14 @@
 // against Mojang mappings with NO loader dependency, which is what makes the
 // per-version deltas mechanical (see tools/port.sh).
 plugins {
-    java-library
+    // Backticks are required: `java-library` is a hyphenated accessor, and bare
+    // java-library parses as subtraction (CI said: Unresolved reference 'minus').
+    `java-library`
     checkstyle
-    id("fabric-loom") version (project.property("fabric_loom_version").toString())
+    // A plugins {} block in a build script is extracted and evaluated before `project`
+    // exists, so project.property() there is a compile error. The version is pinned in the
+    // catalog, which check.py keeps equal to fabric_loom_version in gradle.properties.
+    alias(libs.plugins.fabric.loom)
 }
 
 base {

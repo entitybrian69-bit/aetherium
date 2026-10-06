@@ -3,7 +3,7 @@
 plugins {
     java
     checkstyle
-    id("net.neoforged.moddev") version (project.property("neoforge_moddev_version").toString())
+    alias(libs.plugins.neoforge.moddev)   // version: gradle/libs.versions.toml, see check.py
 }
 
 base {
