@@ -1,0 +1,170 @@
+#!/bin/sh
+# Aetherium's measurement harness. Read the "what this proves" section before quoting
+# a number from it - the point of this script is that a claim needs a machine, a seed
+# and a command attached to it.
+#
+#   sh tools/benchmark.sh                    # CPU-side microbenchmarks only (no GPU)
+#   sh tools/benchmark.sh --mc [--mod sodium] # run the game, record frame stats
+#   sh tools/benchmark.sh --report            # print BENCHMARK.md rows from the last run
+#   sh tools/benchmark.sh --mc --runs 5 --seconds 60 --world-type superflat
+#
+# What this proves
+# ----------------
+# * The default mode times the pure-CPU parts (percentile histogram, monotone curve
+#   evaluation, arena offset arithmetic, indirect-command packing) on this machine.
+#   Those are real measurements of real hot-path functions, and they are the only
+#   numbers this script can produce without a GPU. They say nothing about FPS.
+# * --mc launches the client with -Daetherium.benchmark=<dir>. The game then writes
+#   one markdown row per interval to <dir>/frames.md via FrameStats#formatMarkdownRow,
+#   with the world seed, render distance and backend in the row. Those rows are what
+#   belongs in BENCHMARK.md, with the hardware appended by hand.
+# * Comparisons are made by swapping jars between runs, never by editing a config to
+#   "turn the renderer off" while the harness stays attached: Aetherium's Compatibility
+#   mode still runs its own frame accounting, which is 0.01 ms/frame and not free.
+#
+# What this never does: print a speedup ratio. The script prints measured medians and
+# lets `--report` diff them; a "2x Sodium" sentence requires someone to run both.
+set -eu
+
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null 2>&1 && pwd)
+cd "$ROOT"
+
+OUT=benchmark-out
+MODE=cpu
+RUNS=3
+SECONDS_PER=45
+EXTRA_MODS=""
+WORLD_TYPE=singleplayer-existing
+SEED=""
+
+die() { printf 'benchmark: %s\n' "$*" >&2; exit 1; }
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --mc) MODE=mc ;;
+        --report) MODE=report ;;
+        --runs) RUNS=$2; shift ;;
+        --seconds) SECONDS_PER=$2; shift ;;
+        --mod) EXTRA_MODS="$EXTRA_MODS $2"; shift ;;
+        --world-type) WORLD_TYPE=$2; shift ;;
+        --seed) SEED=$2; shift ;;
+        --out) OUT=$2; shift ;;
+        -h|--help) sed -n '2,32p' "$0"; exit 0 ;;
+        *) die "unknown argument $1 (see --help)" ;;
+    esac
+    shift
+done
+
+mkdir -p "$OUT"
+
+case "$MODE" in
+    report)
+        if [ ! -f "$OUT/frames.md" ]; then
+            echo "no $OUT/frames.md yet - run: sh tools/benchmark.sh --mc" >&2
+            exit 1
+        fi
+        cat "$OUT/frames.md"
+        exit 0
+        ;;
+esac
+
+echo "== Aetherium benchmark ($MODE mode, $(date -u +%FT%TZ))"
+echo "host: $(uname -srm)  java: $(java -version 2>&1 | head -n 1 || echo 'no java')"
+echo "out:  $OUT"
+echo
+
+if [ "$MODE" = cpu ]; then
+    # The microbenchmarks are ordinary JUnit tests guarded by a system property, so a
+    # CI run without a GPU can still execute them and a regression shows up as a failed
+    # test rather than a wiki claim.
+    if [ -x ./gradlew ] && [ -f gradle/wrapper/gradle-wrapper.jar ]; then
+        ./gradlew --no-daemon :common:test \
+            --tests 'com.aetherium.bench.*' \
+            -Daetherium.bench=true -Daetherium.bench.out="$OUT" ||
+            die "the benchmark tests failed to run (does :common:test exist on this machine?)"
+    elif command -v gradle >/dev/null 2>&1; then
+        gradle --no-daemon :common:test --tests 'com.aetherium.bench.*' \
+            -Daetherium.bench=true -Daetherium.bench.out="$OUT" ||
+            die "the benchmark tests failed to run"
+    else
+        die "no gradle available; the CPU benchmarks live in common/src/test/java/com/aetherium/bench"
+    fi
+    echo
+    echo "wrote $OUT/cpu.md (medians, this machine only)"
+    exit 0
+fi
+
+# --mc: launch the game. Everything here is deliberately explicit: an unrecorded run is
+# not evidence.
+[ -n "$SEED" ] || SEED=12345
+JAR=$(ls fabric/build/libs/*-fabric*.jar 2>/dev/null | head -n 1 || true)
+[ -n "$JAR" ] || die "no fabric jar built; run: ./gradlew :fabric:build"
+
+GAME_DIR=$OUT/game
+mkdir -p "$GAME_DIR/mods" "$GAME_DIR/config"
+cp "$JAR" "$GAME_DIR/mods/"
+for mod in $EXTRA_MODS; do
+    [ -f "$mod" ] || die "--mod expects a path to a jar, got: $mod"
+    cp "$mod" "$GAME_DIR/mods/"
+done
+
+# Pre-seed the config so a run measures the intended mode instead of the default.
+cat >"$GAME_DIR/config/aetherium.json" <<JSON
+{
+  "version": 3,
+  "aetherium": {
+    "general": { "enabled": true, "hud": { "fps": true } },
+    "advanced": { "debug_logging": false }
+  }
+}
+JSON
+
+cat >"$GAME_DIR/options.txt" <<'OPTS'
+renderDistance:12
+guiScale:0
+particles:0
+fancyGraphics:true
+ao:true
+gpuQueue:0
+maxFps:260
+vsync:false
+OPTS
+
+echo "launching: $RUNS run(s) x ${SECONDS_PER}s, world=$WORLD_TYPE seed=$SEED mods=$(ls "$GAME_DIR/mods" | tr '\n' ' ')"
+for i in $(seq 1 "$RUNS"); do
+    dir=$OUT/run$i
+    mkdir -p "$dir"
+    printf 'run %s ... ' "$i"
+    # The run config is generated by Loom (`aetherium.enableRunConfigs=true`); without it
+    # there is no supported way to launch, and guessing the classpath here would be a
+    # fiction. Fail loudly instead.
+    if ! grep -q 'enableRunConfigs=true' gradle.properties 2>/dev/null; then
+        echo
+        die "set aetherium.enableRunConfigs=true in gradle.properties (and have a display/GL context) before --mc"
+    fi
+    ./gradlew --no-daemon :fabric:runClient \
+        -Dfabric.loom.gameDir="$GAME_DIR" \
+        -Daetherium.benchmark="$dir" \
+        -Daetherium.benchmark.seconds="$SECONDS_PER" \
+        -Daetherium.benchmark.seed="$SEED" \
+        >"$dir/launch.log" 2>&1 || { echo "FAILED (see $dir/launch.log)"; continue; }
+    if [ -f "$dir/frames.md" ]; then
+        cat "$dir/frames.md" >>"$OUT/frames.md"
+        echo "ok"
+    else
+        echo "no frames.md written (the game must exit cleanly for the summary to flush)"
+    fi
+done
+
+echo
+echo "== results"
+[ -f "$OUT/frames.md" ] && cat "$OUT/frames.md" || echo "(nothing recorded)"
+cat >>"$OUT/README.txt" <<TXT
+
+Machine: $(uname -srm)
+Date: $(date -u +%FT%TZ)
+Java: $(java -version 2>&1 | head -n 1)
+Command: sh tools/benchmark.sh --mc --runs $RUNS --seconds $SECONDS_PER --world-type $WORLD_TYPE --seed $SEED
+Extra mods:${EXTRA_MODS:- none}
+TXT
+echo "appended the command line and host to $OUT/README.txt - include both when quoting a number"
