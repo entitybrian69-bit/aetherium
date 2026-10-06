@@ -57,9 +57,12 @@ neoForge {
         }
     }
 
-    unitTest {
-        enabled = true
-    }
+    // No `unitTest { }` block. ModDev 2.0.141's DSL surface here is not verified from source, and
+    // CI proved it matters: `unitTest { enabled = true }` failed *script compilation*, which takes
+    // down every task in the build, not just the tests someone would have run. There are no test
+    // sources in this module at all (14 test classes live in :common, which owns the test task), so
+    // the block bought nothing and cost the whole build. Re-add it only with the property name read
+    // out of the pinned plugin's own docs or source.
 }
 
 repositories {
@@ -81,18 +84,18 @@ dependencies {
 // `tasks.processResources` keeps the typed ProcessResources receiver, so filesMatching/expand work.
 tasks.processResources {
     val props = mapOf(
-        "version" to project.property("mod_version"),
-        "minecraft_version" to project.property("minecraft_version"),
-        "neoforge_version" to project.property("neoforge_version"),
+        "version" to project.property("mod_version").toString(),
+        "minecraft_version" to project.property("minecraft_version").toString(),
+        "neoforge_version" to project.property("neoforge_version").toString(),
         "loader_version_range" to "[4,)",
         "minecraft_version_range" to "[${project.property("minecraft_version")},${nextMinor(project.property("minecraft_version").toString())})",
-        "mod_id" to project.property("mod_id"),
-        "mod_name" to project.property("mod_name"),
-        "mod_description" to project.property("mod_description"),
-        "mod_homepage" to project.property("mod_homepage"),
-        "mod_sources" to project.property("mod_sources"),
-        "mod_issue_tracker" to project.property("mod_issue_tracker"),
-        "mod_license" to project.property("mod_license"),
+        "mod_id" to project.property("mod_id").toString(),
+        "mod_name" to project.property("mod_name").toString(),
+        "mod_description" to project.property("mod_description").toString(),
+        "mod_homepage" to project.property("mod_homepage").toString(),
+        "mod_sources" to project.property("mod_sources").toString(),
+        "mod_issue_tracker" to project.property("mod_issue_tracker").toString(),
+        "mod_license" to project.property("mod_license").toString(),
     )
     filesMatching("META-INF/neoforge.mods.toml") {
         expand(props)
@@ -120,9 +123,9 @@ tasks.withType<Jar> {
     })
     manifest {
         attributes(
-            "Specification-Title" to project.property("mod_id"),
-            "Implementation-Title" to project.property("mod_name"),
-            "Implementation-Version" to project.property("mod_version"),
+            "Specification-Title" to project.property("mod_id").toString(),
+            "Implementation-Title" to project.property("mod_name").toString(),
+            "Implementation-Version" to project.property("mod_version").toString(),
         )
     }
 }
