@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "Aetherium contributors"
+  ],
+  "contact": {
+    "homepage": "${mod_homepage}",
+    "sources": "${mod_sources}",
+    "issues": "${mod_issue_tracker}"
+  },
+  "license": "${mod_license}",
+  "icon": "assets/aetherium/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.aetherium.fabric.AetheriumFabric"
+    ]
+  },
+  "mixins": [
+    "aetherium-common.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": ">=${minecraft_version}"
+  },
+  "suggests": {
+    "iris": "*"
+  },
+  "_comment": [
+    "No `breaks` block on purpose: Aetherium degrades instead of refusing to start.",
+    "ModConflictScanner detects Sodium, Embeddium, VulkanMod, Rendr and Oculus and delegates the overlapping feature off, which keeps a modpack launchable.",
+    "Declaring them broken would turn a soft conflict into a hard one, the opposite of the design in docs/ARCHITECTURE.md.",
+    "A pack that wants a hard guarantee can add its own `breaks` entry."
+  ]
+}

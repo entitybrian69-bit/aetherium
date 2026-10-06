@@ -1,0 +1,107 @@
+name: build
+
+# What this workflow proves, in order of cost:
+#   1. the tree is internally consistent (offline checks, no Minecraft download);
+#   2. it compiles against real 1.21.1 mappings with the pinned toolchain;
+#   3. the unit tests pass on both loader shells;
+#   4. a port of the same source to another version still parses (matrix rows).
+# Steps 1 and 4 run without a Mojang download, so a fork with no network secrets
+# still gets a useful signal.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
+
+jobs:
+  offline:
+    name: tree checks (no downloads)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: reference + placeholder checks
+        run: |
+          python3 tools/check_refs.py .
+          python3 tools/check.py
+          python3 tools/gen_resources.py --check
+      - name: every unverified claim is reported
+        run: python3 tools/check.py --report-unverified | tee unverified.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unverified-claims
+          path: unverified.txt
+          if-no-files-found: warn
+
+  build:
+    name: java ${{ matrix.java }} / ${{ matrix.os }}
+    needs: offline
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            java: 21
+          - os: windows-latest
+            java: 21
+          - os: macos-14
+            java: 21
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      # The wrapper jar is not in the checkout (see README "First build"); any
+      # Gradle regenerates it, and setup-gradle has already put one on PATH.
+      - name: generate wrapper
+        run: gradle wrapper --gradle-version 9.4.1
+      - name: build both loader shells
+        run: ./gradlew --no-daemon :common:build :fabric:build :neoforge:build
+      - name: verifyAll (tests + tree checks)
+        run: ./gradlew --no-daemon verifyAll
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jars-${{ matrix.os }}
+          path: |
+            fabric/build/libs/*.jar
+            neoforge/build/libs/*.jar
+          if-no-files-found: warn
+
+  ports:
+    name: port check ${{ matrix.version }}
+    needs: offline
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The three rows whose deltas touch the most, plus the extremes of the
+        # range. The full 33-row sweep is `sh tools/build_all.sh --ports`.
+        version: ['1.16.5', '1.20.1', '1.20.6', '26.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: apply the delta and re-check
+        run: |
+          sh tools/port.sh --dry-run ${{ matrix.version }}
+          python3 tools/check_refs.py .
+          python3 tools/check.py
