@@ -74,49 +74,59 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
-      # The wrapper jar is not in the checkout (see README, "Build"). Generating it must NOT run
-      # inside the project: `gradle wrapper` in the root configures :fabric and :neoforge, which
-      # pulls fabric-loom / ModDev and provisions Minecraft before the wrapper task can finish.
-      # So the scratch project generates the jar and the repo keeps its own pinned properties.
+      # The wrapper jar is not in the checkout (see README, "Build"), and generating it must NOT
+      # run inside the project: `gradle wrapper` there configures :fabric and :neoforge, which
+      # resolves fabric-loom / ModDev and provisions Minecraft before the task can finish. So it is
+      # generated in a scratch project. It is also NOT load-bearing: every Gradle call below uses
+      # the distribution setup-gradle put on PATH, so a broken bootstrap costs a warning, not the
+      # whole build. The wrapper matters to humans cloning the repo, not to CI.
       - name: bootstrap the wrapper jar
         shell: bash
+        continue-on-error: true
         run: |
-          set -euo pipefail
-          v=$(sed -n 's/^distributionUrl=.*gradle-\([0-9.]*\)-bin\.zip$/\1/p' \
-                gradle/wrapper/gradle-wrapper.properties)
-          v=${v:-9.4.1}
-          if ! command -v gradle >/dev/null 2>&1; then
-            echo "setup-gradle did not put a gradle on PATH; fetching $v"
-            curl -fsSLo "$RUNNER_TEMP/gradle.zip" "https://services.gradle.org/distributions/gradle-${v}-bin.zip"
-            want=$(curl -fsSLo - "https://services.gradle.org/distributions/gradle-${v}-bin.zip.sha256" | tr -d '[:space:]')
-            if command -v sha256sum >/dev/null 2>&1; then
-              got=$(sha256sum "$RUNNER_TEMP/gradle.zip" | cut -d' ' -f1)
-            else
-              got=$(shasum -a 256 "$RUNNER_TEMP/gradle.zip" | cut -d' ' -f1)
-            fi
-            if [ "$want" != "$got" ]; then
-              echo "gradle-${v}-bin.zip checksum mismatch: expected $want got $got" >&2
-              exit 1
-            fi
-            unzip -qo "$RUNNER_TEMP/gradle.zip" -d "$RUNNER_TEMP/gradle-dist"
-            export PATH="$RUNNER_TEMP/gradle-dist/gradle-${v}/bin:$PATH"
-            echo "$RUNNER_TEMP/gradle-dist/gradle-${v}/bin" >> "$GITHUB_PATH"
-          fi
-          gradle --version
-          scratch=$(mktemp -d)
-          gradle --no-daemon --console=plain -q wrapper --gradle-version "$v" --project-dir "$scratch"
-          mkdir -p gradle/wrapper
-          cp "$scratch/gradle/wrapper/gradle-wrapper.jar" gradle/wrapper/gradle-wrapper.jar
-          echo "gradle-wrapper.jar bootstrapped: $(wc -c < gradle/wrapper/gradle-wrapper.jar) bytes"
+          set -o pipefail
+          {
+            v=$(sed -n 's/^distributionUrl=.*gradle-\([0-9.]*\)-bin\.zip$/\1/p' \
+                  gradle/wrapper/gradle-wrapper.properties)
+            v=${v:-9.4.1}
+            echo "want Gradle $v"
+            gradle --version || {
+              echo "no gradle on PATH; fetching the pinned distribution"
+              curl -fsSLo "$RUNNER_TEMP/gradle.zip" \
+                "https://services.gradle.org/distributions/gradle-${v}-bin.zip"
+              want=$(curl -fsSLo - "https://services.gradle.org/distributions/gradle-${v}-bin.zip.sha256" | tr -d '[:space:]')
+              if command -v sha256sum >/dev/null 2>&1; then
+                got=$(sha256sum "$RUNNER_TEMP/gradle.zip" | cut -d' ' -f1)
+              else
+                got=$(shasum -a 256 "$RUNNER_TEMP/gradle.zip" | cut -d' ' -f1)
+              fi
+              if [ "$want" != "$got" ]; then
+                echo "gradle-${v}-bin.zip checksum mismatch: expected $want got $got" >&2
+                exit 1
+              fi
+              unzip -qo "$RUNNER_TEMP/gradle.zip" -d "$RUNNER_TEMP/gradle-dist"
+              export PATH="$RUNNER_TEMP/gradle-dist/gradle-${v}/bin:$PATH"
+              echo "$RUNNER_TEMP/gradle-dist/gradle-${v}/bin" >> "$GITHUB_PATH"
+              gradle --version
+            }
+            scratch=$(mktemp -d)
+            gradle --no-daemon --console=plain wrapper --gradle-version "$v" --project-dir "$scratch"
+            mkdir -p gradle/wrapper
+            cp "$scratch/gradle/wrapper/gradle-wrapper.jar" gradle/wrapper/gradle-wrapper.jar
+            echo "gradle-wrapper.jar: $(wc -c < gradle/wrapper/gradle-wrapper.jar) bytes"
+          } 2>&1 | tee "$RUNNER_TEMP/bootstrap.log" || {
+            printf '::warning::wrapper bootstrap failed (CI does not need it): %s\n' \
+              "$(tail -n 12 "$RUNNER_TEMP/bootstrap.log" 2>/dev/null | sed -e 's/%/%25/g' | awk \'{printf "%s%%0A", $0}\')"
+          }
       - name: build both loader shells
         shell: bash
         run: |
-          sh ./gradlew --no-daemon --console=plain --stacktrace --continue \
+          gradle --no-daemon --console=plain --stacktrace --continue \
             :common:build :fabric:build :neoforge:build 2>&1 | tee "$RUNNER_TEMP/build.log"
       - name: verifyAll (tests + tree checks)
         shell: bash
         run: |
-          sh ./gradlew --no-daemon --console=plain --stacktrace verifyAll 2>&1 | tee "$RUNNER_TEMP/verify.log"
+          gradle --no-daemon --console=plain --stacktrace verifyAll 2>&1 | tee "$RUNNER_TEMP/verify.log"
       # Only the two loader jars: aetherium-common-*.jar is an intermediate whose
       # mixin refmap is not remapped, so installing it would do nothing useful.
       - name: what got built
@@ -129,16 +139,13 @@ jobs:
             fabric/build/libs/*.jar
             neoforge/build/libs/*.jar
           if-no-files-found: error
-      # A fork/branch author may not be able to read the Actions logs at all (the raw log and the
-      # artifact blob are served from hosts outside api.github.com). The annotation below is visible
-      # through the API, so the failure text always reaches somebody.
       - name: report the failure where it can be read
         if: failure()
         shell: bash
         run: |
           log=$(ls -t "$RUNNER_TEMP"/*.log 2>/dev/null | head -1 || true)
           if [ -z "$log" ]; then
-            echo "::error::failed before Gradle ran; see the step log"
+            echo "::error::failed before any Gradle step ran; see the step log"
             exit 0
           fi
           echo "--- tail of $(basename "$log") ---"
@@ -147,8 +154,9 @@ jobs:
           # use each of the three characters as a separate delimiter in turn, which mangles the text.
           body=$(tail -n 50 "$log" | sed -e 's/%/%25/g' | tr -d '\r' | awk '{printf "%s%%0A", $0}')
           printf '::error::%s\n' "$body"
-          errs=$(grep -hE '\.java:[0-9]+: (error|warning):' "$RUNNER_TEMP"/*.log 2>/dev/null |
-            head -60 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}' || true)
+          errs=$(grep -hE '\.java:[0-9]+: error:|^e: |FAILURE: |\* What went wrong|^\* Where|Caused by:' \
+            "$RUNNER_TEMP"/*.log 2>/dev/null | head -60 |
+            sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}' || true)
           if [ -n "$errs" ]; then
             printf '::error::javac says:%s\n' "$errs"
           fi
