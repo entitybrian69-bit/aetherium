@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aetherium.dev/schema/aetherium.json",
+  "title": "Aetherium configuration (config/aetherium.json)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "general": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "renderDistance":     { "type": "integer", "minimum": 2, "maximum": 64, "default": 12 },
+        "simulationDistance": { "type": "integer", "minimum": 5, "maximum": 32, "default": 12 },
+        "guiScale":           { "type": "integer", "minimum": 0, "maximum": 8, "default": 0, "description": "0 = auto" },
+        "fullscreen":         { "type": "boolean", "default": false },
+        "vsync":              { "type": "boolean", "default": true }
+      }
+    },
+    "performance": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "chunkBuilderThreads":     { "type": "integer", "minimum": 0, "maximum": 64, "default": 0, "description": "0 = auto (cores-1; cores/2 on Android)" },
+        "entityCulling":           { "enum": ["OFF", "NORMAL", "AGGRESSIVE", "EXTREME"], "default": "NORMAL" },
+        "fogOcclusion":            { "type": "boolean", "default": true },
+        "fastMath":                { "type": "boolean", "default": true },
+        "dynamicEntityBatching":   { "type": "boolean", "default": true },
+        "asyncChunkMeshing":       { "type": "boolean", "default": true },
+        "hzbOcclusionCulling":     { "type": "boolean", "default": true, "description": "Requires GL 4.3 compute; auto-off on GL4ES" },
+        "gpuDrivenRendering":      { "type": "boolean", "default": true },
+        "persistentMappedBuffers": { "type": "boolean", "default": true, "description": "Auto-off in Mobile Memory Mode under 4 GiB heap" },
+        "multiDrawIndirect":       { "type": "boolean", "default": true }
+      }
+    },
+    "quality": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "mipmapLevels":         { "type": "integer", "minimum": 0, "maximum": 4, "default": 4 },
+        "anisotropicFiltering": { "enum": [1, 2, 4, 8, 16], "default": 1 },
+        "smoothLighting":       { "type": "boolean", "default": true },
+        "biomeBlend":           { "type": "integer", "minimum": 0, "maximum": 7, "default": 2 },
+        "cloudQuality":         { "enum": ["OFF", "FAST", "FANCY"], "default": "FANCY" },
+        "particleDensity":      { "enum": ["ALL", "DECREASED", "MINIMAL"], "default": "ALL" },
+        "textureFiltering":     { "enum": ["NEAREST", "LINEAR", "ANISOTROPIC"], "default": "NEAREST" }
+      }
+    },
+    "shaders": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "irisCompatibility":   { "type": "boolean", "default": true },
+        "shaderPack":          { "type": "string", "default": "" },
+        "shaderDynamicLights": { "type": "boolean", "default": true }
+      }
+    },
+    "utilities": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "dynamicLights":         { "type": "boolean", "default": true },
+        "dynamicLightQuality":   { "enum": ["FASTEST", "FAST", "FANCY", "REALTIME"], "default": "FANCY" },
+        "dynamicLightsEntities": { "type": "boolean", "default": true },
+        "dynamicLightsItems":    { "type": "boolean", "default": true },
+        "dynamicLightsSelf":     { "type": "boolean", "default": true },
+        "coloredDynamicLights":  { "type": "boolean", "default": true },
+        "gammaUtilities":        { "type": "boolean", "default": true },
+        "brightness":            { "type": "number", "minimum": 0, "maximum": 10, "default": 1.0, "description": "1.0 == vanilla 100%" },
+        "nightVision":           { "type": "boolean", "default": false },
+        "caveVision":            { "type": "boolean", "default": false },
+        "timeBasedGamma":        { "type": "boolean", "default": false },
+        "customGammaCurve":      { "type": "boolean", "default": false },
+        "gammaCurve":            { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 }, "minItems": 5, "maxItems": 5, "default": [0, 0.25, 0.5, 0.75, 1] }
+      }
+    },
+    "advanced": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "graphicsApi":            { "enum": ["AUTO", "OPENGL", "VULKAN"], "default": "AUTO" },
+        "engineMode":             { "enum": ["AETHERIUM", "COMPATIBILITY"], "default": "AETHERIUM" },
+        "debugOverlay":           { "type": "boolean", "default": false },
+        "frameTimeGraph":         { "type": "boolean", "default": false },
+        "vertexArenaMb":          { "type": "integer", "minimum": 0, "maximum": 4096, "default": 0, "description": "0 = heap/8 clamped to 64..1024 MB (256 on mobile)" },
+        "shaderBinaryCache":      { "type": "boolean", "default": true },
+        "disableConflictingMods": { "type": "boolean", "default": true }
+      }
+    },
+    "android": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "backend":                      { "enum": ["AUTO", "VULKAN_NATIVE", "LTW", "GL4ES"], "default": "AUTO" },
+        "mobileMemoryMode":             { "type": "boolean", "default": false },
+        "touchOptimization":            { "type": "boolean", "default": true },
+        "batterySaver":                 { "type": "boolean", "default": false },
+        "thermalThrottleProtection":    { "type": "boolean", "default": true },
+        "batterySaverMinRenderDistance":{ "type": "integer", "minimum": 2, "maximum": 16, "default": 4 },
+        "thermalLimitCelsius":          { "type": "integer", "minimum": 35, "maximum": 60, "default": 45 }
+      }
+    }
+  }
+}
