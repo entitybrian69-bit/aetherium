@@ -334,8 +334,20 @@ def main() -> int:
     matrix = os.path.join(root, "PORTING_MATRIX.md")
     deltas = os.path.join(root, "deltas")
     if not args.skip_deltas and os.path.exists(matrix) and os.path.isdir(deltas):
-        rows = re.findall(r"^\|\s*(\d+\.\d+(?:\.\d+)?)\s*\|", open(matrix, encoding="utf-8").read(), re.M)
+        # Version cells are links now ("| [1.20.1](deltas/1.20.1/) |"), so accept a bare number,
+        # a linked one, or a `**1.21.1** (reference)` cell. An earlier version of this rule matched
+        # only the bare form, parsed zero rows, and therefore verified zero patches - which is how a
+        # stale patch set reached CI. The count check below is what stops that class of silence.
+        table = open(matrix, encoding="utf-8").read()
+        rows = re.findall(r"^\|\s*\*{0,2}\[?(\d+\.\d+(?:\.\d+)?)\]?\*{0,2}(?:\]\([^)]*\))?\s*\|", table, re.M)
         rows = sorted(set(rows))
+        on_disk = sorted(d for d in os.listdir(deltas) if os.path.isdir(os.path.join(deltas, d)))
+        if not rows and on_disk:
+            problems.append(f"PORTING_MATRIX.md: no version rows parsed while deltas/ holds {len(on_disk)} "
+                            "directories - the table format changed and this rule is now blind")
+        for version in on_disk:
+            if version not in rows:
+                problems.append(f"deltas/{version}/ exists but PORTING_MATRIX.md has no row for it")
         pins_path = os.path.join(root, "tools", "porting_pins.json")
         reference = None
         if os.path.exists(pins_path):

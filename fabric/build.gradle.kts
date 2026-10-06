@@ -35,18 +35,16 @@ loom {
             sourceSet(sourceSets["test"])
         }
     }
-    // [UNVERIFIED: `sourceRuns(sourceSets["main"])` and `configName` on Loom 1.16.1 run configs;
-    // the block only runs with aetherium.enableRunConfigs=true, so a wrong name is visible as a
-    // configuration error only to people who actually want the IDE run configs.]
+    // Run configurations are opt-in (aetherium.enableRunConfigs=false by default) because the exact
+    // Loom 1.16 run DSL for this module's shape is not verified from upstream source here. Note what
+    // CI taught us on 2026-10-06: naming a run-config property that Loom does not declare
+    // (`configName`, `sourceRuns`) is not a runtime-only risk - Kotlin resolves the call at *script
+    // compile* time, inside the `if`, so an unverified name broke the build for everybody. Keep this
+    // block to calls verified against Loom's own docs/example mod; add the rest only with a source.
     if (project.property("aetherium.enableRunConfigs").toString().toBoolean()) {
         runs {
             create("client") {
                 client()
-                configName("Aetherium Client")
-                sourceRuns(sourceSets["main"])
-            }
-            create("junit") {
-                configName("Aetherium Tests")
             }
         }
     }

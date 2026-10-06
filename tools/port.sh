@@ -104,8 +104,9 @@ if [ "$mode" = dry ]; then
     trap 'rm -rf "$work"' EXIT INT TERM
     printf 'port: copying tree to %s ... ' "$work"
     # cp the tracked files only: a real port must not inherit uncommitted work.
+    # -I{} + cp --parents keeps the directory shape; --others --exclude-standard is NOT used on
+    # purpose: a port must be checkable against what a clone would contain, nothing else.
     git ls-files -z | xargs -0 -I{} cp --parents {} "$work"/ 2>/dev/null
-    git ls-files -z --common | true
     echo done
     printf 'port: applying %s ... ' "$patch"
     (cd "$work" && git init -q . && git apply --whitespace=nowarn "$ROOT/$patch") ||

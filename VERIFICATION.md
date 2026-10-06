@@ -30,7 +30,7 @@ Modules: `common` (engine + GUI + mixins, no loader dependency), `fabric`, `neof
 
 ```
 $ python3 tools/check.py
-Aetherium check: clean (179 files, 21 [UNVERIFIED] marks, 179 text files parsed)
+Aetherium check: clean (180 files, 20 [UNVERIFIED] marks, 180 text files parsed)
 
 $ python3 tools/check_refs.py .
 Aetherium reference check: clean (71 files, 122 types)
@@ -55,6 +55,12 @@ placeholder bodies (`// logic here`, `...;`, "same as above"); no unfinished-wor
 no tab characters in Java; every `deltas/<version>/` exists for each non-reference row;
 `PORTING_MATRIX.md` matches `tools/porting_pins.json`; no stray non-ASCII generation
 artefacts; every `[UNVERIFIED]` mark carries its `: <what>` detail.
+
+The same four commands also ran on GitHub Actions (`build` workflow, `offline` job, PR #1) and
+passed there unchanged; the `ports` job's four dry runs (`port.sh --dry-run` + `check_refs.py` +
+`check.py` on the patched copy) pass too. That is the only external confirmation this tree has, and
+it is a copy of these checks, not a compile — see §5 items 9-11 for the three things CI found that
+these checkers could not.
 
 ## 3. What these checks do **not** establish
 
@@ -118,7 +124,6 @@ mention of the convention. Each entry: what is uncertain, and what happens if it
 | `neoforge/…/NeoForgePlatformAdapter.java:90` | `net.neoforged.neoforge.internal.versions.neoforge.NeoForgeVersion#mcVersion` vs `…common.NeoForgeVersion` | version lookup returns "unknown"; nothing else depends on it |
 | `neoforge/…/NeoForgePlatformAdapter.java:94` | `net.neoforged.fml.loading.FMLEnvironment#dist` as the client/server test | `isClient()` wrong → the mod could attempt to initialise on a dedicated server; it early-returns on the missing GL context instead |
 | `neoforge/…/NeoForgePlatformAdapter.java:96` | `FMLPaths.GAME_DIRECTORY` / `CONFIG_DIRECTORY` and `ModList#get().getModContainerById` shapes | config lands in the wrong directory on NeoForge only; Fabric unaffected |
-| `fabric/build.gradle.kts:38` | `sourceRuns(sourceSets["main"])` and `configName` on Loom 1.16.1 run configs | `genSources`/`runClient` task names differ; build of the jar is independent of this block (it is also behind `aetherium.enableRunConfigs=false`) |
 | `neoforge/build.gradle.kts:29` | the ModDev 2.0.141 DSL surface (`neoForge { version, parchment, runs, mods, unitTest }`) | a configuration error naming the exact DSL line on the first `./gradlew help` |
 
 ### Generated and documentation
@@ -175,6 +180,24 @@ reviewer should look for next:
 8. **Checker false positives** (nested-type imports flagged as missing files; a rule file's own
    prose counted as a mark) fixed in the checkers, because a noisy checker teaches people to
    ignore it.
+9. **Unverified names that were not runtime-only risks.** `fabric/build.gradle.kts` called two
+   Loom run-config properties marked `[UNVERIFIED]` on the reasoning "it is behind a flag, so only
+   people who opt in can be hurt". Kotlin resolves calls when it compiles the *script*, inside the
+   `if` — so the first CI run failed the whole build. The `[UNVERIFIED]` count dropped to 20 when
+   the two calls were deleted: a mark on a build script is not the same kind of mark as one on a
+   Java file, because a script is compiled even when its output is never executed.
+10. **Build scripts written in the wrong DSL dialect.** Three Kotlin DSL violations, each invisible
+    to every local check: `java-library` bare (parses as subtraction), `id("…") version
+    (project.property("…"))` (a `plugins {}` block is extracted before `project` exists), and
+    `processResources { }` (Gradle 9 generates task accessors on `TaskContainer`). Plus
+    `from({ … })` in `neoforge`, passing a lambda where Gradle expects a Closure or Provider — that
+    one would have shipped a jar with MixinExtras silently missing, which is worse than a failure.
+11. **A checker that quietly stopped checking.** `check.py` verifies that every `deltas/*/changes.patch`
+    applies. When the matrix's version cells became links, its row regex matched zero rows, so it
+    verified zero patches and printed "clean"; the stale patch set only surfaced because CI's `ports`
+    job applies them for real. The rule now parses both forms, refuses to be silent when `deltas/`
+    is non-empty but no rows parse, and checks that every delta directory has a row. A green result
+    from an empty input set is the most dangerous thing a checker can produce.
 
 ## 6. Acceptance criteria against the original brief
 
@@ -223,6 +246,10 @@ startup failure so you can see all of it at once.
   contribution (the generator's `build_lang` is the only place to touch).
 - 25 of 33 port rows are `derived`, not `documented`; two are `unverified`. No port has been
   built, so the deltas are mechanically-sound-but-unexecuted by construction.
+- **Nothing has been compiled by a human yet.** CI reached script compilation and failed there three
+  times, each on a defect listed in items 9-11 above; the following push is the first that can reach
+  `javac`. No jar exists anywhere until a `build (java 21)` job goes green, at which point
+  `draft-release` attaches it to a draft release on `main` (docs/BUILD_PINS.md, "The jars").
 - No entity/block-renderer-level mixin (the brief's "entity+block renderers" is met at the
   `LevelRenderer`/light/Gui level plus the mesher path); making it richer is the natural next
   feature and would need its own marks.
