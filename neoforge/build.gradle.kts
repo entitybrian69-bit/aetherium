@@ -131,8 +131,12 @@ tasks.withType<Jar> {
     // `elements` (not `.files`, not `.copy()`) so nothing resolves during configuration. CI named
     // the earlier form: "Calling configuration method 'copy()' is not allowed for configuration
     // 'implementation'" - it is declarable-only, hence the resolvable view declared above.
-    from(embeddable.elements.map { files ->
-        files.filter { f -> f.name.contains("mixinextras") }.map { f -> zipTree(f) }
+    from(project.provider {
+        // `embeddable.elements.map { }` failed inference (Kotlin could not pin the element type,
+        // CI: "Unresolved reference 'name'"). project.provider keeps the same laziness - the
+        // configuration resolves at execution, not during configuration - with a lambda whose
+        // receiver types are plain JDK ones.
+        embeddable.files.filter { f -> f.name.contains("mixinextras") }.map { f -> zipTree(f) }
     })
     manifest {
         attributes(
