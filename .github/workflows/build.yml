@@ -68,19 +68,50 @@ jobs:
       - uses: actions/checkout@v4
       - uses: gradle/actions/setup-gradle@v4
         with:
+          gradle-version: 9.4.1
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
-      # The wrapper jar is not in the checkout (see README "First build"); any
-      # Gradle regenerates it, and setup-gradle has already put one on PATH.
-      - name: generate wrapper
-        run: gradle wrapper --gradle-version 9.4.1
+      # The wrapper jar is not in the checkout (see README, "Build"). Generating it must NOT run
+      # inside the project: `gradle wrapper` in the root configures :fabric and :neoforge, which
+      # pulls fabric-loom / ModDev and provisions Minecraft before the wrapper task can finish.
+      # So the scratch project generates the jar and the repo keeps its own pinned properties.
+      - name: bootstrap the wrapper jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          v=$(sed -n 's/^distributionUrl=.*gradle-\([0-9.]*\)-bin\.zip$/\1/p' \
+                gradle/wrapper/gradle-wrapper.properties)
+          v=${v:-9.4.1}
+          if ! command -v gradle >/dev/null 2>&1; then
+            echo "setup-gradle did not put a gradle on PATH; fetching $v"
+            curl -fsSLo "$RUNNER_TEMP/gradle.zip" "https://services.gradle.org/distributions/gradle-${v}-bin.zip"
+            want=$(curl -fsSLo - "https://services.gradle.org/distributions/gradle-${v}-bin.zip.sha256" | tr -d '[:space:]')
+            if command -v sha256sum >/dev/null 2>&1; then
+              got=$(sha256sum "$RUNNER_TEMP/gradle.zip" | cut -d' ' -f1)
+            else
+              got=$(shasum -a 256 "$RUNNER_TEMP/gradle.zip" | cut -d' ' -f1)
+            fi
+            if [ "$want" != "$got" ]; then
+              echo "gradle-${v}-bin.zip checksum mismatch: expected $want got $got" >&2
+              exit 1
+            fi
+            unzip -qo "$RUNNER_TEMP/gradle.zip" -d "$RUNNER_TEMP/gradle-dist"
+            export PATH="$RUNNER_TEMP/gradle-dist/gradle-${v}/bin:$PATH"
+            echo "$RUNNER_TEMP/gradle-dist/gradle-${v}/bin" >> "$GITHUB_PATH"
+          fi
+          gradle --version
+          scratch=$(mktemp -d)
+          gradle --no-daemon --console=plain -q wrapper --gradle-version "$v" --project-dir "$scratch"
+          mkdir -p gradle/wrapper
+          cp "$scratch/gradle/wrapper/gradle-wrapper.jar" gradle/wrapper/gradle-wrapper.jar
+          echo "gradle-wrapper.jar bootstrapped: $(wc -c < gradle/wrapper/gradle-wrapper.jar) bytes"
       - name: build both loader shells
-        run: ./gradlew --no-daemon :common:build :fabric:build :neoforge:build
+        run: ./gradlew --no-daemon --console=plain --stacktrace :common:build :fabric:build :neoforge:build 2>&1 | tee "$RUNNER_TEMP/build.log"
       - name: verifyAll (tests + tree checks)
-        run: ./gradlew --no-daemon verifyAll
+        run: ./gradlew --no-daemon --console=plain --stacktrace verifyAll 2>&1 | tee "$RUNNER_TEMP/verify.log"
       # Only the two loader jars: aetherium-common-*.jar is an intermediate whose
       # mixin refmap is not remapped, so installing it would do nothing useful.
       - name: what got built
@@ -93,6 +124,29 @@ jobs:
             fabric/build/libs/*.jar
             neoforge/build/libs/*.jar
           if-no-files-found: error
+      # A fork/branch author may not be able to read the Actions logs at all (the raw log and the
+      # artifact blob are served from hosts outside api.github.com). The annotation below is visible
+      # through the API, so the failure text always reaches somebody.
+      - name: report the failure where it can be read
+        if: failure()
+        shell: bash
+        run: |
+          log=$(ls -t "$RUNNER_TEMP"/*.log 2>/dev/null | head -1 || true)
+          if [ -z "$log" ]; then
+            echo "::error::failed before Gradle ran; see the step log"
+            exit 0
+          fi
+          echo "--- tail of $(basename "$log") ---"
+          tail -n 120 "$log" || true
+          body=$(tail -n 50 "$log" | sed -e 's/%/%25/g' -e 's/[[:cntrl:]]$//g' -e 's/\r/%0D/g' | paste -sd '%0A' -)
+          printf '::error::%s\n' "$body"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: gradle-logs-${{ matrix.os }}
+          path: ${{ runner.temp }}/*.log
+          if-no-files-found: ignore
+          retention-days: 30
 
   ports:
     name: port check ${{ matrix.version }}
