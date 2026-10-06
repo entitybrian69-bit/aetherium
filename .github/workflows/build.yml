@@ -155,9 +155,16 @@ jobs:
           # use each of the three characters as a separate delimiter in turn, which mangles the text.
           body=$(tail -n 50 "$log" | sed -e 's/%/%25/g' | tr -d '\r' | awk '{printf "%s%%0A", $0}')
           printf '::error::%s\n' "$body"
-          errs=$(grep -hE '\.java:[0-9]+: error:|^e: |FAILURE: |\* What went wrong|^\* Where|Caused by:' \
-            "$RUNNER_TEMP"/*.log 2>/dev/null | head -60 |
+          # The candidate lists Gradle prints under "* What went wrong:" are the whole point -
+          # grepping single lines loses them, which is exactly what made the last run ambiguous.
+          errs=$(awk '/^\* What went wrong:/{f=1} f{print} /^\* Try:/{if(f)exit}' \
+            "$RUNNER_TEMP"/build.log 2>/dev/null | head -80 |
             sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}' || true)
+          if [ -z "$errs" ]; then
+            errs=$(grep -hE '\.java:[0-9]+: error:|^e: |FAILURE: |Caused by:' \
+              "$RUNNER_TEMP"/*.log 2>/dev/null | head -60 |
+              sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}' || true)
+          fi
           if [ -n "$errs" ]; then
             printf '::error::javac says:%s\n' "$errs"
           fi

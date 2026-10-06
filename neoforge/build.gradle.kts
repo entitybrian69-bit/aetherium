@@ -76,7 +76,10 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
-processResources {
+// Gradle 9 generates task accessors on TaskContainer, not on Project: a bare
+// `processResources { }` is an unresolved receiver (CI: "receiver type mismatch").
+// `tasks.processResources` keeps the typed ProcessResources receiver, so filesMatching/expand work.
+tasks.processResources {
     val props = mapOf(
         "version" to project.property("mod_version"),
         "minecraft_version" to project.property("minecraft_version"),
@@ -109,8 +112,11 @@ fun nextMinor(v: String): String {
 tasks.withType<Jar> {
     // Embed MixinExtras exactly like Embeddium does; NeoForge has no jar-in-jar
     // for the "mod" configuration the way Fabric's `include` does.
-    from({
-        configurations.named("implementation").map { it.copy().files.map { f -> if (f.name.contains("mixinextras")) zipTree(f) else emptyList<Any>() } }
+    // `from({ ... })` would pass a Kotlin lambda where Gradle expects a Closure/Provider and
+    // silently copy nothing. A Provider over the filtered files resolves lazily at execution,
+    // which is also why this does not force the configuration to resolve during configuration.
+    from(configurations.named("implementation").map { cfg ->
+        cfg.copy().files.filter { f -> f.name.contains("mixinextras") }.map { f -> zipTree(f) }
     })
     manifest {
         attributes(

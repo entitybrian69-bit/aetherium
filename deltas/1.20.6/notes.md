@@ -1,7 +1,7 @@
 # Port notes: Minecraft 1.20.6
 
 - Java toolchain: **21**
-- Fabric loader floor: **0.16.9**, Loom **1.6.12**
+- Fabric loader floor: **0.16.9**, Loom **1.16.1**
 - NeoForge: **20.6.121**
 - Mappings: officialMojangMappings()
 - Status: **documented**

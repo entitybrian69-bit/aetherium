@@ -51,6 +51,10 @@ REFERENCE = "1.21.1"
 
 FILES = {
     "gradle.properties": os.path.join(REPO, "gradle.properties"),
+    # The Loom/ModDev plugin versions a build *applies* live in the catalog (a Kotlin DSL
+    # plugins {} block cannot read a project property), so a port has to move them with the
+    # property or tools/check.py rightly fails the ported tree.
+    "catalog": os.path.join(REPO, "gradle", "libs.versions.toml"),
     "plugin": os.path.join(REPO, "common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java"),
     "light": os.path.join(REPO, "common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java"),
     "gui": os.path.join(REPO, "common/src/main/java/com/aetherium/mixin/core/GuiMixin.java"),
@@ -62,6 +66,7 @@ FILES = {
 # an arbitrary edit is one bad rule away from 32 silently divergent engines.
 ALLOWED_TARGETS = {
     "gradle.properties",
+    "gradle/libs.versions.toml",
     "common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java",
     "common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java",
     "common/src/main/java/com/aetherium/mixin/core/GuiMixin.java",
@@ -101,6 +106,10 @@ def substitutions(row: dict) -> list[tuple[str, str, str]]:
     subs.append(("gradle.properties", "fabric_loader_version=0.16.9", f"fabric_loader_version={row['fabric_loader']}"))
     if row.get("loom"):
         subs.append(("gradle.properties", "fabric_loom_version=1.16.1", f"fabric_loom_version={row['loom']}"))
+        # Same value, second file, one rule: check.py compares them, so a delta that bumped
+        # only the property would fail its own ported tree - which is how to catch a port
+        # that half-applied.
+        subs.append(("catalog", 'loom = "1.16.1"', f'loom = "{row["loom"]}"'))
 
     # 2. the plugin's reference string (logged, and used as the range baseline) --
     subs.append(("plugin", 'private static volatile String announcedVersion = "";',
@@ -382,13 +391,25 @@ def render_matrix(rows: list[dict]) -> str:
         "`deltas/<version>/changes.patch` may change only:",
         "",
         "1. build pins (`minecraft_version`, `java_version`, `neoforge_version`,",
-        "   `fabric_loader_version`, `fabric_loom_version`, `enabled_platforms`);",
+        "   `fabric_loader_version`, `fabric_loom_version` + the matching `loom` entry in",
+        "   `gradle/libs.versions.toml`, `enabled_platforms`);",
         "2. `REFERENCE`-side strings in `AetheriumMixinPlugin` (the announced version and",
         "   the per-mixin target ranges);",
         "3. an *append* to an existing `method = { ... }` candidate list - reference names",
         "   are never removed, so two ports merge without conflict;",
         "4. the primary overlay descriptor in `GuiMixin` when the version predates",
         "   `GuiGraphics`.",
+        "",
+        "### Loom, and why one version serves all 33 rows",
+        "",
+        "Every row pins Loom to the reference value. `gradle/wrapper/gradle-wrapper.properties`",
+        "is tree-wide (Gradle 9.4.1) and no delta rewrites it, and a Loom from the 1.2 or 1.6 era",
+        "does not run on Gradle 9 - so an era-matched Loom pin would describe a build this tree",
+        "cannot start. Loom itself is Minecraft-version-agnostic (the Minecraft artifact and the",
+        "intermediary/mojmap channel decide the version), and 1.16.1 is the only Loom version this",
+        "repository verified against upstream metadata. A port that genuinely needs a different",
+        "Loom must bump the wrapper, `gradle.properties` and `gradle/libs.versions.toml` together;",
+        "`tools/check.py` fails if the last two disagree, which is the guard against half a bump.",
         "",
         "It never restructures a class, fixes a bug, or changes an algorithm. `",
         "`tools/gen_deltas.py` refuses to emit anything else, and `tools/check.py` proves",

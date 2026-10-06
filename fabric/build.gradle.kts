@@ -83,7 +83,10 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
-processResources {
+// Gradle 9 generates task accessors on TaskContainer, not on Project: a bare
+// `processResources { }` is an unresolved receiver (CI: "receiver type mismatch").
+// `tasks.processResources` keeps the typed ProcessResources receiver, so filesMatching/expand work.
+tasks.processResources {
     val props = mapOf(
         "version" to project.property("mod_version"),
         "minecraft_version" to project.property("minecraft_version"),
