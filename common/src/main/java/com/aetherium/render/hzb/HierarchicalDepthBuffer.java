@@ -173,16 +173,34 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
         configureStorage(this.depthSourceTexture, framebufferWidth, framebufferHeight);
         // The pyramid texture is an array of levels so one binding covers all of them.
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.pyramidTexture);
-        org.lwjgl.opengl.GL40.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.levels, GlProcs.GL_R32F, framebufferWidth, framebufferHeight);
+        allocateLevels(this.levels, framebufferWidth, framebufferHeight);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MIN_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAG_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 0);
         LOGGER.info("HZB resized to {}x{} over {} levels", framebufferWidth, framebufferHeight, this.levels);
     }
 
+    /**
+     * Allocates {@code levels} mips of an R32F texture on the currently bound texture object.
+     *
+     * <p>Deliberately not {@code glTexStorage2D}: LWJGL does not declare that name on
+     * {@code org.lwjgl.opengl.GL40} (javac: cannot find symbol), and which {@code GL4x} class an
+     * entry point was generated into is precisely the detail that goes wrong on a ported row. The
+     * per-level image form is GL11, present on every version in the porting range, and
+     * {@code glBindImageTexture} only requires the level to exist - not to be immutable. The cost is
+     * one call per level, at resize time, which is a window-resize event and never a hot path.</p>
+     */
+    private static void allocateLevels(final int levels, final int width, final int height) {
+        for (int level = 0; level < levels; level++) {
+            org.lwjgl.opengl.GL11.glTexImage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, level, GlProcs.GL_R32F,
+                    Math.max(1, width >> level), Math.max(1, height >> level), 0,
+                    org.lwjgl.opengl.GL11.GL_RED, org.lwjgl.opengl.GL11.GL_FLOAT, (java.nio.ByteBuffer) null);
+        }
+    }
+
     private void configureStorage(final int texture, final int width, final int height) {
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, texture);
-        org.lwjgl.opengl.GL40.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 1, GlProcs.GL_R32F, width, height);
+        allocateLevels(1, width, height);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MIN_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAG_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAX_LEVEL, 0);

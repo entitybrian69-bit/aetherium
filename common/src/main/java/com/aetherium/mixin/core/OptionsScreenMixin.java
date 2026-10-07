@@ -1,5 +1,8 @@
 package com.aetherium.mixin.core;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+
 import com.aetherium.Aetherium;
 import com.aetherium.config.AetheriumConfig;
 import com.aetherium.gui.AetheriumVideoOptionsScreen;
@@ -80,7 +83,21 @@ public abstract class OptionsScreenMixin extends Screen {
                         widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)))
                 .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)
                 .build();
-        ((Screen) (Object) this).addRenderableWidget(button);
+        // Screen#addRenderableWidget is protected on 1.21.1, and javac type-checks a mixin against
+        // its own source, not against the class it will be merged into - so the call the transform
+        // makes legal does not compile. A handle is the same answer ClientHooks#dirtySectionsAround
+        // gives: nothing structural is pinned, and a miss means "no fallback button", which is what
+        // the version gate below already produces. No log on the miss: this runs on every
+        // options-screen open, and the Advanced tab reports the fallback's state directly.
+        final MethodHandle adder = ADD_RENDERABLE_WIDGET;
+        if (adder != null) {
+            try {
+                adder.invoke(this, button);
+            } catch (final Throwable error) {
+                // Throwable: an invoke site can surface LinkageError, and this is a convenience
+                // widget, not a correctness-critical one.
+            }
+        }
     }
 
     /**
@@ -125,5 +142,27 @@ public abstract class OptionsScreenMixin extends Screen {
         return count > 0
                 ? "hijacked vanilla Video Settings (" + count + " vanilla cycle buttons beside us)"
                 : "fallback button in use: no vanilla video controls were found";
+    }
+
+    /** Resolved once; null means the fallback button is simply not added. */
+    private static final MethodHandle ADD_RENDERABLE_WIDGET = findAddRenderableWidget();
+
+    /**
+     * Matched by name and arity rather than by {@code getDeclaredMethod}: the parameter is the erasure
+     * of a type variable whose bounds are three interfaces, and spelling that erasure wrong is
+     * another way for a port to fail to launch.
+     */
+    private static MethodHandle findAddRenderableWidget() {
+        for (final java.lang.reflect.Method candidate : Screen.class.getDeclaredMethods()) {
+            if (candidate.getName().equals("addRenderableWidget") && candidate.getParameterCount() == 1) {
+                try {
+                    candidate.setAccessible(true);
+                    return MethodHandles.lookup().unreflect(candidate);
+                } catch (final RuntimeException | IllegalAccessException error) {
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 }

@@ -2,6 +2,7 @@ package com.aetherium.mixin;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.objectweb.asm.tree.ClassNode;
 
@@ -24,9 +25,9 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
  * a half-transformed game.</p>
  *
  * <h2>Only the parts of {@code IMixinConfigPlugin} that exist in Mixin 0.8.x</h2>
- * <p>This class implements exactly six methods - {@code onLoad}, {@code getMixins},
- * {@code getRefMapperConfig}, {@code shouldApplyMixin}, {@code preApply}, {@code postApply}
- * - in the parameter order the interface declares. There is no {@code acceptTarget} on
+ * <p>This class implements exactly seven methods - {@code onLoad}, {@code getMixins},
+ * {@code acceptTargets}, {@code getRefMapperConfig}, {@code shouldApplyMixin}, {@code preApply}
+ * and {@code postApply} - in the parameter order the interface declares. There is no {@code acceptTarget} on
  * Mixin 0.8.5 (CI: "does not override or implement a method from a supertype"), which is
  * why the per-target sanity check below lives in {@code postApply}. It is tempting to reach for hooks like {@code mixinAccepted} that appear
  * in newer Mixin forks; doing so turns a port into a compile error with no obvious
@@ -127,6 +128,17 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         // duplicate what the delta's build script already configures, and the two would
         // drift.
         return null;
+    }
+
+    /**
+     * Abstract on Mixin 0.8.5 (it was the method javac named when the class refused to compile):
+     * the place where a plugin can veto mixins that collide with another mod's targets. Aetherium
+     * makes exactly one such decision, per mixin, in {@link #shouldApplyMixin}, so both sets stay
+     * untouched.
+     */
+    @Override
+    public void acceptTargets(final Set<String> myTargets, final Set<String> otherTargets) {
+        // Intentionally empty: no target is exclusive to Aetherium.
     }
 
     @Override

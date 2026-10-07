@@ -60,14 +60,18 @@ public abstract class GameRendererMixin {
      * version in the porting range, and the HZB pyramid must be resized against the
      * real drawable dimensions (not the GUI-scaled ones) to avoid a one-frame streak
      * when the player drags the window.
+     *
+     * <p>{@code Window}'s framebuffer accessors on 1.21.1 are {@code getWidth()}/{@code getHeight()};
+     * there is no {@code getFramebufferWidth()} (javac: cannot find symbol). The GUI-scaled pair next
+     * to them is what screen code uses, and it is the one this mod's other mixin already calls.</p>
      */
     private static int framebufferWidth() {
         final net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
-        return minecraft != null && minecraft.getWindow() != null ? minecraft.getWindow().getFramebufferWidth() : 1;
+        return minecraft != null && minecraft.getWindow() != null ? minecraft.getWindow().getWidth() : 1;
     }
 
     private static int framebufferHeight() {
         final net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
-        return minecraft != null && minecraft.getWindow() != null ? minecraft.getWindow().getFramebufferHeight() : 1;
+        return minecraft != null && minecraft.getWindow() != null ? minecraft.getWindow().getHeight() : 1;
     }
 }
