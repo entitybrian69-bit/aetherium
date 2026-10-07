@@ -9,6 +9,7 @@ not shipped - the table only ever lists what exists, never what should exist.
 | --- | --- | --- |
 | 1.21 | Fabric | [aetherium-fabric-0.1.0+1.21.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21/aetherium-fabric-0.1.0+1.21.jar) |
 | 1.21.1 | Fabric | [aetherium-fabric-0.1.0+1.21.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.1/aetherium-fabric-0.1.0+1.21.1.jar) |
+| 1.21.1 | NeoForge | [aetherium-neoforge-0.1.0+1.21.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.1/aetherium-neoforge-0.1.0+1.21.1.jar) |
 
 Shipped: **2/33** Minecraft versions.
 
