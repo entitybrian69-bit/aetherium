@@ -232,16 +232,69 @@ public final class LightmapWriter {
         }
         final Level level = minecraft.level;
         final var entity = minecraft.getCameraEntity();
-        if (level == null || entity == null) {
+        final MethodHandle light = LIGHT_LEVEL;
+        if (level == null || entity == null || light == null) {
             return 15;
         }
         final BlockPos pos = entity.blockPosition();
         try {
-            return MathUtil.clamp(level.getLightLevel(layer, pos), 0, 15);
+            return MathUtil.clamp((int) light.invoke(level, layer, pos), 0, 15);
         } catch (final RuntimeException error) {
-            // getLightLevel can throw for an unloaded column during a dimension
+            // The level query can throw for an unloaded column during a dimension
             // change; treat it as full light, i.e. "no adjustment needed".
             return 15;
+        } catch (final Throwable error) {
+            return 15;
         }
+    }
+
+    /**
+     * The per-layer light query, resolved by signature rather than by name.
+     *
+     * <p>Why not a direct call: {@code Level#getLightLevel(LightLayer, BlockPos)} does not exist on
+     * 1.21.1 (javac: cannot find symbol) - the query lives on the {@code BlockAndLightReader}
+     * interface with a name that has moved once already. Matching on "two parameters, first a
+     * LightLayer, second a BlockPos, returns int" is the version-tolerant form of the same rule this
+     * file already uses for the lightmap pixels field, and a miss means no gamma post-processing
+     * rather than a broken frame.</p>
+     */
+    private static final MethodHandle LIGHT_LEVEL = findLightLevel();
+
+    private static MethodHandle findLightLevel() {
+        try {
+            // getMethods() finds the public inherited form (the normal case); getDeclaredMethods() is
+            // the fallback for a package-private implementation on a dev launch.
+            final MethodHandle fromPublic = findLightLevelIn(Level.class.getMethods());
+            final MethodHandle handle = fromPublic != null
+                    ? fromPublic : findLightLevelIn(Level.class.getDeclaredMethods());
+            if (handle != null) {
+                return handle;
+            }
+        } catch (final RuntimeException | LinkageError error) {
+            LOGGER.dev("Level light query probe failed: {}", error.getClass().getSimpleName());
+            return null;
+        }
+        LOGGER.warn("No (LightLayer,BlockPos)->int query on Level; gamma's sky/block light sampling is "
+                + "disabled and will report full light. Cave dimming and night adjustment keep working "
+                + "from the lightmap itself.");
+        return null;
+    }
+
+    private static MethodHandle findLightLevelIn(final java.lang.reflect.Method[] candidates) {
+        for (final java.lang.reflect.Method method : candidates) {
+            final Class<?>[] types = method.getParameterTypes();
+            if (method.getReturnType() != int.class || types.length != 2
+                    || types[0] != LightLayer.class || types[1] != BlockPos.class) {
+                continue;
+            }
+            try {
+                method.setAccessible(true);
+                return MethodHandles.lookup().unreflect(method);
+            } catch (final RuntimeException | IllegalAccessException error) {
+                LOGGER.dev("Level light query {} found but not accessible: {}", method.getName(), error.getClass().getSimpleName());
+                return null;
+            }
+        }
+        return null;
     }
 }

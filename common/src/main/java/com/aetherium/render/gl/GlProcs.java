@@ -15,7 +15,6 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL32;
 import org.lwjgl.opengl.GL41;
 import org.lwjgl.opengl.GL43C;
-import org.lwjgl.opengl.GL44C;
 import org.lwjgl.opengl.GL45C;
 import org.lwjgl.opengl.GL46C;
 import org.lwjgl.system.MemoryUtil;
@@ -297,15 +296,33 @@ public final class GlProcs {
      * {@code glNamedBufferData} because reallocation would invalidate the mapping.
      */
     public static void namedBufferStorage(final int buffer, final long size, final int storageFlags) {
-        GL44C.glNamedBufferStorage(buffer, size, 0L, storageFlags);
+        // The named (DSA) form is GL45C, not GL44C - GL44C only has glBufferStorage, which takes a
+        // target. LWJGL's third argument is the initial contents, so a null ByteBuffer is the
+        // "allocate only" form.
+        GL45C.glNamedBufferStorage(buffer, size, (ByteBuffer) null, storageFlags);
     }
 
+    /**
+     * (Re)specifies a buffer's store. With {@code data == null} this is the allocate-and-zero form,
+     * which is what {@link #clearNamedBufferU32} relies on: the GL specification requires a store
+     * created with no data to be zero-filled.
+     */
     public static void namedBufferData(final int buffer, final long size, final ByteBuffer data, final int usage) {
-        GL45C.glNamedBufferData(buffer, size, data == null ? 0L : MemoryUtil.memAddress(data), usage);
+        if (data == null) {
+            GL45C.glNamedBufferData(buffer, size, usage);
+        } else {
+            GL45C.glNamedBufferData(buffer, data, usage);
+        }
     }
 
+    /**
+     * Maps a range and hands the address back as a long, because the arena does pointer arithmetic
+     * in longs while LWJGL returns the mapping as a (direct) ByteBuffer. A failed mapping is 0, which
+     * every caller already treats as "no mapping".
+     */
     public static long mapNamedBufferRange(final int buffer, final long offset, final long length, final int flags) {
-        return GL45C.glMapNamedBufferRange(buffer, offset, length, flags);
+        final ByteBuffer mapped = GL45C.glMapNamedBufferRange(buffer, offset, length, flags);
+        return mapped == null ? 0L : MemoryUtil.memAddress(mapped);
     }
 
     public static boolean unmapNamedBuffer(final int buffer) {
@@ -316,9 +333,10 @@ public final class GlProcs {
         GL45C.glFlushMappedNamedBufferRange(buffer, offset, length);
     }
 
-    /** Non-DSA fallback for {@code GL_CORE}/{@code GL_LEGACY}: bind-then-map. */
+    /** Non-DSA fallback for {@code GL_CORE}/{@code GL_LEGACY}: bind-then-map. See {@link #mapNamedBufferRange}. */
     public static long mapBufferRange(final int target, final long offset, final long length, final int flags) {
-        return GL30.glMapBufferRange(target, offset, length, flags);
+        final ByteBuffer mapped = GL30.glMapBufferRange(target, offset, length, flags);
+        return mapped == null ? 0L : MemoryUtil.memAddress(mapped);
     }
 
     public static boolean unmapBuffer(final int target) {
@@ -338,11 +356,14 @@ public final class GlProcs {
     }
 
     /**
-     * Zero-fills a buffer. {@code GL_R32UI + GL_UNSIGNED_INT} is a clearable format
-     * pair per the spec, which is what makes this usable for a u32 draw counter.
+     * Zero-fills the 4-byte GPU draw counter. Deliberately not glClearNamedBufferData: that entry
+     * point wants an internalformat/format/type triple plus a pointer to the clear value, and the
+     * pair it accepts varies by driver. Re-specifying the store is one call, is specified to
+     * zero-fill, and is safe here precisely because a counter buffer is never persistently mapped
+     * (see {@link #namedBufferData}); an immutable-storage buffer would be a bug, not a silent loss.
      */
     public static void clearNamedBufferU32(final int buffer) {
-        GL45C.glClearNamedBufferData(buffer, GL_R32UI, GL_UNSIGNED_INT, 0L);
+        GL45C.glNamedBufferData(buffer, 4L, GL_DYNAMIC_DRAW);
     }
 
     public static void memoryBarrier(final int barrierBits) {
@@ -398,7 +419,7 @@ public final class GlProcs {
         if (data == null || data.remaining() <= 0) {
             return false;
         }
-        GL41.glProgramBinary(program, binaryFormat, MemoryUtil.memAddress(data), data.remaining());
+        GL41.glProgramBinary(program, binaryFormat, data);
         return drainErrors() == null;
     }
 
@@ -407,12 +428,13 @@ public final class GlProcs {
     }
 
     /**
-     * Extracts the compiled binary. LWJGL's signature is
-     * {@code glGetProgramBinary(int, ByteBuffer, IntBuffer, IntBuffer)} where the
-     * third argument receives the byte count and the fourth the binary format.
+     * Extracts the compiled binary. LWJGL 3.3.3 declares
+     * {@code glGetProgramBinary(int program, IntBuffer length, IntBuffer binaryFormat, ByteBuffer binary)}
+     * - the two int buffers receive the byte count and the format, the ByteBuffer receives the bytes
+     * (verified against the compiler's own candidate list, which also offers int[] variants).
      */
     public static void getProgramBinary(final int program, final ByteBuffer target, final IntBuffer lengthOut, final IntBuffer formatOut) {
-        GL41.glGetProgramBinary(program, target, lengthOut, formatOut);
+        GL41.glGetProgramBinary(program, lengthOut, formatOut, target);
     }
 
     // ---------------------------------------------------------------- indirect

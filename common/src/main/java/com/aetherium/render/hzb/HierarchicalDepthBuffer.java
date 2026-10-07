@@ -173,7 +173,7 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
         configureStorage(this.depthSourceTexture, framebufferWidth, framebufferHeight);
         // The pyramid texture is an array of levels so one binding covers all of them.
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.pyramidTexture);
-        org.lwjgl.opengl.GL30.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.levels, GlProcs.R32F, framebufferWidth, framebufferHeight);
+        org.lwjgl.opengl.GL30.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.levels, GlProcs.GL_R32F, framebufferWidth, framebufferHeight);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MIN_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAG_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 0);
@@ -182,7 +182,7 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
 
     private void configureStorage(final int texture, final int width, final int height) {
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, texture);
-        org.lwjgl.opengl.GL30.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 1, GlProcs.R32F, width, height);
+        org.lwjgl.opengl.GL30.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 1, GlProcs.GL_R32F, width, height);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MIN_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAG_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAX_LEVEL, 0);
@@ -218,7 +218,7 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
         }
 
         final int[] src = {framebufferWidth, framebufferHeight};
-        org.lwjgl.opengl.GL11.glActiveTexture(org.lwjgl.opengl.GL13.GL_TEXTURE0);
+        org.lwjgl.opengl.GL13.glActiveTexture(org.lwjgl.opengl.GL13.GL_TEXTURE0);
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.pyramidTexture);
         org.lwjgl.opengl.GL11.glCopyTexSubImage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 0, 0, 0, 0, 0, src[0], src[1]);
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 0);
@@ -229,8 +229,8 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
         for (int level = 1; level < this.levels; level++) {
             final int nextWidth = Math.max(1, width >> 1);
             final int nextHeight = Math.max(1, height >> 1);
-            GlProcs.bindImageTexture(0, this.pyramidTexture, level - 1, false, 0, GlProcs.GL_READ_ONLY, GlProcs.R32F);
-            GlProcs.bindImageTexture(1, this.pyramidTexture, level, false, 0, GlProcs.GL_WRITE_ONLY, GlProcs.R32F);
+            GlProcs.bindImageTexture(0, this.pyramidTexture, level - 1, false, 0, GlProcs.GL_READ_ONLY, GlProcs.GL_R32F);
+            GlProcs.bindImageTexture(1, this.pyramidTexture, level, false, 0, GlProcs.GL_WRITE_ONLY, GlProcs.GL_R32F);
             setUniform2i("srcSize", width, height);
             setUniform2i("dstSize", nextWidth, nextHeight);
             GlProcs.dispatchCompute(ceilDiv(nextWidth, 8), ceilDiv(nextHeight, 8), 1);
@@ -291,7 +291,7 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
         GlProcs.bindBuffer(org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER, 0);
 
         GlProcs.useProgram(this.cullProgram);
-        GlProcs.bindImageTexture(2, this.pyramidTexture, Math.max(0, this.levels - 1), false, 0, GlProcs.GL_READ_ONLY, GlProcs.R32F);
+        GlProcs.bindImageTexture(2, this.pyramidTexture, Math.max(0, this.levels - 1), false, 0, GlProcs.GL_READ_ONLY, GlProcs.GL_R32F);
         final int size = Math.max(1, this.width >> Math.max(0, this.levels - 1));
         final int sizeY = Math.max(1, this.height >> Math.max(0, this.levels - 1));
         setUniform2i("hzbSize", size, sizeY);

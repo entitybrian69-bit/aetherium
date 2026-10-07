@@ -160,7 +160,9 @@ public final class GlDevice implements AutoCloseable {
             return;
         }
         if (this.indirectBatch != null) {
-            this.indirectBatch.submit();
+            // The returned label is for logs; the HUD reads the batch's own counters
+            // (getStagedCommands/getFramesWithDraws), so nothing here consumes the string.
+            this.indirectBatch.submit(this.hzb, GlProcs.GL_UNSIGNED_SHORT);
         }
         if (this.uploadArena != null) {
             this.uploadArena.endFrame();

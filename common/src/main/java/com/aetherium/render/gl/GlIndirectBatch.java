@@ -169,8 +169,16 @@ public final class GlIndirectBatch implements AutoCloseable {
         return true;
     }
 
-    /** Uploads, optionally compacts, then issues the batched draw. */
-    public String submit(final HierarchicalDepthBuffer hzb, final int indexType, final int vertexArrayIndexCount) {
+    /**
+     * Uploads, optionally compacts, then issues the batched draw.
+     *
+     * @param hzb       the pyramid to cull against, or null to draw everything staged
+     * @param indexType the element type of the index buffer every staged command reads, i.e.
+     *                  {@code GlProcs.GL_UNSIGNED_SHORT} for section meshes (a section's mesher
+     *                  cannot exceed 65535 vertices, so one type covers the whole batch and the
+     *                  command struct carries no per-draw type)
+     */
+    public String submit(final HierarchicalDepthBuffer hzb, final int indexType) {
         if (this.closed || this.stagedCommands == 0) {
             return "idle";
         }

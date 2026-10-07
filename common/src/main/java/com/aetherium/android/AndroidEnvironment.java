@@ -96,7 +96,7 @@ public final class AndroidEnvironment {
         AndroidRenderer renderer = AndroidRenderer.NONE;
         if (isAndroid) {
             renderer = AndroidRenderer.parse(rawRenderer, env.get("MESA_GL_VERSION_OVERRIDE"));
-            if (renderer == AndroidRenderer.UNKNOWN && config.readCustomEnv().get()) {
+            if (renderer == AndroidRenderer.UNKNOWN && config.readCustomEnv.get()) {
                 // Launcher UIs sometimes only persist the choice in custom_env.txt.
                 final File file = AndroidLauncher.findCustomEnvFile(env);
                 final Map<String, String> overlay = file == null ? Map.of() : CustomEnvFile.parse(toPath(file));
@@ -127,7 +127,7 @@ public final class AndroidEnvironment {
         final boolean neon = features.contains("asimd") || features.contains("neon") || arch.contains("aarch64");
         final boolean sve = features.contains("sve") || features.contains("sve2");
 
-        final File envFileHandle = isAndroid && config.readCustomEnv().get() ? AndroidLauncher.findCustomEnvFile(env) : null;
+        final File envFileHandle = isAndroid && config.readCustomEnv.get() ? AndroidLauncher.findCustomEnvFile(env) : null;
         final Map<String, String> overlay = envFileHandle == null ? Map.of() : CustomEnvFile.parse(toPath(envFileHandle));
 
         LOGGER.info("Android probe: launcher={} renderer={} android={} glLevelDeclared={} budget={}MB heap={}MB cgroup={}MB arch={} neon={} sve={} envFile={}",
@@ -402,6 +402,9 @@ public final class AndroidEnvironment {
                 + String.format(Locale.ROOT, ", %.0f MB heap, %d%% used", this.maxHeapBytes / (1024.0 * 1024.0), this.heapUsageFraction() * 100.0)
                 + (this.thermalMilliCelsius >= 0 ? String.format(Locale.ROOT, ", %.1f°C", this.thermalMilliCelsius / 1000.0) : "");
     }
+
+    /** Written only under {@link #getPowerGovernor}, which is synchronized. */
+    private AndroidPowerGovernor powerGovernor;
 
     /**
      * The thermal/battery governor, created on first use.

@@ -1,5 +1,7 @@
 package com.aetherium.client;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +37,16 @@ public final class ClientHooks {
     private static final AetheriumLog LOGGER = AetheriumLog.of(ClientHooks.class);
 
     private static GlDevice device;
+
+    /**
+     * {@code LevelRenderer#setSectionDirty(int, int, int, boolean)} or null. Resolved once: the
+     * method is private on 1.21.1, so this is the whole reason the call is not direct (see
+     * {@link #dirtySectionsAround}).
+     */
+    private static final MethodHandle SET_SECTION_DIRTY = findSetSectionDirty();
+
+    private static int setSectionDirtyFailures;
+
     private static ChunkMeshScheduler scheduler;
     private static AndroidPowerGovernor governor;
     private static long lastFrameNanos;
@@ -44,6 +56,20 @@ public final class ClientHooks {
 
     /** Reused list: the tick path must not allocate per frame on a mobile heap. */
     private static final List<DynamicLightEngine.LightEmitting> EMITTERS = new ArrayList<>(64);
+
+    /** Lookup for {@link #SET_SECTION_DIRTY}; never throws, so a static initializer is safe. */
+    private static MethodHandle findSetSectionDirty() {
+        try {
+            final java.lang.reflect.Method method = LevelRenderer.class.getDeclaredMethod(
+                    "setSectionDirty", int.class, int.class, int.class, boolean.class);
+            method.setAccessible(true);
+            return MethodHandles.lookup().unreflect(method);
+        } catch (final ReflectiveOperationException | RuntimeException | LinkageError error) {
+            LOGGER.dev("LevelRenderer#setSectionDirty(int,int,int,boolean) is not reachable ({}); "
+                    + "light remeshes will rely on the Aetherium scheduler alone", error.getClass().getSimpleName());
+            return null;
+        }
+    }
 
     private ClientHooks() {
     }
@@ -109,10 +135,12 @@ public final class ClientHooks {
             if (governor != null) {
                 governor.onFrame(frameDuration);
             }
-            subsystems.frameStats().record(frameDuration);
-            BenchmarkRecorder.onFrame(subsystems.frameStats());
+            // The accessors are static on Aetherium (Subsystems' own fields are private, and
+            // Aetherium.frameStats()/store() are the intended route), not instance methods.
+            Aetherium.frameStats().record(frameDuration);
+            BenchmarkRecorder.onFrame(Aetherium.frameStats());
             lastFrameNanos = frameDuration;
-            subsystems.store().tick();
+            Aetherium.store().tick();
         } catch (final RuntimeException error) {
             LOGGER.warn("Frame-end hook failed; Aetherium will keep running but this frame was not measured", error);
         } finally {
@@ -126,7 +154,7 @@ public final class ClientHooks {
         if (subsystems == null || minecraft == null) {
             return;
         }
-        if (subsystems.frameStats() == null) {
+        if (Aetherium.frameStats() == null) {
             return;
         }
         collectLightSources(minecraft);
@@ -214,15 +242,36 @@ public final class ClientHooks {
         return state.getLightEmission() > 0 ? state : null;
     }
 
+    private static void requestVanillaRemesh(final LevelRenderer renderer, final int x, final int y, final int z) {
+        final MethodHandle dirty = SET_SECTION_DIRTY;
+        if (dirty == null) {
+            return;
+        }
+        try {
+            dirty.invoke(renderer, x, y, z, Boolean.FALSE);
+        } catch (final Throwable error) {
+            // Throwable, not RuntimeException: an invoke() site can also surface LinkageError, and
+            // a handle that resolved once can still fail on a reobfuscated name in a dev launch.
+            if (++setSectionDirtyFailures == 1) {
+                LOGGER.warn("setSectionDirty handle failed ({}); dynamic-light remeshes will rely on "
+                        + "the Aetherium scheduler alone", error.getClass().getSimpleName());
+            }
+        }
+    }
+
     /**
      * Dirts the sections around a light change.
      *
-     * <p>Target verified against Sodium's own mixin set for 1.21.1 (it injects into
-     * {@code LevelRenderer} for exactly this purpose). The call is
-     * reflection-guarded because the method name is one of the things that moves
-     * between Minecraft versions; see {@code deltas/<version>/README.md} for the
-     * renames, and note that a miss here degrades to "lights lag until the next
-     * section rebuild", which is recoverable, instead of throwing.</p>
+     * <p>The vanilla half of this is reached reflectively on purpose. In 1.21.1
+     * {@code LevelRenderer#setSectionDirty(int, int, int, boolean)} is private (javac:
+     * "has private access in LevelRenderer"), and the mixin-project way to reach a private
+     * method - {@code @Invoker} on {@code core.LevelRendererMixin} - fails mixin *application*
+     * when the target is missing, which would turn a rename on some future version into a
+     * crash at launch. A cached handle degrades to "no vanilla remesh" instead, and it also
+     * survives the rename without a patch. Sodium reaches the same method from its own mixin
+     * for the same purpose, so the name is not a guess; only the visibility is.</p>
+     *
+     * <p>A miss degrades to "lights lag until the next section rebuild", which is recoverable.</p>
      */
     public static void dirtySectionsAround(final int blockX, final int blockY, final int blockZ, final int radiusSections) {
         final Minecraft minecraft = Minecraft.getInstance();
@@ -251,7 +300,7 @@ public final class ClientHooks {
                             && scheduler.request(x, y, z, System.nanoTime(), 1)) {
                         continue;
                     }
-                    renderer.setSectionDirty(x, y, z, false);
+                    requestVanillaRemesh(renderer, x, y, z);
                 }
             }
         }
@@ -304,8 +353,14 @@ public final class ClientHooks {
             if (bx == toX && by == toY && bz == toZ) {
                 break;
             }
-            final BlockState state = level.getBlockState(new BlockPos(bx, by, bz));
-            if (state.isRedstoneConductor(level, new BlockPos(bx, by, bz)) || state.blocksVision()) {
+            final BlockPos cursor = new BlockPos(bx, by, bz);
+            final BlockState state = level.getBlockState(cursor);
+            // One test, not two: isRedstoneConductor is the "opaque full cube" predicate (it is the
+            // shape a light ray genuinely cannot pass), and it is the member this file could verify.
+            // The blocksVision() that older versions declared is gone from BlockState on 1.21.1
+            // (javac: cannot find symbol), so relying on it here would mean a name per row instead of
+            // one rule - and a false negative from a missing term is a light shining through a wall.
+            if (state.isRedstoneConductor(level, cursor)) {
                 blocked++;
             }
         }

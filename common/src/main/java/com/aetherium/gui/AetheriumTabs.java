@@ -184,10 +184,10 @@ public final class AetheriumTabs {
             Aetherium.store().requestSave();
         }));
         out.add(slider(theme, "aetherium.option.performance.hzb_levels", 1, 12, "%d",
-                () -> config.hzbDepth.get(), value -> config.hzbDepth.set(value.intValue()),
+                () -> config.hzbDepth.get(), value -> config.hzbDepth.set((int) value),
                 () -> Aetherium.store().requestSave(), x, nextRow(rowY, width)));
         out.add(slider(theme, "aetherium.option.performance.mesh_workers", 0, 16, "%d workers (0 = auto)",
-                () -> config.meshWorkers.get(), value -> config.meshWorkers.set(value.intValue()),
+                () -> config.meshWorkers.get(), value -> config.meshWorkers.set((int) value),
                 () -> {
                     final ChunkMeshScheduler scheduler = ClientHooks.scheduler();
                     if (scheduler != null) {
@@ -196,10 +196,10 @@ public final class AetheriumTabs {
                     Aetherium.store().requestSave();
                 }, x, nextRow(rowY, width)));
         out.add(slider(theme, "aetherium.option.performance.upload_budget", 1024, 131072, "%d KB/frame",
-                () -> config.uploadBudgetKb.get(), value -> config.uploadBudgetKb.set(value.intValue()),
+                () -> config.uploadBudgetKb.get(), value -> config.uploadBudgetKb.set((int) value),
                 () -> Aetherium.store().requestSave(), x, nextRow(rowY, width)));
         out.add(slider(theme, "aetherium.option.performance.target_fps", 0, 480, "%s",
-                () -> config.targetFps.get(), value -> config.targetFps.set(value.intValue()),
+                () -> config.targetFps.get(), value -> config.targetFps.set((int) value),
                 () -> Aetherium.store().requestSave(), x, nextRow(rowY, width)));
 
         addHeader(theme, x, rowY, out, "aetherium.section.shaders_compile");
@@ -233,7 +233,7 @@ public final class AetheriumTabs {
         out.add(toggle(theme, config.biomeBlend, x, nextRow(rowY, width), () -> Aetherium.store().requestSave()));
         out.add(toggle(theme, config.entityCulling, x, nextRow(rowY, width), () -> Aetherium.store().requestSave()));
         out.add(slider(theme, "aetherium.option.quality.max_direct_light", 0, 15, "%d",
-                () -> config.maxDirectLight.get(), value -> config.maxDirectLight.set(value.intValue()),
+                () -> config.maxDirectLight.get(), value -> config.maxDirectLight.set((int) value),
                 () -> Aetherium.store().requestSave(), x, nextRow(rowY, width)));
         addNote(theme, x, rowY, out, "Render distance, FOV, mipmap levels and particles stay in vanilla's own "
                 + "Video Settings: Aetherium does not duplicate them, so there is only ever one place to change them.");
@@ -317,13 +317,13 @@ public final class AetheriumTabs {
             Aetherium.store().requestSave();
         }));
         out.add(slider(theme, "aetherium.option.utilities.dynamic_lights.quality", 0, 3, "%d",
-                () -> config.dynamicLightsQuality.get(), value -> config.dynamicLightsQuality.set(value.intValue()),
+                () -> config.dynamicLightsQuality.get(), value -> config.dynamicLightsQuality.set((int) value),
                 () -> {
                     Aetherium.lights().invalidateCache();
                     Aetherium.store().requestSave();
                 }, x, nextRow(rowY, width)));
         out.add(slider(theme, "aetherium.option.utilities.dynamic_lights.range", 4, 15, "%d blocks",
-                () -> config.dynamicLightsRange.get(), value -> config.dynamicLightsRange.set(value.intValue()),
+                () -> config.dynamicLightsRange.get(), value -> config.dynamicLightsRange.set((int) value),
                 () -> {
                     Aetherium.lights().invalidateCache();
                     Aetherium.store().requestSave();
@@ -358,10 +358,10 @@ public final class AetheriumTabs {
         out.add(toggle(theme, config.batterySaver, x, nextRow(rowY, width), () -> Aetherium.store().requestSave()));
         out.add(toggle(theme, config.thermalThrottle, x, nextRow(rowY, width), () -> Aetherium.store().requestSave()));
         out.add(slider(theme, "aetherium.option.android.memory_budget_mb", 256, 8192, "%d MB",
-                () -> config.memoryBudgetMb.get(), value -> config.memoryBudgetMb.set(value.intValue()),
+                () -> config.memoryBudgetMb.get(), value -> config.memoryBudgetMb.set((int) value),
                 () -> Aetherium.store().requestSave(), x, nextRow(rowY, width)));
         out.add(slider(theme, "aetherium.option.android.thermal_ceiling_c", 40, 95, "%d \u00B0C",
-                () -> config.thermalCeilingC.get(), value -> config.thermalCeilingC.set(value.intValue()),
+                () -> config.thermalCeilingC.get(), value -> config.thermalCeilingC.set((int) value),
                 () -> Aetherium.store().requestSave(), x, nextRow(rowY, width)));
         out.add(toggle(theme, config.touchMode, x, nextRow(rowY, width), () -> {
             // Rebuilding the screen is the only way to re-derive hit targets.

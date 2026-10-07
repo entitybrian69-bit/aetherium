@@ -173,10 +173,10 @@ public final class BenchmarkRecorder {
     }
 
     // [UNVERIFIED: GameOptions#renderDistance()/#simulationDistance() returning an
-    // Option<Integer> holder, and Level#getSeed(), are read here straight from 1.21.1. A
-    // rename on another version degrades the label to "vanilla=unavailable" - the whole
-    // block is inside a catch, because a frame-loop label must never be the reason a
-    // benchmark run crashes on port 15.]
+    // Option<Integer> holder is read straight from 1.21.1 (the 1.21.1 compile agrees: those two
+    // lines are the ones CI did not reject). A rename on another version degrades the label to
+    // "vanilla=unavailable" - the whole block is inside a catch, because a frame-loop label must
+    // never be the reason a benchmark run crashes on port 15.]
     private static String vanillaSettings() {
         final Minecraft client = peekClient();
         if (client == null) {
@@ -186,7 +186,11 @@ public final class BenchmarkRecorder {
             final StringBuilder builder = new StringBuilder(48);
             builder.append(" rd=").append(client.options.renderDistance().get());
             builder.append(" sim=").append(client.options.simulationDistance().get());
-            builder.append(client.level == null ? " seed=none" : " seed=" + client.level.getSeed());
+            // The seed is handed in by tools/benchmark.sh (-Daetherium.benchmark.seed) instead of
+            // read off the level: ClientLevel has no getSeed() on 1.21.1 (javac: cannot find symbol),
+            // and a row that quietly lost its seed would look reproducible without being one. An
+            // unseeded manual run therefore says "unrecorded" rather than guessing.
+            builder.append(" seed=").append(System.getProperty(PROPERTY + ".seed", "unrecorded"));
             return builder.toString();
         } catch (final RuntimeException | LinkageError error) {
             if (!warnedOnce) {

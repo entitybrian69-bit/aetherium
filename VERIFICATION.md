@@ -321,3 +321,26 @@ depend on the same `common` sources; the CycleButton fix in §5 item 12 is their
 
 Order of work, cheapest signal first: the five plain-Java fixes, then `javap` against the pinned LWJGL
 jars for the four `GlProcs` sites, then re-run and take the next list.
+
+### The second report, after those five went away
+
+`a7b199d` cleared the five, and the chunked annotations produced 35 sites with their `symbol:` /
+`location:` lines - the whole point of chunking them. Grouped, with what each one taught:
+
+| Group | Sites | What CI proved |
+| --- | --- | --- |
+| Slider setters | `AetheriumTabs` x9 | `slider(...)` takes a `DoubleConsumer`, so `value` is a primitive `double` and `value.intValue()` is illegal. Now `(int) value`. |
+| Subsystem access | `ClientHooks` x4 | `Subsystems` fields are private; the accessors are the static `Aetherium.frameStats()` / `Aetherium.store()`, not instance methods. |
+| Private vanilla | `ClientHooks:254` | `LevelRenderer#setSectionDirty(int,int,int,boolean)` is **private** on 1.21.1. Reached through a cached `MethodHandle` instead of `@Invoker`: a missing `@Invoker` fails mixin *application*, which is the crash-everything outcome this project keeps designing out. |
+| Renamed vanilla | `ClientHooks:308` | `BlockState#blocksVision()` does not exist on 1.21.1; the occlusion test keeps `isRedstoneConductor`, which CI confirms is there. |
+| Light sampling | `LightmapWriter:240` | `Level#getLightLevel(LightLayer,BlockPos)` does not exist either - the probe now matches by signature (two params, `LightLayer` + `BlockPos`, returns `int`), so no name is pinned. |
+| Benchmark label | `BenchmarkRecorder:189` | `ClientLevel` has no `getSeed()`; the seed is passed in (`-Daetherium.benchmark.seed`) by `tools/benchmark.sh`, which that flag had always implied. |
+| LWJGL forms | `GlProcs` x7 | The named buffer entry points are GL45C not GL44C; `glNamedBufferData` is `(int,long,int)`/`(int,ByteBuffer,int)`; the map functions return a `ByteBuffer`, not an address; `glGetProgramBinary` is `(int,IntBuffer,IntBuffer,ByteBuffer)` - argument order taken from the compiler's own candidate list, then quoted in the javadoc. |
+| HZB | `HierarchicalDepthBuffer` x6 | `GlProcs.R32F` is `GlProcs.GL_R32F`, and `glActiveTexture` is GL13, not GL11. |
+| Indirect batch | `GlDevice:163` | `submit` takes the HZB and the batch's index type; the third parameter was unused, so it is gone rather than passed a dummy. |
+| Android | `AndroidEnvironment` x6 | `readCustomEnv` is a field, so `.get()` not `()`; and `powerGovernor` was used by three methods but never declared. |
+
+The four vanilla-API sites are the ones worth reading twice: two of them were "verified against
+Sodium's mixin set" in a comment, which verified the *name* and not the *visibility* or the
+signature. Nothing in this tree is now claimed as verified unless a compiler or the pinned source
+above has said so.

@@ -200,7 +200,9 @@ public final class AetheriumVideoOptionsScreen extends Screen {
         }
         this.list.tickAnimations();
 
-        renderBackground(guiGraphics);
+        // 1.21.1's Screen#renderBackground takes the cursor and frame delta too (it dims and
+        // blurs behind the panel); the single-argument form is 1.21.2+.
+        this.renderBackground(guiGraphics, mouseX, mouseY, delta);
         drawChrome(guiGraphics);
 
         final int contentX = this.theme.sidebarWidth() + this.theme.dp(8) * 2;

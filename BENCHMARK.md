@@ -67,7 +67,9 @@ vsync off, maxFps 260), and launches with:
 ```
 
 The label column carries the backend name, render distance, simulation distance and the
-world seed, because a row without those four is not reproducible. Recording is *only* ever
+world seed, because a row without those four is not reproducible - the seed arrives through
+`-Daetherium.benchmark.seed` (what the script passes after creating the world) rather than
+from the client level, because 1.21.1's `ClientLevel` does not expose the seed at all. Recording is *only* ever
 on with the property set; a normal launch opens no file and adds nothing to the frame loop
 (`BenchmarkRecorderTest` asserts exactly that, in both directions).
 
