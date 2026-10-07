@@ -73,6 +73,12 @@ coexist. Details: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
 ## Build
 
+Releases for every Minecraft version in `PORTING_MATRIX.md` are published by the `ship` workflow
+(one job per version: port the tree, build it against that version's own pins, attach the jars, publish
+`v0.1.0+<mcversion>`). `DOWNLOADS.md` at the repo root is generated from those releases, so a link there
+exists only if the jar exists.
+
+
 ```sh
 gradle wrapper --gradle-version 9.4.1   # once; see the note above
 ./gradlew buildAll                       # common + fabric + neoforge jars
