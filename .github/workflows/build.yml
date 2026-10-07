@@ -1,0 +1,287 @@
+name: build
+
+# What this workflow proves, in order of cost:
+#   1. the tree is internally consistent (offline checks, no Minecraft download);
+#   2. it compiles against real 1.21.1 mappings with the pinned toolchain;
+#   3. the unit tests pass on both loader shells;
+#   4. a port of the same source to another version still parses (matrix rows).
+# Steps 1 and 4 run without a Mojang download, so a fork with no network secrets
+# still gets a useful signal.
+#
+# Step 5 (draft-release) is the only place a downloadable .jar comes from. It
+# runs on `main` alone, and it can only ever attach jars this run actually built
+# - `if-no-files-found: error` means a green run with no artifacts is impossible.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
+
+jobs:
+  offline:
+    name: tree checks (no downloads)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: reference + placeholder checks
+        run: |
+          python3 tools/check_refs.py .
+          python3 tools/check_java.py .
+          python3 tools/check.py
+          python3 tools/gen_resources.py --check
+      - name: every unverified claim is reported
+        run: python3 tools/check.py --report-unverified | tee unverified.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unverified-claims
+          path: unverified.txt
+          if-no-files-found: warn
+
+  build:
+    name: java ${{ matrix.java }} / ${{ matrix.os }}
+    needs: offline
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            java: 21
+          - os: windows-latest
+            java: 21
+          - os: macos-14
+            java: 21
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.4.1
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      # The wrapper jar is not in the checkout (see README, "Build"), and generating it must NOT
+      # run inside the project: `gradle wrapper` there configures :fabric and :neoforge, which
+      # resolves fabric-loom / ModDev and provisions Minecraft before the task can finish. So it is
+      # generated in a scratch project. It is also NOT load-bearing: every Gradle call below uses
+      # the distribution setup-gradle put on PATH, so a broken bootstrap costs a warning, not the
+      # whole build. The wrapper matters to humans cloning the repo, not to CI.
+      - name: bootstrap the wrapper jar
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          {
+            v=$(sed -n 's/^distributionUrl=.*gradle-\([0-9.]*\)-bin\.zip$/\1/p' \
+                  gradle/wrapper/gradle-wrapper.properties)
+            v=${v:-9.4.1}
+            echo "want Gradle $v"
+            gradle --version || {
+              echo "no gradle on PATH; fetching the pinned distribution"
+              curl -fsSLo "$RUNNER_TEMP/gradle.zip" \
+                "https://services.gradle.org/distributions/gradle-${v}-bin.zip"
+              want=$(curl -fsSLo - "https://services.gradle.org/distributions/gradle-${v}-bin.zip.sha256" | tr -d '[:space:]')
+              if command -v sha256sum >/dev/null 2>&1; then
+                got=$(sha256sum "$RUNNER_TEMP/gradle.zip" | cut -d' ' -f1)
+              else
+                got=$(shasum -a 256 "$RUNNER_TEMP/gradle.zip" | cut -d' ' -f1)
+              fi
+              if [ "$want" != "$got" ]; then
+                echo "gradle-${v}-bin.zip checksum mismatch: expected $want got $got" >&2
+                exit 1
+              fi
+              unzip -qo "$RUNNER_TEMP/gradle.zip" -d "$RUNNER_TEMP/gradle-dist"
+              export PATH="$RUNNER_TEMP/gradle-dist/gradle-${v}/bin:$PATH"
+              echo "$RUNNER_TEMP/gradle-dist/gradle-${v}/bin" >> "$GITHUB_PATH"
+              gradle --version
+            }
+            scratch=$(mktemp -d)
+            gradle --no-daemon --console=plain wrapper --gradle-version "$v" --project-dir "$scratch"
+            mkdir -p gradle/wrapper
+            cp "$scratch/gradle/wrapper/gradle-wrapper.jar" gradle/wrapper/gradle-wrapper.jar
+            echo "gradle-wrapper.jar: $(wc -c < gradle/wrapper/gradle-wrapper.jar) bytes"
+          } 2>&1 | tee "$RUNNER_TEMP/bootstrap.log" || {
+            printf '::warning::wrapper bootstrap failed (CI does not need it): %s\n' \
+              "$(tail -n 8 "$RUNNER_TEMP/bootstrap.log" 2>/dev/null | sed -e 's/%/%25/g' | tr '\n' '|')"
+          }
+      - name: build both loader shells
+        shell: bash
+        run: |
+          gradle --no-daemon --console=plain --stacktrace --continue \
+            :common:build :fabric:build :neoforge:build 2>&1 | tee "$RUNNER_TEMP/build.log"
+      - name: verifyAll (tests + tree checks)
+        shell: bash
+        run: |
+          gradle --no-daemon --console=plain --stacktrace verifyAll 2>&1 | tee "$RUNNER_TEMP/verify.log"
+      # Only the two loader jars: aetherium-common-*.jar is an intermediate whose
+      # mixin refmap is not remapped, so installing it would do nothing useful.
+      - name: what got built
+        shell: bash
+        run: ls -l fabric/build/libs/ neoforge/build/libs/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jars-${{ matrix.os }}
+          path: |
+            fabric/build/libs/*.jar
+            neoforge/build/libs/*.jar
+          if-no-files-found: error
+      - name: report the failure where it can be read
+        if: failure()
+        shell: bash
+        run: |
+          log=$(ls -t "$RUNNER_TEMP"/*.log 2>/dev/null | head -1 || true)
+          if [ -z "$log" ]; then
+            echo "::error::failed before any Gradle step ran; see the step log"
+            exit 0
+          fi
+          echo "--- tail of $(basename "$log") ---"
+          tail -n 120 "$log" || true
+          # Escape % first, drop CR, then join lines with a literal %0A - `paste -d '%0A'` would
+          # use each of the three characters as a separate delimiter in turn, which mangles the text.
+          body=$(tail -n 50 "$log" | sed -e 's/%/%25/g' | tr -d '\r' | awk '{printf "%s%%0A", $0}')
+          printf '::error::%s\n' "$body"
+          # The candidate lists Gradle prints under "* What went wrong:" are the whole point -
+          # grepping single lines loses them, which is exactly what made the last run ambiguous.
+          errs=$(awk '/^\* What went wrong:/{f=1} f{print} /^\* Try:/{if(f)exit}' \
+            "$RUNNER_TEMP"/build.log 2>/dev/null | head -80 |
+            sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}' || true)
+          if [ -n "$errs" ]; then
+            printf '::error::what gradle says:%s\n' "$errs"
+          fi
+          # javac's own lines sit ABOVE "* What went wrong:" in the log, so a single annotation
+          # carrying only the latter loses them - emit both, always, rather than as a fallback.
+          # Every error with the 7 lines under it (that is where "symbol:" / "location:" live).
+          # A single annotation gets truncated by GitHub, so the text is split into chunks of 22
+          # lines and each becomes its own annotation - the last cycle lost a message mid-word.
+          awk '/: (error|warning):/{c=8} c>0{print; c--}' "$RUNNER_TEMP"/build.log 2>/dev/null |
+            sed -e 's/%/%25/g' | head -180 | tr -d '\r' > "$RUNNER_TEMP/errors.txt" || true
+          if [ -s "$RUNNER_TEMP/errors.txt" ]; then
+            split -l 22 "$RUNNER_TEMP/errors.txt" "$RUNNER_TEMP/errors.part"
+            n=0
+            for part in "$RUNNER_TEMP"/errors.part*; do
+              n=$((n + 1))
+              body=$(sed -e 's/$/%0A/' "$part" | tr -d '\n')
+              printf '::error::compiler %s/%s:%s\n' "$n" "$(ls "$RUNNER_TEMP"/errors.part* | wc -l)" "$body"
+            done
+          else
+            printf '::error::no compiler output; the failure is upstream of javac (see the gradle section above)\n'
+          fi
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: gradle-logs-${{ matrix.os }}
+          path: ${{ runner.temp }}/*.log
+          if-no-files-found: ignore
+          retention-days: 30
+
+  ports:
+    name: port check ${{ matrix.version }}
+    needs: offline
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The three rows whose deltas touch the most, plus the extremes of the
+        # range. The full 33-row sweep is `sh tools/build_all.sh --ports`.
+        version: ['1.16.5', '1.20.1', '1.20.6', '26.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: apply the delta and re-check
+        run: |
+          sh tools/port.sh --dry-run ${{ matrix.version }}
+          python3 tools/check_refs.py .
+          python3 tools/check.py
+
+  # The jars are byte-identical loaders-side regardless of the OS that built them,
+  # so one matrix leg's output is enough for the release; the other legs exist to
+  # prove the build is not Linux-only. Windows/macOS artifacts stay on the run page.
+  draft-release:
+    name: draft release with the jars
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [offline, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: jars-ubuntu-latest
+          path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: unverified-claims
+          path: dist
+        continue-on-error: true
+      - name: publish the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mod=$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')
+          mc=$(sed -n 's/^minecraft_version=//p' gradle.properties | tr -d '[:space:]')
+          tag="v$mod+$mc"
+          assets=$(find dist -maxdepth 1 -type f | sort | tr '\n' ' ')
+          case " $assets " in
+            *\.jar*) ;;
+            *) echo 'no .jar in dist/ - refusing to publish an empty release' >&2; exit 1 ;;
+          esac
+          marks=$(python3 tools/check.py --json | head -1 |
+            sed -n 's/.*"unverified": *\([0-9]*\).*/\1/p')
+          marks=${marks:-unknown}
+          # The notes are written with a quoted heredoc so backticks stay literal,
+          # then the placeholders are substituted - unquoted heredocs would run
+          # every `word` in the text as a command substitution.
+          cat > notes.md <<'EOF'
+          Built by this run of CI from a push to `main`. Left **draft** on purpose: nothing here
+          promises the mod runs.
+
+          * Minecraft @MC@, loader shells for Fabric and NeoForge, mod version `@MOD@`.
+          * What CI establishes: it compiles against real @MC@ mappings, the unit tests pass,
+            checkstyle and the tree checks pass. What it does not: **no GPU was ever attached**,
+            so every GL call in these jars is unexercised.
+          * @MARKS@ `[UNVERIFIED]` marks remain in the source; each one names its own failure mode
+            (VERIFICATION.md), and the raw list is attached as `unverified.txt`.
+          * Install one jar into `mods/`. Fabric additionally needs Fabric API; NeoForge needs
+            nothing extra.
+          * There is no full replacement renderer in here. `advanced.experimental_full_renderer`
+            logs an error and disables itself - that is the shipped behaviour, not a bug.
+          * For other Minecraft versions there is no jar: apply `deltas/<version>/changes.patch`
+            and build (see PORTING_MATRIX.md).
+          EOF
+          sed -i "s|@MC@|$mc|g; s|@MOD@|$mod|g; s|@MARKS@|$marks|g" notes.md
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=true --notes-file notes.md
+            gh release upload "$tag" --repo "$GITHUB_REPOSITORY" --clobber $assets
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft=true \
+              --target "$GITHUB_SHA" --title "Aetherium $mod (Minecraft $mc)" \
+              --notes-file notes.md $assets
+          fi
+          {
+            echo "### Draft release \`$tag\`"
+            echo
+            echo "Publish it once you have run this jar on a real client: \`gh release edit $tag --draft=false\`"
+            for f in $assets; do
+              echo "- \`$(basename "$f")\` - $(stat -c%s "$f") bytes"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

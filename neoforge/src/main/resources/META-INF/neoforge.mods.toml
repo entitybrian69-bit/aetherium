@@ -1,0 +1,40 @@
+# Aetherium on NeoForge. This file is expanded by
+# neoforge/build.gradle.kts -> processResources; the tokens come from
+# gradle.properties, which is the single source of truth for pins.
+
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+issueTrackerURL = "${mod_issue_tracker}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${version}"
+displayName = "${mod_name}"
+displayURL = "${mod_homepage}"
+authors = "Aetherium contributors"
+description = '''${mod_description}'''
+# The logo and background are generated purple textures in the common resources,
+# shipped once and reused by both loaders.
+logoFile = "assets/aetherium/icon.png"
+
+# Aetherium depends on minecraft with ordering = AFTER so that its Mixins are applied
+# after the vanilla classes are transformed, which is what makes the tolerant
+# injection points in com.aetherium.mixin.core resolve against one stable shape.
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neoforge_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[mixins]]
+config = "aetherium-common.mixins.json"

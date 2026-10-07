@@ -1,0 +1,83 @@
+root = true
+
+# Java is the language that decides most of these rules, and they are the rules
+# checkstyle.xml enforces - keeping them here means an IDE gets it right before the
+# build yells, which is the only way indentation arguments stay civil.
+#
+# Spaces, not tabs (Fabric/NeoForge's own convention is tabs, and this is a
+# deliberate deviation): the mixin classes align continuation lines under the
+# opening parenthesis of a long injection target, e.g. the
+# `at = @At(value = "INVOKE", target = "Lnet/minecraft/...;method(IZ)V", shift = ...)`
+# columns in LevelRendererMixin. Under tabs those columns move with the reader's
+# tab width, and a delta patch in deltas/<version>/ that rewrites one descriptor
+# then fails to apply for whitespace reasons. Spaces make the alignment byte
+# exact, which is what 33 version rows need.
+[*.java]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+tab_width = 4
+max_line_length = 140
+
+# Final newline and LF matter for the delta patches in deltas/: `git apply` on a
+# CRLF file with an LF patch fails, and a missing final newline makes every patch
+# hunk touch the last line of the file.
+[*.{kt,kts}]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 120
+
+[*.{json,toml,yml,yaml}]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = false
+
+# Mixin configs are JSON but contain comment arrays of prose: trailing whitespace
+# trimming would rewrite the file on every save without changing meaning.
+[*.mixins.json]
+trim_trailing_whitespace = false
+
+[*.md]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = false
+insert_final_newline = true
+max_line_length = off
+
+[*.sh]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.bat]
+charset = utf-8
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+
+[*.{properties}]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+[gradle/libs.versions.toml]
+indent_size = 2

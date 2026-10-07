@@ -1,0 +1,106 @@
+Aetherium
+Copyright (C) 2026 Aetherium contributors
+
+This product includes software developed by third parties, listed below. Each
+keeps its own license; the full text of each is reproduced in the
+third-party-notices/ directory of the source distribution, and none of their
+sources are vendored into this repository (all are resolved as Gradle
+dependencies at build time, and Minecraft itself is never redistributed).
+
+-------------------------------------------------------------------------------
+Minecraft and the Mojang mappings
+-------------------------------------------------------------------------------
+Minecraft: Copyright (c) Mojang Synergies AB / Microsoft. Not redistributable.
+This repository contains no Minecraft binaries; `fabric-loom` downloads the
+client jar from Mojang's publish servers during the build, and the mappings
+(`loom.officialMojangMappings()`) are likewise obtained from Mojang at build
+time under the terms of their own license.
+
+Note for anyone republishing a build: the *mapped* Minecraft classes must not be
+distributed. `remapJar` output is fine to publish (it contains only Aetherium
+classes plus shaded MixinExtras), which is why the build does not produce a
+"fat" jar containing game code.
+
+-------------------------------------------------------------------------------
+Fabric Loader, Fabric Loom, Mixin (SpongePowered)
+-------------------------------------------------------------------------------
+Fabric Loader - Apache License 2.0 - Copyright (c) FabricMC
+Fabric Loom   - Apache License 2.0 - Copyright (c) FabricMC
+Mixin         - MIT License         - Copyright (c) SpongePowered et al.
+    https://github.com/FabricMC/fabric-loader
+    https://github.com/FabricMC/fabric-loom
+    https://github.com/SpongePowered/Mixin
+Mixins in this repository (`common/src/main/java/com/aetherium/mixin/`) are
+derivative works of the *mapping data* only; they inject into the game at runtime
+and contain no copied Mixin source.
+
+-------------------------------------------------------------------------------
+MixinExtras
+-------------------------------------------------------------------------------
+io.github.llamalad7:mixinextras - MIT License - Copyright (c) llamaLad7
+    https://github.com/LlamaLad7/MixinExtras
+Embedded in both shipped jars (Fabric via `include`, NeoForge via unpacked
+`implementation`), because MixinExtras' annotation processor output must ship with
+the mod that uses it.
+
+-------------------------------------------------------------------------------
+NeoForge
+-------------------------------------------------------------------------------
+NeoForge - LGPL-2.1-only (code) with its own license file - Copyright (c) NeoForged and contributors
+    https://github.com/neoforged/NeoForge
+Used only as a compile/run dependency. `@Mod`, `FMLPaths`, `ModList` and
+`RenderLevelStageEvent` are its public API surface as of 1.21.1.
+
+-------------------------------------------------------------------------------
+LWJGL
+-------------------------------------------------------------------------------
+Lightweight Java Game Library 3 - BSD-3-Clause - Copyright (c) LWJGL (lwjgl.org)
+    https://github.com/LWJGL/lwjgl3
+The GL entry points in `com.aetherium.render.gl.GlProcs` route through LWJGL's
+`GL43C`/`GL45C`/`GL46C`/`GL44C`/`GL41`/`GL30`/`GL31C`/`GL32`/`GL40` host classes
+and `GLARB*` extension classes. Every constant is declared numerically in
+`GlProcs`, with the LWJGL field it was read from recorded in a comment, because
+an enum value that only exists in a newer LWJGL breaks a build on an older one for
+no reason.
+
+-------------------------------------------------------------------------------
+JOML, Guava, GSON, Anarres Not-Null
+-------------------------------------------------------------------------------
+JOML    - MIT - Copyright (c) JOML
+Guava   - Apache 2.0 - Copyright (c) Google LLC
+GSON    - Apache 2.0 - Copyright (c) Google LLC
+NotNull - Apache 2.0 - Copyright (c) Adam Heidedal
+Used transitively via Minecraft/Loom; Aetherium's own source imports only
+`com.google.gson` nowhere (its JSON codec in `com.aetherium.config.Json` is
+hand-written, so config parsing does not break when Minecraft swaps GSON
+versions).
+
+-------------------------------------------------------------------------------
+Ideas, API shapes and prior art that influenced this implementation
+-------------------------------------------------------------------------------
+This is an independent implementation. It does not contain code from any of the
+projects below, and it does not claim their authors' endorsement. Each is listed
+because reading it answered a question this repository had to answer, and
+because a user evaluating Aetherium should know what "compatible with Sodium's
+territory" means concretely:
+
+  * CaffeineMC/sodium (LGPL-3.0) - the mixin target names for 1.21.1
+    (`LightTexture#updateTick`, `OptionsScreen` settings hijack, `Gui` overlay
+    hook), the version-support matrix shape, and the `PostLaunchChecks` approach
+    to Android launcher detection (`POJAV_RENDERER`, `java.library.path` probes).
+  * FiniteRealities/Embeddium (LGPL-3.0) - the NeoForge ModDev build layout.
+  * IrisShaders/Iris (LGPL-3.0) - API v0 surface (`IrisApiV0Impl.INSTANCE`,
+    `isShaderPackInUse`, `isRenderingShadowPass`, `openMainIrisScreenObj`,
+    `getSunPathRotation`, `IrisApiConfig#setShadersEnabledAndApply`), bound here
+    by reflection only.
+  * FlutterLauncher/FCL, PojavLauncherTeam/PojavLauncher (GPL-3.0) - the environment
+    variable names Aetherium reads (`POJAV_RENDERER`, `ZALITH_RENDERER`,
+    `FCL_RENDERER`, `MESA_GL_VERSION_OVERRIDE`, `POJAVEXEC_EGL`) and
+    `custom_env.txt` as a config source.
+
+Where this implementation is not derived from those projects it is because the
+problem had already been solved differently here - notably the persistent-mapped
+upload arena (`GlPersistentArena`), the monotone cubic lightmap curve
+(`GammaApplier.GammaCurve`) and the shape-probing lightmap writer
+(`gamma/LightmapWriter`), which exist because a `@Shadow` field that renames is a
+crash on someone else's launcher.
