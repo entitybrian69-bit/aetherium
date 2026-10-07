@@ -83,16 +83,21 @@ jobs:
         with:
           gradle-version: 9.4.1
           cache-read-only: false
+      # Two separate setup-java calls, in this order, because setup-java makes the LAST
+      # version it installs the active JAVA_HOME: the row's own JDK first (so the
+      # `java { toolchain { } }` block in each build script finds it in hostedtoolcache),
+      # then 21 (so Gradle itself runs on a JVM it supports). A single call with a list
+      # put 1.16.5's Java 8 on JAVA_HOME and every leg of the first ship run died with
+      # "Gradle requires JVM 17 or later to run. Your build is currently configured to
+      # use JVM 8."
       - uses: actions/setup-java@v4
-        # 21 first: it is the JVM Gradle itself runs on (9.4.1 needs 17+). The row's
-        # own toolchain is installed alongside it so the java { toolchain { } } block
-        # in each build script finds a real JDK in hostedtoolcache instead of failing
-        # with "No matching toolchains found for JavaVersion.X".
         with:
           distribution: temurin
-          java-version: |
-            21
-            ${{ matrix.java }}
+          java-version: ${{ matrix.java }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
       - name: materialize the ported tree
         shell: bash
         run: |
