@@ -38,6 +38,8 @@ public final class BenchmarkRecorder {
     /** Volatile because {@link #stop()} can arrive from the main thread during shutdown. */
     private static volatile boolean disabled;
     private static Path file;
+    /** The FrameStats most recently passed to {@link #onFrame}, kept for the flush in {@link #stop}. */
+    private static FrameStats lastStats;
     private static long intervalNanos = 15_000_000_000L;
     private static long intervalStartNanos;
     private static long framesInInterval;
@@ -91,6 +93,7 @@ public final class BenchmarkRecorder {
 
     /** Called once per frame from the client hook, after the frame has been recorded. */
     public static void onFrame(final FrameStats stats) {
+        lastStats = stats;
         if (disabled || file == null || stats == null) {
             return;
         }
@@ -219,7 +222,13 @@ public final class BenchmarkRecorder {
         if (file == null || disabled) {
             return;
         }
-        final FrameStats stats = Aetherium.subsystemsOrNull() == null ? null : Aetherium.frameStats();
+        // The stats object this recorder was last fed, preferring it over a fresh lookup: a run
+        // without Aetherium's subsystems (the unit test, and any harness that calls onFrame directly)
+        // still has to flush the interval it accumulated, or the tail row of every short benchmark
+        // is silently lost.
+        final FrameStats stats = lastStats != null ? lastStats
+                : (Aetherium.subsystemsOrNull() == null ? null : Aetherium.frameStats());
+        lastStats = null;
         if (stats != null && framesInInterval > 0L) {
             writeRow(stats, framesInInterval);
             framesInInterval = 0L;

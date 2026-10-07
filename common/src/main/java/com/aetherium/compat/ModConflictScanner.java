@@ -171,6 +171,14 @@ public final class ModConflictScanner {
             if (conflict.severity().ordinal() > this.worst.ordinal()) {
                 this.worst = conflict.severity();
                 this.ownership = conflict.ownership();
+            } else if (this.ownership == Ownership.AETHERIUM_RENDERER
+                    && conflict.ownership() == Ownership.SHADER_OWNER) {
+                // Shader ownership is a different axis from geometry ownership. An INFO row for a
+                // shader pack owner has to claim it even though it is nowhere near the worst
+                // severity in the table, otherwise "Iris is present" and "Aetherium owns the
+                // shader pipeline" are reported together, which is the pair of statements that
+                // makes a user disable the integration that is working.
+                this.ownership = Ownership.SHADER_OWNER;
             }
             switch (conflict.severity()) {
                 case INFO:

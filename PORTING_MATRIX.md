@@ -20,9 +20,9 @@ unless it is the reference row. Anything else would be a fabricated deliverable.
 
 | Minecraft | Java | Fabric loader | NeoForge | GuiGraphics | lightmap | options hijack | status | delta |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| [1.16.5](deltas/1.16.5/) | 8 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `disabled (fallback button only)` | documented | [patch](deltas/1.16.5/changes.patch) · [derivation](deltas/1.16.5/derivation.md) · [notes](deltas/1.16.5/notes.md) |
-| [1.17](deltas/1.17/) | 16 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `disabled (fallback button only)` | unverified | [patch](deltas/1.17/changes.patch) · [derivation](deltas/1.17/derivation.md) · [notes](deltas/1.17/notes.md) |
-| [1.17.1](deltas/1.17.1/) | 16 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `disabled (fallback button only)` | unverified | [patch](deltas/1.17.1/changes.patch) · [derivation](deltas/1.17.1/derivation.md) · [notes](deltas/1.17.1/notes.md) |
+| [1.16.5](deltas/1.16.5/) | 17 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `disabled (fallback button only)` | documented | [patch](deltas/1.16.5/changes.patch) · [derivation](deltas/1.16.5/derivation.md) · [notes](deltas/1.16.5/notes.md) |
+| [1.17](deltas/1.17/) | 17 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `disabled (fallback button only)` | unverified | [patch](deltas/1.17/changes.patch) · [derivation](deltas/1.17/derivation.md) · [notes](deltas/1.17/notes.md) |
+| [1.17.1](deltas/1.17.1/) | 17 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `disabled (fallback button only)` | unverified | [patch](deltas/1.17.1/changes.patch) · [derivation](deltas/1.17.1/derivation.md) · [notes](deltas/1.17.1/notes.md) |
 | [1.18](deltas/1.18/) | 17 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `[1.17.4,)` | derived | [patch](deltas/1.18/changes.patch) · [derivation](deltas/1.18/derivation.md) · [notes](deltas/1.18/notes.md) |
 | [1.18.1](deltas/1.18.1/) | 17 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `[1.17.4,)` | derived | [patch](deltas/1.18.1/changes.patch) · [derivation](deltas/1.18.1/derivation.md) · [notes](deltas/1.18.1/notes.md) |
 | [1.18.2](deltas/1.18.2/) | 17 | 0.14.24 | n/a | no (PoseStack) | NativeImage lightmap | `[1.17.4,)` | derived | [patch](deltas/1.18.2/changes.patch) · [derivation](deltas/1.18.2/derivation.md) · [notes](deltas/1.18.2/notes.md) |
@@ -66,9 +66,9 @@ No row links a download, because this repository publishes no jars - see the
 
 ### 1.16 - 1.18 (Java 8/16/17, no GuiGraphics)
 
-- [1.16.5](deltas/1.16.5/) - Java 8, [patch](deltas/1.16.5/changes.patch), [derivation](deltas/1.16.5/derivation.md), [notes](deltas/1.16.5/notes.md) - `documented`
-- [1.17](deltas/1.17/) - Java 16, [patch](deltas/1.17/changes.patch), [derivation](deltas/1.17/derivation.md), [notes](deltas/1.17/notes.md) - `unverified`
-- [1.17.1](deltas/1.17.1/) - Java 16, [patch](deltas/1.17.1/changes.patch), [derivation](deltas/1.17.1/derivation.md), [notes](deltas/1.17.1/notes.md) - `unverified`
+- [1.16.5](deltas/1.16.5/) - Java 17, [patch](deltas/1.16.5/changes.patch), [derivation](deltas/1.16.5/derivation.md), [notes](deltas/1.16.5/notes.md) - `documented`
+- [1.17](deltas/1.17/) - Java 17, [patch](deltas/1.17/changes.patch), [derivation](deltas/1.17/derivation.md), [notes](deltas/1.17/notes.md) - `unverified`
+- [1.17.1](deltas/1.17.1/) - Java 17, [patch](deltas/1.17.1/changes.patch), [derivation](deltas/1.17.1/derivation.md), [notes](deltas/1.17.1/notes.md) - `unverified`
 - [1.18](deltas/1.18/) - Java 17, [patch](deltas/1.18/changes.patch), [derivation](deltas/1.18/derivation.md), [notes](deltas/1.18/notes.md) - `derived`
 - [1.18.1](deltas/1.18.1/) - Java 17, [patch](deltas/1.18.1/changes.patch), [derivation](deltas/1.18.1/derivation.md), [notes](deltas/1.18.1/notes.md) - `derived`
 - [1.18.2](deltas/1.18.2/) - Java 17, [patch](deltas/1.18.2/changes.patch), [derivation](deltas/1.18.2/derivation.md), [notes](deltas/1.18.2/notes.md) - `derived`

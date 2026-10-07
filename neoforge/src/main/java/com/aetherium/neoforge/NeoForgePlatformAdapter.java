@@ -39,12 +39,12 @@ public final class NeoForgePlatformAdapter implements PlatformAdapter {
 
     @Override
     public Path gameDirectory() {
-        return FMLPaths.GAME_DIRECTORY.get();
+        return FMLPaths.GAMEDIR.get();
     }
 
     @Override
     public Path configDirectory() {
-        return FMLPaths.CONFIG_DIRECTORY.get();
+        return FMLPaths.CONFIGDIR.get();
     }
 
     @Override
@@ -93,9 +93,11 @@ public final class NeoForgePlatformAdapter implements PlatformAdapter {
     // precisely so the wrong guess costs a log line instead of a compile error.
     // [UNVERIFIED: net.neoforged.fml.loading.FMLEnvironment#dist is the public static field for
     // the logical side on NeoForge 1.21.1; read reflectively for the same reason.]
-    // [UNVERIFIED: FMLPaths.GAME_DIRECTORY / CONFIG_DIRECTORY and ModList#getModContainerById are
-    // named from NeoForge 20.x-21.x usage; they have not been renamed in any release in the
-    // porting range as of the pinned 21.1.77, but this file is the only consumer.]
+    // [UNVERIFIED: what FMLPaths.GAMEDIR / CONFIGDIR resolve to at runtime (the enum constants
+    // themselves are settled - CI's javac rejected GAME_DIRECTORY / CONFIG_DIRECTORY as "cannot find
+    // symbol", and ModList#getModContainerById compiled untouched, so the second half of that claim is
+    // now evidence rather than guesswork). A wrong directory would put config.toml somewhere other than
+    // the game's config folder, which the startup log line names, so it is visible, not silent.]
     private static String detectMinecraftVersion() {
         for (final String[] candidate : new String[][]{
                 {"net.neoforged.neoforge.internal.versions.neoforge.NeoForgeVersion", "mcVersion"},

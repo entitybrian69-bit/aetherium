@@ -141,7 +141,10 @@ final class FrameStatsTest {
 
         final String row = this.stats.formatMarkdownRow("gl46-dsa");
         assertTrue(row.startsWith("| gl46-dsa |"), "not a markdown row: " + row);
-        assertEquals(7, row.chars().filter(value -> value == '|').count(),
+        // Seven cells, eight boundaries: a markdown row is pipe-delimited at both ends, so the
+        // count is cells + 1 - the number this assertion used to get wrong while the row it checks
+        // was right (and the header table in BenchmarkRecorder has the same seven columns).
+        assertEquals(8, row.chars().filter(value -> value == '|').count(),
                 "a benchmark table row needs one pipe per boundary: " + row);
         assertTrue(row.endsWith("|"), "unterminated row: " + row);
     }

@@ -1,6 +1,6 @@
 # Port notes: Minecraft 1.16.5
 
-- Java toolchain: **8**
+- Java toolchain: **17**
 - Fabric loader floor: **0.14.24**, Loom **1.16.1**
 - NeoForge: **does not exist for this version - the neoforge module is disabled**
 - Mappings: officialMojangMappings()

@@ -54,9 +54,14 @@ jobs:
           for row in rows:
               if only and row['version'] != only:
                   continue
+              target = int(row.get('java') or 21)
               picks.append({
                   'version': row['version'],
-                  'java': str(row.get('java') or 21),
+                  'java': str(target),
+                  # Gradle 9.4.1 needs 17+, and 1.21.x-era provisioning for the 26.x rows refuses to
+                  # run on anything below the game's own target ("Minecraft 26.3 requires Java 25 but
+                  # Gradle is using 21"), so the runner JVM is the higher of the two.
+                  'gradle_java': str(max(21, target)),
                   'neoforge': 'yes' if row.get('neoforge') else 'no',
                   'status': row.get('status', 'derived'),
               })
@@ -97,7 +102,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: ${{ matrix.gradle_java }}
       - name: materialize the ported tree
         shell: bash
         run: |

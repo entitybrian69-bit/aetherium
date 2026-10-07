@@ -2,7 +2,7 @@
 
 This delta is mechanical and complete for the pins; the items below must be
 confirmed against the real 1.16.5 jar before a build is published.
-Status of this row: **documented**. pins read from a real upstream project that ships this version
+Status of this row: **documented**. pins read from a real upstream project that ships this version toolchain raised to Java 17: common/ uses var, text blocks and switch expressions, so an 8/16 compile target is a source back-port and not a build pin; the jar still loads on a 1.16.5 client running Java 17, which is what Fabric Loader 0.14+ on that version does in practice.
 
 ## 1. Read the names you need from the shipped jar
 

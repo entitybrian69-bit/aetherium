@@ -80,8 +80,8 @@ public final class AetheriumNeoForge {
         // and going through Minecraft.getInstance() keeps this identical to the
         // mixin path so both loaders measure the same thing.
         final net.minecraft.client.Minecraft client = net.minecraft.client.Minecraft.getInstance();
-        final int width = client != null && client.getWindow() != null ? client.getWindow().getFramebufferWidth() : 1;
-        final int height = client != null && client.getWindow() != null ? client.getWindow().getFramebufferHeight() : 1;
+        final int width = client != null && client.getWindow() != null ? client.getWindow().getWidth() : 1;
+        final int height = client != null && client.getWindow() != null ? client.getWindow().getHeight() : 1;
         com.aetherium.client.ClientHooks.endFrame(width, height);
     }
 
