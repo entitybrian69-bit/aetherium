@@ -1,0 +1,372 @@
+name: ship
+
+# One run does the whole shipping job for every row of the porting matrix:
+#   materialize the ported tree (same file copy + patch that tools/port.sh --dry-run uses),
+#   build :common/:fabric/:neoforge against that version's real pins,
+#   publish a REAL (not draft) release v0.1.0+<mcversion> with the jars it built,
+#   then rewrite DOWNLOADS.md from the releases that actually exist and commit it.
+#
+# Why the release happens here and not in build.yml: build.yml proves one version
+# (1.21.1) on three OSes, which is a correctness matrix, not a shipping matrix.
+# Downloadable jars need one job per Minecraft version, because each needs a
+# different Loom/ModDev target, a different Java toolchain, and its own tag.
+#
+# Leg failure never blocks another leg (fail-fast: false) and a leg with no jar
+# never creates a release - an empty release is worse than a red check.
+
+on:
+  push:
+    branches: [arena/f0f3a610-aetherium]
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'single version to ship (blank = all 33)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ship-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.caching=true
+
+jobs:
+  plan:
+    name: which versions, which toolchain
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.picks.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: picks
+        shell: bash
+        run: |
+          python3 - "${{ github.event.inputs.only }}" <<'PY' >> "$GITHUB_OUTPUT"
+          import json, sys
+          only = (sys.argv[1] or '').strip()
+          data = json.load(open('tools/porting_pins.json'))
+          rows = data['rows']
+          picks = []
+          for row in rows:
+              if only and row['version'] != only:
+                  continue
+              picks.append({
+                  'version': row['version'],
+                  'java': str(row.get('java') or 21),
+                  'neoforge': 'yes' if row.get('neoforge') else 'no',
+                  'status': row.get('status', 'derived'),
+              })
+          if not picks:
+              print('matrix=[]', file=sys.stderr)
+              sys.exit(1)
+          print('matrix=' + json.dumps(picks, separators=(',', ':')))
+          print(f"planned {len(picks)} legs", file=sys.stderr)
+          PY
+
+  ship:
+    name: ${{ matrix.version }} (java ${{ matrix.java }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      max-parallel: 9
+      matrix:
+        include: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.4.1
+          cache-read-only: false
+      - uses: actions/setup-java@v4
+        # 21 first: it is the JVM Gradle itself runs on (9.4.1 needs 17+). The row's
+        # own toolchain is installed alongside it so the java { toolchain { } } block
+        # in each build script finds a real JDK in hostedtoolcache instead of failing
+        # with "No matching toolchains found for JavaVersion.X".
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            ${{ matrix.java }}
+      - name: materialize the ported tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/tree"
+          mkdir -p "$work"
+          # Tracked files only, same rule as tools/port.sh --dry-run: a port must be
+          # checkable against what a clone would contain, nothing else.
+          git ls-files -z | xargs -0 -I{} cp --parents {} "$work"/
+          cd "$work"
+          patch="deltas/${{ matrix.version }}/changes.patch"
+          if [ -f "$patch" ]; then
+            git apply --whitespace=nowarn "$patch"
+            echo "applied $patch"
+          else
+            echo "no delta for ${{ matrix.version }} - this is the reference tree (expected for 1.21.1)"
+          fi
+          echo "### Pins after the delta (${{ matrix.version }})" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -E '^(minecraft_version|fabric_loader|fabric_version|neoforge_version|yarn_mappings|loom_version|java_version)=' gradle.properties || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: build
+        shell: bash
+        run: |
+          set -u -o pipefail
+          cd "$RUNNER_TEMP/tree"
+          tasks=":common:build :fabric:build"
+          if [ "${{ matrix.neoforge }}" = yes ]; then
+            tasks="$tasks :neoforge:build"
+          else
+            echo "neoforge is null on ${{ matrix.version }}: the delta disables the module (Fabric-only row)"
+          fi
+          gradle --no-daemon --console=plain --stacktrace --continue $tasks \
+            2>&1 | tee "$RUNNER_TEMP/build.log"
+          rc=${PIPESTATUS[0]}
+          # The exit code is recorded, not swallowed. `build` runs assemble before check, so a
+          # version whose unit tests fail still has jars; the publish step says so in the release
+          # notes instead of hiding it, and a version that does not COMPILE has no jars and is
+          # never published at all.
+          printf '%s\n' "$rc" > "$RUNNER_TEMP/build.rc"
+          exit "$rc"
+      - name: collect the jars
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/tree"
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          for module in fabric neoforge; do
+            dir="$module/build/libs"
+            [ -d "$dir" ] || continue
+            for jar in "$dir"/*.jar; do
+              [ -f "$jar" ] || continue
+              case "$(basename "$jar")" in
+                *-sources.jar|*-javadoc.jar|*dev.jar) continue ;;
+              esac
+              out="$GITHUB_WORKSPACE/dist/aetherium-$module-0.1.0+${{ matrix.version }}.jar"
+              cp "$jar" "$out"
+              echo "- \`$(basename "$out")\` ($(stat -c%s "$out") bytes, built from $jar)" >> "$GITHUB_STEP_SUMMARY"
+            done
+          done
+          ls -l "$GITHUB_WORKSPACE/dist" || true
+      - name: publish the release
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          tag="v0.1.0+${{ matrix.version }}"
+          assets=$(find dist -maxdepth 1 -type f -name '*.jar' | sort | tr '\n' ' ')
+          if [ -z "${assets// }" ]; then
+            printf '::error::%s: no jar was produced, refusing to publish an empty release\n' "${{ matrix.version }}"
+            exit 1
+          fi
+          built=$(printf '%s' "$assets" | tr ' ' '\n' | sed 's|.*/||' | paste -sd, - | sed 's/,/, /g')
+          rc=$(cat "$RUNNER_TEMP/build.rc" 2>/dev/null || echo 1)
+          rednote=""
+          if [ "$rc" != 0 ]; then
+            rednote="
+          **This version's \`gradle build\` did not finish green (exit $rc).** The jars above come from the
+          \`assemble\` half of the task; the failing half is named in the run's annotations. Treat them as
+          installable-but-unverified, not as a release candidate."
+          fi
+          cat > notes.md <<EOF
+          Minecraft **${{ matrix.version }}** - built by CI run \`$GITHUB_RUN_ID\` (commit \`$(git rev-parse --short HEAD)\`) from the same sources as 1.21.1 plus \`deltas/${{ matrix.version }}/changes.patch\` (matrix status: \`${{ matrix.status }}\`).
+
+          Jars: $built
+
+          * \`aetherium-fabric-*\` goes in \`mods/\` and needs Fabric API.
+          * \`aetherium-neoforge-*\` needs nothing extra. $([ "${{ matrix.neoforge }}" = no ] && echo "There is no NeoForge/Forge jar for this version: the porting row pins no NeoForge, so the loader shell is disabled by the delta.")
+          $rednote
+
+          * No GPU was attached to any build: every GL call in these jars is compiled and unit-tested but never exercised on hardware. Read VERIFICATION.md section 9 before filing a rendering bug.
+          * \`advanced.experimental_full_renderer\` logs an error and disables itself. That is shipped behaviour, not a bug.
+          EOF
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false \
+              --target "$GITHUB_SHA" --title "Aetherium 0.1.0 (Minecraft ${{ matrix.version }})" \
+              --notes-file notes.md
+            gh release upload "$tag" --repo "$GITHUB_REPOSITORY" --clobber $assets
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false \
+              --target "$GITHUB_SHA" --title "Aetherium 0.1.0 (Minecraft ${{ matrix.version }})" \
+              --notes-file notes.md $assets
+          fi
+          echo "https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"
+      - name: report what failed, legibly
+        if: failure()
+        shell: bash
+        run: |
+          set -uo pipefail
+          log="$RUNNER_TEMP/build.log"
+          [ -f "$log" ] || { echo "::error::no build log; the failure is upstream of Gradle"; exit 0; }
+          # Failing tests, by name, with the assertion message: Gradle's console output has
+          # them, but the only thing readable from the API is an annotation.
+          # Failing tests, by name, with the assertion message. A heredoc cannot be piped (the
+          # continuation line would be eaten as heredoc body), so the python writes a file and the
+          # annotation loop reads it - same reason the compiler report is chunked.
+          if ls "$RUNNER_TEMP/tree"/*/build/test-results/test/*.xml >/dev/null 2>&1; then
+            python3 - "$RUNNER_TEMP/tree" > "$RUNNER_TEMP/tests.txt" <<'PY'
+          import glob, sys, xml.etree.ElementTree as ET
+          for path in glob.glob(sys.argv[1] + '/*/build/test-results/test/*.xml'):
+              try:
+                  root = ET.parse(path).getroot()
+              except ET.ParseError:
+                  continue
+              for case in root.iter('testcase'):
+                  for bad in list(case.iter('failure')) + list(case.iter('error')):
+                      text = (bad.get('message') or (bad.text or '')).strip().split('\n')
+                      print('%s#%s :: %s' % (case.get('classname'), case.get('name'), ' / '.join(text[:2])[:220]))
+          PY
+            if [ -s "$RUNNER_TEMP/tests.txt" ]; then
+              sed -e 's/%/%25/g' -e 's/$/%0A/' "$RUNNER_TEMP/tests.txt" | tr -d '\n\r' | fold -w 900 |
+                nl -ba -w1 -s/ | while IFS=/ read -r line; do
+                  printf '::error::tests (%s) part %s\n' "${{ matrix.version }}" "$line"
+                done || true
+              body=$(sed -e 's/$/%0A/' "$RUNNER_TEMP/tests.txt" | head -6 | tr -d '\n\r')
+              printf '::error::tests %s:%s\n' "${{ matrix.version }}" "$(printf '%s' "$body" | sed 's/%/%25/g')"
+            fi
+          fi
+          awk '/^\* What went wrong:/{f=1} f{print} /^\* Try:/{if(f)exit}' "$log" 2>/dev/null |
+            head -60 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}' |
+            { read -r body || true; [ -n "$body" ] && printf '::error::what gradle says:%s\n' "$body"; } || true
+          # Compiler errors with the lines under them (symbol:/location:), chunked because a
+          # single long annotation gets truncated by GitHub.
+          awk '/: (error|warning):/{c=9} c>0{print; c--}' "$log" 2>/dev/null |
+            sed -e 's/%/%25/g' | head -220 | tr -d '\r' > "$RUNNER_TEMP/errors.txt" || true
+          if [ -s "$RUNNER_TEMP/errors.txt" ]; then
+            split -l 22 "$RUNNER_TEMP/errors.txt" "$RUNNER_TEMP/errors.part"
+            total=$(ls "$RUNNER_TEMP"/errors.part* | wc -l); n=0
+            for part in "$RUNNER_TEMP"/errors.part*; do
+              n=$((n + 1))
+              body=$(sed -e 's/$/%0A/' "$part" | tr -d '\n')
+              printf '::error::compiler %s/%s (%s):%s\n' "$n" "$total" "${{ matrix.version }}" "$body"
+            done
+          fi
+          # Signatures are settled with javap against the jars Gradle actually resolved, not by
+          # guessing: every class named in a "location:" line is dumped from the real artifact.
+          classes=$(grep -hoE 'location: (class|interface|variable [a-zA-Z]+ of type) [A-Za-z0-9_.$]+' "$RUNNER_TEMP/errors.txt" \
+            | awk '{print $NF}' | sort -u | head -6)
+          if [ -n "$classes" ]; then
+            mcjar=$(find "$HOME/.gradle/caches/fabric-loom" -name 'minecraft-merged*.jar' 2>/dev/null | head -1)
+            lwj=$(find "$HOME/.gradle/caches/modules-2/files-2.1" -name 'lwjgl-opengl-*.jar' 2>/dev/null | head -1)
+            dump=$(mktemp)
+            for cls in $classes; do
+              short=${cls##*.}
+              case "$cls" in
+                org.lwjgl.*) target="$lwj" ;;
+                *) target="$mcjar" ;;
+              esac
+              [ -n "$target" ] || continue
+              echo "== javap $cls ($target)" >> "$dump"
+              javap -cp "$target" "$cls" 2>&1 | head -70 >> "$dump" || true
+              javap -cp "$target" "$short" 2>&1 | head -40 >> "$dump" 2>/dev/null || true
+            done
+            if [ -s "$dump" ]; then
+              split -l 60 "$dump" /tmp/javap.part
+              n=0
+              for part in /tmp/javap.part*; do
+                n=$((n + 1))
+                body=$(sed -e 's/%/%25/g' -e 's/$/%0A/' "$part" | tr -d '\n\r')
+                printf '::warning::javap %s (%s):%s\n' "$n" "${{ matrix.version }}" "$body"
+              done
+            fi
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ship-${{ matrix.version }}
+          path: |
+            dist/*.jar
+            ${{ runner.temp }}/build.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  downloads:
+    name: write DOWNLOADS.md from the releases that exist
+    needs: ship
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: build the table
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, subprocess
+          rows = json.load(open('tools/porting_pins.json'))['rows']
+          owner_repo = subprocess.run(['gh', 'repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'],
+                                      capture_output=True, text=True).stdout.strip()
+          lines = [
+              '# Downloads',
+              '',
+              'Every link below points at an asset attached to a real GitHub release, produced by',
+              '`ship.yml`: the same sources, ported by `deltas/<version>/changes.patch`, compiled',
+              'against that version\'s own mappings, and packaged by CI. A version with no link is',
+              'not shipped - the table only ever lists what exists, never what should exist.',
+              '',
+              '| Minecraft | Loader | Jar |',
+              '| --- | --- | --- |',
+          ]
+          blocked = []
+          shipped = 0
+          for row in rows:
+              ver = row['version']
+              tag = 'v0.1.0+' + ver
+              out = subprocess.run(['gh', 'release', 'view', tag, '--json', 'assets,isDraft,url',
+                                    '-q', '{assets: [.assets[].name], draft: .isDraft, url: .url}'],
+                                   capture_output=True, text=True)
+              if out.returncode != 0:
+                  blocked.append((ver, 'no release yet'))
+                  continue
+              info = json.loads(out.stdout)
+              if info['draft']:
+                  blocked.append((ver, 'release exists but is a draft'))
+                  continue
+              names = sorted(n for n in info['assets'] if n.endswith('.jar'))
+              if not names:
+                  blocked.append((ver, 'release has no jar asset'))
+                  continue
+              shipped += 1
+              for name in names:
+                  loader = 'Fabric' if '-fabric-' in name else ('NeoForge' if '-neoforge-' in name else 'unknown')
+                  lines.append('| %s | %s | [%s](https://github.com/%s/releases/download/%s/%s) |'
+                               % (ver, loader, name, owner_repo, tag, name))
+              if row.get('neoforge') is None:
+                  lines.append('| %s | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |' % ver)
+          lines += ['', 'Shipped: **%d/%d** Minecraft versions.' % (shipped, len(rows)), '']
+          if blocked:
+              lines += ['## Not shipped', '']
+              lines += ['- **%s** - %s' % (v, why) for v, why in blocked]
+              lines.append('')
+          open('DOWNLOADS.md', 'w').write('\n'.join(lines))
+          print(open('DOWNLOADS.md').read())
+          PY
+      - name: commit it
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add DOWNLOADS.md
+          if git diff --cached --quiet; then echo 'DOWNLOADS.md unchanged'; exit 0; fi
+          git commit -q -m "docs: DOWNLOADS.md for the releases ship.yml published ([skip ci]
+
+          Generated by the downloads job of run $GITHUB_RUN_ID from \`gh release view\` output, so every
+          link in it is an asset that exists at the moment the table was written. No hand-edited row and no
+          placeholder URL: a version with no jar is listed under \"Not shipped\" with the reason."
+          git push -q origin HEAD:${{ github.ref_name }}
