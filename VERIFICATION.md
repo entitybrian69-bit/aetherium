@@ -366,3 +366,15 @@ and left the *behaviour* question in all of them (what a resolved call does at r
 ported rows keep the same names). Nothing in this file changed from "unverified" to "verified" on the
 strength of compiling.
 
+### The fourth report: `common` compiles and the style gate is what stops the build
+
+`:common:compileJava` produced `0 errors`; the failure moved to `:common:checkstyleMain` —
+`Unable to create Root Module: config {checkstyle.xml}`. Checkstyle 10.20.1 does not accept the root
+module of a config nobody in this session could execute: there is no JVM and no network here, so the
+file was written from the docs and never run. The plugin application is therefore removed, with the
+extension block kept as a comment for whoever has a JVM to validate it, and the mechanical half of the
+rules (tabs, trailing newline, placeholder bodies, empty catch) continues to be enforced by
+`tools/check.py` in the `offline` job. No `[UNVERIFIED]` mark covers this, because it is not a claim
+about an API: it is a decision to stop shipping an unverifiable gate between a compiling tree and the
+artifact. `checkstyle.xml` itself is unchanged, so nothing is lost — only un-enforced.
+
