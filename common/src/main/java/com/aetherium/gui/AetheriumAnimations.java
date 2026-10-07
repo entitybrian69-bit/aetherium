@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.aetherium.util.MathUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
@@ -21,7 +20,8 @@ import net.minecraft.client.gui.GuiGraphics;
  * <p>Everything is time-based (nanoseconds), never frame-count based, so the
  * animation looks the same at 60 and at 400 fps — the failure mode of
  * Sodium-style {@code tick++} animations. Frame pacing is taken from
- * {@code Minecraft#getFrameTimeNs()} when available and falls back to wall clock.</p>
+ * wall clock between {@link #suggestedDeltaSeconds()} calls, because no {@code Minecraft} accessor
+ * for frame time exists on every supported version (1.21.1 has none javac will accept).</p>
  *
  * <p>Thread-safety: render-thread only. {@code particles} is an ArrayList reused via
  * an index cursor and never grows past {@link #MAX_PARTICLES}, so a tab switch
@@ -345,18 +345,25 @@ public final class AetheriumAnimations {
         }
     }
 
-    /** Seconds per frame as the widgets should see it, for tests and headless runs. */
+    private static long lastSampleNanos;
+
+    /**
+     * Seconds per frame as the widgets should see it, for tests and headless runs.
+     *
+     * <p>Measured from this method's own calls rather than from the client: 1.21.1's {@code Minecraft}
+     * has no {@code getLastFrameTime()} (javac: cannot find symbol), and a frame-rate value read off
+     * the game instance would make the "headless runs" in the sentence above a lie. Two callers per
+     * frame at most, so the first returns the 60 Hz guess and every later one returns a real, clamped
+     * interval.</p>
+     */
     public static float suggestedDeltaSeconds() {
-        final Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft == null) {
+        final long now = System.nanoTime();
+        final long previous = lastSampleNanos;
+        lastSampleNanos = now;
+        if (previous == 0L || now <= previous) {
             return 1.0f / 60.0f;
         }
-        try {
-            final double lastFrameMs = minecraft.getLastFrameTime();
-            return lastFrameMs <= 0.0 ? 1.0f / 60.0f : Math.min(0.1f, (float) (lastFrameMs / 1000.0));
-        } catch (final RuntimeException error) {
-            // getLastFrameTime is absent on some ports; wall clock is a fine answer.
-            return 1.0f / 60.0f;
-        }
+        final float seconds = (now - previous) / 1_000_000_000.0f;
+        return seconds <= 0.0f ? 1.0f / 60.0f : Math.min(0.1f, seconds);
     }
 }

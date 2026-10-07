@@ -1,5 +1,6 @@
 package com.aetherium.mixin;
 
+import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.tree.ClassNode;
@@ -23,10 +24,11 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
  * a half-transformed game.</p>
  *
  * <h2>Only the parts of {@code IMixinConfigPlugin} that exist in Mixin 0.8.x</h2>
- * <p>This class implements exactly six methods - {@code onLoad},
- * {@code getRefMapperConfig}, {@code shouldApplyMixin}, {@code acceptTarget},
- * {@code preApply}, {@code postApply} - in the parameter order the interface
- * declares. It is tempting to reach for hooks like {@code mixinAccepted} that appear
+ * <p>This class implements exactly six methods - {@code onLoad}, {@code getMixins},
+ * {@code getRefMapperConfig}, {@code shouldApplyMixin}, {@code preApply}, {@code postApply}
+ * - in the parameter order the interface declares. There is no {@code acceptTarget} on
+ * Mixin 0.8.5 (CI: "does not override or implement a method from a supertype"), which is
+ * why the per-target sanity check below lives in {@code postApply}. It is tempting to reach for hooks like {@code mixinAccepted} that appear
  * in newer Mixin forks; doing so turns a port into a compile error with no obvious
  * cause, so the plugin stays on the boring subset. {@code required} is false in
  * {@code aetherium-common.mixins.json}, which means a plugin that throws at load time
@@ -109,6 +111,16 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
                 this.minecraftVersion.isEmpty() ? "unknown" : this.minecraftVersion);
     }
 
+    /**
+     * null: this plugin does not contribute a list of its own, so the {@code client} array in
+     * {@code aetherium-common.mixins.json} stays the single source of which mixins exist. A plugin
+     * that returned a list would silently duplicate or shadow that file.
+     */
+    @Override
+    public List<String> getMixins() {
+        return null;
+    }
+
     @Override
     public String getRefMapperConfig() {
         // null = the loader's default refmap. Choosing a per-version refmap here would
@@ -152,15 +164,19 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     }
 
     /**
-     * Invoked for each accepted mixin with the real target {@link ClassNode}. Aetherium
-     * uses it for one thing only: a sanity check that the class the mixin is about to
-     * patch actually looks like the version we think it is, so a wrong range in
-     * {@link #TARGETED_RANGES} shows up as one log line at startup instead of as a
-     * half-rendered world.
+     * Invoked for each accepted mixin with the real target {@link ClassNode}, after the transform.
+     * One use: a sanity check that the class the mixin patched looks like the version we think it
+     * is, so a wrong range in {@link #TARGETED_RANGES} shows up as one log line at startup instead of
+     * as a half-rendered world. There is no {@code acceptTarget} on Mixin 0.8.5 (javac: "method does
+     * not override or implement a method from a supertype") - {@code postApply} is the hook that gets
+     * the target node, so the check lives in it.
      */
     @Override
-    public void acceptTarget(final String targetClassName, final ClassNode targetClassNode,
-                             final String mixinClassName, final IMixinInfo mixinInfo) {
+    public void postApply(final String targetClassName, final ClassNode targetClassNode,
+                          final String mixinClassName, final IMixinInfo mixinInfo) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Applied {} -> {}", mixinClassName, targetClassName);
+        }
         if (targetClassNode == null || targetClassNode.methods == null) {
             return;
         }
@@ -187,14 +203,6 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     public void preApply(final String targetClassName, final ClassNode targetClassNode,
                          final String mixinClassName, final IMixinInfo mixinInfo) {
         // Nothing to rewrite before transform; every hook lives in its mixin class.
-    }
-
-    @Override
-    public void postApply(final String targetClassName, final ClassNode targetClassNode,
-                          final String mixinClassName, final IMixinInfo mixinInfo) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Applied {} -> {}", mixinClassName, targetClassName);
-        }
     }
 
     // ------------------------------------------------------------------- helpers

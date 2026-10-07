@@ -544,7 +544,7 @@ public final class AetheriumTabs {
         }
 
         @Override
-        protected void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
             this.defaultButtonNarrationText(output);
         }
     }
@@ -566,7 +566,7 @@ public final class AetheriumTabs {
         }
 
         @Override
-        protected void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
             this.defaultButtonNarrationText(output);
         }
     }

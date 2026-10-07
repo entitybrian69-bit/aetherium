@@ -296,10 +296,11 @@ public final class GlProcs {
      * {@code glNamedBufferData} because reallocation would invalidate the mapping.
      */
     public static void namedBufferStorage(final int buffer, final long size, final int storageFlags) {
-        // The named (DSA) form is GL45C, not GL44C - GL44C only has glBufferStorage, which takes a
-        // target. LWJGL's third argument is the initial contents, so a null ByteBuffer is the
-        // "allocate only" form.
-        GL45C.glNamedBufferStorage(buffer, size, (ByteBuffer) null, storageFlags);
+        // GL45C, not GL44C (which only has the target-taking glBufferStorage), and three arguments:
+        // LWJGL's allocation form of glNamedBufferStorage takes (buffer, size, flags) and leaves the
+        // store zero-filled. The typed-data forms are (buffer, ByteBuffer-or-array, flags), which is
+        // a different function here rather than the same one with an extra argument.
+        GL45C.glNamedBufferStorage(buffer, size, storageFlags);
     }
 
     /**

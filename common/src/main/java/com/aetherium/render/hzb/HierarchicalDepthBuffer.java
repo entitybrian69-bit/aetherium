@@ -173,7 +173,7 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
         configureStorage(this.depthSourceTexture, framebufferWidth, framebufferHeight);
         // The pyramid texture is an array of levels so one binding covers all of them.
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.pyramidTexture);
-        org.lwjgl.opengl.GL30.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.levels, GlProcs.GL_R32F, framebufferWidth, framebufferHeight);
+        org.lwjgl.opengl.GL40.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, this.levels, GlProcs.GL_R32F, framebufferWidth, framebufferHeight);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MIN_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAG_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 0);
@@ -182,7 +182,7 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
 
     private void configureStorage(final int texture, final int width, final int height) {
         org.lwjgl.opengl.GL11.glBindTexture(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, texture);
-        org.lwjgl.opengl.GL30.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 1, GlProcs.GL_R32F, width, height);
+        org.lwjgl.opengl.GL40.glTexStorage2D(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, 1, GlProcs.GL_R32F, width, height);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MIN_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAG_FILTER, GlProcs.GL_NEAREST);
         org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, GlProcs.GL_TEXTURE_MAX_LEVEL, 0);

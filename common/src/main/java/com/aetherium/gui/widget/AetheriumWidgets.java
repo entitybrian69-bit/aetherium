@@ -44,6 +44,17 @@ import net.minecraft.network.chat.Component;
  */
 public final class AetheriumWidgets {
 
+    /**
+     * The widgets are static nested classes, so the client is looked up per draw rather than stored -
+     * a {@code Minecraft} field on a widget would be a second owner of the game instance, and these
+     * objects outlive a resource reload. Null is a real answer: headless tests and the dedicated
+     * server path construct widgets without a client.
+     */
+    private static Font fontOrNull() {
+        final Minecraft client = Minecraft.getInstance();
+        return client == null ? null : client.font;
+    }
+
     private AetheriumWidgets() {
     }
 
@@ -122,7 +133,13 @@ public final class AetheriumWidgets {
          * {@code NarrationElement} and its overloads moved twice in the port range.
          */
         @Override
-        protected void updateNarration(final NarrationElementOutput output) {
+        /**
+         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
+         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+         * override under the old name and the old access is two errors, not one (CI said exactly
+         * that: "does not override abstract method" plus "attempting to assign weaker access").
+         */
+        public void updateWidgetNarration(final NarrationElementOutput output) {
             this.defaultButtonNarrationText(output);
         }
 
@@ -175,7 +192,7 @@ public final class AetheriumWidgets {
             this.knob.tick(AetheriumAnimations.suggestedDeltaSeconds());
             drawSharedBackground(guiGraphics, mouseX, mouseY);
 
-            final Font font = minecraft == null ? null : minecraft.font;
+            final Font font = fontOrNull();
             this.label = this.getMessage().getString();
             final int textX = this.getX() + 6;
             final int textY = this.getY() + (this.getHeight() - (font == null ? 8 : font.lineHeight)) / 2;
@@ -240,7 +257,7 @@ public final class AetheriumWidgets {
             this.format = format == null ? "%.2f" : format;
             this.onCommit = onCommit;
             this.value = getter.getAsDouble();
-            this.thumb.snap(normalized(this.value));
+            this.thumb.snap((float) normalized(this.value));
         }
 
         private double normalized(final double raw) {
@@ -254,16 +271,23 @@ public final class AetheriumWidgets {
             applyFromMouse(mouseX);
         }
 
+        // Both input handlers return boolean on 1.21.1 (GuiEventListener#mouseDragged/#mouseReleased
+        // report whether the event was consumed); void overrides are a compile error, and claiming the
+        // release is what stops the drag from being left half-applied by whatever is behind the slider.
         @Override
-        public void mouseDragged(final double mouseX, final double mouseY, final int button, final double deltaX, final double deltaY) {
-            if (this.dragging) {
-                applyFromMouse(mouseX);
+        public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double deltaX, final double deltaY) {
+            if (!this.dragging) {
+                return false;
             }
+            applyFromMouse(mouseX);
+            return true;
         }
 
         @Override
-        public void mouseReleased(final double mouseX, final double mouseY, final int button) {
+        public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
+            final boolean wasDragging = this.dragging;
             this.dragging = false;
+            return wasDragging;
         }
 
         private void applyFromMouse(final double mouseX) {
@@ -271,7 +295,7 @@ public final class AetheriumWidgets {
             final double raw = this.min + fraction * (this.max - this.min);
             this.value = raw;
             this.setter.accept(raw);
-            this.thumb.set(fraction);
+            this.thumb.set((float) fraction);
             if (this.onCommit != null) {
                 this.onCommit.accept(raw);
             }
@@ -281,14 +305,14 @@ public final class AetheriumWidgets {
         public void resetToDefault(final double defaultRaw) {
             this.value = defaultRaw;
             this.setter.accept(defaultRaw);
-            this.thumb.set(normalized(defaultRaw));
+            this.thumb.set((float) normalized(defaultRaw));
         }
 
         @Override
         public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
             if (!this.dragging) {
                 this.value = this.getter.getAsDouble();
-                this.thumb.set(normalized(this.value));
+                this.thumb.set((float) normalized(this.value));
             }
             this.thumb.tick(AetheriumAnimations.suggestedDeltaSeconds());
             drawSharedBackground(guiGraphics, mouseX, mouseY);
@@ -306,7 +330,7 @@ public final class AetheriumWidgets {
             this.theme.fillRounded(guiGraphics, thumbX - 2, trackY - 2, 4, 8, AetheriumTheme.TEXT);
 
             final String valueText = String.format(java.util.Locale.ROOT, this.format, this.value);
-            final Font font = minecraft == null ? null : minecraft.font;
+            final Font font = fontOrNull();
             if (font != null) {
                 guiGraphics.drawString(font, Component.literal(this.label), this.getX() + 6, this.getY() + 3, AetheriumTheme.TEXT, false);
                 final String right = valueText;
@@ -316,7 +340,13 @@ public final class AetheriumWidgets {
         }
 
         @Override
-        protected void updateNarration(final NarrationElementOutput output) {
+        /**
+         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
+         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+         * override under the old name and the old access is two errors, not one (CI said exactly
+         * that: "does not override abstract method" plus "attempting to assign weaker access").
+         */
+        public void updateWidgetNarration(final NarrationElementOutput output) {
             this.updateMessage(this.label, String.format(java.util.Locale.ROOT, this.format, this.value));
             this.defaultButtonNarrationText(output);
         }
@@ -365,7 +395,7 @@ public final class AetheriumWidgets {
         public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
             this.slide.tick(AetheriumAnimations.suggestedDeltaSeconds());
             drawSharedBackground(guiGraphics, mouseX, mouseY);
-            final Font font = minecraft == null ? null : minecraft.font;
+            final Font font = fontOrNull();
             if (font == null) {
                 return;
             }
@@ -386,7 +416,13 @@ public final class AetheriumWidgets {
         }
 
         @Override
-        protected void updateNarration(final NarrationElementOutput output) {
+        /**
+         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
+         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+         * override under the old name and the old access is two errors, not one (CI said exactly
+         * that: "does not override abstract method" plus "attempting to assign weaker access").
+         */
+        public void updateWidgetNarration(final NarrationElementOutput output) {
             final int index = this.getIndex == null ? 0 : this.getIndex.get();
             this.updateMessage(this.label, index >= 0 && index < this.values.length ? this.values[index] : "unknown");
             this.defaultButtonNarrationText(output);
@@ -413,11 +449,6 @@ public final class AetheriumWidgets {
         }
 
         @Override
-        public boolean changeFocus(final boolean lookUp) {
-            return this.enabled == null || this.enabled.getAsBoolean();
-        }
-
-        @Override
         public void onClick(final double mouseX, final double mouseY) {
             super.onClick(mouseX, mouseY);
             if (this.enabled != null && !this.enabled.getAsBoolean()) {
@@ -434,7 +465,7 @@ public final class AetheriumWidgets {
             if (!usable) {
                 guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0x88120819);
             }
-            final Font font = minecraft == null ? null : minecraft.font;
+            final Font font = fontOrNull();
             if (font == null) {
                 return;
             }
@@ -485,7 +516,7 @@ public final class AetheriumWidgets {
             this.theme.fillRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), AetheriumTheme.PANEL);
             this.theme.outlineRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), AetheriumTheme.BORDER);
 
-            final Font font = minecraft == null ? null : minecraft.font;
+            final Font font = fontOrNull();
             if (font == null) {
                 return;
             }

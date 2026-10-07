@@ -307,7 +307,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
         }
 
         @Override
-        protected void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
             this.defaultButtonNarrationText(output);
         }
     }
