@@ -61,16 +61,12 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-sourceSets {
-    main {
-        java.srcDirs("src/main/java")
-        resources.srcDirs("src/main/resources")
-    }
-    test {
-        java.srcDirs("src/test/java")
-        resources.srcDirs("src/test/resources")
-    }
-}
+// No sourceSets block here on purpose. The java plugin already registers src/main/java,
+// src/main/resources and the test pair, and `srcDirs(x)` *appends* to that list rather than
+// replacing it - so re-declaring the defaults registered every directory twice, and
+// :common:processResources failed on the first entry it saw twice: "Entry
+// aetherium-common.mixins.json is a duplicate but no duplicate handling strategy has been set".
+// A duplicatesStrategy would have hidden the double registration instead of removing it.
 
 // Gradle 9 generates task accessors on TaskContainer, not on Project: a bare
 // `processResources { }` is an unresolved receiver (CI: "receiver type mismatch").

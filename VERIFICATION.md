@@ -344,3 +344,25 @@ The four vanilla-API sites are the ones worth reading twice: two of them were "v
 Sodium's mixin set" in a comment, which verified the *name* and not the *visibility* or the
 signature. Nothing in this tree is now claimed as verified unless a compiler or the pinned source
 above has said so.
+
+### The third report: `common` compiles, and a build-script duplicate took its place
+
+The run after the six mixin/HZB fixes printed `6 errors` -> `0 errors`, and `:common:compileJava`
+went green for the first time. `:common:processResources` then failed for a reason the checkers could
+not see: the module's own `sourceSets { main { java.srcDirs("src/main/java"); ... } }` block read like
+a restatement of the defaults, but `srcDirs(x)` **appends**, so each directory was registered twice
+and the copy task met `aetherium-common.mixins.json` twice with no duplicate strategy. The block is
+deleted rather than given a `DuplicatesStrategy.EXCLUDE`, because the strategy would keep the double
+registration and only hide its symptom.
+
+Worth naming as a class: `compileOnly`/`annotationProcessor`/`sourceSets` calls are checked by CI and
+by nothing else in this repo, so a build-script bug can only ever surface as a Gradle failure. That is
+the argument for the four checkers stopping at "the tree is self-consistent" and for the build workflow
+being the real verifier.
+
+Status of the 19 `[UNVERIFIED]` marks while that was happening: the compile removed the *existence*
+question from most of them (which accessors and LWJGL classes are real, which mixin handlers match),
+and left the *behaviour* question in all of them (what a resolved call does at runtime, and whether the
+ported rows keep the same names). Nothing in this file changed from "unverified" to "verified" on the
+strength of compiling.
+
