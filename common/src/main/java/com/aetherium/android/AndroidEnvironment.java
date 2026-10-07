@@ -197,7 +197,7 @@ public final class AndroidEnvironment {
                 // cgroup v1 uses a huge sentinel instead of "max".
                 return bytes > 0 && bytes < (1L << 40) ? bytes / (1024L * 1024L) : -1L;
             }
-        } catch (final IOException | NumberFormatException | RuntimeException error) {
+        } catch (final IOException | RuntimeException error) { // NumberFormatException is a RuntimeException; listing both is illegal
             LOGGER.dev("Could not read cgroup memory limit ({}); using heap-derived budget", error.getClass().getSimpleName());
         }
         return -1L;

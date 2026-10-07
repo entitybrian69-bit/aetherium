@@ -180,9 +180,18 @@ public final class AetheriumConfig {
             // Field-level reset is not exposed on ConfigValue; the store calls
             // this after a successful write and dirty is only read, never
             // required to survive the write.
-            if (value.isDirty()) {
-                value.set(value.get());
-            }
+            clearOne(value);
+        }
+    }
+
+    /**
+     * Re-setting to the current value under the value's own type parameter. `ConfigValue<?>`
+     * cannot be `set(value.get())` inline - the compiler only knows the capture, not that both
+     * sides share it (javac: "Object cannot be converted to CAP#1") - so the capture is named here.
+     */
+    private static <T> void clearOne(final ConfigValue<T> value) {
+        if (value.isDirty()) {
+            value.set(value.get());
         }
     }
 

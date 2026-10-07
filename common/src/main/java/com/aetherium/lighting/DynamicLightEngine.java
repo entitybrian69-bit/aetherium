@@ -256,7 +256,6 @@ public final class DynamicLightEngine {
             return 0.0f;
         }
         this.samplesThisFrame++;
-        long best = Long.MIN_VALUE;
         float total = 0.0f;
         int contributing = 0;
         for (final LightSource source : sources) {
@@ -293,9 +292,6 @@ public final class DynamicLightEngine {
                 break;
             }
             total += contribution;
-            if (total > best) {
-                best = total;
-            }
             if (++contributing >= 4) {
                 break;
             }

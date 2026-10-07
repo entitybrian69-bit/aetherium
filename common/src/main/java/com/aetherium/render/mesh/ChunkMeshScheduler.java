@@ -458,7 +458,8 @@ public final class ChunkMeshScheduler {
 
         private State state = State.QUEUED;
         private SectionMesh mesh;
-        private RuntimeException failure;
+        /** Throwable, not RuntimeException: the mesher also catches LinkageError (see the catch site). */
+        private Throwable failure;
         private long buildNanos;
         private long arenaOffset;
         private int arenaSlot;

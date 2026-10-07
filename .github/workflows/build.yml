@@ -165,11 +165,21 @@ jobs:
           fi
           # javac's own lines sit ABOVE "* What went wrong:" in the log, so a single annotation
           # carrying only the latter loses them - emit both, always, rather than as a fallback.
-          jlines=$(grep -hE '\.java:[0-9]+: (error|warning):|^e: |^w: ' \
-            "$RUNNER_TEMP"/*.log 2>/dev/null | head -60 |
-            sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}' || true)
-          if [ -n "$jlines" ]; then
-            printf '::error::compiler says:%s\n' "$jlines"
+          # Every error with the 7 lines under it (that is where "symbol:" / "location:" live).
+          # A single annotation gets truncated by GitHub, so the text is split into chunks of 22
+          # lines and each becomes its own annotation - the last cycle lost a message mid-word.
+          awk '/: (error|warning):/{c=8} c>0{print; c--}' "$RUNNER_TEMP"/build.log 2>/dev/null |
+            sed -e 's/%/%25/g' | head -180 | tr -d '\r' > "$RUNNER_TEMP/errors.txt" || true
+          if [ -s "$RUNNER_TEMP/errors.txt" ]; then
+            split -l 22 "$RUNNER_TEMP/errors.txt" "$RUNNER_TEMP/errors.part"
+            n=0
+            for part in "$RUNNER_TEMP"/errors.part*; do
+              n=$((n + 1))
+              body=$(sed -e 's/$/%0A/' "$part" | tr -d '\n')
+              printf '::error::compiler %s/%s:%s\n' "$n" "$(ls "$RUNNER_TEMP"/errors.part* | wc -l)" "$body"
+            done
+          else
+            printf '::error::no compiler output; the failure is upstream of javac (see the gradle section above)\n'
           fi
       - uses: actions/upload-artifact@v4
         if: failure()

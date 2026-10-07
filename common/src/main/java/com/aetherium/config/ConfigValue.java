@@ -205,7 +205,10 @@ public final class ConfigValue<T> {
             parsed = fromString.get();
         }
         if (!withinBounds(parsed)) {
-            this.set(clampToBounds(parsed));
+            // clampToBounds is Object-in/Object-out on purpose (the slider widget calls it that
+            // way, and ConfigValueTest asserts it); typeCast is this class's own tested
+            // Integer/Long/Double normaliser, so use it rather than a bare (T) cast.
+            this.set(this.typeCast(clampToBounds(parsed)));
             return true;
         }
         this.set(parsed);
