@@ -12,7 +12,7 @@ val expect = mapOf(
     "java_version" to "25",
     "fabric_loader_version" to "0.19.5",
     "fabric_api_version" to "0.162.0+26.3",
-    "neoforge_version" to "26.3.0"
+    "neoforge_version" to "26.3.0.64-beta"
 )
 
 val props = File(System.getProperty("user.dir"), "gradle.properties")

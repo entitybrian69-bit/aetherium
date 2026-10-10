@@ -969,7 +969,7 @@ index 4d204fc..2fd8ecc 100644
      // `tickLightTexture` stays as a tolerant second candidate for the pre-1.17 rows whose exact
      // name has not been read from a jar yet; require = 0 keeps a miss at "feature off, one log
 diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-index 13a28dd..5f7f92d 100644
+index 13a28dd..3a67161 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
 @@ -8,7 +8,7 @@ import com.aetherium.config.AetheriumConfig;
@@ -981,22 +981,6 @@ index 13a28dd..5f7f92d 100644
  import org.spongepowered.asm.mixin.Mixin;
  import org.spongepowered.asm.mixin.injection.At;
  import org.spongepowered.asm.mixin.injection.Inject;
-@@ -68,11 +68,10 @@ public abstract class OptionsScreenMixin extends Screen {
-         if (minecraft == null || minecraft.options == null) {
-             return;
-         }
--        final net.minecraft.client.gui.components.Button button = net.minecraft.client.gui.components.Button
--                .builder(net.minecraft.network.chat.Component.translatable("aetherium.screen.fallback_button"),
--                        widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)))
--                .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)
--                .build();
-+        final net.minecraft.client.gui.components.Button button = new net.minecraft.client.gui.components.Button(
-+                5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20,
-+                net.minecraft.network.chat.Component.translatable("aetherium.screen.fallback_button"),
-+                widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)));
-         // Screen#addRenderableWidget is protected on 1.21.1, and javac type-checks a mixin against
-         // its own source, not against the class it will be merged into - so the call the transform
-         // makes legal does not compile. A handle is the same answer ClientHooks#dirtySectionsAround
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
 index 49084c2..340240b 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json

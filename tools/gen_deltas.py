@@ -82,6 +82,10 @@ FILES = {
     "animations": os.path.join(SRC, "gui/AetheriumAnimations.java"),
     "widgets": os.path.join(SRC, "gui/widget/AetheriumWidgets.java"),
     "hud": os.path.join(SRC, "hud/AetheriumHudRenderer.java"),
+    # BenchmarkRecorder reads Options#renderDistance()/simulationDistance(), which are
+    # public int fields (or absent entirely) before 1.19 - the options_access transform
+    # rewrites those two reads per era.
+    "bench": os.path.join(SRC, "hud/BenchmarkRecorder.java"),
     "hooks": os.path.join(SRC, "client/ClientHooks.java"),
     # AetheriumLog is the only slf4j user; 1.16.5 has no slf4j on its compile
     # classpath (log4j2 era), so its delta swaps the facade's imports.
@@ -115,6 +119,7 @@ ALLOWED_TARGETS = {
     f"{SRC}/util/AetheriumLog.java",
     "common/build.gradle.kts",
     "fabric/build.gradle.kts",
+    f"{SRC}/hud/BenchmarkRecorder.java",
 }
 
 STACK_FQN = {
@@ -123,25 +128,21 @@ STACK_FQN = {
 }
 STACK_VAR = {"PoseStack": "poseStack", "MatrixStack": "matrixStack"}
 
-# Era shapes verified on 2026-10-10 against Nekoyue/ForgeJavaDocs-NG (official-mapping
-# javadoc mirror: 1.17.1/1.18.2/1.19.3) plus the 1.16.5 ship-leg error list:
+# Era shapes, all verified against real mojmap sources on 2026-10-10:
 #   * >=1.19   : interface Component (network.chat) + Component.literal/translatable factories.
-#   * 1.17-1.18.2: interface is STILL Component (network.chat) - the ITextComponent name is
-#     the yarn/MCP name and the 1.17/1.18.2 legs rejected it - but the factories are gone:
-#     `new TextComponent(...)`, `new TranslatableComponent(...)`.
-#   * 1.16.5   : net.minecraft.util.text.ITextComponent + `new StringTextComponent(...)` /
-#     `new TranslationTextComponent(...)` (the network.chat package does not exist there;
-#     the 1.16.5 leg rejected it). withStyle(ChatFormatting/UnaryOperator) exists on
-#     IFormattableTextComponent in 1.16.5, so chained calls survive unchanged.
+#   * 1.16.5-1.18.2: interface is STILL Component (network.chat) with `new TextComponent(...)`
+#     / `new TranslatableComponent(...)` constructors. Evidence: quat1024/apathy's
+#     common-1.16.5 imports net.minecraft.network.chat.Component under
+#     officialMojangMappings; the 1.16.5 ship leg rejected BOTH net.minecraft.util.text
+#     (MCP's package) and com.mojang.blaze3d.matrix (MCP's MatrixStack name). Mojang's
+#     own 1.16.5 mappings already used the "modern" names - the ITextComponent /
+#     StringTextComponent / MatrixStack / util.text names are MCP-only.
 COMPONENT_ERAS = {
     # era -> (interface import fqn, literal ctor fqn, translatable ctor fqn)
     "component": ("net.minecraft.network.chat.Component", None, None),
     "text": ("net.minecraft.network.chat.Component",
              "net.minecraft.network.chat.TextComponent",
              "net.minecraft.network.chat.TranslatableComponent"),
-    "string_text": ("net.minecraft.util.text.ITextComponent",
-                    "net.minecraft.util.text.StringTextComponent",
-                    "net.minecraft.util.text.TranslationTextComponent"),
 }
 
 
@@ -590,6 +591,30 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
                 text = text.replace(old, f"this.renderBackground({var})", 1)
                 applied.append("renderBackground->1-arg")
 
+    # Button.builder chain -> constructor. This MUST run before the component-era
+    # transform below: its anchor names Component.translatable, which that transform
+    # rewrites first (the 1.17/1.18.2 legs kept a dangling Button.builder because the
+    # anchor no longer matched). The constructor form is 1.16.5-1.19.2; Button.builder
+    # arrives with the 1.19.3 screen rework (the 1.19.3 leg rejected the ctor with
+    # "constructor Button cannot be applied").
+    if facts.get("button_builder") is False:
+        button_era = facts.get("component_era", "component")
+        old = ('final net.minecraft.client.gui.components.Button button = net.minecraft.client.gui.components.Button\n'
+               '                .builder(net.minecraft.network.chat.Component.translatable("aetherium.screen.fallback_button"),\n'
+               '                        widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)))\n'
+               '                .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)\n'
+               '                .build();')
+        if old in text:
+            translatable_fqn = COMPONENT_ERAS[button_era][2]
+            component = ("net.minecraft.network.chat.Component.translatable"
+                         if button_era == "component" else f"new {translatable_fqn}")
+            new = ('final net.minecraft.client.gui.components.Button button = new net.minecraft.client.gui.components.Button(\n'
+                   '                5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20,\n'
+                   f'                {component}("aetherium.screen.fallback_button"),\n'
+                   '                widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)));')
+            text = text.replace(old, new, 1)
+            applied.append("Button.builder->ctor")
+
     # text component era
     era = facts.get("component_era", "component")
     if era != "component":
@@ -677,6 +702,32 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
                 text = new_text
                 applied.append(f"{setter}->{field}")
 
+    # isHoveredOrFocused() exists from 1.18 on (official-mapping javadoc @ 1.18.2 lists
+    # it; @ 1.17.1 has isHovered/isFocused only, and the 1.17 leg rejected the compound).
+    if facts.get("hover_or_focus") is False and "this.isHoveredOrFocused()" in text:
+        text = text.replace("this.isHoveredOrFocused()", "(this.isHovered() || this.isFocused())")
+        applied.append("isHoveredOrFocused->isHovered||isFocused")
+
+    # Options#renderDistance()/simulationDistance() getters returning OptionInstance
+    # exist from 1.19 on (the 1.19/1.19.1/1.19.2 legs compiled them; 1.18.2 rejected
+    # them). 1.17-1.18.2 expose public int fields instead, and simulationDistance
+    # itself only exists from 1.18 - so 1.16.5/1.17.x lose the " sim=" label segment
+    # rather than the whole benchmark row.
+    options_access = facts.get("options_access", "getters")
+    if options_access != "getters":
+        if ".renderDistance().get()" in text:
+            text = text.replace("client.options.renderDistance().get()", "client.options.renderDistance")
+            applied.append("renderDistance()->field")
+        if options_access == "fields_sim":
+            if ".simulationDistance().get()" in text:
+                text = text.replace("client.options.simulationDistance().get()", "client.options.simulationDistance")
+                applied.append("simulationDistance()->field")
+        else:
+            old_sim = 'builder.append(" sim=").append(client.options.simulationDistance().get());'
+            if old_sim in text:
+                text = text.replace(old_sim, 'builder.append(" sim=n/a"); // no simulation distance before 1.18')
+                applied.append("simulationDistance->n/a")
+
     # OptionsScreen package (net.minecraft.client.gui.screens.options from 1.21; the
     # 1.20.5 and 1.20.6 ship legs both rejected the package, 1.21.1 compiles against it)
     if facts.get("options_pkg") == "screens":
@@ -713,23 +764,6 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
             applied.append("mouse-handlers->MouseButtonEvent")
             text = new_text
 
-    # Button.builder chain -> constructor
-    if facts.get("button_builder") is False:
-        old = ('''final net.minecraft.client.gui.components.Button button = net.minecraft.client.gui.components.Button
-                .builder(net.minecraft.network.chat.Component.translatable("aetherium.screen.fallback_button"),
-                        widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)))
-                .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)
-                .build();''')
-        if old in text:
-            _, literal_fqn, translatable_fqn = COMPONENT_ERAS[era]
-            component = ("net.minecraft.network.chat.Component.translatable"
-                         if era == "component" else f"new {translatable_fqn}")
-            new = (f'final net.minecraft.client.gui.components.Button button = new net.minecraft.client.gui.components.Button(\n'
-                   f'                5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20,\n'
-                   f'                {component}("aetherium.screen.fallback_button"),\n'
-                   f'                widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)));')
-            text = text.replace(old, new, 1)
-            applied.append("Button.builder->ctor")
 
     # entity iteration (1.16.5)
     if facts.get("entities_iter") == "entities":
@@ -883,8 +917,9 @@ def write_docs(row: dict, out_dir: str, touched: list[str], results: dict) -> No
         "",
         f"- `stack_class` = **{facts['stack_class']}** - "
         + ("GuiGraphics [VERIFIED: Iris @ 1.20.1 and 1.20.6 branches]" if facts["stack_class"] == "GuiGraphics"
-           else "PoseStack [VERIFIED: Iris @ 1.19.4 branch (MixinGui captures PoseStack)]" if facts["stack_class"] == "PoseStack"
-           else "MatrixStack [UNVERIFIED: 1.16.5 predates the 1.17 rename; verify with the javap recipe below]"),
+           else "PoseStack [VERIFIED: Iris @ 1.19.4; 1.16.5 is ALSO PoseStack - Mojang's own mappings "
+                "never used MCP's MatrixStack name (apathy common-1.16.5 + MasaGadget under "
+                "officialMojangMappings; the 1.16.5 leg rejected com.mojang.blaze3d.matrix)]"),
         f"- `component_era` = **{facts['component_era']}** - "
         + ("Component.literal is 1.19+ [VERIFIED on 1.19.4 sources]"
            if facts["component_era"] == "component" else
@@ -899,21 +934,31 @@ def write_docs(row: dict, out_dir: str, touched: list[str], results: dict) -> No
            "and 1.20 legs rejected `updateNarration` as 'cannot override' while demanding "
            "updateWidgetNarration]"
            if facts["narration"] == "widget" else
-           "1.19-1.19.2: NarrationSupplier#updateNarration is the abstract method "
-           "[VERIFIED: the 1.19.2 leg demanded it]; the override is renamed"
-           if facts["narration"] == "plain" else
-           "below 1.19 narration does not exist and the override is removed"),
+           "NarrationSupplier#updateNarration is the abstract method 1.16.5-1.19.2 "
+           "[VERIFIED: the 1.17, 1.18.2 and 1.19.2 legs all demanded it; the narration "
+           "system ships with 1.16.5's accessibility rework]"),
         f"- `widget_render` = **{facts['widget_render']}** - renderWidget from 1.19.4 "
           "[VERIFIED by the 1.19.4 ship leg rejecting renderButton; renderWidget verified on "
           "1.21.1 via sodium's widget set]",
         f"- `render_background_args` = **{facts['render_background_args']}** - "
-        + ("4-arg form [VERIFIED on 1.20.6 (Iris) and 1.21.1 (Iris)]" if facts["render_background_args"] == 4
-           else "1-arg form [VERIFIED on 1.20.1 (Iris) and 1.19.4 (Iris); the 1.20.2-1.20.4 boundary is UNVERIFIED]"),
+        + ("4-arg form [VERIFIED on 1.20.2 (ship leg rejected the 1-arg call), 1.20.6 (Iris) and 1.21.1 (Iris)]" if facts["render_background_args"] == 4
+           else "1-arg form [VERIFIED on 1.20.1 (Iris) and 1.19.4 (Iris)]"),
         f"- `widget_access` = **{facts.get('widget_access', 'accessors')}** - getX/setX/getY/setY "
           "exist from 1.19.3 on; 1.16.5-1.19.2 expose public x/y fields instead, and only the x/y "
           "accessors are rewritten (getWidth/setWidth/getHeight/setHeight exist across the whole "
           "range) [VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2/1.19.3; the 1.19.2 leg "
           "rejected this.getX()]",
+        f"- `hover_or_focus` = **{facts.get('hover_or_focus', True)}** - AbstractWidget#isHoveredOrFocused "
+          "exists from 1.18 on; 1.16.5-1.17.1 get the `(isHovered() || isFocused())` rewrite "
+          "[VERIFIED: javadoc @ 1.18.2 lists it, @ 1.17.1 does not, and the 1.17 leg rejected it]",
+        f"- `options_access` = **{facts.get('options_access', 'getters')}** - Options#renderDistance()/"
+          "simulationDistance() OptionInstance getters are 1.19+; 1.17-1.18.2 read public int fields, "
+          "and 1.16.5-1.17.x have no simulationDistance at all (the benchmark label degrades to "
+          "`sim=n/a`) [VERIFIED: the 1.19/1.19.1/1.19.2 legs compiled the getters while 1.18.2 "
+          "rejected them]",
+        f"- `button_builder` = **{facts.get('button_builder', True)}** - Button.builder arrives with "
+          "the 1.19.3 screen rework; 1.16.5-1.19.2 construct Button directly [VERIFIED: the 1.19.3 "
+          "leg rejected the constructor form]",
         f"- `cycle_button` = **{facts.get('cycle_button', 'CycleButton')}** - "
         + ("CycleButton under that exact mojmap name from 1.17 on [VERIFIED: official-mapping "
            "javadoc @ 1.17.1/1.18.2; the 1.17/1.18.2 legs rejected CycleButtonWidget]"
