@@ -1,234 +1,158 @@
 # Aetherium
 
-A replacement rendering engine and graphics utility mod for Minecraft: Java Edition,
-shipped for Fabric and NeoForge from one shared source set.
+A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3** (33 versions) on
+**Fabric** and **NeoForge**. It replaces the vanilla *Video Settings* screen with its own animated,
+tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
+replacing it.
 
-Aetherium is not a "performance mod" in the Sodium sense and not a shader loader in the
-Iris sense. It owns the render path — backend selection, chunk meshing, occlusion,
-batching, shader compilation — and adds the graphics options people install OptiFine for:
-coloured dynamic lights, a real gamma/cave-vision suite, a live Compatibility toggle, and
-a purple settings screen that replaces the vanilla video options.
+Version **0.2.0** is a complete rewrite. The 0.1.0 line shipped a parallel GPU pipeline, an async
+shader compiler and a light-map writer. Those cost more frame time than they saved and broke on
+many drivers. All of that is gone. Every 0.2.0 feature either removes work vanilla would have done
+or changes a vanilla setting, and Aetherium makes no OpenGL calls of its own.
 
----
+## Status (read this first)
 
-## Honest status (read this first)
+| | |
+| --- | --- |
+| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`). |
+| Tests | 72 unit tests and 6 opt-in CPU micro-benchmarks, all passing (`tools/testrun.py --bench`) |
+| Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
+| Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Everything below is what the code in this repository actually does today. Nothing here is
-a roadmap described in the present tense.
+Releases are published per Minecraft version as `v0.2.0+<mcversion>`, and only for versions whose
+build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
-| Area | Status | What that means |
+## The settings screen
+
+*Options → Video Settings…* opens Aetherium's screen on every version. Pressing **Vanilla video
+settings** on the General tab opens the original screen.
+
+- **Tabs** (left rail, each with a pixel-art icon): **General**, **Quality**, **Performance**,
+  **Backend**, **Effects**, **Iris Shaders**, **Android**.
+- **Controls**: toggle switches, segmented choices, dropdowns, sliders, live info rows and buttons.
+  Rows that don't apply are greyed out with the reason (for example, *Simulation distance* before
+  1.18, or Iris options without Iris installed).
+- **Animations**: the panel eases open, and the tab highlight slides between tabs. Page content fades
+  and slides in. Toggle knobs and segment highlights glide, and dropdowns unfold. Scrolling is
+  smooth, hover glows fade, and Reset/Apply show a toast. Every animation is frame-rate-independent
+  (exponential easing on real elapsed time), so it plays at the same speed at 30 FPS and at 300.
+- **Apply / Done**: edits are staged and applied together, so a change that needs a chunk reload
+  (graphics, biome blend) triggers one reload, not one per click. Closing with Esc applies too.
+  Nothing you set is lost.
+- **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
+  performance options together, and touching any of them switches the preset to *Custom*.
+- The footer reads `Aetherium Mod v0.2.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+
+The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
+and no shaders. It costs less to draw than the vanilla screen it replaces.
+
+## Performance features
+
+| Feature | What it saves | Where |
 | --- | --- | --- |
-| Minecraft **1.21.1** | **reference implementation** | Complete engine, GUI, mixins, config, Android routing, Iris bridge. This is the version the code is written for. |
-| 32 further versions (1.16.5 → 26.3) | **mechanical porting system** | One delta directory per version — `changes.patch`, `README.md`, `mixins.json`, `build.gradle.kts` — linked individually in [PORTING_MATRIX.md → All versions](PORTING_MATRIX.md#all-versions). `tools/port.sh` applies them. No per-version source tree exists, by design. |
-| Backend abstraction (GL 4.6 DSA / Vulkan 1.3 / GL core / GL legacy) | implemented: probe, capability matrix, hot-swap, selection gates + tests | The Vulkan backend opens a device and reports capabilities; it does not draw chunks — the world path stays on GL. |
-| HZB occlusion culling, persistent mapped buffers, `glMultiDrawElementsIndirectCount` batching, async shader compile + program-binary cache, async distance-prioritized meshing | implemented against the GL abstraction | Two states ship: `ACTIVE` and `SHADOW` (Compatibility). |
-| `advanced.experimental_full_renderer = true` (route world geometry through Aetherium) | **NOT SHIPPED** | Refused at startup with a logged error and an automatic fallback to `SHADOW`. The GUI shows the switch as unavailable rather than hiding it. Reason: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#honest-status). |
-| GUI (`AetheriumVideoOptionsScreen`) | implemented | Reached through an `OptionsScreen` mixin plus a fallback button. **There is no Mod Menu dependency** and no `ModMenuApi`; on Fabric without Mod Menu you get the fallback button in the vanilla video settings. |
-| Iris / Oculus integration | implemented by reflection only | No compile-time or runtime dependency. If Iris is absent, every shader path is inert. |
-| Dynamic lights, gamma suite, conflict scanner, HUD, Android launcher routing | implemented + unit-tested | See `common/src/test/java/com/aetherium/`. |
-| Compiled and run by CI on this machine | **no** | This tree was authored in an environment without a JDK or Gradle. Syntax, cross-references, JSON and the delta patches are machine-checked (see [Verification](#verification)); `javac` never ran. |
+| Entity culling | Skips entities beyond a configurable distance before vanilla's frustum test. | Performance |
+| Particle density | Drops a share of new particles at spawn, so they never tick or render. | Performance |
+| Adaptive render distance | Lowers render distance when FPS stays under the target and raises it back when there is headroom. | Performance |
+| Weather off | Cancels rain/snow rendering and rain particles. | Quality |
+| Vignette off | Skips the vignette overlay pass. | Quality |
+| Frame cap | A battery-saver cap and a thermal guard (when the device exposes a temperature sensor). | Android |
+| Vanilla settings | Graphics, clouds, particles, biome blend, render/simulation/entity distance and max FPS, all in one place. | Quality, Performance |
+| Presets | *Max FPS* turns on all of the above at once. | General |
 
-If you are evaluating whether to install it: the feature list above is the contract. If
-you are evaluating whether to *trust a claim* in an issue or a video: "2× Sodium FPS" is
-not a claim this project makes, and the harness in [BENCHMARK.md](BENCHMARK.md) is why.
+Dynamic lights (held torches, glowing entities) are an opt-in *effect*, not a performance feature.
+They cost about 32 ns per light lookup with 8 active sources (`CpuMicroBenchmarkTest`). Fullbright
+is a gamma override and never writes to `options.txt`.
 
-## What is deliberately not here
+**`general.enabled = false`** turns every hook into a pass-through. The game then behaves exactly as
+it would without the mod, apart from the replaced settings screen.
 
-* **No Mod Menu runtime dependency.** A `ModMenuApi` entry point would be one more version
-  moving target for a mod that already tracks 33 of them. The mixin on the vanilla
-  `OptionsScreen` plus its fallback button is the entry path.
-* **No hard dependency on Sodium, Iris, Oculus, Embeddium or Mod Menu.** `fabric.mod.json`
-  uses `suggests`, and Iris is bound reflectively.
-* **No `full` renderer mode.** Replacing the mesher is the part that cannot be verified
-  without a GPU and a running game, so it is refused rather than half-shipped. The enum
-  value exists so the config format does not change when it lands.
-* **No fabricated benchmarks, no `TODO` bodies, no stubbed methods.** Where an API could
-  not be verified against real sources, the code carries an inline
-  `[UNVERIFIED: what was not verified and why]` marker; [VERIFICATION.md](VERIFICATION.md) lists every
-  mark with its file and line, and `tools/check.py` counts them so the number in this
-  repository cannot grow quietly.
-* **`gradle/wrapper/gradle-wrapper.jar` is committed** — the real Gradle 9.4.1 wrapper
-  jar, byte-identical to the one `CaffeineMC/sodium` ships at the same Gradle version —
-  so a clean clone builds with no bootstrap step:
+## OpenGL
 
-  ```sh
-  ./gradlew build
-  ```
+Aetherium needs nothing beyond what the game itself needs. It issues no GL calls, compiles no
+shaders and creates no buffers. Everything goes through vanilla's renderer, which is why it runs on
+the same devices as the game. The *Rendering API: OpenGL 3.0* footer states the mod's own
+baseline.
 
-  `gradlew`, `gradlew.bat` and `gradle/wrapper/gradle-wrapper.properties` (pinned to
-  Gradle 9.4.1) complete the wrapper. If a fork ever drops the jar, `gradle wrapper
-  --gradle-version 9.4.1` regenerates it.
-
----
+The game's own requirement is unchanged. Minecraft 1.17+ creates an OpenGL **3.2** core context
+because its built-in shaders are GLSL 150. A mod cannot lower that without breaking vanilla
+rendering, so Aetherium does not force a 3.0 context. On Android, launchers such as Pojav,
+FCL and Zalith provide GL through a translation layer (gl4es, ANGLE, Zink, MobileGlues). The
+*Android* tab shows which one was detected and lets you override it.
 
 ## Install
 
-Drop `aetherium-fabric-<version>.jar` (or `aetherium-neoforge-<version>.jar`) into `mods/`. Client-side only:
-the manifest says `"environment": "client"`, and there is no server component to install.
-
-Recommended pairs: **Iris** (shaders) and nothing else. Remove Sodium, Embeddium,
-Radium/Magnesium, VulkanMod, OptiFine/OptiFabric — Aetherium detects them at startup, prints a
-one-line notice in the top-right HUD under the backend tag (`general.notify_conflicts`),
-delegates overlapping features, and refuses to hook rendering where two renderers cannot
-coexist. Details: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
-
-## Build
-
-Releases for every Minecraft version in `PORTING_MATRIX.md` are published by the `ship` workflow
-(one job per version: port the tree, build it against that version's own pins, attach the jars, publish
-`v0.1.0+<mcversion>`). `DOWNLOADS.md` at the repo root is generated from those releases, so a link there
-exists only if the jar exists.
-
-
-```sh
-./gradlew buildAll                       # common + fabric + neoforge jars
-./gradlew :common:test                   # engine unit tests
-./gradlew verifyAll                      # buildAll, tests, and tools/check.py
-./gradlew :common:checkstyleMain
-```
-
-Requirements: JDK 21 (toolchain 21 for 1.21.1; `tools/setup_jdk.sh` prints what each
-version in the porting matrix needs), Gradle 9.4.1, and network access on the first build
-for the Minecraft/Loom mappings. Versions are pinned exactly in `gradle.properties`,
-`gradle/libs.versions.toml` and `tools/porting_pins.json`; the reasoning for each pin is in
-[docs/BUILD_PINS.md](docs/BUILD_PINS.md).
-
-Offline builds: `tools/build_all.sh --offline` runs every check that needs no network
-(parsers, cross-references, config/JSON validity, and applying all 32 delta patches).
-
-There is no published download. A push to `main` runs `.github/workflows/build.yml`, whose last
-job attaches `aetherium-fabric-*.jar` and `aetherium-neoforge-*.jar` (plus `unverified.txt`) to a
-**draft** release tagged `v<mod_version>+<minecraft_version>` — `v0.1.0+1.21.1` today. It stays a
-draft on purpose: CI proves the code compiles and its tests pass, not that a GPU likes it. Publish
-with `gh release edit <tag> --draft=false` after you have run it once, or build it yourself from
-the commands above. The jar links for everything this build *needs* are in
-[docs/BUILD_PINS.md](docs/BUILD_PINS.md#the-jars-what-exists-and-what-you-download).
-
-## Porting to another Minecraft version
-
-Every version has its own links:
-**[PORTING_MATRIX.md → All versions](PORTING_MATRIX.md#all-versions)** lists all 33 rows, each
-pointing at its delta directory, patch, derivation and notes. That index is generated from
-`tools/porting_pins.json` by `tools/gen_deltas.py --matrix`, so it cannot drift from the pins —
-and it deliberately contains no download links, because this repository publishes no jars.
-
-`PORTING_MATRIX.md` is also the table of all 33 rows: loader, NeoForge, Loom, mappings,
-Java level, the GUI/graphics API the version has, the lightmap shape, whether the options
-hijack is enabled, and a status grade (`reference`, `documented`, `derived`, `unverified`).
-
-```sh
-tools/port.sh 1.20.1           # apply deltas/1.20.1/changes.patch in place
-tools/port.sh --dry-run 26.3   # apply to a throwaway copy, verify, change nothing
-tools/port.sh --revert 1.20.1  # undo an applied delta
-tools/port.sh --list           # every version the matrix knows, with its pins
-python3 tools/gen_deltas.py --all --matrix --verify   # regenerate the whole system
-```
-
-A delta patch touches only `gradle.properties`, the mixin plugin's version table, and the
-four mixin/HUD files whose targets move between versions. Everything else is version
-independent because the engine never calls a Minecraft method directly — it goes through
-`tolerant` mixins (`require = 0, expect = 0`) and `AetheriumMixinPlugin`, which refuses a
-mixin on a version where its target class or API does not exist. The rule that makes this
-mechanical is written down in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+1. Pick the jar for your exact Minecraft version from **DOWNLOADS.md** (or the Releases page). Each
+   jar only loads on the version it was built for.
+2. **Fabric**: put it in `mods/` with Fabric Loader. Fabric API is *not* required.
+   **NeoForge**: put it in `mods/`. No NeoForge jar exists for 1.16.5–1.20.1, 1.20.2, 1.20.3 or
+   1.20.5 (Fabric only).
+3. Optional: Iris (Fabric) or Oculus. Aetherium pauses dynamic lights while a shader pack renders
+   and links to the pack screen.
 
 ## Configuration
 
-`<game>/aetherium.json` — 58 options in seven groups, schema documented in
-[`CONFIG_SCHEMA.json`](CONFIG_SCHEMA.json) (generated from the code, do not hand-edit).
-Comments are allowed (`//` and `/* */`), unknown keys are preserved for round-trips, an
-invalid value is clamped or ignored with a log line, and a file that cannot be parsed is
-copied to `aetherium.json.bad` while defaults are used. Saves are atomic (`.tmp` + rename,
-with a documented non-atomic fallback for Android's FUSE/sdcardfs) and coalesced to at most
-one write per 500 ms.
+`<game>/config/aetherium.json`, schema v4 (`CONFIG_SCHEMA.json`). It is written by the screen, so
+you rarely need to edit it. Files from 0.1.0 (v1–v3) are migrated on first load; keys for removed
+features are dropped. Lang files and the schema are generated from `AetheriumConfig.java` by
+`tools/gen_resources.py` (`--check` in CI).
 
-The GUI writes the same file; the `Compatibility` toggle is live — `false` unhook the
-render path at the next frame boundary and returns to vanilla rendering without a restart.
+## Building
 
-## Android
+The reference version is **1.21.1** (Java 21). Its sources are the repository tree:
 
-Aetherium runs inside Pojav, Zalith, FCL, Amethyst and DroidBridge launches: it detects the
-launcher, reads `custom_env.txt` plus `POJAV_RENDERER` / `ZALITH_RENDERER` /
-`FCL_RENDERER` / `MESA_GL_VERSION_OVERRIDE`, identifies the GL provider (GL4ES, Zink, LTW,
-MobileGlues, VirGL, ANGLE), and routes the backend choice accordingly — a translated GL
-context does not get the persistent-mapping or indirect paths it only pretends to support.
-arm64 only. The Android tab is hidden on desktop.
-Full details, including the per-launcher table and the thermal/battery behaviour:
-[docs/ANDROID.md](docs/ANDROID.md).
+```sh
+gradle :common:build :fabric:build :neoforge:build
+```
 
-## Shaders
+Every other version is the same tree plus `deltas/<version>/changes.patch`:
 
-[docs/IRIS_COMPAT.md](docs/IRIS_COMPAT.md) lists every Iris v0 API call Aetherium makes, the
-reflection used to make it, what happens when Iris is absent or its minor revision changes,
-and the Oculus package differences. The short version: Iris keeps the shader pipeline,
-Aetherium keeps geometry and lighting, and the `Shaders` tab is the bridge.
+```sh
+sh tools/port.sh 1.19.2            # materialise the ported tree under build/ports/1.19.2
+```
 
-## Performance claims
+### How one source tree serves 33 versions
 
-[BENCHMARK.md](BENCHMARK.md) describes the two harnesses that exist in this tree: a CPU-only
-JUnit micro-benchmark (`tools/benchmark.sh`, always runnable, no GPU needed) and the optional
-in-game harness for a real FPS/frametime report against a pinned comparison mod list. It also
-states what a number from either one does and does not prove. No ratio between this mod and
-Sodium is asserted anywhere in this repository, because the measurement that would justify
-one has not been run on your hardware.
+Version-specific code is written in place as **era blocks**:
 
-## Tests
+```java
+// @era:hud-begin graphics-float|graphics-delta
+public static void render(final GuiGraphics graphics) { ... }
+// @era:hud-else stack
+//~ public static void render(final PoseStack pose) { ... }
+// @era:hud-end
+```
 
-`./gradlew :common:test` runs JUnit 5 tests for the engine's own logic: `MathUtil`,
-`VersionRange`, `Json`, `ConfigValue`, `ConfigStore`, `FrameStats`, `MeshCounters`,
-`GammaApplier`/`GammaCurve`, `BackendSelector`, `ModConflictScanner`, `CustomEnvFile`. Each
-class asserts behaviour a user would notice (clamping, atomic writes, corrupt-file recovery,
-conflict delegation, the feature matrix a backend gets), not line coverage.
+`tools/eras.py` defines each era's version ranges (18 eras: options access, GUI drawing API,
+screen package, input events, weather renderer, light hook, and so on). It turns the right block on
+for each version. `tools/gen_deltas.py` writes that selection, plus the build pins, as the version's
+patch. `tools/stubcheck.py` compiles the same selection against that version's probed signatures.
+What is compiled offline is therefore exactly what ships.
 
-## Verification
+### Offline toolchain (no Maven needed)
 
-Without a JDK in the authoring environment, "it compiles" cannot be claimed, so the checks
-that *can* run mechanically are wired into the build:
-
-| Command | What it proves |
-| --- | --- |
-| `tools/check.py` | every Java/JSON/properties/sh file parses; banned placeholder patterns absent; `[UNVERIFIED]` marks counted; `deltas/*` exist for all 33 rows; `PORTING_MATRIX.md` is up to date |
-| `tools/check_refs.py` | every `com.aetherium` type referenced anywhere resolves to a real file, including nested types |
-| `tools/check_java.py` | braces, brackets, strings, char literals and text blocks nest correctly in all 71 files, and no method signature is pasted twice (structural only — it is not evidence that anything compiles) |
-| `python3 tools/gen_deltas.py --verify` | all 32 delta patches apply cleanly to the current tree |
-| `./gradlew checkTree` | the above, as a Gradle task |
-| `tools/verify.sh` | per-version target checks to run *after* you have a JDK and network |
-
-Type-checking, mixin descriptor validation and actual runtime behaviour require a JDK;
-`tools/verify.sh` and `tools/benchmark.sh --mc` are the entry points for those.
+```sh
+bash tools/local_jdk.sh              # JRE + ECJ from PyPI/npm-reachable mirrors
+python3 tools/stubcheck.py --all     # compile all 33 versions against tools/probe/*
+python3 tools/testrun.py [--bench]   # unit tests (+ CPU micro-benchmarks)
+python3 tools/gen_deltas.py --all --verify
+python3 tools/check.py && python3 tools/check_refs.py . && python3 tools/check_java.py .
+```
 
 ## Layout
 
 ```
-common/     engine, GUI, mixins, config, platform SPI (100% of the code)
-fabric/     Fabric entry point, fabric.mod.json, remap/reobf
-neoforge/   NeoForge entry point, neoforge.mods.toml, jar-in-jar
-deltas/     per-version ports: changes.patch + README.md + mixins.json + build.gradle.kts
-tools/      porting, generation, verification, benchmark scripts
-docs/       architecture, glossary, android, iris compat, troubleshooting, pins
+common/   MC-free core (config, perf, lighting, gui engine) + client/ (MC glue) + 11 mixins
+fabric/   loader shell        neoforge/  loader shell
+deltas/   32 generated ports  tools/     generators, checks, probes, offline toolchain
 ```
-
-## Versions
-
-All 33 rows, linked individually: **[PORTING_MATRIX.md → All versions](PORTING_MATRIX.md#all-versions)**
-— one delta directory (`changes.patch`, `README.md`, `mixins.json`, `build.gradle.kts`) per version, grouped by
-era, each row carrying its status grade. The list is generated from `tools/porting_pins.json`,
-so it is the only place to look and the only place that can be right: the range is
-1.16.5 → 1.20.6, 1.21 → 1.21.11, and the date-based 26.x line, with **1.21.1** as the
-reference version this source is written against. It deliberately contains no download links,
-because this repository publishes no jars.
 
 ## Documentation
 
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ·
-[docs/GLOSSARY.md](docs/GLOSSARY.md) ·
-[docs/ANDROID.md](docs/ANDROID.md) ·
-[docs/IRIS_COMPAT.md](docs/IRIS_COMPAT.md) ·
-[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) ·
-[docs/BUILD_PINS.md](docs/BUILD_PINS.md) ·
-[BENCHMARK.md](BENCHMARK.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
+- `VERIFICATION.md`: what was checked, how, and what was not
+- `PORTING_MATRIX.md`: every version, its pins and its eras (generated)
+- `deltas/<version>/README.md`: what that version's patch changes (generated)
+- `CONFIG_SCHEMA.json`: config reference (generated)
 
 ## License
 
-LGPL-3.0-only (see [LICENSE](LICENSE)); the third-party attributions and the reasons for
-each are in [NOTICE](NOTICE). Mixin and LWJGL are used under their own licences; no source
-file from Sodium, Iris, Embeddium or OptiFine is copied into this repository.
+See `LICENSE`.
