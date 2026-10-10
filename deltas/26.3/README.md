@@ -22,6 +22,9 @@ neoforge_version=26.3.0.64-beta
 ### Era transforms applied by the generated patch
 
 - `background=extract`
+- `be-render=extract-flag`
+- `bg-threads=property`
+- `chunk-upload=none`
 - `dirty=sections`
 - `entity-cull=six`
 - `graphics=preset`
@@ -79,6 +82,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
 - `common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java`
+- `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`

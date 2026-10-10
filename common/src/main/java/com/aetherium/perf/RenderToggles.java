@@ -16,6 +16,8 @@ public final class RenderToggles {
     public static volatile int particleKeep = 100;
     public static volatile boolean hideWeather;
     public static volatile boolean hideVignette;
+    /** Skip the per-tick animation of water, lava, fire, portal... textures. */
+    public static volatile boolean freezeTextureAnimations;
 
     /** Client-thread only; spreads dropped particles evenly instead of randomly. */
     private static int particleAccumulator;
@@ -31,6 +33,9 @@ public final class RenderToggles {
         particleKeep = isActive ? config.particleDensity.get().intValue() : 100;
         hideWeather = isActive && !config.weather.get().booleanValue();
         hideVignette = isActive && !config.vignette.get().booleanValue();
+        freezeTextureAnimations = isActive && !config.animatedTextures.get().booleanValue();
+        UploadBudget.setEnabled(isActive && config.smoothChunkLoading.get().booleanValue());
+        BlockEntityCull.setDistance(isActive ? config.blockEntityDistance.get().intValue() : BlockEntityCull.VANILLA);
     }
 
     /**

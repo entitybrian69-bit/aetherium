@@ -22,6 +22,9 @@ neoforge_version=26.1.2.115
 ### Era transforms applied by the generated patch
 
 - `background=extract`
+- `be-render=extract`
+- `bg-threads=property`
+- `chunk-upload=none`
 - `graphics=preset`
 - `gui=extractor`
 - `hud=extractor`
@@ -35,6 +38,7 @@ neoforge_version=26.1.2.115
 - `reload=all-changed`
 - `remapJar-block-removed`
 - `scroll=four`
+- `simdist=sim`
 - `vignette=extract`
 - `weather=effect`
 
@@ -68,9 +72,12 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.1.txt
 - `common/src/main/resources/aetherium-common.mixins.json`
 - `common/build.gradle.kts`
 - `fabric/build.gradle.kts`
+- `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`

@@ -24,7 +24,7 @@ index 58e4ee8..290d403 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 73ba518..98f3d9a 100644
+index 336f6b7..9f7b7c1 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -16,24 +16,24 @@ package com.aetherium;
@@ -64,11 +64,26 @@ index 73ba518..98f3d9a 100644
      // @era:hud-end
  
      /** Gamma lives in an {@code OptionInstance}, so fullbright is a read override, not a write. */
+@@ -51,10 +51,10 @@ public final class Capabilities {
+     // @era:simdist-end
+ 
+     /** Finished chunk meshes can be spread over several frames (upload queue is hookable). */
+-    // @era:chunk-upload-begin crdbool|crd|srd
+-    public static final boolean SMOOTH_CHUNK_UPLOADS = true;
+-    // @era:chunk-upload-else none
+-    //~ public static final boolean SMOOTH_CHUNK_UPLOADS = false;
++    // @era:chunk-upload-begin none
++    public static final boolean SMOOTH_CHUNK_UPLOADS = false;
++    // @era:chunk-upload-else crdbool|crd|srd
++    //~ public static final boolean SMOOTH_CHUNK_UPLOADS = true;
+     // @era:chunk-upload-end
+ 
+     /** Atlas texture animation can be paused ({@code TextureAtlas.tick} exists on every version). */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-index 41f2572..61e681f 100644
+index 625b9ae..35c967c 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 +++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-@@ -8,18 +8,18 @@ import com.aetherium.util.AetheriumLog;
+@@ -9,18 +9,18 @@ import com.aetherium.util.AetheriumLog;
  
  import java.util.List;
  
@@ -95,7 +110,7 @@ index 41f2572..61e681f 100644
  // @era:input-end
  import net.minecraft.network.chat.Component;
  
-@@ -67,91 +67,91 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -68,91 +68,91 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
  
      // ------------------------------------------------------------------ rendering
  
@@ -228,10 +243,10 @@ index 41f2572..61e681f 100644
      // @era:input-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 6e31c46..9df2321 100644
+index c0cb0c6..a96af1f 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -301,18 +301,18 @@ public final class ClientHooks {
+@@ -326,18 +326,18 @@ public final class ClientHooks {
  
      /** The open screen; it moved from {@code Minecraft} to {@code Gui} in 26.2. */
      public static Screen currentScreen(final Minecraft mc) {
@@ -544,6 +559,138 @@ index 18f3db9..22b6079 100644
          //~ }
          // @era:dirty-end
      }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
+index db3bdf9..74545d7 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
+@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Coerce;
+ import org.spongepowered.asm.mixin.injection.Inject;
+-// @era:be-render-begin render
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:be-render-else extract|extract-flag
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:be-render-begin extract|extract-flag
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:be-render-else render
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:be-render-end
+ 
+ /**
+@@ -24,26 +24,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ @Mixin(BlockEntityRenderDispatcher.class)
+ public abstract class BlockEntityCullMixin {
+ 
+-    // @era:be-render-begin render
+-    @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+-    private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object poseStack,
+-                                @Coerce final Object buffers, final CallbackInfo ci) {
++    // @era:be-render-begin extract-flag
++    @Inject(method = "tryExtractRenderState", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object crumbling,
++                                final boolean flag, final CallbackInfoReturnable<Object> cir) {
+         if (ClientHooks.shouldCullBlockEntity(blockEntity)) {
+-            ci.cancel();
++            cir.setReturnValue(null);
+         }
+     }
+-    // @era:be-render-else extract
+-    //~ @Inject(method = "tryExtractRenderState", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object crumbling,
+-                                //~ final CallbackInfoReturnable<Object> cir) {
++    // @era:be-render-else render
++    //~ @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
++    //~ private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object poseStack,
++                                //~ @Coerce final Object buffers, final CallbackInfo ci) {
+         //~ if (ClientHooks.shouldCullBlockEntity(blockEntity)) {
+-            //~ cir.setReturnValue(null);
++            //~ ci.cancel();
+         //~ }
+     //~ }
+-    // @era:be-render-else extract-flag
++    // @era:be-render-else extract
+     //~ @Inject(method = "tryExtractRenderState", at = @At("HEAD"), cancellable = true, require = 0)
+     //~ private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object crumbling,
+-                                //~ final boolean flag, final CallbackInfoReturnable<Object> cir) {
++                                //~ final CallbackInfoReturnable<Object> cir) {
+         //~ if (ClientHooks.shouldCullBlockEntity(blockEntity)) {
+             //~ cir.setReturnValue(null);
+         //~ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
+index b663eb2..9cf99e1 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
+@@ -9,14 +9,14 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.Shadow;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+-// @era:chunk-upload-begin srd
++// @era:chunk-upload-begin none
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:chunk-upload-else srd
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:chunk-upload-else crd
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:chunk-upload-else crdbool
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+-// @era:chunk-upload-else none
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:chunk-upload-end
+ 
+ /**
+@@ -25,14 +25,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  * burst over the following frames. The queue is vanilla's own {@code toUpload}; nothing is dropped
+  * or reordered. 26.x moved uploads into the GPU device layer and has no queue to pace.
+  */
+-// @era:chunk-upload-begin srd
++// @era:chunk-upload-begin none
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
++// @era:chunk-upload-else srd
++//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
+ // @era:chunk-upload-else crd
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
+ // @era:chunk-upload-else crdbool
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
+-// @era:chunk-upload-else none
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
+ // @era:chunk-upload-end
+ public abstract class ChunkUploadMixin {
+ 
+@@ -40,14 +40,18 @@ public abstract class ChunkUploadMixin {
+     @Final
+     private Queue<Runnable> toUpload;
+ 
+-    // @era:chunk-upload-begin srd
++    // @era:chunk-upload-begin none
+     @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+     private void aetherium$pacedUploads(final CallbackInfo ci) {
+-        if (UploadBudget.enabled()) {
+-            UploadBudget.drain(this.toUpload);
+-            ci.cancel();
+-        }
+     }
++    // @era:chunk-upload-else srd
++    //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
++    //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
++        //~ if (UploadBudget.enabled()) {
++            //~ UploadBudget.drain(this.toUpload);
++            //~ ci.cancel();
++        //~ }
++    //~ }
+     // @era:chunk-upload-else crd
+     //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+     //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
+@@ -63,9 +67,5 @@ public abstract class ChunkUploadMixin {
+             //~ cir.setReturnValue(Boolean.valueOf(UploadBudget.drain(this.toUpload) > 0));
+         //~ }
+     //~ }
+-    // @era:chunk-upload-else none
+-    //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
+-    //~ }
+     // @era:chunk-upload-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..815c08b 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -674,7 +821,7 @@ index dd489bc..090bb2c 100644
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 7aa5704..a59615f 100644
+index dbdd789..c706fbc 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -741,7 +888,7 @@ index a2a8bd6..151bd9f 100644
  neoforge-moddev = { id = "net.neoforged.moddev", version.ref = "moddev" }
  gitversion = { id = "com.palantir.git-version", version.ref = "gitversion" }
 diff --git a/gradle.properties b/gradle.properties
-index 396e7c3..ae77e43 100644
+index efdca7f..2eb5b32 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

@@ -17,4 +17,13 @@ public interface ScreenHost {
     String footerRight();
 
     boolean touchMode();
+
+    /** The saved light/dark preference. */
+    boolean darkMode();
+
+    /** Saves the light/dark preference immediately (it is a display preference, not a staged option). */
+    void setDarkMode(boolean dark);
+
+    /** Plays an interface sound when UI sounds are enabled; never throws. */
+    void playSound(UiSound sound);
 }

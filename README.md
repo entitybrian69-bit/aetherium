@@ -5,21 +5,22 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **0.2.0** is a complete rewrite. The 0.1.0 line shipped a parallel GPU pipeline, an async
-shader compiler and a light-map writer. Those cost more frame time than they saved and broke on
-many drivers. All of that is gone. Every 0.2.0 feature either removes work vanilla would have done
-or changes a vanilla setting, and Aetherium makes no OpenGL calls of its own.
+Version **1.0.0** builds on the 0.2.0 rewrite. It adds four frame-time features aimed at weak
+devices: smooth chunk loading, an animated-texture switch, a block-entity distance and worker-thread
+sizing. It also adds a light/dark theme, a working scrollbar, touch-friendly scrolling and interface
+sounds. As in 0.2.0, every feature either removes work vanilla would have done or changes a vanilla
+setting, and Aetherium makes no OpenGL calls of its own.
 
 ## Status (read this first)
 
 | | |
 | --- | --- |
 | Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** in run 38060927789. |
-| Tests | 72 unit tests and 6 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
+| Tests | 90 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v0.2.0+<mcversion>`, and only for versions whose
+Releases are published per Minecraft version as `v1.0.0+<mcversion>`, and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -32,6 +33,15 @@ settings** on the General tab opens the original screen.
 - **Controls**: toggle switches, segmented choices, dropdowns, sliders, live info rows and buttons.
   Rows that don't apply are greyed out with the reason (for example, *Simulation distance* before
   1.18, or Iris options without Iris installed).
+- **Light / dark theme**: the sun/moon switch in the header (left of the FPS badge) cross-fades the
+  whole screen between the two palettes. The choice is saved immediately (`general.ui.dark_mode`).
+- **Scrolling**: a scrollbar with its own lane at the right edge (8 px in touch mode, 6 px
+  otherwise); the controls end before it. Drag the thumb, or click the track to jump there. On touch
+  screens a swipe that starts on a row scrolls the list instead of flipping the control under your
+  finger, and a quick swipe keeps gliding with momentum. Taps act on release.
+- **Sounds**: clicks, toggles (higher pitch for on, lower for off), tab changes, slider ticks,
+  Apply and the theme switch each have their own pitch of the vanilla UI click. They play on the
+  Master volume, and *General → Interface sounds* turns them off.
 - **Animations**: the panel eases open, and the tab highlight slides between tabs. Page content fades
   and slides in. Toggle knobs and segment highlights glide, and dropdowns unfold. Scrolling is
   smooth, hover glows fade, and Reset/Apply show a toast. Every animation is frame-rate-independent
@@ -41,7 +51,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v0.2.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.0.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.
@@ -53,14 +63,21 @@ and no shaders. It costs less to draw than the vanilla screen it replaces.
 | Entity culling | Skips entities beyond a configurable distance before vanilla's frustum test. | Performance |
 | Particle density | Drops a share of new particles at spawn, so they never tick or render. | Performance |
 | Adaptive render distance | Lowers render distance when FPS stays under the target and raises it back when there is headroom. | Performance |
+| Smooth chunk loading | Vanilla uploads every finished chunk mesh in the frame it finishes. Joining a world, flying or world generation then causes one long frame. Aetherium uploads at least 8 meshes per frame (so block edits show at once), then stops when 3 ms are used, and leaves the rest for the next frames. Not on 26.x, where uploads moved into the new GPU layer. | Performance |
+| Animated textures off | Stops the atlas tick that re-uploads water, lava, fire, portal and other animated textures 20 times a second. That upload is expensive on GL-over-GLES layers (gl4es, ANGLE, Zink). | Performance |
+| Block entity distance | Chests, signs, banners, heads and similar objects beyond 16–64 blocks are skipped before any model work (vanilla: 64). Beacon and end-gateway beams are exempt. | Performance |
+| Worker threads | World generation and chunk meshing share one pool of `cores − 1` threads. On phones those threads compete with the render and server threads for the few fast cores. *Auto* keeps vanilla on desktop and uses all cores but three (at least 2) on Android. A fixed count can be set; it applies after a restart. | Performance |
 | Weather off | Cancels rain/snow rendering and rain particles. | Quality |
 | Vignette off | Skips the vignette overlay pass. | Quality |
 | Frame cap | A battery-saver cap and a thermal guard (when the device exposes a temperature sensor). | Android |
 | Vanilla settings | Graphics, clouds, particles, biome blend, render/simulation/entity distance and max FPS, all in one place. | Quality, Performance |
-| Presets | *Max FPS* turns on all of the above at once. | General |
+| Presets | *Max FPS* turns on all of the above at once (including animated textures off and a 32-block block-entity distance). | General |
 
 Dynamic lights (held torches, glowing entities) are an opt-in *effect*, not a performance feature.
-They cost about 32 ns per light lookup with 8 active sources (`CpuMicroBenchmarkTest`). Fullbright
+Since 1.0.0 they are **off by default**: a moving light makes vanilla rebuild the chunk sections
+around it, which is real lag on a phone. Turning them on in *Effects* restores the 0.2.0 behaviour.
+Configs that already have them on keep them on. A light lookup costs about 29 ns with 8 active
+sources (`CpuMicroBenchmarkTest`). Fullbright
 is a gamma override and never writes to `options.txt`.
 
 **`general.enabled = false`** turns every hook into a pass-through. The game then behaves exactly as
@@ -92,7 +109,8 @@ FCL and Zalith provide GL through a translation layer (gl4es, ANGLE, Zink, Mobil
 ## Configuration
 
 `<game>/config/aetherium.json`, schema v4 (`CONFIG_SCHEMA.json`). It is written by the screen, so
-you rarely need to edit it. Files from 0.1.0 (v1–v3) are migrated on first load; keys for removed
+you rarely need to edit it. Keys added in 1.0.0 load their defaults when missing, so 0.2.0 files
+keep working unchanged. Files from 0.1.0 (v1–v3) are migrated on first load; keys for removed
 features are dropped. Lang files and the schema are generated from `AetheriumConfig.java` by
 `tools/gen_resources.py` (`--check` in CI).
 

@@ -178,6 +178,31 @@ final class CpuMicroBenchmarkTest {
     }
 
     @Test
+    @DisplayName("block-entity distance check, once per block entity per frame")
+    void blockEntityDistance() {
+        com.aetherium.perf.BlockEntityCull.setDistance(32);
+        com.aetherium.perf.BlockEntityCull.setView(0.5, 64.5, 0.5);
+        try {
+            final BenchmarkHarness.Result cull = HARNESS.measure("BlockEntityCull.beyond", 500_000, iterations -> {
+                long culled = 0L;
+                for (int i = 0; i < iterations; i++) {
+                    // A 128x128 grid around the camera: roughly 80 % of it is past 32 blocks.
+                    if (com.aetherium.perf.BlockEntityCull.beyond((i & 127) - 64, 64, ((i >> 7) & 127) - 64)) {
+                        culled++;
+                    }
+                }
+                return culled;
+            });
+            note(cull);
+            final double share = cull.checksum() / (double) cull.iterations();
+            assertTrue(share > 0.7 && share < 0.9, "culled share of a 128x128 grid at 32 blocks: " + share);
+            assertTrue(cull.nanosPerOperation() < 100.0, "the per-block-entity check must be trivial: " + cull);
+        } finally {
+            com.aetherium.perf.BlockEntityCull.setDistance(64);
+        }
+    }
+
+    @Test
     @DisplayName("particle decimation, once per spawned particle")
     void particleDecimation() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();

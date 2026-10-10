@@ -22,6 +22,7 @@ neoforge_version=21.11.45
 ### Era transforms applied by the generated patch
 
 - `background=render`
+- `be-render=extract`
 - `graphics=preset`
 - `gui-layer=stratum`
 - `gui=graphics`
@@ -61,6 +62,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.11.
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 

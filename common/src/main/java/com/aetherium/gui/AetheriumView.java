@@ -43,8 +43,23 @@ public final class AetheriumView {
     private final Anim applyHover = new Anim(0f, 18f);
     private final Anim doneHover = new Anim(0f, 18f);
     private final Anim[] tabHover;
+    private final Anim themeAnim = new Anim(0f, 10f);
+    private final Anim themeHover = new Anim(0f, 18f);
+    private final Anim scrollbarHover = new Anim(0f, 16f);
 
     private float scrollTarget;
+    /** Fling speed in px/s after a touch drag; decays exponentially. */
+    private float scrollVelocity;
+    /** A press on a row waits for release (tap) or turns into a scroll drag when it moves. */
+    private boolean pressPending;
+    private double pressX;
+    private double pressY;
+    private double lastDragY;
+    private long lastDragNanos;
+    private boolean thumbDragging;
+    private float thumbGrab;
+    private long lastTickSoundNanos;
+    private boolean darkMode;
     private int maxScroll;
     private Setting dragging;
     private boolean scrollDragging;
@@ -90,6 +105,18 @@ public final class AetheriumView {
     private int applyX2;
     private int doneX1;
     private int doneX2;
+    private int sbX1;
+    private int sbX2;
+    private int themeX1 = -1;
+    private int themeY1;
+    private int themeX2 = -1;
+    private int themeY2;
+
+    private static final int THEME_W = 30;
+    private static final int THEME_H = 14;
+    private static final float FLING_FRICTION = 5.0f;
+    private static final float FLING_MIN = 40f;
+    private static final long TICK_SOUND_GAP_NANOS = 45_000_000L;
 
     public AetheriumView(final List<Page> pages, final ScreenHost host, final int initialPage) {
         this.pages = new ArrayList<Page>(pages);
@@ -103,6 +130,9 @@ public final class AetheriumView {
         this.contentAnim.setTarget(1f);
         this.openAnim.setTarget(1f);
         this.preset = find("general.preset");
+        this.darkMode = host.darkMode();
+        this.themeAnim.snap(this.darkMode ? 1f : 0f);
+        AetheriumTheme.apply(this.themeAnim.get());
         final Random random = new Random(0xAE7E21L);
         for (int i = 0; i < DOTS; i++) {
             this.dotX[i] = random.nextFloat();
@@ -164,7 +194,10 @@ public final class AetheriumView {
         this.btnY = this.panelY2 - 6 - this.btnH;
         this.rowsTop = this.panelY1 + 34;
         this.rowsBottom = this.btnY - 5;
-        this.ctrlW = clamp((this.panelX2 - this.panelX1) * 45 / 100, 70, 150);
+        // The scrollbar owns a lane at the panel's right edge; controls end left of it.
+        this.sbX2 = this.panelX2 - 4;
+        this.sbX1 = this.sbX2 - (touch ? 8 : 6);
+        this.ctrlW = clamp((ctrlX2() - this.panelX1 - 10) * 48 / 100, 70, 150);
         this.doneX2 = this.panelX2 - 8;
         this.doneX1 = this.doneX2 - 46;
         this.applyX2 = this.doneX1 - 5;
@@ -178,7 +211,7 @@ public final class AetheriumView {
     }
 
     private int ctrlX2() {
-        return this.panelX2 - 10;
+        return this.sbX1 - 8;
     }
 
     private int ctrlX1() {
@@ -195,13 +228,72 @@ public final class AetheriumView {
 
     // ------------------------------------------------------------------ render
 
+    /** Time source; tests replace it to step animations and fling physics deterministically. */
+    interface TimeSource {
+        long nanoTime();
+    }
+
+    private TimeSource timeSource = new TimeSource() {
+        @Override
+        public long nanoTime() {
+            return System.nanoTime();
+        }
+    };
+
+    void setTimeSource(final TimeSource source) {
+        this.timeSource = source;
+    }
+
+    private long now() {
+        return this.timeSource.nanoTime();
+    }
+
+    float scrollPosition() {
+        return this.scrollAnim.get();
+    }
+
+    float scrollTargetForTest() {
+        return this.scrollTarget;
+    }
+
+    float scrollVelocityForTest() {
+        return this.scrollVelocity;
+    }
+
+    int maxScrollForTest() {
+        return this.maxScroll;
+    }
+
+    /** {x1, y1, x2, y2} of the scrollbar lane and the current thumb, after a render. */
+    int[] scrollbarForTest() {
+        final int top = thumbTop();
+        return new int[]{this.sbX1, this.rowsTop, this.sbX2, this.rowsBottom, top, top + thumbHeight()};
+    }
+
+    int[] themeSwitchForTest() {
+        return new int[]{this.themeX1, this.themeY1, this.themeX2, this.themeY2};
+    }
+
+    int ctrlRightForTest() {
+        return ctrlX2();
+    }
+
+    int rowTopForTest(final int index) {
+        return rowTop(index);
+    }
+
+    int rowHeightForTest() {
+        return this.rowH;
+    }
+
     public void render(final GuiCanvas canvas, final int mouseX, final int mouseY) {
-        final long now = System.nanoTime();
+        final long now = now();
         final float dt = this.lastNanos == 0L ? 0f : Math.min(0.25f, (now - this.lastNanos) / 1.0e9f);
         this.lastNanos = now;
         this.clock += dt;
         layout();
         tick(dt, mouseX, mouseY);
+        AetheriumTheme.apply(this.themeAnim.get());
 
         canvas.reset();
         canvas.fill(0, 0, this.width, this.height, BACKGROUND);
@@ -221,6 +313,25 @@ public final class AetheriumView {
 
     private void tick(final float dt, final int mouseX, final int mouseY) {
         this.openAnim.tick(dt);
+        this.themeAnim.setTarget(this.darkMode ? 1f : 0f);
+        this.themeAnim.tick(dt);
+        this.themeHover.setTarget(this.themeX1 >= 0 && inside(mouseX, mouseY, this.themeX1, this.themeY1, this.themeX2, this.themeY2) ? 1f : 0f);
+        this.themeHover.tick(dt);
+        this.scrollbarHover.setTarget(this.thumbDragging || (this.maxScroll > 0 && overScrollbar(mouseX, mouseY)) ? 1f : 0f);
+        this.scrollbarHover.tick(dt);
+        if (this.scrollVelocity != 0f && !this.scrollDragging && !this.thumbDragging) {
+            // Fling: frame-rate independent exponential decay, stops at either end.
+            this.scrollTarget += this.scrollVelocity * dt;
+            this.scrollVelocity *= (float) Math.exp(-FLING_FRICTION * dt);
+            if (Math.abs(this.scrollVelocity) < FLING_MIN) {
+                this.scrollVelocity = 0f;
+            }
+            if (this.scrollTarget <= 0f || this.scrollTarget >= this.maxScroll) {
+                this.scrollVelocity = 0f;
+            }
+            clampScroll();
+            this.scrollAnim.snap(this.scrollTarget);
+        }
         this.tabAnim.setTarget(this.selected);
         this.tabAnim.tick(dt);
         this.contentAnim.tick(dt);
@@ -246,7 +357,8 @@ public final class AetheriumView {
 
         this.hovered = null;
         final List<Setting> rows = currentRows();
-        if (this.dropdown == null && mouseX >= this.panelX1 && mouseX < this.panelX2 && mouseY >= this.rowsTop && mouseY < this.rowsBottom) {
+        if (this.dropdown == null && !this.thumbDragging && mouseX >= this.panelX1 && mouseX < this.sbX1 - 4
+                && mouseY >= this.rowsTop && mouseY < this.rowsBottom) {
             final int index = (mouseY - this.rowsTop + Math.round(this.scrollAnim.get())) / this.rowH;
             if (index >= 0 && index < rows.size()) {
                 this.hovered = rows.get(index);
@@ -287,7 +399,7 @@ public final class AetheriumView {
         final int scale = this.height >= 260 && !this.compact ? 2 : 1;
         final int titleY = this.headerY + (this.headerH - 7 * scale) / 2;
         final int titleX = this.margin + 2;
-        PixelArt.drawText(canvas, "AETHERIUM", titleX + scale, titleY + scale, scale, 0x22000000);
+        PixelArt.drawText(canvas, "AETHERIUM", titleX + scale, titleY + scale, scale, TITLE_SHADOW);
         PixelArt.drawText(canvas, "AETHERIUM", titleX, titleY, scale, INK);
 
         final String fpsText = "FPS: " + this.fpsShown;
@@ -301,6 +413,35 @@ public final class AetheriumView {
         final float pulse = 0.55f + 0.45f * (float) Math.abs(Math.sin(this.clock * 2.0));
         canvas.fill(x1 + 4, y1 + 6, x1 + 6, y1 + 8, fade(0xFFFFFFFF, pulse));
         canvas.text(fpsText, x1 + 9, y1 + 3, 0xFFFFFFFF);
+        drawThemeSwitch(canvas, x1 - 6);
+    }
+
+    /** Light/dark switch left of the FPS badge: the knob slides and carries a sun or a moon. */
+    private void drawThemeSwitch(final GuiCanvas canvas, final int right) {
+        final int x2 = right;
+        final int x1 = x2 - THEME_W;
+        final int y1 = this.headerY + (this.headerH - THEME_H) / 2;
+        final int y2 = y1 + THEME_H;
+        this.themeX1 = x1;
+        this.themeY1 = y1;
+        this.themeX2 = x2;
+        this.themeY2 = y2;
+        final float t = this.themeAnim.get();
+        final float hover = this.themeHover.get();
+        roundRect(canvas, x1, y1, x2, y2, mix(SURFACE_BORDER, CONTROL_TRACK_EDGE, hover));
+        roundRect(canvas, x1 + 1, y1 + 1, x2 - 1, y2 - 1, mix(TAB_IDLE, TAB_HOVER, hover));
+        // Idle icons on the track: the sun waits on the left, the moon on the right.
+        PixelArt.SUN_SMALL.draw(canvas, x1 + 3, y1 + 4, 1, fade(MUTED, 0.55f));
+        PixelArt.MOON_SMALL.draw(canvas, x2 - 10, y1 + 4, 1, fade(MUTED, 0.55f));
+        final int knobW = 14;
+        final int knobX = x1 + 1 + Math.round(clamp01(t) * (THEME_W - 2 - knobW));
+        roundRect(canvas, knobX, y1 + 1, knobX + knobW, y2 - 1, mix(0xFFFFFFFF, 0xFF3A4252, t));
+        if (t < 0.98f) {
+            PixelArt.SUN_SMALL.draw(canvas, knobX + 4, y1 + 4, 1, fade(SUN, 1f - t));
+        }
+        if (t > 0.02f) {
+            PixelArt.MOON_SMALL.draw(canvas, knobX + 3, y1 + 4, 1, fade(MOON, t));
+        }
     }
 
     private void drawSidebar(final GuiCanvas canvas) {
@@ -372,23 +513,56 @@ public final class AetheriumView {
         canvas.popClip();
 
         if (this.maxScroll > 0) {
-            final int trackH = this.rowsBottom - this.rowsTop;
-            final int contentH = trackH + this.maxScroll;
-            final int thumbH = Math.max(12, trackH * trackH / contentH);
-            final int thumbY = this.rowsTop + Math.round((trackH - thumbH) * (this.scrollAnim.get() / this.maxScroll));
-            canvas.fill(this.panelX2 - 4, this.rowsTop, this.panelX2 - 2, this.rowsBottom, DIVIDER);
-            canvas.fill(this.panelX2 - 4, thumbY, this.panelX2 - 2, thumbY + thumbH, FAINT);
+            drawScrollbar(canvas);
         }
 
         drawButtonBar(canvas);
     }
 
+    private int thumbHeight() {
+        final int trackH = this.rowsBottom - this.rowsTop;
+        final int contentH = trackH + this.maxScroll;
+        return Math.min(trackH, Math.max(18, trackH * trackH / Math.max(1, contentH)));
+    }
+
+    private int thumbTop() {
+        final int travel = (this.rowsBottom - this.rowsTop) - thumbHeight();
+        final float position = this.maxScroll <= 0 ? 0f : clamp01(this.scrollAnim.get() / this.maxScroll);
+        return this.rowsTop + Math.round(travel * position);
+    }
+
+    private boolean overScrollbar(final int x, final int y) {
+        return x >= this.sbX1 - 4 && x < this.panelX2 && y >= this.rowsTop && y < this.rowsBottom;
+    }
+
+    /** Own lane at the right edge; widens and darkens while hovered or dragged. */
+    private void drawScrollbar(final GuiCanvas canvas) {
+        final float hover = this.scrollbarHover.get();
+        final int laneW = this.sbX2 - this.sbX1;
+        final int inset = Math.round((1f - hover) * 1f);
+        final int x1 = this.sbX1 + inset;
+        final int x2 = this.sbX2 - inset;
+        roundRect(canvas, this.sbX1, this.rowsTop, this.sbX2, this.rowsBottom, SCROLL_TRACK);
+        final int thumbY = thumbTop();
+        final int thumbH = thumbHeight();
+        final int color = mix(SCROLL_THUMB, SCROLL_THUMB_ACTIVE, hover);
+        roundRect(canvas, x1, thumbY, x2, thumbY + thumbH, color);
+        if (laneW >= 6 && thumbH >= 14) {
+            // Grip: three short lines in the middle of the thumb.
+            final int mid = thumbY + thumbH / 2;
+            final int grip = fade(SURFACE, 0.55f + 0.35f * hover);
+            for (int i = -1; i <= 1; i++) {
+                canvas.fill(x1 + 2, mid + i * 2, x2 - 2, mid + i * 2 + 1, grip);
+            }
+        }
+    }
+
     private void drawRow(final GuiCanvas canvas, final Setting setting, final int top, final int mouseX, final int mouseY) {
         final float hover = setting.hover.get();
         if (hover > 0.01f) {
-            canvas.fill(this.panelX1 + 1, top, this.panelX2 - 1, top + this.rowH, fade(ROW_HOVER, hover));
+            canvas.fill(this.panelX1 + 1, top, this.sbX1 - 3, top + this.rowH, fade(ROW_HOVER, hover));
         }
-        canvas.fill(this.panelX1 + 10, top + this.rowH - 1, this.panelX2 - 10, top + this.rowH, DIVIDER);
+        canvas.fill(this.panelX1 + 10, top + this.rowH - 1, ctrlX2(), top + this.rowH, DIVIDER);
         final boolean available = setting.isAvailable();
         final float base = canvas.getAlpha();
         if (!available) {
@@ -636,15 +810,23 @@ public final class AetheriumView {
         layout();
         final int x = (int) Math.floor(mouseX);
         final int y = (int) Math.floor(mouseY);
+        this.scrollVelocity = 0f;
         if (this.dropdown != null) {
             final int[] box = dropdownBox(this.dropdown);
             if (box != null && inside(x, y, box[0], box[1], box[2], box[3])) {
                 final int index = (y - box[1] - 1) / 14;
-                if (index >= 0 && index < this.dropdown.choices.length && this.dropdown.stage(index)) {
-                    edited(this.dropdown);
+                if (index >= 0 && index < this.dropdown.choices.length) {
+                    if (this.dropdown.stage(index)) {
+                        edited(this.dropdown);
+                    }
+                    sound(UiSound.SELECT);
                 }
             }
             closeDropdown();
+            return true;
+        }
+        if (this.themeX1 >= 0 && inside(x, y, this.themeX1, this.themeY1, this.themeX2, this.themeY2)) {
+            toggleTheme();
             return true;
         }
         for (int i = 0; i < this.pages.size(); i++) {
@@ -655,29 +837,71 @@ public final class AetheriumView {
             }
         }
         if (inside(x, y, this.applyX1, this.btnY, this.applyX2, this.btnY + this.btnH)) {
-            apply();
+            sound(apply() > 0 ? UiSound.APPLY : UiSound.CLICK);
             return true;
         }
         if (inside(x, y, this.doneX1, this.btnY, this.doneX2, this.btnY + this.btnH)) {
-            apply();
+            sound(apply() > 0 ? UiSound.APPLY : UiSound.CLICK);
             this.host.requestClose();
             return true;
         }
-        if (x >= this.panelX1 && x < this.panelX2 && y >= this.rowsTop && y < this.rowsBottom) {
-            final List<Setting> rows = currentRows();
-            final int index = (y - this.rowsTop + Math.round(this.scrollAnim.get())) / this.rowH;
-            if (index >= 0 && index < rows.size()) {
-                final Setting setting = rows.get(index);
-                if (setting.isAvailable() && clickControl(setting, x, y, rowTop(index))) {
-                    return true;
-                }
+        if (this.maxScroll > 0 && overScrollbar(x, y)) {
+            final int thumbY = thumbTop();
+            final int thumbH = thumbHeight();
+            if (y >= thumbY && y < thumbY + thumbH) {
+                this.thumbGrab = y - thumbY;
+            } else {
+                // Track click: centre the thumb on the pointer, then keep following it.
+                this.thumbGrab = thumbH / 2f;
+                dragThumbTo(y, false);
             }
-            this.scrollDragging = this.maxScroll > 0;
+            this.thumbDragging = true;
+            return true;
+        }
+        if (x >= this.panelX1 && x < this.panelX2 && y >= this.rowsTop && y < this.rowsBottom) {
+            final Setting setting = rowAt(y);
+            if (setting != null && setting.isAvailable() && setting.kind == Setting.Kind.SLIDER && setting.isEditable()
+                    && x >= setting.sliderX1 - 6 && x <= setting.sliderX2 + 6) {
+                // Sliders grab immediately: a horizontal drag is their whole purpose.
+                this.dragging = setting;
+                updateSlider(setting, x);
+                return true;
+            }
+            // Everything else acts on release, so a touch drag that starts on a row scrolls
+            // the list instead of flipping the control under the finger.
+            this.pressPending = true;
+            this.pressX = mouseX;
+            this.pressY = mouseY;
             this.dragStartY = mouseY;
             this.dragStartScroll = this.scrollTarget;
+            this.lastDragY = mouseY;
+            this.lastDragNanos = now();
             return true;
         }
         return false;
+    }
+
+    private Setting rowAt(final int y) {
+        final List<Setting> rows = currentRows();
+        final int index = (y - this.rowsTop + Math.round(this.scrollAnim.get())) / this.rowH;
+        return index >= 0 && index < rows.size() && y >= this.rowsTop ? rows.get(index) : null;
+    }
+
+    private int rowIndexAt(final int y) {
+        return (y - this.rowsTop + Math.round(this.scrollAnim.get())) / this.rowH;
+    }
+
+    private void dragThumbTo(final double mouseY, final boolean immediate) {
+        final int travel = (this.rowsBottom - this.rowsTop) - thumbHeight();
+        if (travel <= 0) {
+            return;
+        }
+        final double position = (mouseY - this.thumbGrab - this.rowsTop) / travel;
+        this.scrollTarget = (float) (Math.max(0.0, Math.min(1.0, position)) * this.maxScroll);
+        clampScroll();
+        if (immediate) {
+            this.scrollAnim.snap(this.scrollTarget);
+        }
     }
 
     private boolean clickControl(final Setting setting, final int x, final int y, final int top) {
@@ -687,6 +911,7 @@ public final class AetheriumView {
             case TOGGLE:
                 if (setting.isEditable() && setting.stage(setting.pending == 0 ? 1 : 0)) {
                     edited(setting);
+                    sound(setting.pending != 0 ? UiSound.TOGGLE_ON : UiSound.TOGGLE_OFF);
                 }
                 return true;
             case SEGMENTED:
@@ -696,6 +921,7 @@ public final class AetheriumView {
                     if (setting.stage(index) || setting.onPick != null) {
                         edited(setting);
                     }
+                    sound(UiSound.SELECT);
                     return true;
                 }
                 return false;
@@ -703,18 +929,19 @@ public final class AetheriumView {
                 if (x >= cx1 && x < cx2 && setting.isEditable()) {
                     this.dropdown = setting;
                     this.closingDropdown = null;
+                    sound(UiSound.CLICK);
                     return true;
                 }
                 return false;
             case SLIDER:
                 if (x >= setting.sliderX1 - 6 && x <= setting.sliderX2 + 6 && setting.isEditable()) {
-                    this.dragging = setting;
                     updateSlider(setting, x);
                     return true;
                 }
                 return false;
             case BUTTON: {
                 if (x >= cx2 - 80 && x < cx2) {
+                    sound(UiSound.CLICK);
                     setting.press();
                     return true;
                 }
@@ -731,6 +958,11 @@ public final class AetheriumView {
         final int value = setting.min + (int) Math.round(t * (setting.max - setting.min));
         if (setting.stage(value)) {
             edited(setting);
+            final long now = now();
+            if (now - this.lastTickSoundNanos >= TICK_SOUND_GAP_NANOS) {
+                this.lastTickSoundNanos = now;
+                sound(UiSound.TICK);
+            }
         }
     }
 
@@ -739,29 +971,82 @@ public final class AetheriumView {
             updateSlider(this.dragging, mouseX);
             return true;
         }
+        if (this.thumbDragging) {
+            dragThumbTo(mouseY, true);
+            return true;
+        }
+        if (this.pressPending) {
+            final double slop = this.host.touchMode() ? 6.0 : 4.0;
+            if (Math.abs(mouseY - this.pressY) > slop || Math.abs(mouseX - this.pressX) > slop * 2.0) {
+                this.pressPending = false;
+                this.scrollDragging = this.maxScroll > 0;
+            }
+        }
         if (this.scrollDragging) {
             this.scrollTarget = (float) (this.dragStartScroll - (mouseY - this.dragStartY));
             clampScroll();
             this.scrollAnim.snap(this.scrollTarget);
+            final long now = now();
+            final double dt = (now - this.lastDragNanos) / 1.0e9;
+            if (dt > 0.0005) {
+                final float instant = (float) ((this.lastDragY - mouseY) / dt);
+                this.scrollVelocity = this.scrollVelocity * 0.6f + instant * 0.4f;
+                this.lastDragY = mouseY;
+                this.lastDragNanos = now;
+            }
             return true;
         }
-        return false;
+        return this.pressPending;
     }
 
     public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
-        final boolean had = this.dragging != null || this.scrollDragging;
+        boolean handled = this.dragging != null || this.scrollDragging || this.thumbDragging;
+        if (this.pressPending) {
+            this.pressPending = false;
+            handled = true;
+            final int x = (int) Math.floor(this.pressX);
+            final int y = (int) Math.floor(this.pressY);
+            final Setting setting = rowAt(y);
+            if (setting != null && setting.isAvailable()) {
+                clickControl(setting, x, y, rowTop(rowIndexAt(y)));
+            }
+            this.scrollVelocity = 0f;
+        } else if (this.scrollDragging) {
+            // A finger lifted mid-swipe keeps the list moving; a slow release stops it.
+            final boolean stale = now() - this.lastDragNanos > 80_000_000L;
+            if (stale || Math.abs(this.scrollVelocity) < FLING_MIN * 2f) {
+                this.scrollVelocity = 0f;
+            }
+            this.scrollVelocity = Math.max(-4000f, Math.min(4000f, this.scrollVelocity));
+        }
         this.dragging = null;
         this.scrollDragging = false;
-        return had;
+        this.thumbDragging = false;
+        return handled;
     }
 
     public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
         if (this.dropdown != null) {
             return true;
         }
+        this.scrollVelocity = 0f;
         this.scrollTarget -= (float) (amount * this.rowH * 1.5);
         clampScroll();
         return true;
+    }
+
+    private void toggleTheme() {
+        this.darkMode = !this.darkMode;
+        this.host.setDarkMode(this.darkMode);
+        sound(UiSound.THEME);
+    }
+
+    private void sound(final UiSound sound) {
+        try {
+            this.host.playSound(sound);
+        } catch (final RuntimeException | LinkageError error) {
+            // A missing sound must never break the screen.
+        }
     }
 
     public boolean keyPressed(final int key) {
@@ -813,6 +1098,10 @@ public final class AetheriumView {
             return;
         }
         this.selected = index;
+        this.scrollVelocity = 0f;
+        this.pressPending = false;
+        this.thumbDragging = false;
+        sound(UiSound.TAB);
         this.contentAnim.snap(0f);
         this.contentAnim.setTarget(1f);
         this.scrollTarget = 0f;
@@ -847,7 +1136,8 @@ public final class AetheriumView {
         this.toastAnim.snap(1f);
     }
 
-    public void apply() {
+    /** Commits every staged row; returns how many changed. */
+    public int apply() {
         final List<Setting> changed = new ArrayList<Setting>();
         for (final Page page : this.pages) {
             for (final Setting setting : page.rows()) {
@@ -857,7 +1147,7 @@ public final class AetheriumView {
             }
         }
         if (changed.isEmpty()) {
-            return;
+            return 0;
         }
         this.host.applyChanges(changed);
         for (final Page page : this.pages) {
@@ -867,6 +1157,7 @@ public final class AetheriumView {
         }
         this.toastText = changed.size() == 1 ? "Applied 1 change" : "Applied " + changed.size() + " changes";
         this.toastAnim.snap(1f);
+        return changed.size();
     }
 
     // ---------------------------------------------------------------- helpers

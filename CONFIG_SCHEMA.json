@@ -112,7 +112,7 @@
           "properties": {
             "effects.dynamic_lights": {
               "type": "string",
-              "default": "FAST",
+              "default": "OFF",
               "description": "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick.",
               "x-java-field": "dynamicLights"
             },
@@ -177,6 +177,18 @@
               "default": "CUSTOM",
               "description": "Last applied performance preset; any manual change turns it back into CUSTOM.",
               "x-java-field": "preset"
+            },
+            "general.ui.dark_mode": {
+              "type": "boolean",
+              "default": false,
+              "description": "Dark theme for the Aetherium settings screen.",
+              "x-java-field": "darkMode"
+            },
+            "general.ui.sounds": {
+              "type": "boolean",
+              "default": true,
+              "description": "Interface sounds in the Aetherium settings screen.",
+              "x-java-field": "uiSounds"
             }
           }
         },
@@ -197,6 +209,20 @@
               "maximum": 240,
               "description": "FPS the adaptive render distance tries to hold.",
               "x-java-field": "adaptiveTargetFps"
+            },
+            "performance.animated_textures": {
+              "type": "boolean",
+              "default": true,
+              "description": "Animate water, lava, fire, portals and other animated block textures. Off skips every animation texture upload, a large saving on mobile GL layers.",
+              "x-java-field": "animatedTextures"
+            },
+            "performance.block_entity_distance": {
+              "type": "integer",
+              "default": 64,
+              "minimum": 16,
+              "maximum": 64,
+              "description": "Chests, signs, banners, heads and other block entities farther than this many blocks are not drawn (64 = vanilla; beacon beams are exempt).",
+              "x-java-field": "blockEntityDistance"
             },
             "performance.entity_cull_distance": {
               "type": "integer",
@@ -219,6 +245,20 @@
               "maximum": 100,
               "description": "Percentage of spawned particles that are kept.",
               "x-java-field": "particleDensity"
+            },
+            "performance.smooth_chunk_loading": {
+              "type": "boolean",
+              "default": true,
+              "description": "Spread finished chunk meshes over several frames instead of uploading them all in one frame, which removes the stutter while chunks load or generate.",
+              "x-java-field": "smoothChunkLoading"
+            },
+            "performance.worker_threads": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 16,
+              "description": "Threads for world generation and chunk building. 0 = automatic (vanilla on desktop; on Android all cores but three, at least 2, so the render and server threads are not starved). Applies after a restart.",
+              "x-java-field": "workerThreads"
             }
           }
         },

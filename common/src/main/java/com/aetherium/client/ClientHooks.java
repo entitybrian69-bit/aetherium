@@ -9,13 +9,18 @@ import com.aetherium.hud.FrameStats;
 import com.aetherium.lighting.DynamicLightTracker;
 import com.aetherium.mixin.AetheriumMixinPlugin;
 import com.aetherium.perf.AdaptiveDistance;
+import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.FrameLimiter;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.shader.IrisBridge;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.entity.BeaconBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity;
 
 /**
  * Everything the mixins call, in one place. Every entry point is render-thread
@@ -59,6 +64,12 @@ public final class ClientHooks {
     public static void onFrameStart() {
         if (Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive()) {
             LIMITER.beforeFrame();
+        }
+        if (BlockEntityCull.active()) {
+            final Entity view = Minecraft.getInstance().getCameraEntity();
+            if (view != null) {
+                BlockEntityCull.setView(view.getX(), view.getEyeY(), view.getZ());
+            }
         }
         final long now = System.nanoTime();
         final long last = lastFrameNanos;
@@ -107,6 +118,20 @@ public final class ClientHooks {
 
     public static boolean hideWeather() {
         return RenderToggles.hideWeather;
+    }
+
+    /** BlockEntityRenderDispatcher.render HEAD: true to skip a block entity past the distance limit. */
+    public static boolean shouldCullBlockEntity(final BlockEntity blockEntity) {
+        if (!BlockEntityCull.active() || blockEntity instanceof BeaconBlockEntity || blockEntity instanceof TheEndGatewayBlockEntity) {
+            return false;
+        }
+        final BlockPos pos = blockEntity.getBlockPos();
+        return BlockEntityCull.beyond(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    /** TextureAtlas.cycleAnimationFrames HEAD: true to keep animated textures on their current frame. */
+    public static boolean freezeTextureAnimations() {
+        return RenderToggles.freezeTextureAnimations;
     }
 
     public static boolean hideVignette() {

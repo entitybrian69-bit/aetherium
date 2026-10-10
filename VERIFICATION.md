@@ -1,4 +1,4 @@
-# Aetherium 0.2.0: verification report
+# Aetherium 1.0.0: verification report
 
 What was checked, how it was checked, and what was **not** checked. The audit trail for the
 0.1.0 line (CI compile reports 1–6, the old renderer's defects) is in git history at
@@ -123,7 +123,7 @@ version's code into the 1.21.1 jar. This check was added after exactly that was 
 ## 7. CI
 
 `ship.yml` builds every version with its real toolchain (Loom 1.16.1 / ModDevGradle, Gradle
-9.4.1, the version's own JDK). That includes the JUnit tests. It publishes `v0.2.0+<version>`
+9.4.1, the version's own JDK). That includes the JUnit tests. It publishes `v1.0.0+<version>`
 **only for versions whose build and tests passed**. A red version gets no release and keeps its
 jars only as a run artifact.
 
@@ -146,3 +146,59 @@ Fixes that came out of these runs:
 
 26.1–26.3 were built by CI's real JDK 25. Offline, ECJ stops at 24, so CI is the only proof of
 those three at their real Java level.
+
+## 8. 1.0.0: what changed and how each piece was checked
+
+### Probe data
+
+The 1.0.0 hooks were chosen from a fresh `javap` probe of every version. The first fresh run was
+**wrong for 29 of 33 rows**: the Gradle cache is shared between workflows, and the probe took the
+first Minecraft jar it found. That was a 1.20.5 jar, so the "1.16.5" file said `UI_BUTTON_CLICK`
+was a `Holder`, which is impossible on 1.16.5. The data was discarded. `probe.yml` now only accepts
+a jar whose file name carries the row's exact version (`1.20` does not match `1.20.1`). Every file
+header was then checked against its row. The 0.2.0 data (`27b3820`) had been correct, so 0.2.0 was
+not affected.
+
+### Hooks per version (from the corrected probe)
+
+| Feature | 1.16.5–1.17.1 | 1.18–1.20.1 | 1.20.2–1.21.8 | 1.21.9–1.21.11 | 26.1 | 26.2–26.3 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Smooth chunk loading | `ChunkRenderDispatcher.uploadAllPendingUploads()Z` | same, `()V` | `SectionRenderDispatcher…()V` | same | **not available** (no upload queue) | **not available** |
+| Animated textures | `TextureAtlas.tick()` | same | same | same | same | same |
+| Block entity distance | `BlockEntityRenderDispatcher.render(E,float,PoseStack,MultiBufferSource)` | same | same | `tryExtractRenderState(E,float,CrumblingOverlay)` → `null` | same | `+ boolean` |
+| Worker threads | `@ModifyVariable` on `Util.makeExecutor` (vanilla hard-codes `clamp(cores−1,1,7)`) | `max.bg.threads` property | same | same (`net.minecraft.Util`) | property (`net.minecraft.util.Util`) | same |
+| UI sounds | `SoundEvents.UI_BUTTON_CLICK` is a `SoundEvent` | `Holder` from 1.19.3 | `Holder` | `Holder` | `Holder` | `Holder` |
+
+Each injected method was checked to have exactly one overload on every version. A handler that
+does not fit an overload is a hard error even with `require = 0`. In 1.21.9+, `tryExtractRenderState`
+calls `shouldRender` before it creates a state, so `null` is vanilla's own "not visible" result. The
+upload queue is vanilla's own `toUpload`; nothing is dropped or reordered.
+
+### Tests
+
+- `AetheriumViewTest` drives the real settings view headlessly on a 427×240 screen with a fake
+  clock. It covers the scrollbar lane and the control margin; thumb drag down to the last row; track
+  click then drag; a tap that toggles on release with the right sound; a touch swipe that scrolls
+  1:1 without toggling, then flings and stops; a small finger wobble still counting as a tap; no
+  fling after a pause; the wheel stopping a fling; and the theme switch saving at once and
+  cross-fading. A mutation check (tap threshold set to 1000 px) made two of these tests fail, as
+  it should.
+- `AetheriumThemeTest`: both palettes, WCAG contrast (ink ≥ 7:1, descriptions ≥ 4.5:1 in both
+  themes), `mix`/`fade`.
+- `PerfLogicTest`: worker-thread sizing for 1–64 cores, the early config reader (comments, junk,
+  missing file), `--gameDir` parsing (including paths with spaces), the upload budget with a fake
+  clock (short queues drain fully; bursts stop at the budget and never below 8; every task runs
+  exactly once), and the block-entity distance.
+- Benchmark: `BlockEntityCull.beyond` costs 8.3 ns per block entity.
+- Totals: 90 unit tests pass; with `--bench`, 97 pass, 0 fail, 0 skipped. `stubcheck --all` passes
+  33/33, including the Java 8 API lint on 1.16.5.
+
+### Not established
+
+- **No in-game run.** The FPS gain on any device is unmeasured. The new features remove work
+  vanilla does: texture uploads, chunk-upload bursts, block-entity draws and thread contention.
+  How much that is worth depends on the world and the device.
+- Worker-thread sizing only applies if the mixin plugin loads before Minecraft's `Util` class
+  initializes, which is the normal order on both loaders. If it loads later, vanilla's pool size
+  stays in place. Nothing breaks, but the setting has no effect.
+

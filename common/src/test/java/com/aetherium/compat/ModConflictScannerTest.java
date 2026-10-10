@@ -77,6 +77,8 @@ final class ModConflictScannerTest {
     @DisplayName("a clean mod list detects nothing and touches nothing")
     void nothingDetected() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1"));
         scanner.scan(config);
         assertFalse(scanner.hasAnything(), "found: " + scanner.summarize());
@@ -92,6 +94,8 @@ final class ModConflictScannerTest {
     @DisplayName("Sodium takes over dynamic lights only; everything else keeps working")
     void sodiumDelegatesLights() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "sodium"));
         scanner.scan(config);
         assertFalse(scanner.requiresIncompatible(), "Sodium must not make Aetherium stand down");
@@ -126,6 +130,8 @@ final class ModConflictScannerTest {
         // The user installs Rubidium, whose mod id is not "embeddium". Detection has to
         // follow the fork, or Aetherium hooks the renderer underneath it.
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "rubidium"));
         scanner.scan(config);
         assertFalse(scanner.requiresIncompatible(), "a Sodium fork is treated exactly like Sodium");
@@ -142,6 +148,8 @@ final class ModConflictScannerTest {
     @DisplayName("delegatable overlaps turn Aetherium's matching feature off")
     void delegatesTurnFeaturesOff() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         assertTrue(config.entityCulling.get(), "precondition: Aetherium's own culling starts on");
         final ModConflictScanner scanner = new ModConflictScanner(
                 new FakePlatform("1.21.1", "entityculling-fabric", "lambdynamiclights"));
@@ -158,6 +166,8 @@ final class ModConflictScannerTest {
     @DisplayName("a brightness mod turns our fullbright off")
     void gammaDelegateDisablesFullbright() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         config.fullbright.set(true);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "gamma_utils"));
         scanner.scan(config);
@@ -168,6 +178,8 @@ final class ModConflictScannerTest {
     @DisplayName("with auto-delegate off, the scanner reports and changes nothing")
     void autoDelegateDisabled() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         config.conflictAutoDelegate.set(false);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "entityculling"));
         scanner.scan(config);
@@ -179,6 +191,8 @@ final class ModConflictScannerTest {
     @DisplayName("Iris is a collaborator, not a conflict")
     void irisIsInformational() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "iris"));
         scanner.scan(config);
         assertFalse(scanner.requiresIncompatible());
@@ -191,6 +205,8 @@ final class ModConflictScannerTest {
     @DisplayName("the worst severity wins when several mods are present")
     void worstSeverityWins() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         final ModConflictScanner scanner = new ModConflictScanner(
                 new FakePlatform("1.21.1", "entityculling", "sodium", "optifine", "iris"));
         scanner.scan(config);
@@ -206,6 +222,8 @@ final class ModConflictScannerTest {
     @DisplayName("scanning twice does not double-report or re-apply delegates")
     void scanIsIdempotent() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
+        // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
+        config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "entityculling"));
         scanner.scan(config);
         final int first = scanner.getDetected().size();

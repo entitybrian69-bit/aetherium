@@ -8,6 +8,8 @@ import com.aetherium.config.ConfigValue;
 import com.aetherium.gui.AetheriumView;
 import com.aetherium.gui.Page;
 import com.aetherium.gui.PixelArt;
+import com.aetherium.perf.BlockEntityCull;
+import com.aetherium.perf.WorkerThreads;
 import com.aetherium.gui.Setting;
 import com.aetherium.mixin.AetheriumMixinPlugin;
 import com.aetherium.shader.IrisBridge;
@@ -55,11 +57,12 @@ public final class AetheriumPages {
         "quality.particles", "quality.smooth_lighting", "quality.biome_blend", "quality.shadows",
         "perf.cull_distance", "perf.particle_density", "quality.weather", "quality.vignette",
         "effects.dynamic_lights", "perf.entity_distance", "perf.adaptive",
+        "perf.animated_textures", "perf.block_entity_distance", "perf.smooth_chunks",
     };
     private static final int[][] PRESET_VALUES = {
-        {6, 5, 0, 0, 2, 0, 0, 0, 48, 30, 0, 0, 0, 75, 1},
-        {10, 8, 1, 1, 1, 1, 2, 1, 64, 70, 1, 1, 1, 100, 0},
-        {16, 12, 1, 2, 0, 1, 5, 1, 128, 100, 1, 1, 2, 150, 0},
+        {6, 5, 0, 0, 2, 0, 0, 0, 48, 30, 0, 0, 0, 75, 1, 0, 32, 1},
+        {10, 8, 1, 1, 1, 1, 2, 1, 64, 70, 1, 1, 1, 100, 0, 1, 48, 1},
+        {16, 12, 1, 2, 0, 1, 5, 1, 128, 100, 1, 1, 2, 150, 0, 1, 64, 1},
     };
 
     private final AetheriumConfig config;
@@ -112,6 +115,7 @@ public final class AetheriumPages {
                 .withDefault(cornerIndex(config.hudCorner.getDefault()))
                 .availableWhen(() -> Capabilities.HUD_OVERLAY, NOT_ON_THIS_VERSION));
         page.add(bool("general.notify", "Conflict notices", config.notifyConflicts));
+        page.add(bool("general.ui_sounds", "Interface sounds", config.uiSounds));
         page.add(Setting.info("general.status", "Status", "What Aetherium is doing right now.", this::statusText));
         page.add(Setting.button("general.reset", "Reset Aetherium options",
                 "Stages every Aetherium option back to its default. Vanilla options are left alone.", "Reset",
@@ -219,6 +223,18 @@ public final class AetheriumPages {
                 v -> v + "%").presetMember());
         page.add(bool("perf.adaptive", "Adaptive render distance", config.adaptiveDistance).presetMember());
         page.add(intSlider("perf.adaptive_target", "Adaptive target", config.adaptiveTargetFps, 5, v -> v + " FPS"));
+        page.add(bool("perf.smooth_chunks", "Smooth chunk loading", config.smoothChunkLoading)
+                .presetMember()
+                .availableWhen(() -> Capabilities.SMOOTH_CHUNK_UPLOADS, NOT_ON_THIS_VERSION));
+        page.add(bool("perf.animated_textures", "Animated textures", config.animatedTextures)
+                .presetMember()
+                .availableWhen(() -> Capabilities.TEXTURE_ANIMATION_TOGGLE, NOT_ON_THIS_VERSION));
+        page.add(intSlider("perf.block_entity_distance", "Block entity distance", config.blockEntityDistance, 8,
+                        v -> v >= BlockEntityCull.VANILLA ? "Vanilla (64)" : v + " blocks")
+                .presetMember()
+                .availableWhen(() -> Capabilities.BLOCK_ENTITY_CULL, NOT_ON_THIS_VERSION));
+        page.add(intSlider("perf.worker_threads", "Worker threads", config.workerThreads, 1,
+                v -> v == 0 ? "Auto" + autoThreadsSuffix() : v + (v == 1 ? " thread" : " threads")));
         return page;
     }
 
@@ -389,6 +405,12 @@ public final class AetheriumPages {
         final IntSupplier reader = () -> getter.get() ? 1 : 0;
         final IntConsumer writer = v -> setter.set(v != 0);
         return Setting.toggle(id, label, description, reader, writer);
+    }
+
+    /** " (5)" when this launch resized the pool automatically, "" when vanilla decided. */
+    private String autoThreadsSuffix() {
+        final int applied = WorkerThreads.applied();
+        return applied > 0 && this.config.workerThreads.get().intValue() == 0 ? " (" + applied + ")" : "";
     }
 
     private static int clamp(final int v, final int lo, final int hi) {

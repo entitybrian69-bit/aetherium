@@ -4,6 +4,7 @@ import com.aetherium.Aetherium;
 import com.aetherium.gui.AetheriumView;
 import com.aetherium.gui.ScreenHost;
 import com.aetherium.gui.Setting;
+import com.aetherium.gui.UiSound;
 import com.aetherium.util.AetheriumLog;
 
 import java.util.List;
@@ -247,6 +248,29 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     public boolean touchMode() {
         final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
         return sub != null && sub.config.touchMode.get().booleanValue();
+    }
+
+    @Override
+    public boolean darkMode() {
+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
+        return sub != null && sub.config.darkMode.get().booleanValue();
+    }
+
+    @Override
+    public void setDarkMode(final boolean dark) {
+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
+        if (sub != null) {
+            sub.config.darkMode.set(Boolean.valueOf(dark));
+            sub.store.requestSave();
+        }
+    }
+
+    @Override
+    public void playSound(final UiSound sound) {
+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
+        if (sub != null && sub.config.uiSounds.get().booleanValue()) {
+            UiSounds.play(this.minecraft, sound);
+        }
     }
 
     // ------------------------------------------------------------------ Actions

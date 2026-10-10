@@ -176,6 +176,26 @@ public final class PixelArt {
             ".#.#.",
             "..#..",
     });
+    /** 7x7 sun for the theme switch in the header. */
+    public static final Bitmap SUN_SMALL = new Bitmap(new String[]{
+            "...#...",
+            ".#...#.",
+            "..###..",
+            "#.###.#",
+            "..###..",
+            ".#...#.",
+            "...#...",
+    });
+    /** 7x7 crescent moon for the theme switch in the header. */
+    public static final Bitmap MOON_SMALL = new Bitmap(new String[]{
+            "...###.",
+            "..##...",
+            ".##....",
+            ".##....",
+            ".##....",
+            "..##...",
+            "...###.",
+    });
     public static final Bitmap CHECK = new Bitmap(new String[]{
             "......#",
             ".....#.",

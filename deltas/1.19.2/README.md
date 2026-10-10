@@ -22,12 +22,14 @@ neoforge_version=unavailable (module disabled)
 ### Era transforms applied by the generated patch
 
 - `background=none`
+- `chunk-upload=crd`
 - `gui=stack`
 - `hud=stack`
 - `input=doubles`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`
+- `sound-click=event`
 - `vignette=render`
 
 ### Where the per-version Java comes from
@@ -62,6 +64,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.19.2.t
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
+- `common/src/main/java/com/aetherium/client/UiSounds.java`
+- `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 
 ## Verifying this row before shipping it

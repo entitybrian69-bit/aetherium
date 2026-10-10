@@ -5,10 +5,10 @@
 # apply:  git apply --whitespace=nowarn deltas/1.21.11/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.11/changes.patch
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-index 41f2572..c4efb5a 100644
+index 625b9ae..4fdb54e 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 +++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-@@ -16,10 +16,10 @@ import net.minecraft.client.gui.GuiGraphics;
+@@ -17,10 +17,10 @@ import net.minecraft.client.gui.GuiGraphics;
  //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
  // @era:gui-end
  import net.minecraft.client.gui.screens.Screen;
@@ -23,7 +23,7 @@ index 41f2572..c4efb5a 100644
  // @era:input-end
  import net.minecraft.network.chat.Component;
  
-@@ -106,52 +106,52 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -107,52 +107,52 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
  
      // ------------------------------------------------------------------ input
  
@@ -171,6 +171,56 @@ index 735fcbe..b46108a 100644
          // @era:graphics-end
          // @era:options-else fields
          //~ final GraphicsStatus next = GraphicsStatus.values()[Math.min(index, 2)];
+diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
+index db3bdf9..01b0073 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
+@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Coerce;
+ import org.spongepowered.asm.mixin.injection.Inject;
+-// @era:be-render-begin render
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:be-render-else extract|extract-flag
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:be-render-begin extract|extract-flag
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:be-render-else render
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:be-render-end
+ 
+ /**
+@@ -24,20 +24,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ @Mixin(BlockEntityRenderDispatcher.class)
+ public abstract class BlockEntityCullMixin {
+ 
+-    // @era:be-render-begin render
+-    @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+-    private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object poseStack,
+-                                @Coerce final Object buffers, final CallbackInfo ci) {
++    // @era:be-render-begin extract
++    @Inject(method = "tryExtractRenderState", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object crumbling,
++                                final CallbackInfoReturnable<Object> cir) {
+         if (ClientHooks.shouldCullBlockEntity(blockEntity)) {
+-            ci.cancel();
++            cir.setReturnValue(null);
+         }
+     }
+-    // @era:be-render-else extract
+-    //~ @Inject(method = "tryExtractRenderState", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object crumbling,
+-                                //~ final CallbackInfoReturnable<Object> cir) {
++    // @era:be-render-else render
++    //~ @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
++    //~ private void aetherium$cull(final BlockEntity blockEntity, final float partialTick, @Coerce final Object poseStack,
++                                //~ @Coerce final Object buffers, final CallbackInfo ci) {
+         //~ if (ClientHooks.shouldCullBlockEntity(blockEntity)) {
+-            //~ cir.setReturnValue(null);
++            //~ ci.cancel();
+         //~ }
+     //~ }
+     // @era:be-render-else extract-flag
 diff --git a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
 index fb558a9..dc12d6f 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
@@ -234,7 +284,7 @@ index dd489bc..090bb2c 100644
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
 diff --git a/gradle.properties b/gradle.properties
-index 396e7c3..d809c2a 100644
+index efdca7f..f692d15 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@ org.gradle.daemon=true

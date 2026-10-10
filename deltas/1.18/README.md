@@ -22,6 +22,8 @@ neoforge_version=unavailable (module disabled)
 ### Era transforms applied by the generated patch
 
 - `background=none`
+- `bg-threads=property`
+- `chunk-upload=crd`
 - `graphics=status`
 - `gui=stack`
 - `hud=stack`
@@ -33,6 +35,7 @@ neoforge_version=unavailable (module disabled)
 - `screen-pkg=flat`
 - `scroll=three`
 - `simdist=sim`
+- `sound-click=event`
 - `vignette=render`
 
 ### Where the per-version Java comes from
@@ -68,7 +71,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.18.txt
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
+- `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
 

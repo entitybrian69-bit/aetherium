@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 73ba518..0c6fb0f 100644
+index 336f6b7..5d0e8d0 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -46,12 +46,27 @@ index 73ba518..0c6fb0f 100644
 +    //~ public static final boolean SIMULATION_DISTANCE = true;
      // @era:simdist-end
  
+     /** Finished chunk meshes can be spread over several frames (upload queue is hookable). */
+@@ -64,10 +64,10 @@ public final class Capabilities {
+     public static final boolean BLOCK_ENTITY_CULL = true;
+ 
+     /** The worker pool is sized by the {@code max.bg.threads} property (1.18+) rather than the Util mixin. */
+-    // @era:bg-threads-begin property
+-    public static final boolean THREADS_BY_PROPERTY = true;
+-    // @era:bg-threads-else clamp
+-    //~ public static final boolean THREADS_BY_PROPERTY = false;
++    // @era:bg-threads-begin clamp
++    public static final boolean THREADS_BY_PROPERTY = false;
++    // @era:bg-threads-else property
++    //~ public static final boolean THREADS_BY_PROPERTY = true;
+     // @era:bg-threads-end
+ 
      /** Weather can be hidden on every supported version. */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-index 41f2572..8a20e55 100644
+index 625b9ae..e67369c 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 +++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-@@ -8,10 +8,10 @@ import com.aetherium.util.AetheriumLog;
+@@ -9,10 +9,10 @@ import com.aetherium.util.AetheriumLog;
  
  import java.util.List;
  
@@ -66,7 +81,7 @@ index 41f2572..8a20e55 100644
  // @era:gui-else extractor
  //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
  // @era:gui-end
-@@ -67,18 +67,18 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -68,18 +68,18 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
  
      // ------------------------------------------------------------------ rendering
  
@@ -91,7 +106,7 @@ index 41f2572..8a20e55 100644
          //~ }
      //~ }
      // @era:gui-else extractor
-@@ -92,11 +92,11 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -93,11 +93,11 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
      // @era:gui-end
  
      // The view paints an opaque background, so vanilla's (a blur pass on 1.21+) is skipped.
@@ -108,7 +123,7 @@ index 41f2572..8a20e55 100644
      // @era:background-else extract
      //~ @Override
      //~ public void extractBackground(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
-@@ -155,17 +155,17 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -156,17 +156,17 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
      //~ }
      // @era:input-end
  
@@ -135,10 +150,10 @@ index 41f2572..8a20e55 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 6e31c46..aa0a28b 100644
+index c0cb0c6..a9189ef 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -276,10 +276,10 @@ public final class ClientHooks {
+@@ -301,10 +301,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -153,7 +168,7 @@ index 6e31c46..aa0a28b 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -317,10 +317,10 @@ public final class ClientHooks {
+@@ -342,10 +342,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -319,6 +334,25 @@ index afb236d..ffe04fe 100644
      //~ }
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
+diff --git a/common/src/main/java/com/aetherium/client/UiSounds.java b/common/src/main/java/com/aetherium/client/UiSounds.java
+index f0c97dc..823ad0d 100644
+--- a/common/src/main/java/com/aetherium/client/UiSounds.java
++++ b/common/src/main/java/com/aetherium/client/UiSounds.java
+@@ -28,10 +28,10 @@ final class UiSounds {
+     }
+ 
+     private static SoundEvent click() {
+-        // @era:sound-click-begin holder
+-        return SoundEvents.UI_BUTTON_CLICK.value();
+-        // @era:sound-click-else event
+-        //~ return SoundEvents.UI_BUTTON_CLICK;
++        // @era:sound-click-begin event
++        return SoundEvents.UI_BUTTON_CLICK;
++        // @era:sound-click-else holder
++        //~ return SoundEvents.UI_BUTTON_CLICK.value();
+         // @era:sound-click-end
+     }
+ }
 diff --git a/common/src/main/java/com/aetherium/client/VanillaOptions.java b/common/src/main/java/com/aetherium/client/VanillaOptions.java
 index 735fcbe..7a69321 100644
 --- a/common/src/main/java/com/aetherium/client/VanillaOptions.java
@@ -1027,6 +1061,80 @@ index 735fcbe..7a69321 100644
 +    //~ }
      // @era:options-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
+index b663eb2..26dfea5 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
+@@ -9,12 +9,12 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.Shadow;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+-// @era:chunk-upload-begin srd
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:chunk-upload-begin crdbool
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:chunk-upload-else srd
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:chunk-upload-else crd
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:chunk-upload-else crdbool
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ // @era:chunk-upload-else none
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:chunk-upload-end
+@@ -25,12 +25,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  * burst over the following frames. The queue is vanilla's own {@code toUpload}; nothing is dropped
+  * or reordered. 26.x moved uploads into the GPU device layer and has no queue to pace.
+  */
+-// @era:chunk-upload-begin srd
+-@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
++// @era:chunk-upload-begin crdbool
++@Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
++// @era:chunk-upload-else srd
++//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
+ // @era:chunk-upload-else crd
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
+-// @era:chunk-upload-else crdbool
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
+ // @era:chunk-upload-else none
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
+ // @era:chunk-upload-end
+@@ -40,15 +40,14 @@ public abstract class ChunkUploadMixin {
+     @Final
+     private Queue<Runnable> toUpload;
+ 
+-    // @era:chunk-upload-begin srd
++    // @era:chunk-upload-begin crdbool
+     @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+-    private void aetherium$pacedUploads(final CallbackInfo ci) {
++    private void aetherium$pacedUploads(final CallbackInfoReturnable<Boolean> cir) {
+         if (UploadBudget.enabled()) {
+-            UploadBudget.drain(this.toUpload);
+-            ci.cancel();
++            cir.setReturnValue(Boolean.valueOf(UploadBudget.drain(this.toUpload) > 0));
+         }
+     }
+-    // @era:chunk-upload-else crd
++    // @era:chunk-upload-else srd
+     //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+     //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
+         //~ if (UploadBudget.enabled()) {
+@@ -56,11 +55,12 @@ public abstract class ChunkUploadMixin {
+             //~ ci.cancel();
+         //~ }
+     //~ }
+-    // @era:chunk-upload-else crdbool
++    // @era:chunk-upload-else crd
+     //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$pacedUploads(final CallbackInfoReturnable<Boolean> cir) {
++    //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
+         //~ if (UploadBudget.enabled()) {
+-            //~ cir.setReturnValue(Boolean.valueOf(UploadBudget.drain(this.toUpload) > 0));
++            //~ UploadBudget.drain(this.toUpload);
++            //~ ci.cancel();
+         //~ }
+     //~ }
+     // @era:chunk-upload-else none
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..531f6bc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -1164,7 +1272,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 7aa5704..122e3eb 100644
+index dbdd789..ef2d7db 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -1177,7 +1285,7 @@ index 7aa5704..122e3eb 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 396e7c3..cb78f1c 100644
+index efdca7f..2e4ac06 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

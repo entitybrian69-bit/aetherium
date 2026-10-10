@@ -50,6 +50,26 @@ public final class Capabilities {
     //~ public static final boolean SIMULATION_DISTANCE = false;
     // @era:simdist-end
 
+    /** Finished chunk meshes can be spread over several frames (upload queue is hookable). */
+    // @era:chunk-upload-begin crdbool|crd|srd
+    public static final boolean SMOOTH_CHUNK_UPLOADS = true;
+    // @era:chunk-upload-else none
+    //~ public static final boolean SMOOTH_CHUNK_UPLOADS = false;
+    // @era:chunk-upload-end
+
+    /** Atlas texture animation can be paused ({@code TextureAtlas.tick} exists on every version). */
+    public static final boolean TEXTURE_ANIMATION_TOGGLE = true;
+
+    /** Block entities can be culled by distance before they are drawn (render or extract path). */
+    public static final boolean BLOCK_ENTITY_CULL = true;
+
+    /** The worker pool is sized by the {@code max.bg.threads} property (1.18+) rather than the Util mixin. */
+    // @era:bg-threads-begin property
+    public static final boolean THREADS_BY_PROPERTY = true;
+    // @era:bg-threads-else clamp
+    //~ public static final boolean THREADS_BY_PROPERTY = false;
+    // @era:bg-threads-end
+
     /** Weather can be hidden on every supported version. */
     public static final boolean WEATHER = true;
 

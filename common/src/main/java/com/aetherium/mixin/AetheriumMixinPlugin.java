@@ -1,6 +1,7 @@
 package com.aetherium.mixin;
 
 import com.aetherium.Capabilities;
+import com.aetherium.perf.WorkerThreads;
 
 import java.util.Collections;
 import java.util.List;
@@ -80,6 +81,12 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("OptionInstanceMixin".equals(simpleName)) {
             return Capabilities.GAMMA_INSTANCE;
         }
+        if ("ChunkUploadMixin".equals(simpleName)) {
+            return Capabilities.SMOOTH_CHUNK_UPLOADS;
+        }
+        if ("UtilThreadsMixin".equals(simpleName)) {
+            return !Capabilities.THREADS_BY_PROPERTY;
+        }
         if ("GuiMixin".equals(simpleName)) {
             return Capabilities.HUD_OVERLAY || Capabilities.VIGNETTE_TOGGLE;
         }
@@ -90,6 +97,8 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(final String mixinPackage) {
+        // Runs before Minecraft's Util class initializes, the only moment the pool size can be set.
+        WorkerThreads.applyEarly(WorkerThreads.defaultConfigFile());
     }
 
     @Override

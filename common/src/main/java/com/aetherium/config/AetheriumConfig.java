@@ -32,6 +32,8 @@ public final class AetheriumConfig {
     public final ConfigValue<String> hudCorner = ConfigValue.string(
             "general.hud.corner", "top-left", "Overlay anchor: top-left, top-right, bottom-left, bottom-right.");
     public final ConfigValue<Boolean> notifyConflicts = ConfigValue.bool("general.notify_conflicts", true, "Log and show a notice when a conflicting mod is present.");
+    public final ConfigValue<Boolean> darkMode = ConfigValue.bool("general.ui.dark_mode", false, "Dark theme for the Aetherium settings screen.");
+    public final ConfigValue<Boolean> uiSounds = ConfigValue.bool("general.ui.sounds", true, "Interface sounds in the Aetherium settings screen.");
 
     // ------------------------------------------------------------ performance
     public final ConfigValue<Boolean> entityCulling = ConfigValue.bool("performance.entity_culling", true, "Skip rendering entities beyond the cull distance (bosses, vehicles and the camera entity are exempt).");
@@ -43,6 +45,14 @@ public final class AetheriumConfig {
             "performance.adaptive_distance", false, "Lower the render distance while FPS stays under the target, raise it back when there is headroom.");
     public final ConfigValue<Integer> adaptiveTargetFps = ConfigValue.intRange(
             "performance.adaptive_target_fps", 60, 20, 240, false, "FPS the adaptive render distance tries to hold.");
+    public final ConfigValue<Boolean> animatedTextures = ConfigValue.bool(
+            "performance.animated_textures", true, "Animate water, lava, fire, portals and other animated block textures. Off skips every animation texture upload, a large saving on mobile GL layers.");
+    public final ConfigValue<Integer> blockEntityDistance = ConfigValue.intRange(
+            "performance.block_entity_distance", 64, 16, 64, false, "Chests, signs, banners, heads and other block entities farther than this many blocks are not drawn (64 = vanilla; beacon beams are exempt).");
+    public final ConfigValue<Boolean> smoothChunkLoading = ConfigValue.bool(
+            "performance.smooth_chunk_loading", true, "Spread finished chunk meshes over several frames instead of uploading them all in one frame, which removes the stutter while chunks load or generate.");
+    public final ConfigValue<Integer> workerThreads = ConfigValue.intRange(
+            "performance.worker_threads", 0, 0, 16, false, "Threads for world generation and chunk building. 0 = automatic (vanilla on desktop; on Android all cores but three, at least 2, so the render and server threads are not starved). Applies after a restart.");
 
     // ---------------------------------------------------------------- quality
     public final ConfigValue<Boolean> weather = ConfigValue.bool("quality.weather", true, "Render rain and snow. Off saves a lot of fill rate on mobile GPUs.");
@@ -50,7 +60,7 @@ public final class AetheriumConfig {
 
     // ---------------------------------------------------------------- effects
     public final ConfigValue<LightMode> dynamicLights = ConfigValue.enumerated(
-            "effects.dynamic_lights", LightMode.FAST, LightMode.class, false,
+            "effects.dynamic_lights", LightMode.OFF, LightMode.class, false,
             "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick.");
     public final ConfigValue<Boolean> dynamicLightsHeld = ConfigValue.bool("effects.dynamic_lights.held", true, "Torches and other luminous items held by players and mobs emit light.");
     public final ConfigValue<Boolean> dynamicLightsEntities = ConfigValue.bool("effects.dynamic_lights.entities", true, "Dropped luminous items, burning entities and blazes emit light.");

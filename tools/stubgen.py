@@ -40,9 +40,22 @@ HINTS = {
     "net.minecraft.world.level.block.state.BlockState": ("net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase", []),
     "net.minecraft.world.level.block.Block": (None, ["public net.minecraft.world.level.block.state.BlockState defaultBlockState();"]),
     "net.minecraft.core.Vec3i": (None, ["public int getX();", "public int getY();", "public int getZ();"]),
+    "net.minecraft.core.Holder$Reference": (None, ["public T0 value();"]),
+    "net.minecraft.client.resources.sounds.AbstractSoundInstance": (None, []),
+    "net.minecraft.world.level.block.entity.BeaconBlockEntity": ("net.minecraft.world.level.block.entity.BlockEntity", []),
+    "net.minecraft.world.level.block.entity.TheEndPortalBlockEntity": ("net.minecraft.world.level.block.entity.BlockEntity", []),
+    "net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity": ("net.minecraft.world.level.block.entity.TheEndPortalBlockEntity", []),
     "net.minecraft.world.item.Items": (None, ["public static final net.minecraft.world.item.Item LAVA_BUCKET;",
                                              "public static final net.minecraft.world.item.Item TORCH;",
                                              "public static final net.minecraft.world.item.Item GLOWSTONE;"]),
+}
+
+# Unprobed types that need type parameters or interfaces in their stub.
+HINT_ARITY = {
+    "net.minecraft.core.Holder$Reference": 1,
+}
+HINT_IMPLEMENTS = {
+    "net.minecraft.client.resources.sounds.AbstractSoundInstance": ["net.minecraft.client.resources.sounds.SoundInstance"],
 }
 
 
@@ -242,6 +255,32 @@ def parse_dump(path):
     return classes
 
 
+def parse_code_fields(path):
+    """Public field declarations found in "=== code <class> :: <regex>" sections.
+
+    Those sections are bytecode greps, not full dumps, but each hit is prefixed with the exact
+    javap declaration of its member. For classes that are too large to dump whole (SoundEvents has
+    ~1500 fields), this gives the stub the handful of fields the mod uses, with the right type for
+    each version (SoundEvent vs Holder$Reference<SoundEvent>)."""
+    out = {}
+    cls = None
+    for raw in open(path, encoding="utf-8", errors="replace"):
+        line = raw.rstrip("\n")
+        if line.startswith("=== "):
+            m = re.match(r"=== code (\S+) ::", line)
+            cls = m.group(1) if m else None
+            continue
+        if cls is None or " :: " not in line:
+            continue
+        decl = line.split(" :: ", 1)[0].strip()
+        if "(" in decl or not decl.endswith(";") or not decl.startswith("public "):
+            continue
+        fields = out.setdefault(cls, [])
+        if decl not in fields:
+            fields.append(decl)
+    return out
+
+
 def erase(t, tvars):
     t = re.sub(r"<.*>", "", t).strip()
     if t in tvars:
@@ -412,9 +451,14 @@ def generate(version):
     for name in HINTS:
         if name not in classes:
             refs.setdefault(name, 0)
+    code_fields = parse_code_fields(dump)
+    for name in code_fields:
+        if name not in classes:
+            refs.setdefault(name, 0)
     for name, arity in refs.items():
         if name in allc:
             continue
+        arity = max(arity, HINT_ARITY.get(name, 0))
         tp = ""
         if arity:
             tp = "<" + ", ".join("T%d" % i for i in range(arity)) + ">"
@@ -428,6 +472,12 @@ def generate(version):
                 m = parse_member(line, c)
                 if m:
                     c.members.append(m)
+        if name in HINT_IMPLEMENTS and not c.implements:
+            c.implements = list(HINT_IMPLEMENTS[name])
+        for line in code_fields.get(name, []):
+            m = parse_member(line, c)
+            if m:
+                c.members.append(m)
         allc[name] = c
     # ensure outers exist for nested
     for name in list(allc):
