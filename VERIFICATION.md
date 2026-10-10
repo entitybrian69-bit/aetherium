@@ -516,3 +516,59 @@ scissored to nothing. Fixed to corners; the pre-1.20 transform emits the matchin
 
 The compile correctness of the 33 legs is now the CI run's to prove; this report ends where the
 evidence in this environment ends.
+
+---
+
+## Report 6 — 2026-10-10: the test oracle opens, six era boundaries corrected
+
+Ship run 3 (`38036219822`, commit `f50dd5f`) was the hinge: **1.20.1 through 1.21.10
+compiled `:common` clean for the first time** and failed only in `:common:test`, i.e.
+the real unit tests ran against the real engine classes on a real mapped Minecraft jar
+and started doing their job. Run 4 (`38036477086`, commit `4688b15`) extended that to
+1.21.11 (the Identifier fix landed; its leg is also `:common:test`-only now).
+
+### Engine bugs the tests caught (all fixed in commit `84940a1`)
+
+Every one of these was a real defect that no amount of offline review had surfaced —
+the tests are the spec, and the CI is the oracle:
+
+| class | bug | fix |
+| --- | --- | --- |
+| `GpuInfo` | `getGlLevel()` encoded GL 4.6 as `406`, not `460` — every capability gate (DSA 4.5+, GL core 3.3+, compute 4.3+) misfired, so AUTO never chose `GL46_DSA` and a 3.3 GPU fell to `GL_LEGACY` | `major*100 + minor*10` |
+| `MathUtil` | `packRgb` forced the `0xFF000000` alpha bit, making every lightmap int negative (the tests require non-negative) | pure 24-bit RGB; `GammaApplier` preserves the incoming pixel's alpha on rewrite |
+| `MathUtil` | `sectionKey` bit fields overlapped (25-bit x/z wedged into slots that collided at bit 16 and 40) — directly adjacent sections aliased | disjoint 24/24/16-bit layout |
+| `MathUtil` | `smoothDamp` returned the *target* when `deltaSeconds <= 0` — a paused GUI snapped to its end state | zero delta returns current; only a zero half-life snaps |
+| `GammaApplier` | applied the curve with every feature off, and the shipped default curve was lifted — so "gamma disabled" still rewrote pixels | early no-op return when nothing is active; default curve is the identity `0:0,1:1` |
+| `LightmapWriter` | the NativeImage path (1.16.5-1.20.1) repacked an untouched float triple — the mutated pixel was thrown away (silent no-op) | read the mutated pixel back from the holder array |
+| `ConfigStore` | `saveNow` never cleared dirty flags (`set(get())` cannot clear a flag its own setter never sets), so shutdown rewrote the file | `ConfigValue.clearDirtyFlag()` |
+| `FrameStats` | `resetWindow` kept the previous world's `frameMs`/`fps`/percentiles for one frame | cleared alongside the window state (totals intentionally survive) |
+| `ModConflictScanner` | alias table missed the real Fabric mod ids `entityculling-fabric` and `lambdynamiclights`; `dynamicLights` defaulted off, inverting the delegation test's precondition | aliases added; default restored to on |
+| tests | 3 self-inconsistent assertions (curve clamp expected 1.0 from `evaluate(-3)`, JSON test used `nan`/`inf` as *key names* while asserting the output contains no `nan`, `flatten` asserted 2 while naming 3 keys) | corrected to match their own semantics |
+
+### Era boundaries corrected (official-mapping javadoc mirror + ship legs)
+
+Source: `Nekoyue/ForgeJavaDocs-NG` (Forge javadocs generated from official Mojang
+mappings — 1.16.5, 1.17.1, 1.18.2, 1.19.3, 1.20.6, 1.21.x), cross-checked against the
+compile errors the ship legs produced.
+
+| boundary | was | now | evidence |
+| --- | --- | --- | --- |
+| text components 1.17-1.18.2 | `ITextComponent` | interface stays **`Component`**; factories become `new TextComponent` / `new TranslatableComponent` | javadoc @ 1.17.1/1.18.2; the 1.17/1.18.2 legs rejected `ITextComponent` |
+| text components 1.16.5 | `net.minecraft.network.chat.*` | **`net.minecraft.util.text.*`** (`ITextComponent`, `StringTextComponent`, `TranslationTextComponent`) | javadoc @ 1.16.5; the 1.16.5 leg rejected the `network.chat` package |
+| centered text pre-GuiGraphics | `drawCentered` | **`drawCenteredString`** (String overload, text flattened via `getString()`) | javadoc @ 1.17.1/1.18.2/1.19.3; the 1.19.4 leg rejected the bare form |
+| narration | `updateWidgetNarration` from 1.19.4, absent below | **none** ≤1.18.2, **`updateNarration`** 1.19-1.19.2, **`updateWidgetNarration`** ≥1.19.3 | the 1.19.2 leg demanded `updateNarration`; javadoc @ 1.19.3 has both methods |
+| widget geometry | setters from 1.20 (UNVERIFIED) | **`getX`/`setX`/`setY`/`getY` from 1.19.3**; 1.16.5-1.19.2 have public `x`/`y` fields — and `getWidth`/`setWidth`/`getHeight`/`setHeight` across the whole range | javadoc @ 1.17.1 (no getX), 1.19.3 (getX+setX); the 1.19.2 leg rejected `this.getX()` while accepting `row.width` reads via `getWidth()` |
+| CycleButton | renamed `CycleButtonWidget` until 1.19.1 | **`CycleButton` from 1.17** (no rename era); 1.16.5 has none — the counter counts `AbstractWidget` | javadoc @ 1.17.1/1.18.2; the 1.17/1.18.2 legs rejected `CycleButtonWidget` |
+| slf4j | assumed everywhere | 1.16.5's classpath has **log4j2 only** — `AetheriumLog` swaps two imports + the factory | the 1.16.5 leg rejected `org.slf4j` |
+| Loom 26.x | remap id + mojmap | **no-remap id `net.fabricmc.fabric-loom`, no `mappings()` line, no `remapJar` task** | sodium @ 26.2/stable; the 26.x legs failed with "Failed to find official mojang mappings" |
+
+### Where the legs stand after `84940a1`
+
+- 1.20.1 - 1.21.11: compile clean (runs 3/4); expected to go green once the fixed tests run.
+- 1.16.5 - 1.19.4: the six corrections above target every error those legs reported;
+  the 1.16.5 `com.mojang.blaze3d.matrix.MatrixStack` import is triple-verified (Forge
+  javadoc @ 1.16.5, a 1.16.x remap table, a 1.16.5 crash report showing the class at
+  runtime) after one annotation chunk suggested otherwise — chunk tails splice, the
+  class list is authoritative.
+- 26.1/26.2/26.3: the no-remap Loom rework replaces the mappings failure; the NeoForge
+  module on 26.x is the remaining unknown the run will grade.
