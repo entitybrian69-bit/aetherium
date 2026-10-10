@@ -1,0 +1,166 @@
+name: probe
+
+# Ground truth for the porting generator: for every row of the matrix, set up that row's
+# Minecraft jar exactly the way the build does (same delta, same Loom, same mappings) and dump
+# `javap -p` for the classes listed in tools/probe_classes.txt. The output is committed to
+# tools/probe/<version>.txt because CI logs and artifacts are not reachable from every place
+# this repository is edited from, while the repository itself always is.
+
+on:
+  push:
+    branches: [arena/46f241da-aetherium]
+    paths: ['.github/workflows/probe.yml', 'tools/probe_classes.txt']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.caching=true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.picks.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: picks
+        shell: bash
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          rows = json.load(open('tools/porting_pins.json'))['rows']
+          picks = []
+          for row in rows:
+              target = int(row.get('java') or 21)
+              picks.append({'version': row['version'], 'java': str(max(17, target)),
+                            'gradle_java': str(max(21, target))})
+          print('matrix=' + json.dumps(picks, separators=(',', ':')))
+          PY
+
+  probe:
+    name: probe ${{ matrix.version }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        include: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.4.1
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.gradle_java }}
+      - name: materialize
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/tree"
+          mkdir -p "$work"
+          git ls-files -z | xargs -0 -I{} cp --parents {} "$work"/
+          cd "$work"
+          patch="deltas/${{ matrix.version }}/changes.patch"
+          if [ -f "$patch" ]; then git apply --whitespace=nowarn "$patch"; fi
+      - name: set up minecraft (configuration only)
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/tree"
+          gradle --no-daemon --console=plain -Penabled_platforms=fabric :common:dependencies --configuration compileClasspath > "$RUNNER_TEMP/setup.log" 2>&1 || true
+          tail -20 "$RUNNER_TEMP/setup.log"
+      - name: javap
+        shell: bash
+        run: |
+          set -u
+          out="$GITHUB_WORKSPACE/probe-out"
+          mkdir -p "$out"
+          file="$out/${{ matrix.version }}.txt"
+          jar=$(find "$HOME/.gradle/caches/fabric-loom" "$RUNNER_TEMP/tree/.gradle" -name 'minecraft-merged*.jar' ! -name '*sources*' 2>/dev/null | head -1)
+          if [ -z "$jar" ]; then
+            jar=$(find "$HOME/.gradle/caches/fabric-loom" "$RUNNER_TEMP/tree/.gradle" -name 'minecraft-client*.jar' ! -name '*sources*' 2>/dev/null | head -1)
+          fi
+          if [ -z "$jar" ]; then
+            jar=$(find "$HOME/.gradle/caches" "$RUNNER_TEMP/tree/.gradle" -name 'minecraft*.jar' ! -name '*sources*' 2>/dev/null | xargs -r ls -S | head -1)
+          fi
+          echo "# minecraft ${{ matrix.version }} jar: ${jar:-NONE}" > "$file"
+          if [ -z "$jar" ]; then
+            tail -60 "$RUNNER_TEMP/setup.log" >> "$file"
+            exit 0
+          fi
+          cp_extra=$(find "$HOME/.gradle/caches/modules-2/files-2.1" -name '*.jar' \( -path '*blaze3d*' -o -path '*com.mojang*' -o -path '*lwjgl*' -o -path '*joml*' \) 2>/dev/null | tr '\n' ':')
+          while read -r cls; do
+            [ -z "$cls" ] && continue
+            echo "=== $cls" >> "$file"
+            javap -p -cp "$jar:$cp_extra" "$cls" >> "$file" 2>&1 || true
+          done < tools/probe_classes.txt
+          echo "=== package listing (client.gui.screens, client.input, client)" >> "$file"
+          unzip -l "$jar" | awk '{print $4}' | grep -E '^net/minecraft/client/(gui/screens/[A-Za-z]+Screen|input/|[A-Za-z]+Status|[A-Za-z]+Preset)\.class$' >> "$file" || true
+          wc -c "$file"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-${{ matrix.version }}
+          path: probe-out/*.txt
+
+  neoforge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: neoforge maven index
+        shell: bash
+        run: |
+          mkdir -p probe-out
+          f=probe-out/neoforge-maven.txt
+          curl -fsSL https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml -o meta.xml || true
+          grep -oE '<version>[^<]+</version>' meta.xml | sed -E 's/<\/?version>//g' > versions.txt || true
+          for prefix in 20.2. 20.3. 20.4. 20.5. 20.6. 21.0. 21.1. 21.2. 21.3. 21.4. 21.5. 21.6. 21.7. 21.8. 21.9. 21.10. 21.11. 26.1. 26.2. 26.3.; do
+            echo "## $prefix" >> $f
+            grep -F "$prefix" versions.txt | grep -E "^${prefix//./\\.}" | tail -6 > cand.txt || true
+            while read -r v; do
+              mod=$(curl -fsSL "https://maven.neoforged.net/releases/net/neoforged/neoforge/$v/neoforge-$v.module" 2>/dev/null || true)
+              if printf '%s' "$mod" | grep -q 'neoforge-moddev-bundle'; then bundle=yes; else bundle=no; fi
+              echo "$v moddev-bundle=$bundle" >> $f
+            done < cand.txt
+          done
+          echo "## first versions per prefix with a moddev bundle" >> $f
+          for prefix in 20.2. 20.3. 20.5. 20.6.; do
+            grep -E "^${prefix//./\\.}" versions.txt | while read -r v; do
+              mod=$(curl -fsSL "https://maven.neoforged.net/releases/net/neoforged/neoforge/$v/neoforge-$v.module" 2>/dev/null || true)
+              if printf '%s' "$mod" | grep -q 'neoforge-moddev-bundle'; then echo "$prefix first-with-bundle $v" >> $f; break; fi
+            done
+          done
+          cat $f
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-neoforge
+          path: probe-out/*.txt
+
+  commit:
+    needs: [probe, neoforge]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dl
+      - shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tools/probe
+          find dl -name '*.txt' -exec cp {} tools/probe/ \;
+          ls -la tools/probe
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/probe
+          git diff --cached --quiet && exit 0
+          git commit -q -m "probe: javap of the porting surface for every row [skip ci]"
+          for i in 1 2 3; do git pull -q --rebase origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && break; sleep 5; done
