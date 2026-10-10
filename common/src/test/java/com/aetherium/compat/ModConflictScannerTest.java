@@ -82,29 +82,42 @@ final class ModConflictScannerTest {
         assertFalse(scanner.hasAnything(), "found: " + scanner.summarize());
         assertFalse(scanner.requiresIncompatible());
         assertTrue(config.enabled.get(), "an empty scan must not disable the renderer");
-        assertTrue(config.dynamicLights.get(), "an empty scan must not touch features");
+        assertEquals(AetheriumConfig.LightMode.FAST, config.dynamicLights.get(), "an empty scan must not touch features");
         assertTrue(scanner.getDetected().isEmpty());
         assertTrue(scanner.getDetectedVersions().isEmpty());
         assertNotNull(scanner.summarize());
     }
 
     @Test
-    @DisplayName("Sodium is a hard conflict and reports it as one")
-    void sodiumIsHard() {
+    @DisplayName("Sodium takes over dynamic lights only; everything else keeps working")
+    void sodiumDelegatesLights() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "sodium"));
         scanner.scan(config);
-        assertTrue(scanner.requiresIncompatible(), "Sodium must be reported as HARD");
-        assertEquals(Severity.HARD, scanner.getWorstSeverity());
+        assertFalse(scanner.requiresIncompatible(), "Sodium must not make Aetherium stand down");
+        assertEquals(Severity.DELEGATE, scanner.getWorstSeverity());
         assertEquals(Ownership.OTHER_RENDERER, scanner.getOwnership());
         final List<String> versions = scanner.getDetectedVersions();
         assertEquals(1, versions.size());
         assertTrue(versions.get(0).startsWith("sodium 9.9.9"), "unexpected version string: " + versions.get(0));
         assertTrue(scanner.summarize().toLowerCase().contains("sodium"), "the summary must name the mod: " + scanner.summarize());
-        assertTrue(scanner.adviceForUser().isPresent(), "a hard conflict must come with an instruction");
-        assertTrue(scanner.adviceForUser().orElseThrow().length() > 20,
-                "the user needs a sentence, not a word: " + scanner.adviceForUser());
+        assertEquals(AetheriumConfig.LightMode.OFF, config.dynamicLights.get(),
+                "Sodium meshes chunks itself, so our light hook would never be read");
+        assertTrue(config.entityCulling.get(), "culling is independent of the mesher and stays on");
+        assertFalse(scanner.adviceForUser().isPresent(), "a delegate needs no user action");
         assertTrue(scanner.asReport().contains("Sodium"), "the crash-report section must name the mod");
+    }
+
+    @Test
+    @DisplayName("a hard conflict comes with an instruction for the user")
+    void hardConflictHasAdvice() {
+        final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "vulkanmod"));
+        scanner.scan(AetheriumConfig.createDefaults());
+        assertTrue(scanner.requiresIncompatible());
+        assertEquals(Severity.HARD, scanner.getWorstSeverity());
+        assertTrue(scanner.adviceForUser().isPresent(), "a hard conflict must come with an instruction");
+        assertTrue(scanner.adviceForUser().get().length() > 20,
+                "the user needs a sentence, not a word: " + scanner.adviceForUser());
     }
 
     @Test
@@ -115,7 +128,8 @@ final class ModConflictScannerTest {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "rubidium"));
         scanner.scan(config);
-        assertTrue(scanner.requiresIncompatible(), "a Sodium fork must be as hard a conflict as Sodium");
+        assertFalse(scanner.requiresIncompatible(), "a Sodium fork is treated exactly like Sodium");
+        assertEquals(AetheriumConfig.LightMode.OFF, config.dynamicLights.get());
         assertEquals(1, scanner.getDetected().size(), "the fork should collapse into one row, not one per alias");
         assertEquals("embeddium", scanner.getDetected().get(0).modId());
         assertEquals("rubidium", scanner.getDetected().get(0).matchedId(new FakePlatform("1.21.1", "rubidium")));
@@ -134,21 +148,20 @@ final class ModConflictScannerTest {
         scanner.scan(config);
         assertFalse(scanner.requiresIncompatible(), "neither of these is fatal");
         assertFalse(config.entityCulling.get(), "Entity Culling owns culling, so ours must go off");
-        assertFalse(config.dynamicLights.get(), "LambDynamicLights owns light sources, so ours must go off");
+        assertEquals(AetheriumConfig.LightMode.OFF, config.dynamicLights.get(),
+                "LambDynamicLights owns light sources, so ours must go off");
         assertEquals(Severity.DELEGATE, scanner.getWorstSeverity());
         assertEquals(Ownership.AETHERIUM_RENDERER, scanner.getOwnership(), "we still own the renderer");
     }
 
     @Test
-    @DisplayName("a gamma overlap disables both gamma switches, not just one")
-    void gammaDelegateCoversBothSwitches() {
+    @DisplayName("a brightness mod turns our fullbright off")
+    void gammaDelegateDisablesFullbright() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
-        config.gammaEnabled.set(true);
-        config.caveVision.set(true);
+        config.fullbright.set(true);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "gamma_utils"));
         scanner.scan(config);
-        assertFalse(config.gammaEnabled.get(), "two gamma systems on one lightmap produce a flickering double application");
-        assertFalse(config.caveVision.get());
+        assertFalse(config.fullbright.get(), "two gamma overrides fight over the same option");
     }
 
     @Test

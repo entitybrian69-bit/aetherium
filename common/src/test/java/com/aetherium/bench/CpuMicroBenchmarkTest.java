@@ -21,8 +21,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.aetherium.config.AetheriumConfig;
 import com.aetherium.config.ConfigStore;
-import com.aetherium.gamma.GammaApplier;
 import com.aetherium.hud.FrameStats;
+import com.aetherium.lighting.LightField;
+import com.aetherium.perf.RenderToggles;
 import com.aetherium.util.MathUtil;
 
 /**
@@ -53,9 +54,8 @@ final class CpuMicroBenchmarkTest {
     }
 
     @Test
-    @DisplayName("lightmap pixel packing, the innermost loop of the gamma pass")
+    @DisplayName("RGB pixel packing helpers")
     void pixelPacking() {
-        final int size = GammaApplier.LIGHTMAP_SIZE;
         final BenchmarkHarness.Result pack = HARNESS.measure("packRgb", 200_000, iterations -> {
             long checksum = 0L;
             for (int i = 0; i < iterations; i++) {
@@ -76,11 +76,8 @@ final class CpuMicroBenchmarkTest {
         });
         note(pack);
         note(unpack);
-        // This loop runs 256 times per lightmap frame; at 240 fps that is 61k packs per
-        // second, so anything above ~20 ns/op would be a regression worth noticing.
         assertTrue(pack.nanosPerOperation() < 200.0, "packing is unexpectedly slow: " + pack);
         assertTrue(unpack.nanosPerOperation() < 200.0, "unpacking is unexpectedly slow: " + unpack);
-        assertEquals(size, GammaApplier.LIGHTMAP_SIZE);
     }
 
     @Test
@@ -93,7 +90,7 @@ final class CpuMicroBenchmarkTest {
         }
         final String text = com.aetherium.config.Json.write(document);
         final int keys = countLeaves(document);
-        assertTrue(keys > 50, "the config document got smaller than the option count: " + keys);
+        assertTrue(keys > 30, "the config document got smaller than the option count: " + keys);
 
         final BenchmarkHarness.Result write = HARNESS.measure("json.write", 2_000, iterations -> {
             long checksum = 0L;
@@ -148,21 +145,60 @@ final class CpuMicroBenchmarkTest {
     }
 
     @Test
-    @DisplayName("gamma curve evaluation, once per channel per lightmap pixel")
-    void gammaCurveEvaluation() {
-        final GammaApplier.GammaCurve curve = GammaApplier.GammaCurve.parse("0:0,0.2:0.55,0.5:0.8,0.8:0.95,1:1");
-        final BenchmarkHarness.Result evaluate = HARNESS.measure("GammaCurve.evaluate", 200_000, iterations -> {
+    @DisplayName("dynamic-light lookup, once per block light read during chunk meshing")
+    void lightFieldLookup() {
+        final LightField.Source[] sources = new LightField.Source[8];
+        for (int i = 0; i < sources.length; i++) {
+            sources[i] = new LightField.Source(i * 6.0, 64.0, i * 3.0, 14);
+        }
+        LightField.publish(sources);
+        try {
+            final BenchmarkHarness.Result lit = HARNESS.measure("LightField.adjustPacked (8 sources)", 200_000, iterations -> {
+                long checksum = 0L;
+                for (int i = 0; i < iterations; i++) {
+                    checksum += LightField.adjustPacked(0x00F0_0000, i & 63, 60 + (i & 7), (i >> 6) & 31);
+                }
+                return checksum;
+            });
+            note(lit);
+            // Meshing one section reads light ~4k times; above ~250 ns/op the hook alone
+            // would add a millisecond per section rebuild.
+            assertTrue(lit.nanosPerOperation() < 1_000.0, "light lookup is too slow for the mesh path: " + lit);
+        } finally {
+            LightField.clear();
+        }
+        final BenchmarkHarness.Result empty = HARNESS.measure("LightField.isEmpty (no sources)", 200_000, iterations -> {
             long checksum = 0L;
             for (int i = 0; i < iterations; i++) {
-                checksum += (long) (curve.evaluate((i % 1000) / 1000.0f) * 1_000_000.0);
+                checksum += LightField.isEmpty() ? i & 1 : 2;
             }
             return checksum;
         });
-        note(evaluate);
-        assertTrue(evaluate.checksum() > 0L, "every sample evaluated to zero, which means the curve is broken");
-        // The lightmap pass is 768 evaluations per frame; above ~130 ns/op the pass alone
-        // would cost a tenth of a 60 fps frame budget.
-        assertTrue(evaluate.nanosPerOperation() < 400.0, "curve evaluation is too slow to run per pixel: " + evaluate);
+        note(empty);
+    }
+
+    @Test
+    @DisplayName("particle decimation, once per spawned particle")
+    void particleDecimation() {
+        final AetheriumConfig config = AetheriumConfig.createDefaults();
+        config.particleDensity.set(30);
+        RenderToggles.refresh(config, true);
+        try {
+            final BenchmarkHarness.Result drop = HARNESS.measure("RenderToggles.dropParticle", 200_000, iterations -> {
+                long kept = 0L;
+                for (int i = 0; i < iterations; i++) {
+                    if (!RenderToggles.dropParticle()) {
+                        kept++;
+                    }
+                }
+                return kept;
+            });
+            note(drop);
+            final double keptShare = drop.checksum() / (double) drop.iterations();
+            assertEquals(0.30, keptShare, 0.01, "30 % density must keep 30 % of particles");
+        } finally {
+            RenderToggles.refresh(AetheriumConfig.createDefaults(), false);
+        }
     }
 
     @Test

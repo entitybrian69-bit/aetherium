@@ -53,8 +53,8 @@ final class ConfigStoreTest {
             store.load();
             config.enabled.set(false);
             config.hudCorner.set("bottom-right");
-            config.backend.set(AetheriumConfig.BackendChoice.GL_CORE);
-            config.targetFps.set(144);
+            config.dynamicLights.set(AetheriumConfig.LightMode.FANCY);
+            config.adaptiveTargetFps.set(144);
             store.saveNow();
         }
 
@@ -63,8 +63,8 @@ final class ConfigStoreTest {
             store.load();
             assertFalse(reloaded.enabled.get());
             assertEquals("bottom-right", reloaded.hudCorner.get());
-            assertEquals(AetheriumConfig.BackendChoice.GL_CORE, reloaded.backend.get());
-            assertEquals(144, reloaded.targetFps.get().intValue());
+            assertEquals(AetheriumConfig.LightMode.FANCY, reloaded.dynamicLights.get());
+            assertEquals(144, reloaded.adaptiveTargetFps.get().intValue());
         }
     }
 
@@ -152,16 +152,20 @@ final class ConfigStoreTest {
                 + "  \"aetherium\": {\n"
                 + "    \"gamma.gammaEnabled\": true,\n"
                 + "    \"gamma.gamma\": 2.5,\n"
+                + "    \"lighting.dynamicLights\": false,\n"
                 + "    \"render.backendOverride\": \"gl_core\"\n"
                 + "  }\n}\n").getBytes(StandardCharsets.UTF_8));
 
         final AetheriumConfig config = AetheriumConfig.createDefaults();
         try (ConfigStore store = new ConfigStore(this.file(), config)) {
             store.load();
-            assertTrue(config.gammaEnabled.get(), "v1 gamma.gammaEnabled must migrate to the new key");
-            assertEquals(2.5d, config.gammaAmount.get(), 1.0E-9);
-            assertEquals(AetheriumConfig.BackendChoice.GL_CORE, config.backend.get());
-            assertEquals(1, config.getFileVersion(), "loading must not pretend the file is v3");
+            assertTrue(config.fullbright.get(), "v1 gamma.gammaEnabled must end up as v4 effects.fullbright");
+            assertEquals(AetheriumConfig.LightMode.OFF, config.dynamicLights.get(),
+                    "a v1 'dynamic lights off' must stay off through the v4 enum");
+            assertFalse(store.getUnknownKeys().containsKey("performance.backend"),
+                    "keys of the removed GPU pipeline are dropped, not carried forever");
+            assertFalse(store.getUnknownKeys().containsKey("utilities.gamma.amount"));
+            assertEquals(1, config.getFileVersion(), "loading must not pretend the file is current");
             store.saveNow();
             assertEquals((long) AetheriumConfig.CURRENT_VERSION,
                     ((Number) readRoot().get("version")).longValue(), "the rewrite must be at the current version");
@@ -174,12 +178,12 @@ final class ConfigStoreTest {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
         try (ConfigStore store = new ConfigStore(this.file(), config)) {
             store.load();
-            config.targetFps.set(90);
+            config.adaptiveTargetFps.set(90);
             store.requestSave();
             store.tick();
             final long afterFirst = Files.getLastModifiedTime(this.file()).toMillis();
             final long beforeSecondTick = System.currentTimeMillis();
-            config.targetFps.set(91);
+            config.adaptiveTargetFps.set(91);
             store.requestSave();
             store.tick();
             final long tickDuration = System.currentTimeMillis() - beforeSecondTick;
@@ -188,12 +192,12 @@ final class ConfigStoreTest {
                 // the second write is legitimate and the assertion below would be a lie.
                 assertEquals(afterFirst, Files.getLastModifiedTime(this.file()).toMillis(),
                         "a second tick inside the coalescing window must not hit the disk again");
-                assertEquals(90, ((Number) Json.path(readRoot(), "aetherium.performance.target_fps")).intValue(),
+                assertEquals(90, ((Number) Json.path(readRoot(), "aetherium.performance.adaptive_target_fps")).intValue(),
                         "the coalesced write must still carry the requested value");
             }
-            config.targetFps.set(92);
+            config.adaptiveTargetFps.set(92);
             store.saveNow();
-            assertEquals(92, config.targetFps.get().intValue());
+            assertEquals(92, config.adaptiveTargetFps.get().intValue());
             assertFalse(config.anyDirty(), "saveNow must clear the dirty flags so shutdown does not rewrite");
         }
     }
@@ -204,7 +208,7 @@ final class ConfigStoreTest {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
         try (ConfigStore store = new ConfigStore(this.file(), config)) {
             for (int i = 0; i < 8; i++) {
-                config.targetFps.set(30 + i);
+                config.adaptiveTargetFps.set(30 + i);
                 store.saveNow();
             }
         }

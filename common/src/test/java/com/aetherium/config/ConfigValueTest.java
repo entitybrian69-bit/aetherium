@@ -73,16 +73,16 @@ final class ConfigValueTest {
     @Test
     @DisplayName("an enum option is case- and space-tolerant but never guesses a constant")
     void enumParsing() {
-        final ConfigValue<AetheriumConfig.BackendChoice> backend = ConfigValue.enumerated(
-                "performance.backend", AetheriumConfig.BackendChoice.AUTO, AetheriumConfig.BackendChoice.class,
-                true, "test");
-        assertTrue(backend.accept("gl46_dsa"));
-        assertEquals(AetheriumConfig.BackendChoice.GL46_DSA, backend.get());
-        assertTrue(backend.accept(" Vulkan 13 "));
-        assertEquals(AetheriumConfig.BackendChoice.VULKAN_13, backend.get());
-        assertFalse(backend.accept("directx12"));
-        assertEquals(AetheriumConfig.BackendChoice.VULKAN_13, backend.get(), "a bad enum must not reset the option");
-        assertEquals("vulkan_13", backend.serializeForJson(), "enums are written as lower-case names, which is what the lang files key on");
+        final ConfigValue<AetheriumConfig.AndroidRendererChoice> renderer = ConfigValue.enumerated(
+                "android.force_renderer", AetheriumConfig.AndroidRendererChoice.AUTO,
+                AetheriumConfig.AndroidRendererChoice.class, true, "test");
+        assertTrue(renderer.accept("zink"));
+        assertEquals(AetheriumConfig.AndroidRendererChoice.ZINK, renderer.get());
+        assertTrue(renderer.accept(" Native Vulkan "));
+        assertEquals(AetheriumConfig.AndroidRendererChoice.NATIVE_VULKAN, renderer.get());
+        assertFalse(renderer.accept("directx12"));
+        assertEquals(AetheriumConfig.AndroidRendererChoice.NATIVE_VULKAN, renderer.get(), "a bad enum must not reset the option");
+        assertEquals("native_vulkan", renderer.serializeForJson(), "enums are written as lower-case names, which is what the lang files key on");
     }
 
     @Test
@@ -121,11 +121,11 @@ final class ConfigValueTest {
     @Test
     @DisplayName("dirty tracking and the pending-apply flag drive the GUI's Apply button")
     void dirtyAndPendingApply() {
-        final ConfigValue<AetheriumConfig.BackendChoice> restartOption = ConfigValue.enumerated(
-                "performance.backend", AetheriumConfig.BackendChoice.AUTO, AetheriumConfig.BackendChoice.class,
-                true, "test");
+        final ConfigValue<AetheriumConfig.AndroidRendererChoice> restartOption = ConfigValue.enumerated(
+                "android.force_renderer", AetheriumConfig.AndroidRendererChoice.AUTO,
+                AetheriumConfig.AndroidRendererChoice.class, true, "test");
         assertFalse(restartOption.isPendingApply(), "a fresh option has nothing pending");
-        restartOption.set(AetheriumConfig.BackendChoice.GL_CORE);
+        restartOption.set(AetheriumConfig.AndroidRendererChoice.ZINK);
         assertTrue(restartOption.getRequiresRendererRestart());
         assertTrue(restartOption.isPendingApply(), "a renderer restart option must ask the GUI to offer Apply");
         restartOption.clearPendingApply();

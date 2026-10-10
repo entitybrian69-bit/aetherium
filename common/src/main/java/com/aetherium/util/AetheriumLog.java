@@ -2,8 +2,13 @@ package com.aetherium.util;
 
 import java.util.Objects;
 
+// @era:logger-begin slf4j
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+// @era:logger-else log4j
+//~ import org.apache.logging.log4j.LogManager;
+//~ import org.apache.logging.log4j.Logger;
+// @era:logger-end
 
 /**
  * Level-filtered logging facade.
@@ -37,7 +42,12 @@ public final class AetheriumLog {
     private volatile boolean eagerFlush;
 
     public AetheriumLog(final String name) {
+        // Minecraft bundles slf4j from 1.18; 1.16.5-1.17.1 only ship log4j 2.
+        // @era:logger-begin slf4j
         this.delegate = LoggerFactory.getLogger(Objects.requireNonNull(name, "logger name"));
+        // @era:logger-else log4j
+        //~ this.delegate = LogManager.getLogger(Objects.requireNonNull(name, "logger name"));
+        // @era:logger-end
     }
 
     public static AetheriumLog of(final Class<?> owner) {

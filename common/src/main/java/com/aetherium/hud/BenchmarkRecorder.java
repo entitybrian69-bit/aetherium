@@ -169,17 +169,14 @@ public final class BenchmarkRecorder {
     private static String describeLabel() {
         final StringBuilder builder = new StringBuilder(64);
         builder.append(label).append(' ');
-        final com.aetherium.render.gl.GlDevice device = com.aetherium.client.ClientHooks.device();
-        builder.append(device == null ? "compat" : device.getBackend().getDisplayName());
+        builder.append(Aetherium.RENDERING_API.replace(' ', '-')).append(' ').append(Aetherium.getState().name().toLowerCase(Locale.ROOT));
         builder.append(vanillaSettings());
         return builder.toString();
     }
 
-    // [UNVERIFIED: GameOptions#renderDistance()/#simulationDistance() returning an
-    // Option<Integer> holder is read straight from 1.21.1 (the 1.21.1 compile agrees: those two
-    // lines are the ones CI did not reject). A rename on another version degrades the label to
-    // "vanilla=unavailable" - the whole block is inside a catch, because a frame-loop label must
-    // never be the reason a benchmark run crashes on port 15.]
+    // Options access goes through VanillaOptions, whose era variants are compile-checked against
+    // every version's probed signatures; the catch stays because a frame-loop label must never be
+    // the reason a benchmark run crashes.
     private static String vanillaSettings() {
         final Minecraft client = peekClient();
         if (client == null) {
@@ -187,8 +184,10 @@ public final class BenchmarkRecorder {
         }
         try {
             final StringBuilder builder = new StringBuilder(48);
-            builder.append(" rd=").append(client.options.renderDistance().get());
-            builder.append(" sim=").append(client.options.simulationDistance().get());
+            builder.append(" rd=").append(com.aetherium.client.VanillaOptions.getRenderDistance());
+            if (com.aetherium.client.VanillaOptions.hasSimulationDistance()) {
+                builder.append(" sim=").append(com.aetherium.client.VanillaOptions.getSimulationDistance());
+            }
             // The seed is handed in by tools/benchmark.sh (-Daetherium.benchmark.seed) instead of
             // read off the level: ClientLevel has no getSeed() on 1.21.1 (javac: cannot find symbol),
             // and a row that quietly lost its seed would look reproducible without being one. An

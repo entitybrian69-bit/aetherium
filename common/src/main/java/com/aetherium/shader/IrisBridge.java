@@ -200,7 +200,7 @@ public final class IrisBridge {
         return new Bound(instance, api, brand,
                 find(api, "isShaderPackInUse"),
                 find(api, "isRenderingShadowPass"),
-                find(api, "openMainIrisScreenObj"),
+                findWithArgs(api, "openMainIrisScreenObj", 1),
                 find(api, "getMainScreenLanguageKey"),
                 getConfig,
                 revisionMethod,
@@ -212,6 +212,16 @@ public final class IrisBridge {
     /** Finds a no-arg method by name on a type or any of its interfaces/superclasses. */
     private static Method find(final Class<?> type, final String name) {
         return findAny(type, name);
+    }
+
+    /** Like {@link #find} for a public method taking {@code arity} parameters. */
+    private static Method findWithArgs(final Class<?> type, final String name, final int arity) {
+        for (final Method method : type.getMethods()) {
+            if (method.getName().equals(name) && method.getParameterCount() == arity) {
+                return method;
+            }
+        }
+        return null;
     }
 
     private static Method findAny(final Class<?> type, final String... names) {
@@ -322,33 +332,19 @@ public final class IrisBridge {
         }
     }
 
-    /** Opens the shader-pack screen over {@code parent}; false when unavailable. */
-    public boolean openShaderScreen(final Object parentScreen) {
+    /**
+     * Builds Iris's shader-pack screen with {@code parentScreen} as its parent, or returns null
+     * when Iris is absent. The caller shows it with {@code Minecraft.setScreen}: looking that
+     * method up reflectively by its Mojang name would fail on Fabric, whose production
+     * runtime uses intermediary names.
+     */
+    public Object createShaderScreen(final Object parentScreen) {
         this.screenOpenRequests.incrementAndGet();
         final Bound local = this.bound;
         if (local == null || local.openMainIrisScreenObj == null) {
-            return false;
+            return null;
         }
-        final Object screen = invoke(local.openMainIrisScreenObj, parentScreen);
-        if (screen == null) {
-            return false;
-        }
-        try {
-            final Class<?> screenType = Class.forName("net.minecraft.client.gui.screens.Screen");
-            if (!screenType.isInstance(screen)) {
-                LOGGER.warn("openMainIrisScreenObj returned {} which is not a Screen", screen.getClass().getName());
-                return false;
-            }
-            final Class<?> minecraftType = Class.forName("net.minecraft.client.Minecraft");
-            final Method getInstance = minecraftType.getMethod("getInstance");
-            final Object mc = getInstance.invoke(null);
-            final Method setScreen = minecraftType.getMethod("setScreen", screenType);
-            setScreen.invoke(mc, screen);
-            return true;
-        } catch (final ReflectiveOperationException | RuntimeException error) {
-            LOGGER.warn("Could not show the shader screen", error);
-            return false;
-        }
+        return invoke(local.openMainIrisScreenObj, parentScreen);
     }
 
     /** Language key for the shader screen button label, or the Aetherium default. */

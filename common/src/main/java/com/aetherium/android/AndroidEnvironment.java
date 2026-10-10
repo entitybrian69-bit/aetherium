@@ -297,41 +297,23 @@ public final class AndroidEnvironment {
     }
 
     /**
-     * Applies the Android-specific config mutations before the first frame:
-     * mobile memory mode shrinks arenas, battery saver caps the frame rate, and
-     * thermal protection engages the sensor reader. Called once, from boot.
+     * Startup checks for Android. Nothing here rewrites the user's settings: battery saver and
+     * the thermal guard are applied live as frame-rate caps (see {@code ClientHooks}), so turning
+     * them off in the menu restores the previous behaviour immediately. All this does is probe the
+     * thermal sensor once so the menu can say "no sensor" instead of silently doing nothing.
      */
     public void applyRuntimeHints(final AetheriumConfig config) {
         Objects.requireNonNull(config, "config");
         if (!this.android) {
             return;
         }
-        if (config.mobileMemoryMode.get()) {
-            final int budgetMb = (int) MathUtil.clamp(this.memoryBudgetMb, 256L, 8192L);
-            // Upload budget tracks the heap: a 1 GB device cannot absorb a 24 MB
-            // per-frame arena spike without a GC pause inside the frame.
-            final int scaled = MathUtil.clamp(budgetMb / 16, 2, 24) * 1024;
-            if (scaled < config.uploadBudgetKb.get()) {
-                LOGGER.info("Mobile memory mode: upload budget {} KB -> {} KB (heap {} MB)", config.uploadBudgetKb.get(), scaled, budgetMb);
-                config.uploadBudgetKb.set(scaled);
-            }
-            if (this.maxHeapBytes < 1_500_000_000L) {
-                config.asyncShaderCompile.set(false);
-                config.programBinaryCache.set(true);
-                LOGGER.info("Mobile memory mode: async compilation off, program-binary cache on (small heap)");
-            }
+        this.thermalSensorUsable = readThermalMilliCelsius() >= 0;
+        if (config.thermalGuard.get().booleanValue() && !this.thermalSensorUsable) {
+            LOGGER.warn("Thermal guard is on but no thermal zone is readable on this device; it will stay idle");
         }
-        if (config.batterySaver.get()) {
-            config.targetFps.set(Math.min(config.targetFps.get() <= 0 ? 60 : config.targetFps.get(), 60));
-            config.hzb.set(false);
-            LOGGER.info("Battery saver engaged: target fps <= 60, HZB off");
-        }
-        if (config.thermalThrottle.get()) {
-            this.thermalSensorUsable = readThermalMilliCelsius() >= 0;
-            if (!this.thermalSensorUsable) {
-                LOGGER.warn("Thermal throttle requested but no thermal zone was readable; disabling automatic throttling");
-                config.thermalThrottle.set(false);
-            }
+        if (this.maxHeapBytes > 0L && this.maxHeapBytes < 1_200_000_000L) {
+            LOGGER.info("Small heap ({} MB): the Max FPS preset is recommended on this device",
+                    this.maxHeapBytes / (1024L * 1024L));
         }
     }
 
@@ -380,7 +362,7 @@ public final class AndroidEnvironment {
     }
 
     /**
-     * Fraction of heap actually in use, used by {@code AndroidPowerGovernor} to
+     * Fraction of heap actually in use, shown on the Android page; formerly used to
      * decide whether to drop mesh workers. {@code ManagementFactory} is used
      * instead of {@code Runtime} arithmetic because some Android ART builds report
      * a max heap that includes the native allocation arena.
@@ -403,31 +385,6 @@ public final class AndroidEnvironment {
         return this.launcher.getDisplayName() + " / " + this.renderer.getDisplayName()
                 + String.format(Locale.ROOT, ", %.0f MB heap, %d%% used", this.maxHeapBytes / (1024.0 * 1024.0), this.heapUsageFraction() * 100.0)
                 + (this.thermalMilliCelsius >= 0 ? String.format(Locale.ROOT, ", %.1f°C", this.thermalMilliCelsius / 1000.0) : "");
-    }
-
-    /** Written only under {@link #getPowerGovernor}, which is synchronized. */
-    private AndroidPowerGovernor powerGovernor;
-
-    /**
-     * The thermal/battery governor, created on first use.
-     *
-     * <p>Lazily because constructing it touches {@code /sys/class/thermal}, which is
-     * a file read on a device where every millisecond of world-load matters, and
-     * because a desktop run must never pay it. Guarded by {@code this} rather than a
-     * dedicated lock: the field is written at most twice in practice (render thread
-     * first, worker later), and a duplicate construction is harmless — the governor
-     * is stateless apart from its cached sensor handle.</p>
-     */
-    public synchronized AndroidPowerGovernor getPowerGovernor(final AetheriumConfig config) {
-        if (this.powerGovernor == null) {
-            this.powerGovernor = new AndroidPowerGovernor(this, config);
-        }
-        return this.powerGovernor;
-    }
-
-    /** Non-creating accessor for diagnostics. */
-    public AndroidPowerGovernor peekPowerGovernor() {
-        return this.powerGovernor;
     }
 
     /** JVM uptime in ms, for the boot-timing log line. */

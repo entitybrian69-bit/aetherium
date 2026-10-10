@@ -156,6 +156,33 @@ public final class ConfigStore implements AutoCloseable {
             flat.remove("shaders.force_reload");
             flat.remove("shaders.compatibility_reload");
         }
+        if (from < 4) {
+            // v4 dropped the shadow GPU pipeline; its keys are discarded, the
+            // surviving features moved to their new groups.
+            rename(flat, "quality.entity_culling", "performance.entity_culling");
+            rename(flat, "utilities.dynamic_lights.entities", "effects.dynamic_lights.entities");
+            rename(flat, "utilities.gamma.enabled", "effects.fullbright");
+            rename(flat, "android.thermal_throttle", "android.thermal_guard");
+            final Object lights = flat.remove("utilities.dynamic_lights.enabled");
+            if (Boolean.FALSE.equals(lights)) {
+                flat.putIfAbsent("effects.dynamic_lights", "OFF");
+            }
+            final java.util.Iterator<String> keys = flat.keySet().iterator();
+            while (keys.hasNext()) {
+                final String key = keys.next();
+                if (key.startsWith("utilities.") || key.startsWith("performance.hzb") || key.equals("performance.backend")
+                        || key.startsWith("performance.async") || key.startsWith("performance.indirect")
+                        || key.startsWith("performance.persistent") || key.startsWith("performance.upload")
+                        || key.startsWith("performance.mesh") || key.startsWith("performance.program")
+                        || key.equals("performance.target_fps") || key.startsWith("quality.")
+                        || key.startsWith("general.hud.frame_graph") || key.startsWith("general.hud.backend_tag")
+                        || key.startsWith("advanced.gl_errors") || key.startsWith("advanced.fail_fast")
+                        || key.startsWith("advanced.experimental") || key.startsWith("advanced.strict")
+                        || key.equals("shaders.reload_on_world_change") || key.equals("android.mobile_memory")) {
+                    keys.remove();
+                }
+            }
+        }
     }
 
     private static void rename(final Map<String, Object> flat, final String from, final String to) {

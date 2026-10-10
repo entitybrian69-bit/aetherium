@@ -142,18 +142,18 @@ public final class ModConflictScanner {
      * forever, so such an entry reads as coverage while providing none.</p>
      */
     private static final KnownConflict[] KNOWN = {
-            new KnownConflict("sodium", "Sodium", new String[]{}, Severity.HARD,
+            new KnownConflict("sodium", "Sodium", new String[]{}, Severity.DELEGATE,
                     Ownership.OTHER_RENDERER,
-                    "Sodium replaces the same renderer Aetherium does. Remove one of them."),
-            new KnownConflict("embeddium", "Embeddium", new String[]{"rubidium"}, Severity.HARD,
+                    "Sodium meshes chunks with its own light pipeline, so Aetherium's dynamic lights are turned off; culling, particles and the menu keep working."),
+            new KnownConflict("embeddium", "Embeddium", new String[]{"rubidium"}, Severity.DELEGATE,
                     Ownership.OTHER_RENDERER,
-                    "Embeddium is a Sodium fork for NeoForge and takes the same mixins."),
-            new KnownConflict("magnesium", "Magnesium", new String[]{"radium"}, Severity.HARD,
+                    "Embeddium is a Sodium fork: Aetherium's dynamic lights are turned off, everything else keeps working."),
+            new KnownConflict("magnesium", "Magnesium", new String[]{"radium"}, Severity.DELEGATE,
                     Ownership.OTHER_RENDERER,
-                    "Magnesium/Radium replace the chunk render dispatcher."),
+                    "Magnesium/Radium replace the chunk mesher: Aetherium's dynamic lights are turned off."),
             new KnownConflict("vulkanmod", "VulkanMod", new String[]{}, Severity.HARD,
                     Ownership.OTHER_RENDERER,
-                    "VulkanMod owns the Vulkan device; two Vulkan renderers cannot share a swapchain."),
+                    "VulkanMod replaces the OpenGL renderer Aetherium hooks; remove one of the two."),
             new KnownConflict("optifabric", "OptiFabric", new String[]{}, Severity.HARD,
                     Ownership.NEITHER,
                     "OptiFine patches the classes Aetherium mixes into at the bytecode level. This cannot be reconciled."),
@@ -175,18 +175,16 @@ public final class ModConflictScanner {
             new KnownConflict("dynamiclights", "Dynamic Lights", new String[]{"lambdynamiclights", "lambdynlights"}, Severity.DELEGATE,
                     Ownership.AETHERIUM_RENDERER,
                     "Another dynamic-light mod is active, so Aetherium's is disabled to avoid double counting."),
-            // [UNVERIFIED: third-party gamma/brightness mods have no canonical mod id, so
-            // this row only fires for a mod that literally uses "gamma_utils". A user with a
-            // different gamma mod is expected to see Aetherium's conflict notice (top-right,
-            // under the backend tag) and the Utilities tab's own state line, and turn the
-            // utilities off there; pretending to detect every brightness mod is worse than
-            // saying which ones we can see.]
+            // Third-party brightness mods have no canonical mod id, so this row only fires
+            // for a mod that literally uses "gamma_utils". Users of other brightness mods
+            // turn Fullbright off on the Effects tab themselves; pretending to detect every
+            // brightness mod would be worse than saying which ones we can see.
             new KnownConflict("gamma_utils", "Gamma Utils", new String[]{}, Severity.DELEGATE,
                     Ownership.AETHERIUM_RENDERER,
-                    "Another lightmap editor is active; Aetherium's gamma override is disabled."),
-            new KnownConflict("enhancedblockentities", "Enhanced Block Entities", new String[]{}, Severity.DELEGATE,
+                    "Another brightness mod is active; Aetherium's fullbright is turned off."),
+            new KnownConflict("enhancedblockentities", "Enhanced Block Entities", new String[]{}, Severity.INFO,
                     Ownership.AETHERIUM_RENDERER,
-                    "Overlaps Aetherium's block-entity batching; that batching is turned off."),
+                    "No overlap with the current feature set; listed so reports that mention it get a clear answer."),
     };
 
     private final PlatformAdapter platform;
@@ -252,14 +250,16 @@ public final class ModConflictScanner {
             }
             switch (conflict.modId()) {
                 case "entityculling":
-                    config.entityCulling.set(false);
+                    config.entityCulling.set(Boolean.FALSE);
                     break;
+                case "sodium":
+                case "embeddium":
+                case "magnesium":
                 case "dynamiclights":
-                    config.dynamicLights.set(false);
+                    config.dynamicLights.set(AetheriumConfig.LightMode.OFF);
                     break;
                 case "gamma_utils":
-                    config.gammaEnabled.set(false);
-                    config.caveVision.set(false);
+                    config.fullbright.set(Boolean.FALSE);
                     break;
                 case "enhancedblockentities":
                     LOGGER.dev("Block-entity batching left to Enhanced Block Entities");
