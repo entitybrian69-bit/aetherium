@@ -201,6 +201,15 @@ public final class FrameStats {
         this.windowSamples = 0;
         this.windowNanos = 0L;
         this.windowStartNanos = System.nanoTime();
+        // Window-derived display state: after a world change the HUD must not show the
+        // previous world's frame time for one more frame, so the last-frame value and
+        // the percentiles/fps computed from the (now empty) window go to zero too.
+        // Totals (framesTotal, spikes, totalNanos) deliberately survive - see resetAll.
+        this.frameMs = 0.0;
+        this.fps = 0.0;
+        this.p50Ms = 0.0;
+        this.p99Ms = 0.0;
+        this.p999Ms = 0.0;
         LOGGER.dev("Frame statistics window reset");
     }
 

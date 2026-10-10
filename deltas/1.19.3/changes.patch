@@ -55,7 +55,7 @@ index 827c04e..7ca3daf 100644
      }
  
 diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
-index 14f9ff6..e116abb 100644
+index 14f9ff6..0f6ba8c 100644
 --- a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
 +++ b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
 @@ -16,7 +16,7 @@ import com.aetherium.render.gl.GlDevice;
@@ -67,7 +67,7 @@ index 14f9ff6..e116abb 100644
  import net.minecraft.client.gui.components.AbstractWidget;
  import net.minecraft.network.chat.Component;
  
-@@ -581,20 +581,15 @@ public final class AetheriumTabs {
+@@ -581,14 +581,13 @@ public final class AetheriumTabs {
          }
  
          @Override
@@ -85,14 +85,8 @@ index 14f9ff6..e116abb 100644
 +            net.minecraft.client.gui.GuiComponent.fill(poseStack, this.getX(), this.getY() + 11, this.getX() + this.getWidth(), this.getY() + 12, AetheriumTheme.BORDER);
          }
  
--        @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
--            this.defaultButtonNarrationText(output);
--        }
-     }
- 
-     /** Wrapping note text; {@code text} is measured, never truncated mid-word. */
-@@ -609,13 +604,9 @@ public final class AetheriumTabs {
+         @Override
+@@ -609,8 +608,8 @@ public final class AetheriumTabs {
          }
  
          @Override
@@ -102,14 +96,9 @@ index 14f9ff6..e116abb 100644
 +            this.theme.drawLabel(poseStack, this.text, this.getX(), this.getY(), AetheriumTheme.TEXT_DIM);
          }
  
--        @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
--            this.defaultButtonNarrationText(output);
--        }
-     }
- }
+         @Override
 diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
-index ed450a1..bc70100 100644
+index ed450a1..b64afdc 100644
 --- a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
 +++ b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
 @@ -5,7 +5,7 @@ import java.util.Objects;
@@ -280,13 +269,13 @@ index ed450a1..bc70100 100644
          if (font != null) {
 -            guiGraphics.drawCenteredString(font, net.minecraft.network.chat.Component.literal(title)
 -                    .withStyle(style -> style.withColor(ACCENT & 0xFFFFFF)), x + width / 2, y + 4, TEXT);
-+            net.minecraft.client.gui.GuiComponent.drawCentered(poseStack, font, net.minecraft.network.chat.Component.literal(title)
++            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, net.minecraft.network.chat.Component.literal(title)
 +                    .withStyle(style -> style.withColor(ACCENT & 0xFFFFFF)).getString(), x + width / 2, y + 4, TEXT);
          }
      }
  
 diff --git a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-index 62fcbd8..4585391 100644
+index 62fcbd8..08f60f3 100644
 --- a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
 +++ b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
 @@ -8,7 +8,7 @@ import com.aetherium.Aetherium;
@@ -367,19 +356,7 @@ index 62fcbd8..4585391 100644
      }
  
      /**
-@@ -240,36 +240,34 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-     private void layoutRows() {
-         int y = CONTENT_TOP + this.theme.dp(8) - (int) this.list.getScroll();
-         for (final AbstractWidget row : this.content) {
--            row.setX(this.theme.sidebarWidth() + this.theme.dp(8) * 2);
--            row.setY(y);
-+            row.x = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
-+            row.y = y;
-             if (row.getWidth() > this.contentWidth) {
--                row.setWidth(this.contentWidth);
-+                row.width = this.contentWidth;
-             }
-             y += this.theme.rowHeight() + 4;
+@@ -249,27 +249,25 @@ public final class AetheriumVideoOptionsScreen extends Screen {
          }
      }
  
@@ -416,7 +393,7 @@ index 62fcbd8..4585391 100644
          }
      }
  
-@@ -296,28 +294,24 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+@@ -296,22 +294,22 @@ public final class AetheriumVideoOptionsScreen extends Screen {
          }
  
          @Override
@@ -444,28 +421,20 @@ index 62fcbd8..4585391 100644
              }
          }
  
--        @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
--            this.defaultButtonNarrationText(output);
--        }
-     }
- }
 diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-index 9aad1fb..9d003a9 100644
+index 9aad1fb..0ffded0 100644
 --- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
 +++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-@@ -16,9 +16,8 @@ import com.aetherium.hud.FrameStats;
+@@ -16,7 +16,7 @@ import com.aetherium.hud.FrameStats;
  import com.aetherium.util.MathUtil;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.Font;
 -import net.minecraft.client.gui.GuiGraphics;
 +import com.mojang.blaze3d.vertex.PoseStack;
  import net.minecraft.client.gui.components.AbstractWidget;
--import net.minecraft.client.gui.narration.NarrationElementOutput;
+ import net.minecraft.client.gui.narration.NarrationElementOutput;
  import net.minecraft.network.chat.Component;
- 
- /**
-@@ -27,8 +26,8 @@ import net.minecraft.network.chat.Component;
+@@ -27,8 +27,8 @@ import net.minecraft.network.chat.Component;
   * <p>Nesting is a deliberate structural choice, not laziness: all six widgets share
   * the same hover/glow/touch/animation contract, they are only ever constructed by
   * {@code AetheriumTabs}, and keeping them together means a version delta that
@@ -476,7 +445,7 @@ index 9aad1fb..9d003a9 100644
   * file instead of six.</p>
   *
   * <p>Shared contract, implemented in {@link PurpleWidget}:</p>
-@@ -109,40 +108,20 @@ public final class AetheriumWidgets {
+@@ -109,19 +109,17 @@ public final class AetheriumWidgets {
              }
          }
  
@@ -500,28 +469,7 @@ index 9aad1fb..9d003a9 100644
              }
          }
  
--        /**
--         * {@code AbstractWidget#defaultButtonNarrationText} is the one narration entry
--         * point that exists unchanged from 1.17 to 26.x, so every widget here routes
--         * through it. The value is folded into the message rather than appended to the
--         * output, because {@code NarrationElementOutput.add(...)} takes a
--         * {@code NarrationElement} and its overloads moved twice in the port range.
--         */
--        @Override
--        /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
--         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
--         * override under the old name and the old access is two errors, not one (CI said exactly
--         * that: "does not override abstract method" plus "attempting to assign weaker access").
--         */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
--            this.defaultButtonNarrationText(output);
--        }
--
-         /** Keeps the announced string in sync with the visible one. */
-         /**
-          * Keeps the announced string in sync with the visible value. Widgets that draw
-@@ -188,44 +167,43 @@ public final class AetheriumWidgets {
+@@ -188,44 +186,43 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -575,7 +523,7 @@ index 9aad1fb..9d003a9 100644
                          this.getY() + this.getHeight() + 1, AetheriumTheme.TEXT_DISABLED);
              }
          }
-@@ -309,47 +287,35 @@ public final class AetheriumWidgets {
+@@ -309,33 +306,32 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -617,21 +565,7 @@ index 9aad1fb..9d003a9 100644
              }
          }
  
--        @Override
--        /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
--         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
--         * override under the old name and the old access is two errors, not one (CI said exactly
--         * that: "does not override abstract method" plus "attempting to assign weaker access").
--         */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
--            this.updateMessage(this.label, String.format(java.util.Locale.ROOT, this.format, this.value));
--            this.defaultButtonNarrationText(output);
--        }
-     }
- 
-     /** Enum / boolean cycle control with a sliding value indicator. */
-@@ -392,40 +358,24 @@ public final class AetheriumWidgets {
+@@ -392,27 +388,24 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -661,24 +595,11 @@ index 9aad1fb..9d003a9 100644
              // long cycle list (weather: off/fast/fancy/fancy+) readable at a glance.
              final int indicatorX = this.getX() + (int) ((this.getWidth() - 4) * this.slide.get());
 -            guiGraphics.fill(indicatorX, this.getY() + this.getHeight() - 2, indicatorX + 4, this.getY() + this.getHeight(), AetheriumTheme.ACCENT);
--        }
--
--        @Override
--        /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
--         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
--         * override under the old name and the old access is two errors, not one (CI said exactly
--         * that: "does not override abstract method" plus "attempting to assign weaker access").
--         */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
--            final int index = this.getIndex == null ? 0 : this.getIndex.get();
--            this.updateMessage(this.label, index >= 0 && index < this.values.length ? this.values[index] : "unknown");
--            this.defaultButtonNarrationText(output);
 +            net.minecraft.client.gui.GuiComponent.fill(poseStack, indicatorX, this.getY() + this.getHeight() - 2, indicatorX + 4, this.getY() + this.getHeight(), AetheriumTheme.ACCENT);
          }
  
-         /** Mirrors {@link java.util.function.IntConsumer} without importing it into the public API. */
-@@ -458,22 +408,20 @@ public final class AetheriumWidgets {
+         @Override
+@@ -458,22 +451,20 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -701,12 +622,12 @@ index 9aad1fb..9d003a9 100644
 -                            .withStyle(style -> style.withColor((usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED) & 0xFFFFFF)),
 -                    this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - font.lineHeight) / 2,
 -                    usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED);
-+            net.minecraft.client.gui.GuiComponent.drawCentered(poseStack, font, Component.literal(text)
++            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, Component.literal(text)
 +                            .withStyle(style -> style.withColor((usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED) & 0xFFFFFF)).getString(), this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - font.lineHeight) / 2, usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED);
          }
      }
  
-@@ -503,7 +451,7 @@ public final class AetheriumWidgets {
+@@ -503,7 +494,7 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -715,7 +636,7 @@ index 9aad1fb..9d003a9 100644
              final FrameStats local = this.stats.get();
              if (local == null) {
                  return;
-@@ -513,21 +461,20 @@ public final class AetheriumWidgets {
+@@ -513,21 +504,20 @@ public final class AetheriumWidgets {
              this.fpsValue.tick(AetheriumAnimations.suggestedDeltaSeconds());
              this.p99Value.tick(AetheriumAnimations.suggestedDeltaSeconds());
  
@@ -731,19 +652,19 @@ index 9aad1fb..9d003a9 100644
              final int centerX = this.getX() + this.getWidth() / 2;
 -            guiGraphics.drawCenteredString(font, Component.literal(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
 -                    .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), centerX, this.getY() + 4, AetheriumTheme.TEXT);
-+            net.minecraft.client.gui.GuiComponent.drawCentered(poseStack, font, Component.literal(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
++            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, Component.literal(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
 +                    .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)).getString(), centerX, this.getY() + 4, AetheriumTheme.TEXT);
              final AetheriumTheme.AetheriumStatus status = local.getP99Ms() > 50.0 ? AetheriumTheme.AetheriumStatus.BLOCKED
                      : local.getP99Ms() > 22.0 ? AetheriumTheme.AetheriumStatus.CAUTION : AetheriumTheme.AetheriumStatus.GOOD;
 -            guiGraphics.drawCenteredString(font, Component.literal(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
 -                            .withStyle(style -> style.withColor(AetheriumTheme.statusColor(status) & 0xFFFFFF)),
 -                    centerX, this.getY() + 15, AetheriumTheme.statusColor(status));
-+            net.minecraft.client.gui.GuiComponent.drawCentered(poseStack, font, Component.literal(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
++            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, Component.literal(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
 +                            .withStyle(style -> style.withColor(AetheriumTheme.statusColor(status) & 0xFFFFFF)).getString(), centerX, this.getY() + 15, AetheriumTheme.statusColor(status));
  
              final int count = local.copyRecentGraph(this.graph, this.graph.length);
              this.lines.clear();
-@@ -540,8 +487,7 @@ public final class AetheriumWidgets {
+@@ -540,8 +530,7 @@ public final class AetheriumWidgets {
                  for (int i = 0; i < count; i++) {
                      final int barHeight = Math.max(1, (int) (14.0 * Math.min(1.0, this.graph[i] / peak)));
                      final int barX = this.getX() + 4 + (int) ((this.getWidth() - 8) * i / (float) Math.max(1, count - 1));

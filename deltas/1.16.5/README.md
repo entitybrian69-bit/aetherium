@@ -22,7 +22,7 @@ neoforge_version=unavailable (module disabled)
 ### Era transforms applied by the generated patch
 
 - `Component->string_text`
-- `CycleButton->CycleButtonWidget`
+- `CycleButton->AbstractWidget(1.16.5)`
 - `GuiGraphics->MatrixStack`
 - `OptionsScreen-package`
 - `ResourceLocation.parse->ctor`
@@ -38,18 +38,23 @@ neoforge_version=unavailable (module disabled)
 - `narration-removed`
 - `renderBackground->1-arg`
 - `renderWidget->renderButton`
-- `setWidth->width`
 - `setX->x`
 - `setY->y`
+- `slf4j->log4j2`
+- `this.getX()->this.x`
+- `this.getY()->this.y`
 
 ### Era facts and where they were read from
 
 - `stack_class` = **MatrixStack** - MatrixStack [UNVERIFIED: 1.16.5 predates the 1.17 rename; verify with the javap recipe below]
-- `component_era` = **string_text** - StringTextComponent/TranslationTextComponent [UNVERIFIED: 1.16.5 mojmap names; verify]
-- `narration` = **none** - AbstractWidget declares the abstract `updateWidgetNarration` from 1.19.4 on [VERIFIED by the 2026-10-10 ship legs: 1.19.4 and 1.20 rejected `updateNarration` as 'cannot override' while demanding updateWidgetNarration]; below 1.19.4 narration does not exist and the override is removed
+- `component_era` = **string_text** - net.minecraft.util.text.ITextComponent + new StringTextComponent/new TranslationTextComponent [VERIFIED: 1.16.5 official-mapping javadoc; the 1.16.5 leg rejected net.minecraft.network.chat]
+- `narration` = **none** - below 1.19 narration does not exist and the override is removed
 - `widget_render` = **renderButton** - renderWidget from 1.19.4 [VERIFIED by the 1.19.4 ship leg rejecting renderButton; renderWidget verified on 1.21.1 via sodium's widget set]
 - `render_background_args` = **1** - 1-arg form [VERIFIED on 1.20.1 (Iris) and 1.19.4 (Iris); the 1.20.2-1.20.4 boundary is UNVERIFIED]
-- `widget_setters` = **False** [UNVERIFIED boundary: setters vs public fields, dated to the 1.20 render rework]
+- `widget_access` = **fields** - getX/setX/getY/setY exist from 1.19.3 on; 1.16.5-1.19.2 expose public x/y fields instead, and only the x/y accessors are rewritten (getWidth/setWidth/getHeight/setHeight exist across the whole range) [VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2/1.19.3; the 1.19.2 leg rejected this.getX()]
+- `cycle_button` = **none** - 1.16.5 has no CycleButton; the vanilla-controls counter counts AbstractWidget [the 1.16.5 leg rejected the CycleButton import]
+- `logging` = **log4j** - 1.16.5 has log4j2 only: AetheriumLog swaps the two imports and the factory [VERIFIED: the 1.16.5 leg rejected org.slf4j]
+- `no_remap_loom` = **False** - 26.x ships unobfuscated jars: the no-remap Loom plugin id, no mappings() line, no remapJar task [VERIFIED: sodium @ 26.2/stable applies net.fabricmc.fabric-loom @ 1.16.1 with no mappings block; the 26.x legs failed with 'Failed to find official mojang mappings']
 - `options_pkg` = **screens** - the screens.options package is 1.21+ [VERIFIED: 1.20.5/1.20.6 legs rejected it; sodium @ 1.21.1 imports it]
 - `resource_location` = **ctor** - ResourceLocation.parse is 1.21+; earlier rows use the constructor
 - `level_sections` = **minSection** - getMinSection/getMaxSection through 1.21.1, getMinSectionY/getMaxSectionY from 1.21.2 [VERIFIED: ship legs + sodium @ 1.21.4]
@@ -76,6 +81,7 @@ neoforge_version=unavailable (module disabled)
 - `common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java`
 - `common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 
 ## Verifying this row before shipping it
 

@@ -132,7 +132,7 @@ public final class GpuInfo {
 
     /** Comparable GL level: 460 == 4.6, 330 == 3.3, 210 == 2.1. */
     public int getGlLevel() {
-        return this.glMajor * 100 + this.glMinor;
+        return this.glMajor * 100 + this.glMinor * 10;
     }
 
     public boolean isCoreProfile() {

@@ -117,26 +117,18 @@ public final class LightmapWriter {
                                           final int blockLevel, final float dayPercent) throws Throwable {
         // 16x16, one getPixel + one setPixel per texel. The array form is preferred;
         // this path exists so 1.16.5-1.20.1 get identical behaviour to 1.21.1.
+        // The mutated pixel must be read BACK from the holder array: the earlier
+        // version repacked the untouched float triple, which made this whole path
+        // a silent no-op on the NativeImage-only versions.
+        final int[] holder = new int[1];
         for (int y = 0; y < LIGHTMAP_DIMENSION; y++) {
             for (int x = 0; x < LIGHTMAP_DIMENSION; x++) {
                 final int index = y * LIGHTMAP_DIMENSION + x;
-                final int pixel = (int) imageGetPixel.invoke(image, index);
-                final float red = MathUtil.channelRed(pixel);
-                final float green = MathUtil.channelGreen(pixel);
-                final float blue = MathUtil.channelBlue(pixel);
-                final float[] single = new float[]{red, green, blue};
-                applier.applyLightmap(toIntArray(single), skyLevel, blockLevel, dayPercent);
-                imageSetPixel.invoke(image, index, toPacked(single[0], single[1], single[2]));
+                holder[0] = (int) imageGetPixel.invoke(image, index);
+                applier.applyLightmap(holder, skyLevel, blockLevel, dayPercent);
+                imageSetPixel.invoke(image, index, holder[0]);
             }
         }
-    }
-
-    private static int[] toIntArray(final float[] rgb) {
-        return new int[]{MathUtil.packRgb(rgb[0], rgb[1], rgb[2])};
-    }
-
-    private static int toPacked(final float red, final float green, final float blue) {
-        return MathUtil.packRgb(red, green, blue);
     }
 
     // Shape facts read from real sources on 2026-10-10:

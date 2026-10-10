@@ -200,7 +200,8 @@ final class GammaApplierTest {
         assertEquals(0.0f, identity.evaluate(0.0f), 1.0E-6f);
         assertEquals(0.5f, identity.evaluate(0.5f), 1.0E-6f);
         assertEquals(1.0f, identity.evaluate(1.0f), 1.0E-6f);
-        assertEquals(1.0f, identity.evaluate(-3.0f), 1.0E-6f, "evaluate clamps its input");
+        assertEquals(0.0f, identity.evaluate(-3.0f), 1.0E-6f, "evaluate clamps its input");
+        assertEquals(1.0f, identity.evaluate(3.0f), 1.0E-6f, "and the upper end clamps too");
 
         final GammaCurve lifted = GammaCurve.parse("0:0,0.25:0.8,0.5:0.9,1:1");
         assertEquals(0.0f, lifted.evaluate(0.0f), 1.0E-5f, "the first point must be pinned to 0:0");

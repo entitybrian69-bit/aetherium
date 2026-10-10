@@ -39,7 +39,14 @@ public final class MathUtil {
      * at 30, 144 and 400 fps. Used by the animated widgets and dynamic lights.
      */
     public static float smoothDamp(final float current, final float target, final float halfLifeSeconds, final float deltaSeconds) {
-        if (halfLifeSeconds <= 1.0E-6f || deltaSeconds <= 0.0f) {
+        if (deltaSeconds <= 0.0f) {
+            // Zero (or negative) time passed: nothing may move. Returning the target
+            // here would make a paused GUI snap to its end state, which is exactly
+            // the animation glitch this guard exists for.
+            return current;
+        }
+        if (halfLifeSeconds <= 1.0E-6f) {
+            // A zero half-life means "no smoothing at all": snap to the target.
             return target;
         }
         final float decay = (float) Math.pow(0.5d, deltaSeconds / halfLifeSeconds);
@@ -83,12 +90,18 @@ public final class MathUtil {
         return EXP2_TABLE[index] * (float) Math.pow(2.0d, integer);
     }
 
-    /** Packs 0..1 channel triple into the ABGR int layout vanilla lightmaps use. */
+    /**
+     * Packs 0..1 channel triple into the 24-bit ABGR int layout vanilla lightmaps use
+     * (blue high, red low). The alpha byte is intentionally zero: callers that write
+     * into a vanilla texture must merge the incoming pixel's alpha themselves, because
+     * {@code GammaApplier} preserves it and a forced 0xFF would make every lightmap
+     * int negative — which the lightmap tests forbid.
+     */
     public static int packRgb(final float red, final float green, final float blue) {
         final int r = MathUtil.clamp((int) (red * 255.0f + 0.5f), 0, 255);
         final int g = MathUtil.clamp((int) (green * 255.0f + 0.5f), 0, 255);
         final int b = MathUtil.clamp((int) (blue * 255.0f + 0.5f), 0, 255);
-        return 0xFF000000 | (b << 16) | (g << 8) | r;
+        return (b << 16) | (g << 8) | r;
     }
 
     public static float channelRed(final int abgr) {
@@ -105,11 +118,14 @@ public final class MathUtil {
 
     /**
      * Conservative unsigned pack of a chunk-section offset into a single long
-     * key. Used by the mesh scheduler's de-duplication set; the bias keeps
-     * negative section coordinates (below y=0 since 1.18) orderable.
+     * key. Used by the mesh scheduler's de-duplication set. The fields must not
+     * overlap: 24 bits for x and z (biased by 2^23 so ±8M sections fit) and
+     * 16 bits for y (biased by 2^15), which is exactly 64 bits — the previous
+     * 25-bit x/z fields aliased into each other's bits, so a directly adjacent
+     * section could collide and be skipped by the dedup set.
      */
     public static long sectionKey(final int x, final int y, final int z) {
-        return ((long) (x + 16777216) << 40) | ((long) (z + 16777216) << 16) | (long) (y + 32768);
+        return ((x + 8388608L) << 40) | ((z + 8388608L) << 16) | (y + 32768L);
     }
 
     private static float[] buildExp2Table() {

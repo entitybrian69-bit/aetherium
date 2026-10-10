@@ -83,6 +83,13 @@ FILES = {
     "widgets": os.path.join(SRC, "gui/widget/AetheriumWidgets.java"),
     "hud": os.path.join(SRC, "hud/AetheriumHudRenderer.java"),
     "hooks": os.path.join(SRC, "client/ClientHooks.java"),
+    # AetheriumLog is the only slf4j user; 1.16.5 has no slf4j on its compile
+    # classpath (log4j2 era), so its delta swaps the facade's imports.
+    "log": os.path.join(SRC, "util/AetheriumLog.java"),
+    # 26.x ships unobfuscated jars: the no-remap Loom plugin id + the removal of the
+    # mappings()/remapJar blocks live in these three build files.
+    "common_build": os.path.join(REPO, "common", "build.gradle.kts"),
+    "fabric_build": os.path.join(REPO, "fabric", "build.gradle.kts"),
 }
 
 # Files a delta is allowed to touch. Enforced, not advisory: a generator that can emit
@@ -105,6 +112,9 @@ ALLOWED_TARGETS = {
     f"{SRC}/gui/widget/AetheriumWidgets.java",
     f"{SRC}/hud/AetheriumHudRenderer.java",
     f"{SRC}/client/ClientHooks.java",
+    f"{SRC}/util/AetheriumLog.java",
+    "common/build.gradle.kts",
+    "fabric/build.gradle.kts",
 }
 
 STACK_FQN = {
@@ -113,15 +123,25 @@ STACK_FQN = {
 }
 STACK_VAR = {"PoseStack": "poseStack", "MatrixStack": "matrixStack"}
 
+# Era shapes verified on 2026-10-10 against Nekoyue/ForgeJavaDocs-NG (official-mapping
+# javadoc mirror: 1.17.1/1.18.2/1.19.3) plus the 1.16.5 ship-leg error list:
+#   * >=1.19   : interface Component (network.chat) + Component.literal/translatable factories.
+#   * 1.17-1.18.2: interface is STILL Component (network.chat) - the ITextComponent name is
+#     the yarn/MCP name and the 1.17/1.18.2 legs rejected it - but the factories are gone:
+#     `new TextComponent(...)`, `new TranslatableComponent(...)`.
+#   * 1.16.5   : net.minecraft.util.text.ITextComponent + `new StringTextComponent(...)` /
+#     `new TranslationTextComponent(...)` (the network.chat package does not exist there;
+#     the 1.16.5 leg rejected it). withStyle(ChatFormatting/UnaryOperator) exists on
+#     IFormattableTextComponent in 1.16.5, so chained calls survive unchanged.
 COMPONENT_ERAS = {
     # era -> (interface import fqn, literal ctor fqn, translatable ctor fqn)
     "component": ("net.minecraft.network.chat.Component", None, None),
-    "text": ("net.minecraft.network.chat.ITextComponent",
+    "text": ("net.minecraft.network.chat.Component",
              "net.minecraft.network.chat.TextComponent",
              "net.minecraft.network.chat.TranslatableComponent"),
-    "string_text": ("net.minecraft.network.chat.ITextComponent",
-                    "net.minecraft.network.chat.StringTextComponent",
-                    "net.minecraft.network.chat.TranslationTextComponent"),
+    "string_text": ("net.minecraft.util.text.ITextComponent",
+                    "net.minecraft.util.text.StringTextComponent",
+                    "net.minecraft.util.text.TranslationTextComponent"),
 }
 
 
@@ -417,13 +437,18 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
         def draw_centered(recv: str, args):
             if len(args) == 5 and recv == var:
                 # GuiGraphics.drawCenteredString(Font, text, x, y, color) ->
-                # GuiComponent.drawCentered(stack, Font, text, x, y, color). The PoseStack-era
-                # drawCentered has no Component overload (the 1.19.4 ship leg rejected it),
-                # so the text argument is flattened with getString().
+                # GuiComponent.drawCenteredString(stack, Font, text, x, y, color). The
+                # pre-GuiGraphics name carries the String suffix (verified: GuiComponent @
+                # 1.17.1/1.18.2/1.19.3 in the official-mapping javadocs has exactly
+                # drawCenteredString(PoseStack, Font, String|Component, int, int, int);
+                # the 1.19.4 ship leg rejected a bare drawCentered with this exact shape).
+                # The String overload exists on every one of those versions, so the text
+                # argument is flattened with getString() unconditionally.
                 text_arg = args[1]
                 if not text_arg.startswith('"'):
                     text_arg += ".getString()"
-                return f"net.minecraft.client.gui.GuiComponent.drawCentered({var}, {args[0]}, {text_arg}, {args[2]}, {args[3]}, {args[4]})"
+                return (f"net.minecraft.client.gui.GuiComponent.drawCenteredString("
+                        f"{var}, {args[0]}, {text_arg}, {args[2]}, {args[3]}, {args[4]})")
             return None
 
         def fill(recv: str, args):
@@ -502,6 +527,51 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
             text = text.replace(old_bg, "super.extractRenderState(guiGraphics, mouseX, mouseY, delta);", 1)
             applied.append("renderBackground->super.extractRenderState")
 
+    # 26.x ships unobfuscated jars. Loom therefore publishes/needs the NO-REMAP plugin
+    # id ("net.fabricmc.fabric-loom") and NO mappings() line at all - sodium @
+    # 26.2/stable applies exactly that plugin id at the same 1.16.1 version and its
+    # fabric build declares only the minecraft() dependency. The remap id + mojmap
+    # lookup is what produced "Failed to find official mojang mappings for 26.x" on
+    # the 26.1/26.2/26.3 legs. There is also no remapJar task to depend on: the plain
+    # jar is the shipped jar.
+    if facts.get("no_remap_loom"):
+        if key == "catalog":
+            old_id = 'fabric-loom = { id = "net.fabricmc.fabric-loom-remap", version.ref = "loom" }'
+            if old_id in text:
+                text = text.replace(old_id, 'fabric-loom = { id = "net.fabricmc.fabric-loom", version.ref = "loom" }', 1)
+                applied.append("loom-plugin-id->no-remap")
+        if key in ("common_build", "fabric_build"):
+            old_mappings = (
+                "    // The layered{} form is the one CaffeineMC/sodium uses at this exact loom version\n"
+                "    // (common/build.gradle.kts @ 1.21.1/stable); the officialMojangMappings() shortcut\n"
+                "    // is not verified to still exist on the 1.16 line.\n"
+                "    mappings(loom.layered { officialMojangMappings() })")
+            new_mappings = (
+                "    // 26.x ships unobfuscated jars: the no-remap Loom plugin needs no mappings()\n"
+                "    // line at all (CaffeineMC/sodium @ 26.2/stable declares only the minecraft()\n"
+                "    // dependency; a mappings lookup is what produced \"Failed to find official\n"
+                "    // mojang mappings for 26.x\").")
+            if old_mappings in text:
+                text = text.replace(old_mappings, new_mappings, 1)
+                applied.append("mappings-line-removed")
+        if key == "fabric_build":
+            old_remap = (
+                "tasks.withType<net.fabricmc.loom.task.RemapJarTask> {\n"
+                "    addNestedDependencies = true\n"
+                "}\n"
+                "\n"
+                "tasks.named(\"build\") {\n"
+                "    dependsOn(\"remapJar\")\n"
+                "}")
+            new_remap = (
+                "// No remapJar block: the no-remap Loom plugin (\"net.fabricmc.fabric-loom\", see the\n"
+                "// catalog) has no remapJar task for 26.x's unobfuscated jars - the plain jar task\n"
+                "// builds the shipped artifact, and the nested-dependency flag has no remap step to\n"
+                "// configure (the include(...) entries above are already jar-in-jar).")
+            if old_remap in text:
+                text = text.replace(old_remap, new_remap, 1)
+                applied.append("remapJar-block-removed")
+
     # ResourceLocation -> Identifier from 1.21.11 (sodium @ 1.21.11/stable:
     # net.minecraft.resources.Identifier + Identifier.fromNamespaceAndPath(ns, path)).
     if facts.get("identifier"):
@@ -524,24 +594,39 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
     era = facts.get("component_era", "component")
     if era != "component":
         interface, literal, translatable = COMPONENT_ERAS[era]
+        iface_short = interface.rsplit(".", 1)[-1]
+        lit_short = literal.rsplit(".", 1)[-1]
+        tra_short = translatable.rsplit(".", 1)[-1]
         if "import net.minecraft.network.chat.Component;" in text:
             extra = ""
-            if literal and "Component.literal(" in text:
+            if "Component.literal(" in text or "net.minecraft.network.chat.Component.literal(" in text:
                 extra += f"\nimport {literal};"
-            if translatable and "Component.translatable(" in text:
+            if "Component.translatable(" in text or "net.minecraft.network.chat.Component.translatable(" in text:
                 extra += f"\nimport {translatable};"
+            # 1.17-1.18.2 keep the Component interface import; 1.16.5 swaps it for
+            # net.minecraft.util.text.ITextComponent (the chat package does not exist).
             text = text.replace("import net.minecraft.network.chat.Component;",
                                 f"import {interface};{extra}", 1)
+        # fully-qualified factory calls first (the Button.builder fallback block uses them)
         text = text.replace("net.minecraft.network.chat.Component.literal(", f"new {literal}(")
         text = text.replace("net.minecraft.network.chat.Component.translatable(", f"new {translatable}(")
-        text = re.sub(r"\bComponent\.literal\(", f"new {literal.rsplit('.', 1)[-1]}(", text)
-        text = re.sub(r"\bComponent\.translatable\(", f"new {translatable.rsplit('.', 1)[-1]}(", text)
-        # remaining bare `Component` type references (parameters, generics) -> the interface
-        text = re.sub(r"\bComponent\b(?!\.)", interface.rsplit(".", 1)[-1], text)
+        text = re.sub(r"\bComponent\.literal\(", f"new {lit_short}(", text)
+        text = re.sub(r"\bComponent\.translatable\(", f"new {tra_short}(", text)
+        if era == "string_text":
+            # remaining bare `Component` type references (parameters, generics, casts)
+            # -> ITextComponent; on 1.17-1.18.2 the interface is still named Component.
+            text = re.sub(r"\bComponent\b(?!\.)", iface_short, text)
         applied.append(f"Component->{era}")
 
     # narration method name / existence
     narration = facts.get("narration", "widget")
+    if narration == "plain" and "updateWidgetNarration" in text:
+        # 1.19-1.19.2: NarrationSupplier#updateNarration is the abstract method (the
+        # 1.19.2 leg demanded it); AbstractWidget#updateWidgetNarration only exists
+        # from 1.19.3 on (official-mapping javadoc @ 1.19.3 has both, the rename to
+        # the widget-scoped name completed there).
+        text = text.replace("updateWidgetNarration", "updateNarration")
+        applied.append("updateWidgetNarration->updateNarration")
     if narration == "none" and "updateWidgetNarration" in text:
         # AbstractWidget gained the (abstract) updateWidgetNarration + NarrationSupplier at
         # the 1.19.4 accessibility rework; below that neither exists and the override (and
@@ -556,14 +641,36 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
         text = text.replace("import net.minecraft.client.gui.narration.NarrationElementOutput;\r\n", "")
         applied.append("narration-removed")
 
+    # Logging facade: 1.16.5's classpath has log4j2, not slf4j (the 1.16.5 leg
+    # rejected org.slf4j; every 1.17+ leg compiles it). Log4j2's Logger has the same
+    # info/warn/error/debug(String, Object...) surface with {} placeholders, and
+    # LogManager.getLogger(String) replaces LoggerFactory.getLogger(String), so the
+    # swap is two imports and one factory call - the facade keeps its API.
+    if facts.get("logging") == "log4j":
+        if "import org.slf4j.Logger;" in text:
+            text = text.replace("import org.slf4j.Logger;", "import org.apache.logging.log4j.Logger;", 1)
+            text = text.replace("import org.slf4j.LoggerFactory;", "import org.apache.logging.log4j.LogManager;", 1)
+            text = text.replace("LoggerFactory.getLogger(", "LogManager.getLogger(")
+            applied.append("slf4j->log4j2")
+
     # AbstractWidget render method name
     if facts.get("widget_render") == "renderButton" and "renderWidget" in text:
         text = text.replace("renderWidget", "renderButton")
         applied.append("renderWidget->renderButton")
 
-    # widget setters -> public fields (pre-1.19.3 widgets had public x/y/width/height)
-    if facts.get("widget_setters") is False:
-        for setter, field in (("setX", "x"), ("setY", "y"), ("setWidth", "width"), ("setHeight", "height")):
+    # AbstractWidget geometry access. getX/getY/setX/setY exist from 1.19.3 on
+    # (official-mapping javadoc @ 1.19.3 lists them; @ 1.17.1/1.18.2 only
+    # getWidth/getHeight/setWidth/setHeight exist, and the 1.19.2 leg rejected
+    # this.getX()). x/y are public fields 1.16.5-1.19.2 and private from 1.19.3,
+    # so the pre-1.19.3 rows rewrite ONLY the x/y accessors to field form and keep
+    # width/height methods, which exist across the whole range.
+    if facts.get("widget_access") == "fields":
+        for getter, field in (("getX", "x"), ("getY", "y")):
+            new_text = text.replace(f"this.{getter}()", f"this.{field}")
+            if new_text != text:
+                text = new_text
+                applied.append(f"this.{getter}()->this.{field}")
+        for setter, field in (("setX", "x"), ("setY", "y")):
             pattern = re.compile(r"(\w+)\." + setter + r"\(([^;]+?)\);")
             new_text, n = pattern.subn(r"\1." + field + r" = \2;", text)
             if n:
@@ -614,14 +721,12 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
                 .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)
                 .build();''')
         if old in text:
+            _, literal_fqn, translatable_fqn = COMPONENT_ERAS[era]
             component = ("net.minecraft.network.chat.Component.translatable"
-                         if facts.get("component_era") == "component"
-                         else "new net.minecraft.network.chat."
-                         + ("TranslatableComponent" if era == "text" else "TranslationTextComponent"))
-            open_component = component if era == "component" else component
+                         if era == "component" else f"new {translatable_fqn}")
             new = (f'final net.minecraft.client.gui.components.Button button = new net.minecraft.client.gui.components.Button(\n'
                    f'                5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20,\n'
-                   f'                {open_component}("aetherium.screen.fallback_button"),\n'
+                   f'                {component}("aetherium.screen.fallback_button"),\n'
                    f'                widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)));')
             text = text.replace(old, new, 1)
             applied.append("Button.builder->ctor")
@@ -638,15 +743,23 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
             text = text.replace('"addRenderableWidget"', '"addButton"')
             applied.append("addRenderableWidget->addButton")
 
-    # CycleButton was named CycleButtonWidget until 1.19.1
+    # CycleButton exists under that exact mojmap name from 1.17 on (official-mapping
+    # javadoc @ 1.17.1/1.18.2 list net.minecraft.client.gui.components.CycleButton); the
+    # CycleButtonWidget rename never existed and the 1.17/1.18.2 legs rejected it.
+    # 1.16.5 has no CycleButton class at all: the vanilla-controls counter counts
+    # AbstractWidget instead (the 1.16.5 leg rejected the CycleButton import).
     cycle = facts.get("cycle_button", "CycleButton")
-    if cycle == "CycleButtonWidget":
+    if cycle == "none":
         cb = "net.minecraft.client.gui.components."
+        # The only CycleButton user is OptionsScreenMixin's vanilla-controls counter,
+        # which does not otherwise import AbstractWidget - so the import is swapped,
+        # not removed, and the counter keeps its meaning (every vanilla control in
+        # OptionsScreen is an AbstractWidget there; CycleButton does not exist yet).
         if f"import {cb}CycleButton;" in text:
-            text = text.replace(f"import {cb}CycleButton;", f"import {cb}CycleButtonWidget;", 1)
-        text = text.replace("if (child instanceof CycleButton<?>) {", "if (child instanceof CycleButtonWidget) {")
-        text = text.replace("{@link CycleButton}s", "{@link CycleButtonWidget}s")
-        applied.append("CycleButton->CycleButtonWidget")
+            text = text.replace(f"import {cb}CycleButton;", f"import {cb}AbstractWidget;", 1)
+        text = text.replace("if (child instanceof CycleButton<?>) {", "if (child instanceof AbstractWidget) {")
+        text = text.replace("{@link CycleButton}s", "{@link AbstractWidget}s")
+        applied.append("CycleButton->AbstractWidget(1.16.5)")
 
     return text, applied
 
@@ -775,20 +888,47 @@ def write_docs(row: dict, out_dir: str, touched: list[str], results: dict) -> No
         f"- `component_era` = **{facts['component_era']}** - "
         + ("Component.literal is 1.19+ [VERIFIED on 1.19.4 sources]"
            if facts["component_era"] == "component" else
-           "TextComponent/TranslatableComponent [UNVERIFIED: the 1.17-1.18.2 mojmap names; verify]"
+           "interface stays Component, factories become new TextComponent/new TranslatableComponent "
+           "[VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2; the 1.17/1.18.2 legs rejected ITextComponent]"
            if facts["component_era"] == "text" else
-           "StringTextComponent/TranslationTextComponent [UNVERIFIED: 1.16.5 mojmap names; verify]"),
-        f"- `narration` = **{facts['narration']}** - AbstractWidget declares the abstract "
-          "`updateWidgetNarration` from 1.19.4 on [VERIFIED by the 2026-10-10 ship legs: "
-          "1.19.4 and 1.20 rejected `updateNarration` as 'cannot override' while demanding "
-          "updateWidgetNarration]; below 1.19.4 narration does not exist and the override is removed",
+           "net.minecraft.util.text.ITextComponent + new StringTextComponent/new TranslationTextComponent "
+           "[VERIFIED: 1.16.5 official-mapping javadoc; the 1.16.5 leg rejected net.minecraft.network.chat]"),
+        f"- `narration` = **{facts['narration']}** - "
+        + ("AbstractWidget declares the abstract `updateWidgetNarration` from 1.19.3 on "
+           "[VERIFIED: official-mapping javadoc @ 1.19.3 lists updateWidgetNarration; 1.19.4 "
+           "and 1.20 legs rejected `updateNarration` as 'cannot override' while demanding "
+           "updateWidgetNarration]"
+           if facts["narration"] == "widget" else
+           "1.19-1.19.2: NarrationSupplier#updateNarration is the abstract method "
+           "[VERIFIED: the 1.19.2 leg demanded it]; the override is renamed"
+           if facts["narration"] == "plain" else
+           "below 1.19 narration does not exist and the override is removed"),
         f"- `widget_render` = **{facts['widget_render']}** - renderWidget from 1.19.4 "
           "[VERIFIED by the 1.19.4 ship leg rejecting renderButton; renderWidget verified on "
           "1.21.1 via sodium's widget set]",
         f"- `render_background_args` = **{facts['render_background_args']}** - "
         + ("4-arg form [VERIFIED on 1.20.6 (Iris) and 1.21.1 (Iris)]" if facts["render_background_args"] == 4
            else "1-arg form [VERIFIED on 1.20.1 (Iris) and 1.19.4 (Iris); the 1.20.2-1.20.4 boundary is UNVERIFIED]"),
-        f"- `widget_setters` = **{facts['widget_setters']}** [UNVERIFIED boundary: setters vs public fields, dated to the 1.20 render rework]",
+        f"- `widget_access` = **{facts.get('widget_access', 'accessors')}** - getX/setX/getY/setY "
+          "exist from 1.19.3 on; 1.16.5-1.19.2 expose public x/y fields instead, and only the x/y "
+          "accessors are rewritten (getWidth/setWidth/getHeight/setHeight exist across the whole "
+          "range) [VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2/1.19.3; the 1.19.2 leg "
+          "rejected this.getX()]",
+        f"- `cycle_button` = **{facts.get('cycle_button', 'CycleButton')}** - "
+        + ("CycleButton under that exact mojmap name from 1.17 on [VERIFIED: official-mapping "
+           "javadoc @ 1.17.1/1.18.2; the 1.17/1.18.2 legs rejected CycleButtonWidget]"
+           if facts.get("cycle_button", "CycleButton") == "CycleButton" else
+           "1.16.5 has no CycleButton; the vanilla-controls counter counts AbstractWidget "
+           "[the 1.16.5 leg rejected the CycleButton import]"),
+        f"- `logging` = **{facts.get('logging', 'slf4j')}** - "
+        + ("slf4j on the compile classpath"
+           if facts.get("logging", "slf4j") == "slf4j" else
+           "1.16.5 has log4j2 only: AetheriumLog swaps the two imports and the factory "
+           "[VERIFIED: the 1.16.5 leg rejected org.slf4j]"),
+        f"- `no_remap_loom` = **{facts.get('no_remap_loom', False)}** - 26.x ships unobfuscated "
+          "jars: the no-remap Loom plugin id, no mappings() line, no remapJar task "
+          "[VERIFIED: sodium @ 26.2/stable applies net.fabricmc.fabric-loom @ 1.16.1 with no "
+          "mappings block; the 26.x legs failed with 'Failed to find official mojang mappings']",
         f"- `options_pkg` = **{facts['options_pkg']}** - the screens.options package is 1.21+ "
           "[VERIFIED: 1.20.5/1.20.6 legs rejected it; sodium @ 1.21.1 imports it]",
         f"- `resource_location` = **{facts['resource_location']}** - ResourceLocation.parse is 1.21+; earlier rows use the constructor",

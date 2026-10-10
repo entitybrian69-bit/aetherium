@@ -98,7 +98,7 @@ index 14f9ff6..ea83408 100644
  
          @Override
 diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
-index ed450a1..bc70100 100644
+index ed450a1..b64afdc 100644
 --- a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
 +++ b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
 @@ -5,7 +5,7 @@ import java.util.Objects;
@@ -269,13 +269,13 @@ index ed450a1..bc70100 100644
          if (font != null) {
 -            guiGraphics.drawCenteredString(font, net.minecraft.network.chat.Component.literal(title)
 -                    .withStyle(style -> style.withColor(ACCENT & 0xFFFFFF)), x + width / 2, y + 4, TEXT);
-+            net.minecraft.client.gui.GuiComponent.drawCentered(poseStack, font, net.minecraft.network.chat.Component.literal(title)
++            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, net.minecraft.network.chat.Component.literal(title)
 +                    .withStyle(style -> style.withColor(ACCENT & 0xFFFFFF)).getString(), x + width / 2, y + 4, TEXT);
          }
      }
  
 diff --git a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-index 62fcbd8..a5a9a57 100644
+index 62fcbd8..f7f9691 100644
 --- a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
 +++ b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
 @@ -8,7 +8,7 @@ import com.aetherium.Aetherium;
@@ -356,19 +356,7 @@ index 62fcbd8..a5a9a57 100644
      }
  
      /**
-@@ -240,36 +240,34 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-     private void layoutRows() {
-         int y = CONTENT_TOP + this.theme.dp(8) - (int) this.list.getScroll();
-         for (final AbstractWidget row : this.content) {
--            row.setX(this.theme.sidebarWidth() + this.theme.dp(8) * 2);
--            row.setY(y);
-+            row.x = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
-+            row.y = y;
-             if (row.getWidth() > this.contentWidth) {
--                row.setWidth(this.contentWidth);
-+                row.width = this.contentWidth;
-             }
-             y += this.theme.rowHeight() + 4;
+@@ -249,27 +249,25 @@ public final class AetheriumVideoOptionsScreen extends Screen {
          }
      }
  
@@ -434,7 +422,7 @@ index 62fcbd8..a5a9a57 100644
          }
  
 diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-index 9aad1fb..ccf71df 100644
+index 9aad1fb..18fe4fa 100644
 --- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
 +++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
 @@ -16,7 +16,7 @@ import com.aetherium.hud.FrameStats;
@@ -632,7 +620,7 @@ index 9aad1fb..ccf71df 100644
 -                            .withStyle(style -> style.withColor((usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED) & 0xFFFFFF)),
 -                    this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - font.lineHeight) / 2,
 -                    usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED);
-+            net.minecraft.client.gui.GuiComponent.drawCentered(poseStack, font, Component.literal(text)
++            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, Component.literal(text)
 +                            .withStyle(style -> style.withColor((usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED) & 0xFFFFFF)).getString(), this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - font.lineHeight) / 2, usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED);
          }
      }
@@ -662,14 +650,14 @@ index 9aad1fb..ccf71df 100644
              final int centerX = this.getX() + this.getWidth() / 2;
 -            guiGraphics.drawCenteredString(font, Component.literal(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
 -                    .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), centerX, this.getY() + 4, AetheriumTheme.TEXT);
-+            net.minecraft.client.gui.GuiComponent.drawCentered(poseStack, font, Component.literal(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
++            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, Component.literal(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
 +                    .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)).getString(), centerX, this.getY() + 4, AetheriumTheme.TEXT);
              final AetheriumTheme.AetheriumStatus status = local.getP99Ms() > 50.0 ? AetheriumTheme.AetheriumStatus.BLOCKED
                      : local.getP99Ms() > 22.0 ? AetheriumTheme.AetheriumStatus.CAUTION : AetheriumTheme.AetheriumStatus.GOOD;
 -            guiGraphics.drawCenteredString(font, Component.literal(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
 -                            .withStyle(style -> style.withColor(AetheriumTheme.statusColor(status) & 0xFFFFFF)),
 -                    centerX, this.getY() + 15, AetheriumTheme.statusColor(status));
-+            net.minecraft.client.gui.GuiComponent.drawCentered(poseStack, font, Component.literal(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
++            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, Component.literal(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
 +                            .withStyle(style -> style.withColor(AetheriumTheme.statusColor(status) & 0xFFFFFF)).getString(), centerX, this.getY() + 15, AetheriumTheme.statusColor(status));
  
              final int count = local.copyRecentGraph(this.graph, this.graph.length);

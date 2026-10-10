@@ -169,6 +169,15 @@ public final class ConfigValue<T> {
         return this.dirty;
     }
 
+    /**
+     * Clears the dirty flag. Called by {@link AetheriumConfig#clearDirty()} after a
+     * successful write; re-setting the current value would not clear it, because
+     * {@link #set(Object)} only ever sets the flag on change.
+     */
+    void clearDirtyFlag() {
+        this.dirty = false;
+    }
+
     /** True when the value is stored but not yet applied at a safe point. */
     public boolean isPendingApply() {
         return this.pendingApply;

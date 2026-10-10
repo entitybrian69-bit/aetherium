@@ -79,6 +79,15 @@ public final class GammaApplier {
         if (pixels == null || pixels.length == 0) {
             return;
         }
+        // Nothing is active: the pass must be a byte-identical no-op, because the
+        // vanilla pixels are already on the GPU and rewriting them can only introduce
+        // rounding drift (a changed pixel with gamma "off" is a bug report we cannot
+        // reproduce). The curve alone is not a reason to run: it only shapes the
+        // response when at least one of the features that use it is switched on.
+        if (!this.config.gammaEnabled.get() && !this.config.caveVision.get()
+                && !this.config.nightVisionBoost.get() && !this.config.timeBasedGamma.get()) {
+            return;
+        }
         GammaCurve curve = this.curve;
         if (curve == null) {
             curve = rebuildCurve(this.config.gammaCurve.get());
@@ -154,7 +163,10 @@ public final class GammaApplier {
             green = Math.max(MathUtil.clamp(curve.evaluate(green) * amount, 0.0f, 1.0f), floor);
             blue = Math.max(MathUtil.clamp(curve.evaluate(blue) * amount, 0.0f, 1.0f), floor);
 
-            pixels[i] = MathUtil.packRgb(red, green, blue);
+            // Preserve whatever alpha the incoming pixel carried: vanilla lightmap
+            // ints are 0xFF-alpha, freshly-packed test ramps are 0x00-alpha, and both
+            // must round-trip unchanged (the packed RGB keeps every int non-negative).
+            pixels[i] = (pixel & 0xFF000000) | MathUtil.packRgb(red, green, blue);
         }
         this.appliedFrames++;
     }

@@ -79,10 +79,10 @@ public final class AetheriumConfig {
     public final ConfigValue<Boolean> timeBasedGamma = ConfigValue.bool("utilities.gamma.time_based", false, "Blend gamma between a day and a night target using world time.");
     public final ConfigValue<Double> gammaNightTarget = ConfigValue.doubleRange("utilities.gamma.time_based_night", 1.8, 0.0, 20.0, "Gamma applied at midnight when time-based gamma is on.");
     public final ConfigValue<String> gammaCurve = ConfigValue.string(
-            "utilities.gamma.curve", "0:0,0.15:0.32,0.4:0.62,0.7:0.85,1:1",
+            "utilities.gamma.curve", "0:0,1:1",
             "Monotone control points 'x:y,...' — see gamma.GammaCurve; blank disables the curve editor.");
 
-    public final ConfigValue<Boolean> dynamicLights = ConfigValue.bool("utilities.dynamic_lights.enabled", false, "Item/entity light sources written into the lightmap.");
+    public final ConfigValue<Boolean> dynamicLights = ConfigValue.bool("utilities.dynamic_lights.enabled", true, "Item/entity light sources written into the lightmap.");
     public final ConfigValue<Integer> dynamicLightsQuality = ConfigValue.intRange("utilities.dynamic_lights.quality", 2, 0, 3, false, "0 off, 1 sources only, 2 + attenuation smoothing, 3 + occlusion test.");
     public final ConfigValue<Integer> dynamicLightsRange = ConfigValue.intRange("utilities.dynamic_lights.range", 14, 4, 15, false, "Propagation radius in blocks.");
     public final ConfigValue<Boolean> dynamicLightsColored = ConfigValue.bool("utilities.dynamic_lights.colored", true, "Use per-source RGB instead of a white falloff.");
@@ -177,21 +177,10 @@ public final class AetheriumConfig {
 
     public void clearDirty() {
         for (final ConfigValue<?> value : this.options.values()) {
-            // Field-level reset is not exposed on ConfigValue; the store calls
-            // this after a successful write and dirty is only read, never
-            // required to survive the write.
-            clearOne(value);
-        }
-    }
-
-    /**
-     * Re-setting to the current value under the value's own type parameter. `ConfigValue<?>`
-     * cannot be `set(value.get())` inline - the compiler only knows the capture, not that both
-     * sides share it (javac: "Object cannot be converted to CAP#1") - so the capture is named here.
-     */
-    private static <T> void clearOne(final ConfigValue<T> value) {
-        if (value.isDirty()) {
-            value.set(value.get());
+            // Direct flag reset: set(get()) never clears the flag, so a write that
+            // "succeeded" would leave every value dirty and the shutdown hook would
+            // rewrite the file for no reason.
+            value.clearDirtyFlag();
         }
     }
 

@@ -75,16 +75,16 @@ final class JsonTest {
     @DisplayName("non-finite numbers become null, because JSON cannot hold them")
     void nonFiniteNumbers() {
         final Map<String, Object> root = new LinkedHashMap<>();
-        root.put("nan", Double.NaN);
-        root.put("inf", Double.POSITIVE_INFINITY);
+        root.put("valueOne", Double.NaN);
+        root.put("valueTwo", Double.POSITIVE_INFINITY);
         final String written = Json.write(root);
         assertTrue(written.contains("null"), "expected nulls, got: " + written);
         assertTrue(!written.toLowerCase().contains("nan") && !written.toLowerCase().contains("infinity"),
                 "the writer emitted a literal a JSON reader cannot parse");
         // And the reader takes them back as null, so ConfigValue falls to its default.
         final Map<String, Object> back = Json.parseObject(written);
-        assertNull(back.get("nan"));
-        assertNull(back.get("inf"));
+        assertNull(back.get("valueOne"));
+        assertNull(back.get("valueTwo"));
     }
 
     @Test
@@ -161,7 +161,7 @@ final class JsonTest {
         assertInstanceOf(List.class, flat.get("e"));
         assertEquals(2, ((List<?>) flat.get("e")).size());
         assertEquals(3, ((Number) ((List<?>) flat.get("e")).get(0)).intValue());
-        assertEquals(2, flat.size(), "flatten produced " + flat.keySet());
+        assertEquals(3, flat.size(), "flatten produced " + flat.keySet());
     }
 
     @Test

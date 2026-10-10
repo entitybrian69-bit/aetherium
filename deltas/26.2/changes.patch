@@ -4,6 +4,25 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/26.2/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/26.2/changes.patch
+diff --git a/common/build.gradle.kts b/common/build.gradle.kts
+index fd37e86..723c029 100644
+--- a/common/build.gradle.kts
++++ b/common/build.gradle.kts
+@@ -43,10 +43,10 @@ loom {
+ 
+ dependencies {
+     minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
+-    // The layered{} form is the one CaffeineMC/sodium uses at this exact loom version
+-    // (common/build.gradle.kts @ 1.21.1/stable); the officialMojangMappings() shortcut
+-    // is not verified to still exist on the 1.16 line.
+-    mappings(loom.layered { officialMojangMappings() })
++    // 26.x ships unobfuscated jars: the no-remap Loom plugin needs no mappings()
++    // line at all (CaffeineMC/sodium @ 26.2/stable declares only the minecraft()
++    // dependency; a mappings lookup is what produced "Failed to find official
++    // mojang mappings for 26.x").
+ 
+     // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
+     // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
 index d753fd1..027b6d2 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
@@ -807,6 +826,52 @@ index 49084c2..1f72c41 100644
    "injectors": {
      "defaultRequire": 0,
      "defaultExpect": 0
+diff --git a/fabric/build.gradle.kts b/fabric/build.gradle.kts
+index f627546..761faac 100644
+--- a/fabric/build.gradle.kts
++++ b/fabric/build.gradle.kts
+@@ -61,10 +61,10 @@ repositories {
+ 
+ dependencies {
+     minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
+-    // The layered{} form is the one CaffeineMC/sodium uses at this exact loom version
+-    // (common/build.gradle.kts @ 1.21.1/stable); the officialMojangMappings() shortcut
+-    // is not verified to still exist on the 1.16 line.
+-    mappings(loom.layered { officialMojangMappings() })
++    // 26.x ships unobfuscated jars: the no-remap Loom plugin needs no mappings()
++    // line at all (CaffeineMC/sodium @ 26.2/stable declares only the minecraft()
++    // dependency; a mappings lookup is what produced "Failed to find official
++    // mojang mappings for 26.x").
+ 
+     modImplementation("net.fabricmc:fabric-loader:${project.property("fabric_loader_version")}")
+     // Fabric API is compile-only and optional: every hook Aetherium needs is a
+@@ -111,10 +111,7 @@ tasks.processResources {
+     }
+ }
+ 
+-tasks.withType<net.fabricmc.loom.task.RemapJarTask> {
+-    addNestedDependencies = true
+-}
+-
+-tasks.named("build") {
+-    dependsOn("remapJar")
+-}
++// No remapJar block: the no-remap Loom plugin ("net.fabricmc.fabric-loom", see the
++// catalog) has no remapJar task for 26.x's unobfuscated jars - the plain jar task
++// builds the shipped artifact, and the nested-dependency flag has no remap step to
++// configure (the include(...) entries above are already jar-in-jar).
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index a2a8bd6..151bd9f 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -16,6 +16,6 @@ gitversion = "1.0.0"
+ # "net.fabricmc.fabric-loom-remap" (full classic behaviour incl. remapJar). The bare
+ # "fabric-loom" id of the 1.8 era no longer resolves at 1.16.1; CaffeineMC/sodium @
+ # 1.21.1/stable applies the -remap id at exactly the pinned version on this Gradle.
+-fabric-loom = { id = "net.fabricmc.fabric-loom-remap", version.ref = "loom" }
++fabric-loom = { id = "net.fabricmc.fabric-loom", version.ref = "loom" }
+ neoforge-moddev = { id = "net.neoforged.moddev", version.ref = "moddev" }
+ gitversion = { id = "com.palantir.git-version", version.ref = "gitversion" }
 diff --git a/gradle.properties b/gradle.properties
 index 2a01fa4..6c5e1c4 100644
 --- a/gradle.properties
