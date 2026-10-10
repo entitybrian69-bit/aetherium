@@ -171,7 +171,7 @@ public final class LightmapWriter {
                     final MethodHandle textureGetter = lookup.unreflectGetter(field);
                     final MethodHandle pixelsOf = findGetter(field.getType(), "getPixels");
                     if (pixelsOf != null) {
-                        final Class<?> imageType = pixelsOf.getReturnType();
+                        final Class<?> imageType = pixelsOf.type().returnType();
                         imageGetPixel = findPixelAccessor(lookup, imageType, "getPixel");
                         imageSetPixel = findPixelAccessor(lookup, imageType, "setPixel");
                         if (imageGetPixel != null && imageSetPixel != null) {

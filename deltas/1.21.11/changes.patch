@@ -4,6 +4,168 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.21.11/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.11/changes.patch
+diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
+index d753fd1..027b6d2 100644
+--- a/common/src/main/java/com/aetherium/client/ClientHooks.java
++++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
+@@ -295,7 +295,7 @@ public final class ClientHooks {
+             for (int dy = -1; dy <= 1; dy++) {
+                 for (int dz = -radiusSections; dz <= radiusSections; dz++) {
+                     final int sectionY = baseY + dy;
+-                    if (sectionY < level.getMinSection() || sectionY >= level.getMaxSection()) {
++                    if (sectionY < level.getMinSectionY() || sectionY >= level.getMaxSectionY()) {
+                         continue;
+                     }
+                     final int x = baseX + dx;
+diff --git a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
+index 62fcbd8..b084a96 100644
+--- a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
++++ b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
+@@ -290,9 +290,10 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+         }
+ 
+         @Override
+-        public void onClick(final double mouseX, final double mouseY) {
+-            super.onClick(mouseX, mouseY);
++        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
++            super.mouseClicked(event, doubleClick);
+             this.onSelect.run();
++                return true;
+         }
+ 
+         @Override
+diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
+index 9aad1fb..86cccb1 100644
+--- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
++++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
+@@ -91,11 +91,12 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void onClick(final double mouseX, final double mouseY) {
++        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
+             if (!this.active) {
+-                return;
++                return false;
+             }
+             this.pressValue.snap(1.0f);
++                return true;
+         }
+ 
+         /** Called by the owning screen every render pass so animations advance. */
+@@ -179,12 +180,13 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void onClick(final double mouseX, final double mouseY) {
+-            super.onClick(mouseX, mouseY);
++        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
++            super.mouseClicked(event, doubleClick);
+             this.option.set(!this.option.get());
+             if (this.afterChange != null) {
+                 this.afterChange.run();
+             }
++                return true;
+         }
+ 
+         @Override
+@@ -265,29 +267,32 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void onClick(final double mouseX, final double mouseY) {
+-            super.onClick(mouseX, mouseY);
++        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
++            super.mouseClicked(event, doubleClick);
+             this.dragging = true;
+-            applyFromMouse(mouseX);
++            applyFromMouse(event.x());
++                return true;
+         }
+ 
+         // Both input handlers return boolean on 1.21.1 (GuiEventListener#mouseDragged/#mouseReleased
+         // report whether the event was consumed); void overrides are a compile error, and claiming the
+         // release is what stops the drag from being left half-applied by whatever is behind the slider.
+         @Override
+-        public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double deltaX, final double deltaY) {
++        public boolean mouseDragged(final net.minecraft.client.input.MouseButtonEvent event, final double deltaX, final double deltaY) {
+             if (!this.dragging) {
+                 return false;
+             }
+-            applyFromMouse(mouseX);
++            applyFromMouse(event.x());
+             return true;
++        
+         }
+ 
+         @Override
+-        public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
++        public boolean mouseReleased(final net.minecraft.client.input.MouseButtonEvent event) {
+             final boolean wasDragging = this.dragging;
+             this.dragging = false;
+             return wasDragging;
++        
+         }
+ 
+         private void applyFromMouse(final double mouseX) {
+@@ -374,12 +379,12 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void onClick(final double mouseX, final double mouseY) {
+-            super.onClick(mouseX, mouseY);
++        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
++            super.mouseClicked(event, doubleClick);
+             if (this.getIndex == null || this.setIndex == null) {
+-                return;
++                return false;
+             }
+-            final boolean backwards = mouseX < this.getX() + this.getWidth() / 3.0;
++            final boolean backwards = event.x() < this.getX() + this.getWidth() / 3.0;
+             final int current = this.getIndex.get();
+             final int next = backwards
+                     ? Math.floorMod(current - 1, this.values.length)
+@@ -389,6 +394,7 @@ public final class AetheriumWidgets {
+             if (this.afterChange != null) {
+                 this.afterChange.run();
+             }
++                return true;
+         }
+ 
+         @Override
+@@ -449,12 +455,13 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void onClick(final double mouseX, final double mouseY) {
+-            super.onClick(mouseX, mouseY);
++        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
++            super.mouseClicked(event, doubleClick);
+             if (this.enabled != null && !this.enabled.getAsBoolean()) {
+-                return;
++                return false;
+             }
+             this.action.run();
++                return true;
+         }
+ 
+         @Override
+@@ -493,13 +500,14 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void onClick(final double mouseX, final double mouseY) {
++        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
+             // Read-only: a click resets the window, which is the gesture a benchmark
+             // user wants ("start counting from here").
+             final FrameStats local = this.stats.get();
+             if (local != null) {
+                 local.resetWindow();
+             }
++                return true;
+         }
+ 
+         @Override
 diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
 index 7a9eddf..c988382 100644
 --- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java

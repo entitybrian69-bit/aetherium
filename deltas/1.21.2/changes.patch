@@ -4,6 +4,19 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.21.2/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.2/changes.patch
+diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
+index d753fd1..027b6d2 100644
+--- a/common/src/main/java/com/aetherium/client/ClientHooks.java
++++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
+@@ -295,7 +295,7 @@ public final class ClientHooks {
+             for (int dy = -1; dy <= 1; dy++) {
+                 for (int dz = -radiusSections; dz <= radiusSections; dz++) {
+                     final int sectionY = baseY + dy;
+-                    if (sectionY < level.getMinSection() || sectionY >= level.getMaxSection()) {
++                    if (sectionY < level.getMinSectionY() || sectionY >= level.getMaxSectionY()) {
+                         continue;
+                     }
+                     final int x = baseX + dx;
 diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
 index 7a9eddf..1b6d68b 100644
 --- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java

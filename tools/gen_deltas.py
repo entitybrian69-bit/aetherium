@@ -331,6 +331,52 @@ def remove_method(text: str, signature_word: str) -> str:
     return "\n".join(cleaned)
 
 
+def rewrite_mouse_input(text: str) -> str:
+    """Rewrite the double-based AbstractWidget mouse overrides into the 1.21.9+ event forms.
+
+    Every rewrite is brace-matched on the exact reference signature, so the transform
+    cannot touch unrelated methods. onClick overrides become mouseClicked overrides (the
+    26.x-era AbstractWidget has no onClick), gated on button 0 to keep the old
+    left-click-only semantics.
+    """
+    plans = [
+        ("public void onClick(final double mouseX, final double mouseY) {",
+         "public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {",
+         True),
+        ("public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double deltaX, final double deltaY) {",
+         "public boolean mouseDragged(final net.minecraft.client.input.MouseButtonEvent event, final double deltaX, final double deltaY) {",
+         False),
+        ("public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {",
+         "public boolean mouseReleased(final net.minecraft.client.input.MouseButtonEvent event) {",
+         False),
+    ]
+    for find, replacement, was_on_click in plans:
+        while find in text:
+            start = text.index(find)
+            body_start = start + len(find)
+            depth, j = 1, body_start
+            while j < len(text) and depth > 0:
+                if text[j] == "{":
+                    depth += 1
+                elif text[j] == "}":
+                    depth -= 1
+                j += 1
+            body = text[body_start:j - 1]
+            body = body.replace("super.onClick(mouseX, mouseY);", "super.mouseClicked(event, doubleClick);")
+            body = body.replace("mouseX", "event.x()").replace("mouseY", "event.y()")
+            if was_on_click:
+                # void onClick's early exits become "not consumed"; the fall-through end
+                # of a handled click becomes "consumed". An appended return after a
+                # trailing return would be unreachable code (a compile error), hence the
+                # endswith guard.
+                body = body.replace("return;", "return false;")
+                body = body.rstrip()
+                if not (body.endswith("return false;") or body.endswith("return true;")):
+                    body = body + "\n                return true;"
+            text = text[:start] + replacement + body + "\n        }" + text[j:]
+    return text
+
+
 def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
     """Apply every era transform this row needs to one file. Returns (text, applied)."""
     facts = row["facts"]
@@ -371,8 +417,13 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
         def draw_centered(recv: str, args):
             if len(args) == 5 and recv == var:
                 # GuiGraphics.drawCenteredString(Font, text, x, y, color) ->
-                # GuiComponent.drawCentered(stack, Font, text, x, y, color)
-                return f"net.minecraft.client.gui.GuiComponent.drawCentered({var}, {', '.join(args)})"
+                # GuiComponent.drawCentered(stack, Font, text, x, y, color). The PoseStack-era
+                # drawCentered has no Component overload (the 1.19.4 ship leg rejected it),
+                # so the text argument is flattened with getString().
+                text_arg = args[1]
+                if not text_arg.startswith('"'):
+                    text_arg += ".getString()"
+                return f"net.minecraft.client.gui.GuiComponent.drawCentered({var}, {args[0]}, {text_arg}, {args[2]}, {args[3]}, {args[4]})"
             return None
 
         def fill(recv: str, args):
@@ -439,20 +490,18 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
 
     # narration method name / existence
     narration = facts.get("narration", "widget")
-    if narration == "plain" and "updateWidgetNarration" in text:
-        text = text.replace("updateWidgetNarration", "updateNarration")
-        applied.append("updateWidgetNarration->updateNarration")
-    elif narration == "none" and "updateWidgetNarration" in text:
-        # a file can hold several widget classes, each with its own override: remove
-        # every one, then drop the import. The loop guard compares before/after so a
-        # removable method followed by mere javadoc mentions still gets removed (a
-        # naive "is the word still present" guard breaks out after the first removal).
+    if narration == "none" and "updateWidgetNarration" in text:
+        # AbstractWidget gained the (abstract) updateWidgetNarration + NarrationSupplier at
+        # the 1.19.4 accessibility rework; below that neither exists and the override (and
+        # its import) must be REMOVED - there is no rename era, the 1.19.4/1.20 ship legs
+        # rejected updateNarration as "cannot override" while demanding updateWidgetNarration.
         while True:
             before = text
             text = remove_method(text, "updateWidgetNarration")
             if text == before:
                 break  # nothing left that looks like a declaration; the rest is comments
         text = text.replace("import net.minecraft.client.gui.narration.NarrationElementOutput;\n", "")
+        text = text.replace("import net.minecraft.client.gui.narration.NarrationElementOutput;\r\n", "")
         applied.append("narration-removed")
 
     # AbstractWidget render method name
@@ -469,12 +518,41 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
                 text = new_text
                 applied.append(f"{setter}->{field}")
 
-    # OptionsScreen package (net.minecraft.client.gui.screens.options from 1.20.5)
+    # OptionsScreen package (net.minecraft.client.gui.screens.options from 1.21; the
+    # 1.20.5 and 1.20.6 ship legs both rejected the package, 1.21.1 compiles against it)
     if facts.get("options_pkg") == "screens":
         if "net.minecraft.client.gui.screens.options.OptionsScreen" in text:
             text = text.replace("net.minecraft.client.gui.screens.options.OptionsScreen",
                                 "net.minecraft.client.gui.screens.OptionsScreen")
             applied.append("OptionsScreen-package")
+
+    # ResourceLocation.parse(String) is 1.21+ (the 1.19.4/1.20 legs rejected parse);
+    # earlier rows use the two-arg-free constructor form.
+    if facts.get("resource_location") == "ctor":
+        if "ResourceLocation.parse(" in text:
+            text = text.replace("ResourceLocation.parse(", "new ResourceLocation(")
+            applied.append("ResourceLocation.parse->ctor")
+
+    # Level#getMinSection()/getMaxSection() exist through 1.21.1 and are renamed to
+    # getMinSectionY()/getMaxSectionY() from 1.21.2 (sodium @ 1.21.4 uses the *Y forms;
+    # the 1.21.2+ ship legs rejected the old names while 1.21.1 accepted them).
+    if facts.get("level_sections") == "minSectionY":
+        if ".getMinSection()" in text or ".getMaxSection()" in text:
+            text = text.replace(".getMinSection()", ".getMinSectionY()")
+            text = text.replace(".getMaxSection()", ".getMaxSectionY()")
+            applied.append("getMinSection->getMinSectionY")
+
+    # 1.21.9 replaced the double-based mouse handlers with event objects. Verified from
+    # sodium @ 26.2/stable: mouseClicked(MouseButtonEvent, boolean), mouseReleased(
+    # MouseButtonEvent), mouseDragged(MouseButtonEvent, double, double), and
+    # MouseButtonEvent#x()/y()/button() accessors. onClick no longer exists there, so
+    # onClick overrides become mouseClicked overrides (gated on button 0 to keep the
+    # old left-click-only semantics).
+    if facts.get("input_events") == "event":
+        new_text = rewrite_mouse_input(text)
+        if new_text != text:
+            applied.append("mouse-handlers->MouseButtonEvent")
+            text = new_text
 
     # Button.builder chain -> constructor
     if facts.get("button_builder") is False:
@@ -648,14 +726,24 @@ def write_docs(row: dict, out_dir: str, touched: list[str], results: dict) -> No
            "TextComponent/TranslatableComponent [UNVERIFIED: the 1.17-1.18.2 mojmap names; verify]"
            if facts["component_era"] == "text" else
            "StringTextComponent/TranslationTextComponent [UNVERIFIED: 1.16.5 mojmap names; verify]"),
-        f"- `narration` = **{facts['narration']}** - updateNarration is the pre-1.21 name "
-          "[VERIFIED: Iris @ 1.20.6 uses updateNarration, Iris @ 1.21.1 uses updateWidgetNarration]; "
-          "narration itself is 1.19.4+ [UNVERIFIED boundary]",
-        f"- `widget_render` = **{facts['widget_render']}** [UNVERIFIED boundary: the renderButton->renderWidget rename is dated to the 1.19.3 widget refactor]",
+        f"- `narration` = **{facts['narration']}** - AbstractWidget declares the abstract "
+          "`updateWidgetNarration` from 1.19.4 on [VERIFIED by the 2026-10-10 ship legs: "
+          "1.19.4 and 1.20 rejected `updateNarration` as 'cannot override' while demanding "
+          "updateWidgetNarration]; below 1.19.4 narration does not exist and the override is removed",
+        f"- `widget_render` = **{facts['widget_render']}** - renderWidget from 1.19.4 "
+          "[VERIFIED by the 1.19.4 ship leg rejecting renderButton; renderWidget verified on "
+          "1.21.1 via sodium's widget set]",
         f"- `render_background_args` = **{facts['render_background_args']}** - "
         + ("4-arg form [VERIFIED on 1.20.6 (Iris) and 1.21.1 (Iris)]" if facts["render_background_args"] == 4
            else "1-arg form [VERIFIED on 1.20.1 (Iris) and 1.19.4 (Iris); the 1.20.2-1.20.4 boundary is UNVERIFIED]"),
-        f"- `widget_setters` = **{facts['widget_setters']}** [UNVERIFIED boundary: setters vs public fields, dated to the 1.19.3 refactor]",
+        f"- `widget_setters` = **{facts['widget_setters']}** [UNVERIFIED boundary: setters vs public fields, dated to the 1.20 render rework]",
+        f"- `options_pkg` = **{facts['options_pkg']}** - the screens.options package is 1.21+ "
+          "[VERIFIED: 1.20.5/1.20.6 legs rejected it; sodium @ 1.21.1 imports it]",
+        f"- `resource_location` = **{facts['resource_location']}** - ResourceLocation.parse is 1.21+; earlier rows use the constructor",
+        f"- `level_sections` = **{facts['level_sections']}** - getMinSection/getMaxSection through 1.21.1, "
+          "getMinSectionY/getMaxSectionY from 1.21.2 [VERIFIED: ship legs + sodium @ 1.21.4]",
+        f"- `input_events` = **{facts['input_events']}** - 1.21.9 replaced the double-based mouse "
+          "handlers with MouseButtonEvent forms [VERIFIED: sodium @ 26.2/stable]",
         f"- `entities_iter` = **{facts['entities_iter']}** - entitiesForRendering "
           "[VERIFIED on 1.21.1: Iris MixinLevelRenderer_SkipRendering targets ClientLevel#entitiesForRendering]",
         f"- `fabric_api` pin read from FabricMC/fabric tags on 2026-10-10"

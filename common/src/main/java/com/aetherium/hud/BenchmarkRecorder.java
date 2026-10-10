@@ -144,22 +144,22 @@ public final class BenchmarkRecorder {
             headerWritten = true;
             return;
         }
-        final String header = """
-                # Aetherium frame records
-
-                Rows are written by `BenchmarkRecorder` while the game runs under
-                `-Daetherium.benchmark=<dir>`. Each row covers one interval (default 15 s)
-                and is measured on this machine only. Backend, render distance and seed are
-                in the label column because a row without them is not reproducible.
-
-                Append the hardware by hand before quoting any of this: CPU, GPU, driver,
-                Java version, and the mod list. A number that cannot be re-run is not a
-                benchmark, and this file deliberately contains no comparison to any other
-                renderer.
-
-                | measurement | fps | p50 ms | p99 ms | p99.9 ms | longest ms | spikes > 100 ms |
-                | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-                """;
+        final String header = new StringBuilder(1024)
+                    .append("# Aetherium frame records\n")
+                    .append("\n")
+                    .append("Rows are written by `BenchmarkRecorder` while the game runs under\n")
+                    .append("`-Daetherium.benchmark=<dir>`. Each row covers one interval (default 15 s)\n")
+                    .append("and is measured on this machine only. Backend, render distance and seed are\n")
+                    .append("in the label column because a row without them is not reproducible.\n")
+                    .append("\n")
+                    .append("Append the hardware by hand before quoting any of this: CPU, GPU, driver,\n")
+                    .append("Java version, and the mod list. A number that cannot be re-run is not a\n")
+                    .append("benchmark, and this file deliberately contains no comparison to any other\n")
+                    .append("renderer.\n")
+                    .append("\n")
+                    .append("| measurement | fps | p50 ms | p99 ms | p99.9 ms | longest ms | spikes > 100 ms |\n")
+                    .append("| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+                    .toString();
         Files.write(file, header.getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         headerWritten = true;

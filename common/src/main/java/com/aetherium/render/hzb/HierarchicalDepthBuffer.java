@@ -37,33 +37,33 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
     private static final AetheriumLog LOGGER = AetheriumLog.of(HierarchicalDepthBuffer.class);
 
     /** GLSL 4.30 sources; kept inline because a packed shader would need a loader hook. */
-    private static final String REDUCTION_SHADER = """
-            #version 430
-            layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
-            layout(binding = 0, r32f) uniform readonly image2D srcDepth;
-            layout(binding = 1, r32f) uniform writeonly image2D dstDepth;
-            uniform ivec2 srcSize;
-            uniform ivec2 dstSize;
-            void main() {
-                ivec2 out_ = ivec2(gl_GlobalInvocationID.xy);
-                ivec2 base = out_ * 2;
-                if (base.x >= srcSize.x || base.y >= srcSize.y) { return; }
-                float m = 1.0;
-                for (int dy = 0; dy < 2; dy++) {
-                    for (int dx = 0; dx < 2; dx++) {
-                        ivec2 p = base + ivec2(dx, dy);
-                        if (p.x < srcSize.x && p.y < srcSize.y) {
-                            // Depth is [0,1] with 1 = far; min() keeps the *nearest*
-                            // surface in the tile, which is the conservative choice.
-                            m = min(m, imageLoad(srcDepth, p).r);
-                        }
-                    }
-                }
-                if (out_.x < dstSize.x && out_.y < dstSize.y) {
-                    imageStore(dstDepth, out_, vec4(m, 0.0, 0.0, 1.0));
-                }
-            }
-            """;
+    private static final String REDUCTION_SHADER = new StringBuilder(1024)
+                .append("#version 430\n")
+                .append("layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;\n")
+                .append("layout(binding = 0, r32f) uniform readonly image2D srcDepth;\n")
+                .append("layout(binding = 1, r32f) uniform writeonly image2D dstDepth;\n")
+                .append("uniform ivec2 srcSize;\n")
+                .append("uniform ivec2 dstSize;\n")
+                .append("void main() {\n")
+                .append("    ivec2 out_ = ivec2(gl_GlobalInvocationID.xy);\n")
+                .append("    ivec2 base = out_ * 2;\n")
+                .append("    if (base.x >= srcSize.x || base.y >= srcSize.y) { return; }\n")
+                .append("    float m = 1.0;\n")
+                .append("    for (int dy = 0; dy < 2; dy++) {\n")
+                .append("        for (int dx = 0; dx < 2; dx++) {\n")
+                .append("            ivec2 p = base + ivec2(dx, dy);\n")
+                .append("            if (p.x < srcSize.x && p.y < srcSize.y) {\n")
+                .append("                // Depth is [0,1] with 1 = far; min() keeps the *nearest*\n")
+                .append("                // surface in the tile, which is the conservative choice.\n")
+                .append("                m = min(m, imageLoad(srcDepth, p).r);\n")
+                .append("            }\n")
+                .append("        }\n")
+                .append("    }\n")
+                .append("    if (out_.x < dstSize.x && out_.y < dstSize.y) {\n")
+                .append("        imageStore(dstDepth, out_, vec4(m, 0.0, 0.0, 1.0));\n")
+                .append("    }\n")
+                .append("}\n")
+                .toString();
 
     /**
      * Per-command cull. Reads the 5-int DrawCmd plus a trailing AABB (the command
@@ -71,48 +71,48 @@ public final class HierarchicalDepthBuffer implements AutoCloseable {
      * against the coarsest pyramid level that still covers it, and appends the
      * command index with an atomic — the compaction, in one kernel, no readback.
      */
-    private static final String CULL_SHADER = """
-            #version 430
-            layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
-            struct DrawCmd { uint indexCount; uint instanceCount; uint firstIndex; int baseVertex; uint baseInstance; };
-            layout(std430, binding = 0) buffer Commands { DrawCmd cmds[]; } commands;
-            layout(std430, binding = 1) buffer Bounds { vec4 boxes[]; } bounds;   // xy = min, zw = max (ndc)
-            layout(binding = 2, r32f) uniform readonly image2D hzb;
-            layout(std430, binding = 3) buffer Counters { uint visibleCount; uint scanned; };
-            uniform ivec2 hzbSize;
-            uniform uint commandCount;
-
-            void main() {
-                uint id = gl_GlobalInvocationID.x;
-                if (id >= commandCount) { return; }
-                vec4 box = bounds.boxes[id];
-                // Ndc depth range for this box; 1.0 is the far plane.
-                float near = clamp(box.z, 0.0, 1.0);
-                ivec2 lo = ivec2(clamp(box.x, 0.0, 1.0) * hzbSize.x);
-                ivec2 hi = ivec2(clamp(box.y, 0.0, 1.0) * hzbSize.y);
-                bool occluded = true;
-                // Sample the corner texels of the covered region: with a 4-level
-                // pyramid the tile is >= 16px, so 4 taps are conservative.
-                for (int i = 0; i < 4; i++) {
-                    ivec2 p = ivec2(i & 1, (i >> 1) & 1);
-                    ivec2 texel = clamp(mix(lo, hi, vec2(p)), ivec2(0), hzbSize - ivec2(1));
-                    float depth = imageLoad(hzb, texel).r;
-                    if (near < depth) { occluded = false; break; }
-                }
-                if (!occluded) {
-                    uint slot = atomicAdd(visibleCount, 1u);
-                    if (slot != id) {
-                        DrawCmd moved = commands.cmds[id];
-                        commands.cmds[id] = commands.cmds[slot];
-                        commands.cmds[slot] = moved;
-                        vec4 movedBox = bounds.boxes[id];
-                        bounds.boxes[id] = bounds.boxes[slot];
-                        bounds.boxes[slot] = movedBox;
-                    }
-                }
-                atomicMax(scanned, id + 1u);
-            }
-            """;
+    private static final String CULL_SHADER = new StringBuilder(1024)
+                .append("#version 430\n")
+                .append("layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;\n")
+                .append("struct DrawCmd { uint indexCount; uint instanceCount; uint firstIndex; int baseVertex; uint baseInstance; };\n")
+                .append("layout(std430, binding = 0) buffer Commands { DrawCmd cmds[]; } commands;\n")
+                .append("layout(std430, binding = 1) buffer Bounds { vec4 boxes[]; } bounds;   // xy = min, zw = max (ndc)\n")
+                .append("layout(binding = 2, r32f) uniform readonly image2D hzb;\n")
+                .append("layout(std430, binding = 3) buffer Counters { uint visibleCount; uint scanned; };\n")
+                .append("uniform ivec2 hzbSize;\n")
+                .append("uniform uint commandCount;\n")
+                .append("\n")
+                .append("void main() {\n")
+                .append("    uint id = gl_GlobalInvocationID.x;\n")
+                .append("    if (id >= commandCount) { return; }\n")
+                .append("    vec4 box = bounds.boxes[id];\n")
+                .append("    // Ndc depth range for this box; 1.0 is the far plane.\n")
+                .append("    float near = clamp(box.z, 0.0, 1.0);\n")
+                .append("    ivec2 lo = ivec2(clamp(box.x, 0.0, 1.0) * hzbSize.x);\n")
+                .append("    ivec2 hi = ivec2(clamp(box.y, 0.0, 1.0) * hzbSize.y);\n")
+                .append("    bool occluded = true;\n")
+                .append("    // Sample the corner texels of the covered region: with a 4-level\n")
+                .append("    // pyramid the tile is >= 16px, so 4 taps are conservative.\n")
+                .append("    for (int i = 0; i < 4; i++) {\n")
+                .append("        ivec2 p = ivec2(i & 1, (i >> 1) & 1);\n")
+                .append("        ivec2 texel = clamp(mix(lo, hi, vec2(p)), ivec2(0), hzbSize - ivec2(1));\n")
+                .append("        float depth = imageLoad(hzb, texel).r;\n")
+                .append("        if (near < depth) { occluded = false; break; }\n")
+                .append("    }\n")
+                .append("    if (!occluded) {\n")
+                .append("        uint slot = atomicAdd(visibleCount, 1u);\n")
+                .append("        if (slot != id) {\n")
+                .append("            DrawCmd moved = commands.cmds[id];\n")
+                .append("            commands.cmds[id] = commands.cmds[slot];\n")
+                .append("            commands.cmds[slot] = moved;\n")
+                .append("            vec4 movedBox = bounds.boxes[id];\n")
+                .append("            bounds.boxes[id] = bounds.boxes[slot];\n")
+                .append("            bounds.boxes[slot] = movedBox;\n")
+                .append("        }\n")
+                .append("    }\n")
+                .append("    atomicMax(scanned, id + 1u);\n")
+                .append("}\n")
+                .toString();
 
     private final int requestedLevels;
     private final BackendCapabilities capabilities;

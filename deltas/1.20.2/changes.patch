@@ -4,41 +4,29 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.20.2/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.20.2/changes.patch
-diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
-index 14f9ff6..c34fcb0 100644
---- a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
-+++ b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
-@@ -592,7 +592,7 @@ public final class AetheriumTabs {
-         }
+diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
+index ed450a1..af8ef3b 100644
+--- a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
++++ b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
+@@ -53,10 +53,10 @@ public final class AetheriumTheme {
+     public static final int CORNER_RADIUS = 3;
+     public static final int MILLISECONDS_PER_ANIMATION = 260;
  
-         @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-+        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-             this.defaultButtonNarrationText(output);
-         }
-     }
-@@ -614,7 +614,7 @@ public final class AetheriumTabs {
-         }
+-    public static final ResourceLocation TEXTURE_PANEL = ResourceLocation.parse("aetherium:textures/gui/panel_purple.png");
+-    public static final ResourceLocation TEXTURE_GLOW = ResourceLocation.parse("aetherium:textures/gui/glow_violet.png");
+-    public static final ResourceLocation TEXTURE_SLIDER = ResourceLocation.parse("aetherium:textures/gui/slider_track.png");
+-    public static final ResourceLocation TEXTURE_LOGO = ResourceLocation.parse("aetherium:textures/gui/aetherium_logo.png");
++    public static final ResourceLocation TEXTURE_PANEL = new ResourceLocation("aetherium:textures/gui/panel_purple.png");
++    public static final ResourceLocation TEXTURE_GLOW = new ResourceLocation("aetherium:textures/gui/glow_violet.png");
++    public static final ResourceLocation TEXTURE_SLIDER = new ResourceLocation("aetherium:textures/gui/slider_track.png");
++    public static final ResourceLocation TEXTURE_LOGO = new ResourceLocation("aetherium:textures/gui/aetherium_logo.png");
  
-         @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-+        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-             this.defaultButtonNarrationText(output);
-         }
-     }
+     /** Desktop layout is 1.0; touch mode widens hit targets and spacing. */
+     private final boolean touchMode;
 diff --git a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-index 62fcbd8..bb1e7c0 100644
+index 62fcbd8..5592373 100644
 --- a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
 +++ b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-@@ -46,7 +46,7 @@ import net.minecraft.network.chat.Component;
-  * moved in the range ({@code GuiGraphics} arrives at 1.20, {@code renderBackground}
-  * gains its cursor arguments between 1.20.1 and 1.20.6) are the only ones the delta
-  * patches rewrite here. {@code mouseScrolled} did change arity at 1.20.2 (it gained a
-- * horizontal-scroll double) and {@code updateWidgetNarration} was
-+ * horizontal-scroll double) and {@code updateNarration} was
-  * {@code updateNarration} before 1.21; both are facts in {@code tools/porting_pins.json}
-  * and are rewritten in the widget classes, not here.</p>
-  */
 @@ -207,7 +207,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
          // single-argument form (same file, those branches). The exact 1.20.2-1.20.5 boundary is
          // recorded per row in tools/porting_pins.json (render_background_arity), and the delta
@@ -48,64 +36,6 @@ index 62fcbd8..bb1e7c0 100644
          drawChrome(guiGraphics);
  
          final int contentX = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
-@@ -316,7 +316,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-         }
- 
-         @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-+        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-             this.defaultButtonNarrationText(output);
-         }
-     }
-diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-index 9aad1fb..87349fb 100644
---- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-+++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-@@ -134,12 +134,12 @@ public final class AetheriumWidgets {
-          */
-         @Override
-         /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
-+         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
-          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
-+        public void updateNarration(final NarrationElementOutput output) {
-             this.defaultButtonNarrationText(output);
-         }
- 
-@@ -341,12 +341,12 @@ public final class AetheriumWidgets {
- 
-         @Override
-         /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
-+         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
-          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
-+        public void updateNarration(final NarrationElementOutput output) {
-             this.updateMessage(this.label, String.format(java.util.Locale.ROOT, this.format, this.value));
-             this.defaultButtonNarrationText(output);
-         }
-@@ -417,12 +417,12 @@ public final class AetheriumWidgets {
- 
-         @Override
-         /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
-+         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
-          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
-+        public void updateNarration(final NarrationElementOutput output) {
-             final int index = this.getIndex == null ? 0 : this.getIndex.get();
-             this.updateMessage(this.label, index >= 0 && index < this.values.length ? this.values[index] : "unknown");
-             this.defaultButtonNarrationText(output);
 diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
 index 7a9eddf..b86ea73 100644
 --- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java

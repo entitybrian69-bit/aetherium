@@ -27,10 +27,14 @@ neoforge_version=21.0.119
 
 - `stack_class` = **GuiGraphics** - GuiGraphics [VERIFIED: Iris @ 1.20.1 and 1.20.6 branches]
 - `component_era` = **component** - Component.literal is 1.19+ [VERIFIED on 1.19.4 sources]
-- `narration` = **widget** - updateNarration is the pre-1.21 name [VERIFIED: Iris @ 1.20.6 uses updateNarration, Iris @ 1.21.1 uses updateWidgetNarration]; narration itself is 1.19.4+ [UNVERIFIED boundary]
-- `widget_render` = **renderWidget** [UNVERIFIED boundary: the renderButton->renderWidget rename is dated to the 1.19.3 widget refactor]
+- `narration` = **widget** - AbstractWidget declares the abstract `updateWidgetNarration` from 1.19.4 on [VERIFIED by the 2026-10-10 ship legs: 1.19.4 and 1.20 rejected `updateNarration` as 'cannot override' while demanding updateWidgetNarration]; below 1.19.4 narration does not exist and the override is removed
+- `widget_render` = **renderWidget** - renderWidget from 1.19.4 [VERIFIED by the 1.19.4 ship leg rejecting renderButton; renderWidget verified on 1.21.1 via sodium's widget set]
 - `render_background_args` = **4** - 4-arg form [VERIFIED on 1.20.6 (Iris) and 1.21.1 (Iris)]
-- `widget_setters` = **True** [UNVERIFIED boundary: setters vs public fields, dated to the 1.19.3 refactor]
+- `widget_setters` = **True** [UNVERIFIED boundary: setters vs public fields, dated to the 1.20 render rework]
+- `options_pkg` = **screens.options** - the screens.options package is 1.21+ [VERIFIED: 1.20.5/1.20.6 legs rejected it; sodium @ 1.21.1 imports it]
+- `resource_location` = **parse** - ResourceLocation.parse is 1.21+; earlier rows use the constructor
+- `level_sections` = **minSection** - getMinSection/getMaxSection through 1.21.1, getMinSectionY/getMaxSectionY from 1.21.2 [VERIFIED: ship legs + sodium @ 1.21.4]
+- `input_events` = **doubles** - 1.21.9 replaced the double-based mouse handlers with MouseButtonEvent forms [VERIFIED: sodium @ 26.2/stable]
 - `entities_iter` = **entitiesForRendering** - entitiesForRendering [VERIFIED on 1.21.1: Iris MixinLevelRenderer_SkipRendering targets ClientLevel#entitiesForRendering]
 - `fabric_api` pin read from FabricMC/fabric tags on 2026-10-10 [VERIFIED tag]
 
