@@ -127,4 +127,22 @@ version's code into the 1.21.1 jar. This check was added after exactly that was 
 **only for versions whose build and tests passed**. A red version gets no release and keeps its
 jars only as a run artifact.
 
-Results of the first 0.2.0 run are recorded below.
+### Results
+
+| run | commit | result | what it found |
+| --- | --- | --- | --- |
+| 38057827393 | `44475f2` | 29/33 | 1.16.5: `Optional.isEmpty()` is Java 11 (ECJ's `-source 8` cannot see library levels); 1.20.2/1.20.3/1.20.5: those NeoForge builds publish no ModDevGradle bundle; DOWNLOADS push lost a race with a docs commit |
+| 38058962827 | `7f893ce` | 32/33 | 1.16.5 main code now compiles at Java 8; its *tests* (text blocks) did not |
+| 38060927789 | `eb58e91` | **33/33** | every version compiles with its real toolchain and passes the JUnit suite; 33 releases, 50 jars (16 Fabric-only versions + 17 with Fabric and NeoForge) |
+
+Fixes that came out of these runs:
+
+- `tools/java_api_lint.py` now runs inside `stubcheck` for every row below Java 21, so a too-new
+  JDK API fails offline.
+- The three Fabric-only rows had their pins corrected.
+- On rows below Java 17, the unit tests compile and run on JDK 21. The tests never ship, and the
+  shipped classes stay at the row's level.
+- The DOWNLOADS push now rebases and retries.
+
+26.1–26.3 were built by CI's real JDK 25. Offline, ECJ stops at 24, so CI is the only proof of
+those three at their real Java level.
