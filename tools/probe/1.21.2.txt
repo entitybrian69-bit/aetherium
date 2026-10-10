@@ -1,4 +1,11 @@
 # minecraft 1.21.2 jar: /home/runner/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/1.21.2-loom.mappings.1_21_2.layered+hash.2198-v2/minecraft-merged-1.21.2-loom.mappings.1_21_2.layered+hash.2198-v2.jar
+# candidates:
+#   /home/runner/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/1.21.2-loom.mappings.1_21_2.layered+hash.2198-v2/minecraft-merged-1.21.2-loom.mappings.1_21_2.layered+hash.2198-v2.jar
+#   /home/runner/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-intermediary/1.21.2-loom.mappings.1_21_2.layered+hash.2198-v2/minecraft-merged-intermediary-1.21.2-loom.mappings.1_21_2.layered+hash.2198-v2.jar
+#   /home/runner/.gradle/caches/fabric-loom/1.21.2/minecraft-merged.jar
+#   /home/runner/.gradle/caches/fabric-loom/1.21.2/minecraft-extracted_server.jar
+#   /home/runner/.gradle/caches/fabric-loom/1.21.2/minecraft-server.jar
+#   /home/runner/.gradle/caches/fabric-loom/1.21.2/minecraft-client.jar
 === net.minecraft.client.Minecraft
 Compiled from "Minecraft.java"
 public class net.minecraft.client.Minecraft extends net.minecraft.util.thread.ReentrantBlockableEventLoop<java.lang.Runnable> implements com.mojang.blaze3d.platform.WindowEventHandler {
@@ -4172,39 +4179,321 @@ public interface net.minecraft.world.level.BlockAndTintGetter extends net.minecr
   public default int getRawBrightness(net.minecraft.core.BlockPos, int);
   public default boolean canSeeSky(net.minecraft.core.BlockPos);
 }
+=== net.minecraft.client.renderer.WeatherEffectRenderer
+Compiled from "WeatherEffectRenderer.java"
+public class net.minecraft.client.renderer.WeatherEffectRenderer {
+  private static final int RAIN_RADIUS;
+  private static final int RAIN_DIAMETER;
+  private static final net.minecraft.resources.ResourceLocation RAIN_LOCATION;
+  private static final net.minecraft.resources.ResourceLocation SNOW_LOCATION;
+  private static final int RAIN_TABLE_SIZE;
+  private static final int HALF_RAIN_TABLE_SIZE;
+  private int rainSoundTime;
+  private final float[] columnSizeX;
+  private final float[] columnSizeZ;
+  public net.minecraft.client.renderer.WeatherEffectRenderer();
+  public void render(net.minecraft.world.level.Level, net.minecraft.client.renderer.LightTexture, int, float, net.minecraft.world.phys.Vec3);
+  private void collectColumnInstances(net.minecraft.world.level.Level, int, float, net.minecraft.world.phys.Vec3, int, java.util.List<net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance>, java.util.List<net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance>);
+  private void render(net.minecraft.client.renderer.LightTexture, net.minecraft.world.phys.Vec3, int, float, java.util.List<net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance>, java.util.List<net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance>);
+  private net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance createRainColumnInstance(net.minecraft.util.RandomSource, int, int, int, int, int, int, float);
+  private net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance createSnowColumnInstance(net.minecraft.util.RandomSource, int, int, int, int, int, int, float);
+  private void renderInstances(com.mojang.blaze3d.vertex.Tesselator, java.util.List<net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance>, net.minecraft.world.phys.Vec3, float, int, float);
+  public void tickRainParticles(net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.Camera, int, net.minecraft.server.level.ParticleStatus);
+  private net.minecraft.world.level.biome.Biome$Precipitation getPrecipitationAt(net.minecraft.world.level.Level, net.minecraft.core.BlockPos);
+  static {};
+}
+=== net.minecraft.client.FramerateLimitTracker
+Error: class not found: net.minecraft.client.FramerateLimitTracker
+=== net.minecraft.client.DeltaTracker
+Compiled from "DeltaTracker.java"
+public interface net.minecraft.client.DeltaTracker {
+  public static final net.minecraft.client.DeltaTracker ZERO;
+  public static final net.minecraft.client.DeltaTracker ONE;
+  public abstract float getGameTimeDeltaTicks();
+  public abstract float getGameTimeDeltaPartialTick(boolean);
+  public abstract float getRealtimeDeltaTicks();
+  static {};
+}
+=== net.minecraft.client.gui.screens.OptionsSubScreen
+Error: class not found: net.minecraft.client.gui.screens.OptionsSubScreen
+=== net.minecraft.client.gui.screens.options.OptionsSubScreen
+Compiled from "OptionsSubScreen.java"
+public abstract class net.minecraft.client.gui.screens.options.OptionsSubScreen extends net.minecraft.client.gui.screens.Screen {
+  protected final net.minecraft.client.gui.screens.Screen lastScreen;
+  protected final net.minecraft.client.Options options;
+  protected net.minecraft.client.gui.components.OptionsList list;
+  public final net.minecraft.client.gui.layouts.HeaderAndFooterLayout layout;
+  public net.minecraft.client.gui.screens.options.OptionsSubScreen(net.minecraft.client.gui.screens.Screen, net.minecraft.client.Options, net.minecraft.network.chat.Component);
+  protected void init();
+  protected void addTitle();
+  protected void addContents();
+  protected abstract void addOptions();
+  protected void addFooter();
+  protected void repositionElements();
+  public void removed();
+  public void onClose();
+  private void method_57731(net.minecraft.client.gui.components.Button);
+  private static void method_60336(net.minecraft.client.gui.screens.options.OptionsSubScreen, net.minecraft.client.gui.components.events.GuiEventListener);
+}
+=== net.minecraft.world.entity.monster.Blaze
+Compiled from "Blaze.java"
+public class net.minecraft.world.entity.monster.Blaze extends net.minecraft.world.entity.monster.Monster {
+  private float allowedHeightOffset;
+  private int nextHeightOffsetChangeTick;
+  private static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Byte> DATA_FLAGS_ID;
+  public net.minecraft.world.entity.monster.Blaze(net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.monster.Blaze>, net.minecraft.world.level.Level);
+  protected void registerGoals();
+  public static net.minecraft.world.entity.ai.attributes.AttributeSupplier$Builder createAttributes();
+  protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData$Builder);
+  protected net.minecraft.sounds.SoundEvent getAmbientSound();
+  protected net.minecraft.sounds.SoundEvent getHurtSound(net.minecraft.world.damagesource.DamageSource);
+  protected net.minecraft.sounds.SoundEvent getDeathSound();
+  public float getLightLevelDependentMagicValue();
+  public void aiStep();
+  public boolean isSensitiveToWater();
+  protected void customServerAiStep(net.minecraft.server.level.ServerLevel);
+  public boolean isOnFire();
+  private boolean isCharged();
+  void setCharged(boolean);
+  static {};
+}
+=== com.mojang.blaze3d.platform.GlStateManager
+Compiled from "GlStateManager.java"
+public class com.mojang.blaze3d.platform.GlStateManager {
+  private static final boolean ON_LINUX;
+  private static final com.mojang.jtracy.Plot PLOT_TEXTURES;
+  private static int numTextures;
+  private static final com.mojang.jtracy.Plot PLOT_BUFFERS;
+  private static int numBuffers;
+  public static final int TEXTURE_COUNT;
+  private static final com.mojang.blaze3d.platform.GlStateManager$BlendState BLEND;
+  private static final com.mojang.blaze3d.platform.GlStateManager$DepthState DEPTH;
+  private static final com.mojang.blaze3d.platform.GlStateManager$CullState CULL;
+  private static final com.mojang.blaze3d.platform.GlStateManager$PolygonOffsetState POLY_OFFSET;
+  private static final com.mojang.blaze3d.platform.GlStateManager$ColorLogicState COLOR_LOGIC;
+  private static final com.mojang.blaze3d.platform.GlStateManager$StencilState STENCIL;
+  private static final com.mojang.blaze3d.platform.GlStateManager$ScissorState SCISSOR;
+  private static final com.mojang.blaze3d.platform.GlStateManager$FramebufferState READ_FRAMEBUFFER;
+  private static final com.mojang.blaze3d.platform.GlStateManager$FramebufferState DRAW_FRAMEBUFFER;
+  private static int activeTexture;
+  private static final com.mojang.blaze3d.platform.GlStateManager$TextureState[] TEXTURES;
+  private static final com.mojang.blaze3d.platform.GlStateManager$ColorMask COLOR_MASK;
+  public com.mojang.blaze3d.platform.GlStateManager();
+  public static void _disableScissorTest();
+  public static void _enableScissorTest();
+  public static void _scissorBox(int, int, int, int);
+  public static void _disableDepthTest();
+  public static void _enableDepthTest();
+  public static void _depthFunc(int);
+  public static void _depthMask(boolean);
+  public static void _disableBlend();
+  public static void _enableBlend();
+  public static void _blendFunc(int, int);
+  public static void _blendFuncSeparate(int, int, int, int);
+  public static void _blendEquation(int);
+  public static int glGetProgrami(int, int);
+  public static void glAttachShader(int, int);
+  public static void glDeleteShader(int);
+  public static int glCreateShader(int);
+  public static void glShaderSource(int, java.lang.String);
+  public static void glCompileShader(int);
+  public static int glGetShaderi(int, int);
+  public static void _glUseProgram(int);
+  public static int glCreateProgram();
+  public static void glDeleteProgram(int);
+  public static void glLinkProgram(int);
+  public static int _glGetUniformLocation(int, java.lang.CharSequence);
+  public static void _glUniform1(int, java.nio.IntBuffer);
+  public static void _glUniform1i(int, int);
+  public static void _glUniform1(int, java.nio.FloatBuffer);
+  public static void _glUniform2(int, java.nio.IntBuffer);
+  public static void _glUniform2(int, java.nio.FloatBuffer);
+  public static void _glUniform3(int, java.nio.IntBuffer);
+  public static void _glUniform3(int, java.nio.FloatBuffer);
+  public static void _glUniform4(int, java.nio.IntBuffer);
+  public static void _glUniform4(int, java.nio.FloatBuffer);
+  public static void _glUniformMatrix2(int, boolean, java.nio.FloatBuffer);
+  public static void _glUniformMatrix3(int, boolean, java.nio.FloatBuffer);
+  public static void _glUniformMatrix4(int, boolean, java.nio.FloatBuffer);
+  public static int _glGetAttribLocation(int, java.lang.CharSequence);
+  public static void _glBindAttribLocation(int, int, java.lang.CharSequence);
+  public static int _glGenBuffers();
+  public static int _glGenVertexArrays();
+  public static void _glBindBuffer(int, int);
+  public static void _glBindVertexArray(int);
+  public static void _glBufferData(int, java.nio.ByteBuffer, int);
+  public static void _glBufferSubData(int, int, java.nio.ByteBuffer);
+  public static void _glBufferData(int, long, int);
+  public static java.nio.ByteBuffer _glMapBuffer(int, int);
+  public static java.nio.ByteBuffer _glMapBufferRange(int, int, int, int);
+  public static void _glUnmapBuffer(int);
+  public static void _glDeleteBuffers(int);
+  public static void _glCopyTexSubImage2D(int, int, int, int, int, int, int, int);
+  public static void _glDeleteVertexArrays(int);
+  public static void _glBindFramebuffer(int, int);
+  public static void _glBlitFrameBuffer(int, int, int, int, int, int, int, int, int, int);
+  public static void _glBindRenderbuffer(int, int);
+  public static void _glDeleteRenderbuffers(int);
+  public static void _glDeleteFramebuffers(int);
+  public static int glGenFramebuffers();
+  public static int glGenRenderbuffers();
+  public static void _glRenderbufferStorage(int, int, int, int);
+  public static void _glFramebufferRenderbuffer(int, int, int, int);
+  public static int glCheckFramebufferStatus(int);
+  public static void _glFramebufferTexture2D(int, int, int, int, int);
+  public static int getBoundFramebuffer();
+  public static void glActiveTexture(int);
+  public static void glBlendFuncSeparate(int, int, int, int);
+  public static java.lang.String glGetShaderInfoLog(int, int);
+  public static java.lang.String glGetProgramInfoLog(int, int);
+  public static void setupLevelDiffuseLighting(org.joml.Vector3f, org.joml.Vector3f, org.joml.Matrix4f);
+  public static void setupGuiFlatDiffuseLighting(org.joml.Vector3f, org.joml.Vector3f);
+  public static void setupGui3DDiffuseLighting(org.joml.Vector3f, org.joml.Vector3f);
+  public static void _enableCull();
+  public static void _disableCull();
+  public static void _polygonMode(int, int);
+  public static void _enablePolygonOffset();
+  public static void _disablePolygonOffset();
+  public static void _polygonOffset(float, float);
+  public static void _enableColorLogicOp();
+  public static void _disableColorLogicOp();
+  public static void _logicOp(int);
+  public static void _activeTexture(int);
+  public static void _texParameter(int, int, float);
+  public static void _texParameter(int, int, int);
+  public static int _getTexLevelParameter(int, int, int);
+  public static int _genTexture();
+  public static void _genTextures(int[]);
+  public static void _deleteTexture(int);
+  public static void _deleteTextures(int[]);
+  public static void _bindTexture(int);
+  public static int _getActiveTexture();
+  public static void _texImage2D(int, int, int, int, int, int, int, int, java.nio.IntBuffer);
+  public static void _texSubImage2D(int, int, int, int, int, int, int, int, long);
+  public static void upload(int, int, int, int, int, com.mojang.blaze3d.platform.NativeImage$Format, java.nio.IntBuffer, java.util.function.Consumer<java.nio.IntBuffer>);
+  private static void _upload(int, int, int, int, int, com.mojang.blaze3d.platform.NativeImage$Format, java.nio.IntBuffer, java.util.function.Consumer<java.nio.IntBuffer>);
+  public static void _getTexImage(int, int, int, int, long);
+  public static void _viewport(int, int, int, int);
+  public static void _colorMask(boolean, boolean, boolean, boolean);
+  public static void _stencilFunc(int, int, int);
+  public static void _stencilMask(int);
+  public static void _stencilOp(int, int, int);
+  public static void _clearDepth(double);
+  public static void _clearColor(float, float, float, float);
+  public static void _clearStencil(int);
+  public static void _clear(int);
+  public static void _glDrawPixels(int, int, int, int, long);
+  public static void _vertexAttribPointer(int, int, int, boolean, int, long);
+  public static void _vertexAttribIPointer(int, int, int, int, long);
+  public static void _enableVertexAttribArray(int);
+  public static void _disableVertexAttribArray(int);
+  public static void _drawElements(int, int, int, long);
+  public static void _pixelStore(int, int);
+  public static void _readPixels(int, int, int, int, int, int, java.nio.ByteBuffer);
+  public static void _readPixels(int, int, int, int, int, int, long);
+  public static int _getError();
+  public static java.lang.String _getString(int);
+  public static int _getInteger(int);
+  public static long _glFenceSync(int, int);
+  public static int _glClientWaitSync(long, int, long);
+  public static void _glDeleteSync(long);
+  private static void lambda$upload$2(int, int, int, int, int, com.mojang.blaze3d.platform.NativeImage$Format, java.nio.IntBuffer, java.util.function.Consumer);
+  private static com.mojang.blaze3d.platform.GlStateManager$TextureState[] lambda$static$1(int);
+  private static com.mojang.blaze3d.platform.GlStateManager$TextureState lambda$static$0(int);
+  static {};
+}
+=== net.minecraft.client.particle.Particle
+Compiled from "Particle.java"
+public abstract class net.minecraft.client.particle.Particle {
+  private static final net.minecraft.world.phys.AABB INITIAL_AABB;
+  private static final double MAXIMUM_COLLISION_VELOCITY_SQUARED;
+  protected final net.minecraft.client.multiplayer.ClientLevel level;
+  protected double xo;
+  protected double yo;
+  protected double zo;
+  protected double x;
+  protected double y;
+  protected double z;
+  protected double xd;
+  protected double yd;
+  protected double zd;
+  private net.minecraft.world.phys.AABB bb;
+  protected boolean onGround;
+  protected boolean hasPhysics;
+  private boolean stoppedByCollision;
+  protected boolean removed;
+  protected float bbWidth;
+  protected float bbHeight;
+  protected final net.minecraft.util.RandomSource random;
+  protected int age;
+  protected int lifetime;
+  protected float gravity;
+  protected float rCol;
+  protected float gCol;
+  protected float bCol;
+  protected float alpha;
+  protected float roll;
+  protected float oRoll;
+  protected float friction;
+  protected boolean speedUpWhenYMotionIsBlocked;
+  protected net.minecraft.client.particle.Particle(net.minecraft.client.multiplayer.ClientLevel, double, double, double);
+  public net.minecraft.client.particle.Particle(net.minecraft.client.multiplayer.ClientLevel, double, double, double, double, double, double);
+  public net.minecraft.client.particle.Particle setPower(float);
+  public void setParticleSpeed(double, double, double);
+  public net.minecraft.client.particle.Particle scale(float);
+  public void setColor(float, float, float);
+  protected void setAlpha(float);
+  public void setLifetime(int);
+  public int getLifetime();
+  public void tick();
+  public abstract void render(com.mojang.blaze3d.vertex.VertexConsumer, net.minecraft.client.Camera, float);
+  public abstract net.minecraft.client.particle.ParticleRenderType getRenderType();
+  public java.lang.String toString();
+  public void remove();
+  protected void setSize(float, float);
+  public void setPos(double, double, double);
+  public void move(double, double, double);
+  protected void setLocationFromBoundingbox();
+  protected int getLightColor(float);
+  public boolean isAlive();
+  public net.minecraft.world.phys.AABB getBoundingBox();
+  public void setBoundingBox(net.minecraft.world.phys.AABB);
+  public java.util.Optional<net.minecraft.core.particles.ParticleGroup> getParticleGroup();
+  static {};
+}
 === package listing (client.gui.screens, client.input, client)
 net/minecraft/client/AttackIndicatorStatus.class
 net/minecraft/client/CloudStatus.class
 net/minecraft/client/GraphicsStatus.class
 net/minecraft/client/NarratorStatus.class
-net/minecraft/client/gui/screens/AccessibilityOnboardingScreen.class
 net/minecraft/client/gui/screens/BackupConfirmScreen.class
 net/minecraft/client/gui/screens/AlertScreen.class
-net/minecraft/client/gui/screens/ChatScreen.class
+net/minecraft/client/gui/screens/AccessibilityOnboardingScreen.class
 net/minecraft/client/gui/screens/ConfirmScreen.class
 net/minecraft/client/gui/screens/CreateBuffetWorldScreen.class
 net/minecraft/client/gui/screens/ConfirmLinkScreen.class
 net/minecraft/client/gui/screens/CreditsAndAttributionScreen.class
+net/minecraft/client/gui/screens/ConnectScreen.class
 net/minecraft/client/gui/screens/CreateFlatWorldScreen.class
 net/minecraft/client/gui/screens/DatapackLoadFailureScreen.class
 net/minecraft/client/gui/screens/DemoIntroScreen.class
+net/minecraft/client/gui/screens/ChatScreen.class
 net/minecraft/client/gui/screens/DisconnectedScreen.class
+net/minecraft/client/gui/screens/DeathScreen.class
 net/minecraft/client/gui/screens/ErrorScreen.class
 net/minecraft/client/gui/screens/DirectJoinServerScreen.class
 net/minecraft/client/gui/screens/EditServerScreen.class
-net/minecraft/client/gui/screens/ConnectScreen.class
 net/minecraft/client/gui/screens/GenericMessageScreen.class
-net/minecraft/client/gui/screens/DeathScreen.class
+net/minecraft/client/gui/screens/InBedChatScreen.class
 net/minecraft/client/gui/screens/GenericWaitingScreen.class
 net/minecraft/client/gui/screens/LevelLoadingScreen.class
 net/minecraft/client/gui/screens/OutOfMemoryScreen.class
 net/minecraft/client/gui/screens/NoticeWithLinkScreen.class
-net/minecraft/client/gui/screens/InBedChatScreen.class
+net/minecraft/client/gui/screens/PauseScreen.class
 net/minecraft/client/gui/screens/ProgressScreen.class
 net/minecraft/client/gui/screens/PresetFlatWorldScreen.class
 net/minecraft/client/gui/screens/ReceivingLevelScreen.class
 net/minecraft/client/gui/screens/RecoverWorldDataScreen.class
-net/minecraft/client/gui/screens/PauseScreen.class
-net/minecraft/client/gui/screens/TitleScreen.class
 net/minecraft/client/gui/screens/ShareToLanScreen.class
+net/minecraft/client/gui/screens/TitleScreen.class
 net/minecraft/client/gui/screens/WinScreen.class
