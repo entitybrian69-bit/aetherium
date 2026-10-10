@@ -461,6 +461,58 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
             text = text.replace(f"{var}.guiHeight()", "minecraft.getWindow().getGuiScaledHeight()")
             applied.append("guiWidth->Window")
 
+    # 26.x: the gui render-state extraction rework. GuiGraphics becomes
+    # GuiGraphicsExtractor, Screen#render becomes extractRenderState, the text calls
+    # lose their shadow boolean and gain new names, and the background call becomes a
+    # super call. All verified from CaffeineMC/sodium @ 26.1.2/stable and 26.2/stable
+    # (26.3 is derived from 26.2 - no sodium 26.3 branch exists to read).
+    if facts.get("gui_extractor"):
+        new_text = re.sub(r"\bGuiGraphics\b", "GuiGraphicsExtractor", text)
+        if new_text != text:
+            applied.append("GuiGraphics->GuiGraphicsExtractor")
+            text = new_text
+
+        def extractor_text(recv: str, args):
+            # drawString(Font, text, x, y, color[, shadow]) -> text(Font, text, x, y, color);
+            # the extractor's text() has no shadow argument (every call site here passes false).
+            if recv == "guiGraphics" and len(args) in (5, 6):
+                return f"{args[0]}.text({', '.join(args[:5])})"
+            return None
+
+        def extractor_centered(recv: str, args):
+            if recv == "guiGraphics" and len(args) == 5:
+                return f"{args[0]}.centeredText({', '.join(args)})"
+            return None
+
+        for name, fn, target_name in (("drawString", extractor_text, "text"),
+                                      ("drawCenteredString", extractor_centered, "centeredText")):
+            new_text = remap_call(text, name, fn)
+            if new_text != text:
+                applied.append(f"{name}->{target_name}")
+                text = new_text
+
+        old_render = ("public void render(final GuiGraphicsExtractor guiGraphics, "
+                      "final int mouseX, final int mouseY, final float delta)")
+        new_render = old_render.replace("public void render(", "public void extractRenderState(")
+        if old_render in text:
+            text = text.replace(old_render, new_render, 1)
+            applied.append("Screen.render->extractRenderState")
+        old_bg = "this.renderBackground(guiGraphics, mouseX, mouseY, delta);"
+        if old_bg in text:
+            text = text.replace(old_bg, "super.extractRenderState(guiGraphics, mouseX, mouseY, delta);", 1)
+            applied.append("renderBackground->super.extractRenderState")
+
+    # ResourceLocation -> Identifier from 1.21.11 (sodium @ 1.21.11/stable:
+    # net.minecraft.resources.Identifier + Identifier.fromNamespaceAndPath(ns, path)).
+    if facts.get("identifier"):
+        if "ResourceLocation" in text:
+            text = text.replace("import net.minecraft.resources.ResourceLocation;",
+                                "import net.minecraft.resources.Identifier;")
+            text = re.sub(r"\bResourceLocation\b", "Identifier", text)
+            applied.append("ResourceLocation->Identifier")
+        text = re.sub(r'Identifier\.parse\("([^"]+):([^"]+)"\)',
+                      r'Identifier.fromNamespaceAndPath("\1", "\2")', text)
+
     if int(facts.get("render_background_args", 4)) == 1:
         for var in ("guiGraphics", "poseStack", "matrixStack"):
             old = f"this.renderBackground({var}, mouseX, mouseY, delta)"
@@ -744,6 +796,13 @@ def write_docs(row: dict, out_dir: str, touched: list[str], results: dict) -> No
           "getMinSectionY/getMaxSectionY from 1.21.2 [VERIFIED: ship legs + sodium @ 1.21.4]",
         f"- `input_events` = **{facts['input_events']}** - 1.21.9 replaced the double-based mouse "
           "handlers with MouseButtonEvent forms [VERIFIED: sodium @ 26.2/stable]",
+        f"- `identifier` = **{facts.get('identifier', False)}** - ResourceLocation becomes Identifier "
+          "(with fromNamespaceAndPath) from 1.21.11 [VERIFIED: sodium @ 1.21.11/stable; the "
+          "1.21.9/1.21.10 legs compiled ResourceLocation.parse fine]",
+        f"- `gui_extractor` = **{facts.get('gui_extractor', False)}** - 26.x replaces GuiGraphics with "
+          "GuiGraphicsExtractor, Screen#render with extractRenderState, and drawString/drawCenteredString "
+          "with text/centeredText [VERIFIED: sodium @ 26.1.2/stable and 26.2/stable; this row's exact "
+          "version derived from 26.2 if newer]",
         f"- `entities_iter` = **{facts['entities_iter']}** - entitiesForRendering "
           "[VERIFIED on 1.21.1: Iris MixinLevelRenderer_SkipRendering targets ClientLevel#entitiesForRendering]",
         f"- `fabric_api` pin read from FabricMC/fabric tags on 2026-10-10"

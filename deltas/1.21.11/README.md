@@ -21,6 +21,7 @@ neoforge_version=21.11
 
 ### Era transforms applied by the generated patch
 
+- `ResourceLocation->Identifier`
 - `getMinSection->getMinSectionY`
 - `mouse-handlers->MouseButtonEvent`
 
@@ -36,6 +37,8 @@ neoforge_version=21.11
 - `resource_location` = **parse** - ResourceLocation.parse is 1.21+; earlier rows use the constructor
 - `level_sections` = **minSectionY** - getMinSection/getMaxSection through 1.21.1, getMinSectionY/getMaxSectionY from 1.21.2 [VERIFIED: ship legs + sodium @ 1.21.4]
 - `input_events` = **event** - 1.21.9 replaced the double-based mouse handlers with MouseButtonEvent forms [VERIFIED: sodium @ 26.2/stable]
+- `identifier` = **True** - ResourceLocation becomes Identifier (with fromNamespaceAndPath) from 1.21.11 [VERIFIED: sodium @ 1.21.11/stable; the 1.21.9/1.21.10 legs compiled ResourceLocation.parse fine]
+- `gui_extractor` = **False** - 26.x replaces GuiGraphics with GuiGraphicsExtractor, Screen#render with extractRenderState, and drawString/drawCenteredString with text/centeredText [VERIFIED: sodium @ 26.1.2/stable and 26.2/stable; this row's exact version derived from 26.2 if newer]
 - `entities_iter` = **entitiesForRendering** - entitiesForRendering [VERIFIED on 1.21.1: Iris MixinLevelRenderer_SkipRendering targets ClientLevel#entitiesForRendering]
 - `fabric_api` pin read from FabricMC/fabric tags on 2026-10-10 [VERIFIED tag]
 
@@ -44,6 +47,7 @@ neoforge_version=21.11
 - `gradle.properties`
 - `common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java`
 - `common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java`
+- `common/src/main/java/com/aetherium/gui/AetheriumTheme.java`
 - `common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 
