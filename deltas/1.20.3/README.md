@@ -3,7 +3,7 @@
 - Java toolchain: **17** (mixin compatibilityLevel `JAVA_17`)
 - Fabric loader floor: **0.15.11**, Loom **1.16.1**
 - Fabric API (compile-only, optional at runtime): **0.91.1+1.20.3**
-- NeoForge: **20.3.8-beta**
+- NeoForge: **does not exist for this version - the neoforge module is disabled**
 - Mappings: officialMojangMappings()
 - Status: **derived**
 
@@ -16,7 +16,7 @@ minecraft_version=1.20.3
 java_version=17
 fabric_loader_version=0.15.11
 fabric_api_version=0.91.1+1.20.3
-neoforge_version=20.3.8-beta
+neoforge_version=unavailable (module disabled)
 ```
 
 ### Era transforms applied by the generated patch
@@ -52,6 +52,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.3.t
 ## Files the generated patch touches
 
 - `gradle.properties`
+- `settings.gradle.kts`
+- `build.gradle.kts`
 - `common/src/main/resources/aetherium-common.mixins.json`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`

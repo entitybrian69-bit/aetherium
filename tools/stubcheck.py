@@ -116,6 +116,13 @@ def check(version, row, verbose=True):
                      "-cp", cp, "-d", out, "@" + lst])
     log = log.replace(os.path.join(WORK, version, "src") + os.sep, "")
     errors = len(re.findall(r"^\d+\. ERROR", log, re.M))
+    # -source gates syntax only; ECJ still sees this runtime's class library. The API lint
+    # catches JDK calls newer than the row's Java (Optional.isEmpty broke CI's 1.16.5 leg).
+    import java_api_lint
+    api = java_api_lint.lint_files(files, int(row.get("java", 21)))
+    if api:
+        errors += len(api)
+        log += "\n" + "\n".join("API-LEVEL ERROR " + p for p in api) + "\n"
     with open(os.path.join(WORK, version, "errors.txt"), "w") as h:
         h.write(log)
     status = "ok" if errors == 0 else "%d errors" % errors

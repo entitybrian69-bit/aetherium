@@ -4,6 +4,19 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.20.2/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.20.2/changes.patch
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 004733e..fcb3d2d 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -68,7 +68,7 @@ subprojects {
+ tasks.register("buildAll") {
+     group = "aetherium"
+     description = "Builds common, fabric and neoforge artifacts for the reference version."
+-    dependsOn(":common:build", ":fabric:build", ":neoforge:build")
++    dependsOn(":common:build", ":fabric:build")
+ }
+ 
+ /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
 index 6e31c46..aa0a28b 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
@@ -79,7 +92,7 @@ index 7aa5704..57c6a49 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 396e7c3..2b3d220 100644
+index 396e7c3..5f40b3b 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
@@ -95,12 +108,15 @@ index 396e7c3..2b3d220 100644
  mapping_channel=mojmap
  # officialMojangMappings() is resolved by Loom; parchment is optional and off by
  # default so that a clean machine never needs the parchment maven.
-@@ -32,13 +32,13 @@ fabric_loom_version=1.16.1
+@@ -31,14 +31,15 @@ fabric_loom_version=1.16.1
+ # (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> neoforge/build.gradle.kts
  # Also `moddev` in gradle/libs.versions.toml; check.py keeps the pair equal.
  neoforge_moddev_version=2.0.141
- # (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> buildSrc BuildConfig.kt
+-# (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> buildSrc BuildConfig.kt
 -neoforge_version=21.1.228
-+neoforge_version=20.2.86
++# No NeoForge release exists for this Minecraft version (NeoForge begins at 1.20.2);
++# the module is excluded here, in settings.gradle.kts and in the root build (deltas/1.20.2/README.md).
++neoforge_version=unavailable
  # (VERIFIED) fabric-loader 0.16.9 exists (git ls-remote --tags FabricMC/fabric-loader);
  # the latest loader line (0.19.x) also works, this pin keeps the reference era-accurate.
 -fabric_loader_version=0.16.9
@@ -112,3 +128,22 @@ index 396e7c3..2b3d220 100644
  # (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> common/build.gradle.kts
  mixin_extras_version=0.5.3
  # (VERIFIED) same source
+@@ -63,6 +64,6 @@ mod_issue_tracker=https://github.com/entitybrian69-bit/aetherium/issues
+ mod_license=LGPL-3.0-only
+ maven_group=com.aetherium
+ archives_base_name=aetherium
+-enabled_platforms=fabric,neoforge
++enabled_platforms=fabric
+ # Set to false on machines without a GPU (CI compile-only jobs).
+ aetherium.enableRunConfigs=false
+diff --git a/settings.gradle.kts b/settings.gradle.kts
+index bc5aaab..c52e7bb 100644
+--- a/settings.gradle.kts
++++ b/settings.gradle.kts
+@@ -51,5 +51,5 @@ include("fabric")
+ // at all, or :neoforge would fail to resolve its (nonexistent) NeoForge build during
+ // configuration and take :common and :fabric down with it.
+ if (providers.gradleProperty("enabled_platforms").orElse("fabric,neoforge").get().split(",").contains("neoforge")) {
+-    include("neoforge")
++    // include("neoforge") - no NeoForge for 1.20.2; see deltas/1.20.2/README.md
+ }

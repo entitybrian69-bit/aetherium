@@ -208,7 +208,7 @@ public final class ConfigValue<T> {
             parsed = typeCast(raw);
         } else {
             final Optional<T> fromString = this.parser.apply(String.valueOf(raw));
-            if (fromString.isEmpty()) {
+            if (!fromString.isPresent()) {
                 return false;
             }
             parsed = fromString.get();
