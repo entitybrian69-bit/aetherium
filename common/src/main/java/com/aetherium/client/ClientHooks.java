@@ -159,7 +159,7 @@ public final class ClientHooks {
         }
         collectLightSources(minecraft);
         if (scheduler != null) {
-            final var camera = minecraft.getCameraEntity();
+            final net.minecraft.world.entity.Entity camera = minecraft.getCameraEntity();
             if (camera != null) {
                 scheduler.setCamera(camera.getX(), camera.getEyeY(), camera.getZ());
             }
@@ -177,7 +177,7 @@ public final class ClientHooks {
 
         // Held item: the one case where reading the player's hand is enough and no
         // entity scan is needed, so it is handled before the loop below.
-        final var player = minecraft.player;
+        final net.minecraft.client.player.LocalPlayer player = minecraft.player;
         if (player != null) {
             final BlockState mainHand = lightSourceFor(player.getMainHandItem());
             if (mainHand != null) {
@@ -190,14 +190,18 @@ public final class ClientHooks {
         if (Aetherium.config().dynamicLightsEntities.get()) {
             final int range = Aetherium.config().dynamicLightsRange.get();
             final int rangeSq = range * range;
-            for (final var entity : minecraft.level.entitiesForRendering()) {
+            for (final net.minecraft.world.entity.Entity entity : minecraft.level.entitiesForRendering()) {
                 if (entity == null || entity == player) {
                     continue;
                 }
-                if (!(entity instanceof net.minecraft.world.entity.LivingEntity living)) {
+                // Classic instanceof + cast, not the Java 16 pattern form: this file
+                // compiles on the 1.16.5 row's Java 8 toolchain.
+                if (!(entity instanceof net.minecraft.world.entity.LivingEntity)) {
                     continue;
                 }
-                final var stack = living.getMainHandItem();
+                final net.minecraft.world.entity.LivingEntity living =
+                        (net.minecraft.world.entity.LivingEntity) entity;
+                final net.minecraft.world.item.ItemStack stack = living.getMainHandItem();
                 if (stack == null || stack.isEmpty()) {
                     continue;
                 }
@@ -231,9 +235,10 @@ public final class ClientHooks {
         if (stack == null || stack.isEmpty()) {
             return null;
         }
-        if (!(stack.getItem() instanceof net.minecraft.world.item.BlockItem blockItem)) {
+        if (!(stack.getItem() instanceof net.minecraft.world.item.BlockItem)) {
             return null;
         }
+        final net.minecraft.world.item.BlockItem blockItem = (net.minecraft.world.item.BlockItem) stack.getItem();
         final net.minecraft.world.level.block.Block block = blockItem.getBlock();
         if (block == null) {
             return null;

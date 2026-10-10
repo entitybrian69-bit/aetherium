@@ -1,6 +1,8 @@
 package com.aetherium.gui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -33,8 +35,53 @@ import net.minecraft.network.chat.Component;
  * config uses.</p>
  */
 public final class AetheriumTabs {
-    /** Sidebar identity: label key, icon glyph, and the config group it maps to. */
-    public record Tab(String id, String labelKey, String glyph, String group, boolean androidOnly) {
+    /**
+     * Sidebar identity: label key, icon glyph, and the config group it maps to.
+     *
+     * <p>A final class with record-style accessors, not a {@code record}: records are
+     * Java 16+ and the 1.16.5 row compiles this file on a Java 8 toolchain. The
+     * accessors keep the component names ({@code id()}, {@code labelKey()}, ...) so
+     * every call site reads the same as it did.</p>
+     */
+    public static final class Tab {
+        private final String id;
+        private final String labelKey;
+        private final String glyph;
+        private final String group;
+        private final boolean androidOnly;
+
+        public Tab(final String id, final String labelKey, final String glyph, final String group, final boolean androidOnly) {
+            this.id = Objects.requireNonNull(id, "id");
+            this.labelKey = Objects.requireNonNull(labelKey, "labelKey");
+            this.glyph = Objects.requireNonNull(glyph, "glyph");
+            this.group = Objects.requireNonNull(group, "group");
+            this.androidOnly = androidOnly;
+        }
+
+        public String id() {
+            return this.id;
+        }
+
+        public String labelKey() {
+            return this.labelKey;
+        }
+
+        public String glyph() {
+            return this.glyph;
+        }
+
+        public String group() {
+            return this.group;
+        }
+
+        public boolean androidOnly() {
+            return this.androidOnly;
+        }
+
+        @Override
+        public String toString() {
+            return "Tab[" + this.id + "]";
+        }
     }
 
     public static final Tab GENERAL = new Tab("general", "aetherium.tab.general", "\u2726", "general", false);
@@ -45,7 +92,8 @@ public final class AetheriumTabs {
     public static final Tab ADVANCED = new Tab("advanced", "aetherium.tab.advanced", "\u2699", "advanced", false);
     public static final Tab ANDROID = new Tab("android", "aetherium.tab.android", "\u25B2", "android", true);
 
-    public static final List<Tab> ALL = List.of(GENERAL, PERFORMANCE, QUALITY, SHADERS, UTILITIES, ADVANCED, ANDROID);
+    public static final List<Tab> ALL = Collections.unmodifiableList(Arrays.asList(
+            GENERAL, PERFORMANCE, QUALITY, SHADERS, UTILITIES, ADVANCED, ANDROID));
 
     private AetheriumTabs() {
     }
@@ -368,7 +416,7 @@ public final class AetheriumTabs {
             parent.rebuildForLayout();
             Aetherium.store().requestSave();
         }));
-        final var governor = ClientHooks.governor();
+        final com.aetherium.android.AndroidPowerGovernor governor = ClientHooks.governor();
         addNote(theme, x, rowY, out, governor == null ? "Power governor unavailable" : governor.describe());
         addNote(theme, x, rowY, out, "ABI: arm64-v8a only. armeabi-v7a is not built - a 32-bit process cannot "
                 + "address the arenas the persistent-mapping path needs (docs/ANDROID.md).");

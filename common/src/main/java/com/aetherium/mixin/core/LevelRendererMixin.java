@@ -62,7 +62,7 @@ public abstract class LevelRendererMixin {
             return;
         }
         MeshCounters.noteFullRebuild();
-        final var scheduler = ClientHooks.scheduler();
+        final com.aetherium.render.mesh.ChunkMeshScheduler scheduler = ClientHooks.scheduler();
         if (scheduler != null) {
             // A full rebuild invalidates every mesh we hold; keeping stale tasks in
             // the queue uploads geometry against block data that no longer exists.
@@ -76,7 +76,7 @@ public abstract class LevelRendererMixin {
         if (Aetherium.isVanillaPath()) {
             return;
         }
-        final var scheduler = ClientHooks.scheduler();
+        final com.aetherium.render.mesh.ChunkMeshScheduler scheduler = ClientHooks.scheduler();
         if (scheduler != null) {
             scheduler.pump();
         }

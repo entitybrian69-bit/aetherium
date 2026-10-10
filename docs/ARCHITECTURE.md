@@ -182,7 +182,7 @@ patches by design, described next.
 ## Porting
 
 `tools/porting_pins.json` is the single source of truth for 33 rows; `tools/gen_deltas.py`
-generates `deltas/<version>/{changes.patch,derivation.md,notes.md}` and `PORTING_MATRIX.md`
+generates `deltas/<version>/{changes.patch,README.md,mixins.json,build.gradle.kts}` and `PORTING_MATRIX.md`
 from it, and `--verify` applies every patch to the current tree. A delta may only change pins,
 the plugin's version table, and a mixin's target-name lists. It may never restructure a class
 or fix a logic bug — those belong in `common/` where all 33 rows inherit them. The mechanical

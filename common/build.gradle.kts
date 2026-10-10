@@ -31,12 +31,30 @@ repositories {
 // configurations are generated only by the platform modules (fabric/,
 // neoforge/), which are the projects that have a loader dependency.
 
+loom {
+    mixin {
+        // Verified against CaffeineMC/sodium @ 1.21.1/stable (common/build.gradle.kts):
+        // with this flag Loom does not run the legacy mixin AP for refmaps and instead
+        // rewrites the @Inject/@Mixin target strings during remapJar. Without it, the
+        // mojmap names in these mixins cannot be remapped and :common:compileJava fails.
+        useLegacyMixinAp = false
+    }
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
-    mappings(loom.officialMojangMappings())
+    // The layered{} form is the one CaffeineMC/sodium uses at this exact loom version
+    // (common/build.gradle.kts @ 1.21.1/stable); the officialMojangMappings() shortcut
+    // is not verified to still exist on the 1.16 line.
+    mappings(loom.layered { officialMojangMappings() })
 
+    // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
+    // compiles against mojmap, and in legacy-AP mode the processor tries to write a
+    // named->intermediary refmap and dies with "Unable to locate obfuscation mapping for
+    // @Inject target" (this exact failure shipped in the first CI build of this tree).
+    // With `useLegacyMixinAp = false` below, remapJar rewrites the annotation strings itself,
+    // which is how CaffeineMC/sodium builds its mojmap mixins for the same loom version.
     compileOnly("net.fabricmc:sponge-mixin:${project.property("sponge_mixin_version")}")
-    annotationProcessor("net.fabricmc:sponge-mixin:${project.property("sponge_mixin_version")}")
 
     compileOnly("io.github.llamalad7:mixinextras-common:${project.property("mixin_extras_version")}")
     annotationProcessor("io.github.llamalad7:mixinextras-common:${project.property("mixin_extras_version")}")

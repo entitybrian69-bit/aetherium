@@ -19,11 +19,14 @@ import net.minecraft.world.level.LightLayer;
  *
  * <p>Probe order, first match wins, each cached forever:</p>
  * <ol>
- *   <li>{@code int[] pixels} (1.20.2+): read, transform, write back in place, then
- *       the caller's own upload carries it.</li>
- *   <li>{@code NativeImage lightmap} (1.16.5-1.20.1): read/transform per pixel
- *       through {@code getPixel/setPixel}, which is slower but bounded — the
- *       texture is 16x16, so this is 256 iterations and no allocation.</li>
+ *   <li>{@code int[] pixels}: read, transform, write back in place, then the
+ *       caller's own upload carries it.</li>
+ *   <li>{@code DynamicTexture lightTexture} (the verified 1.21.1 shape, per Iris's
+ *       {@code LightTextureAccessor}): follow {@code getPixels()} to the
+ *       {@code NativeImage}, then read/transform per pixel.</li>
+ *   <li>a direct {@code NativeImage} field (older versions): read/transform per
+ *       pixel through the {@code getPixel*}/{@code setPixel*} pair, which is slower
+ *       but bounded — the texture is 16x16, so this is 256 iterations.</li>
  *   <li>nothing: log once, disable, never retry (a per-frame retry on a device that
  *       will not change its mind is the classic modding footgun).</li>
  * </ol>
@@ -136,10 +139,16 @@ public final class LightmapWriter {
         return MathUtil.packRgb(red, green, blue);
     }
 
-    // [UNVERIFIED: the accepted field names ("pixels", "lightmapPixels", any *pixels) and that
-    // the int[] is ABGR-packed as Vanilla's NativeImage.PixelFormat.ABGR lightmap. The probe walks
-    // the real class at runtime, so a wrong guess here is a warn log and no gamma post-processing
-    // - never a crash and never a silently wrong colour space.]
+    // Shape facts read from real sources on 2026-10-10:
+    //   * 1.21.1 stores the lightmap as `DynamicTexture lightTexture` on LightTexture -
+    //     verified by IrisShaders/Iris @ 1.21.1 `LightTextureAccessor`, whose @Accessor("lightTexture")
+    //     returns DynamicTexture. The pixels are then behind DynamicTexture#getPixels() -> NativeImage.
+    //   * NativeImage's accessors are named getPixelABGR/setPixelABGR (and the RGBA pair) -
+    //     matched by prefix below, because the old `equals("getPixel")` matcher never matched
+    //     any real method name and silently killed the whole NativeImage path.
+    // The probe still walks the real class at runtime: a name from another version is a
+    // warn log and no gamma post-processing - never a crash and never a silently wrong
+    // colour space.
     private static void probe(final LightTexture lightTexture) {
         try {
             final Class<?> type = lightTexture.getClass();
@@ -155,20 +164,40 @@ public final class LightmapWriter {
                     LOGGER.info("Lightmap post-processing bound to {}", shapeDescription);
                     return;
                 }
+                if (field.getType().getSimpleName().equals("DynamicTexture")) {
+                    // 1.21.1 shape (verified, see comment above): the NativeImage lives one
+                    // getter deeper, on the DynamicTexture. Resolve lightTexture.getPixels()
+                    // once and reuse the NativeImage read/write path for the result.
+                    final MethodHandle textureGetter = lookup.unreflectGetter(field);
+                    final MethodHandle pixelsOf = findGetter(field.getType(), "getPixels");
+                    if (pixelsOf != null) {
+                        final Class<?> imageType = pixelsOf.getReturnType();
+                        imageGetPixel = findPixelAccessor(lookup, imageType, "getPixel");
+                        imageSetPixel = findPixelAccessor(lookup, imageType, "setPixel");
+                        if (imageGetPixel != null && imageSetPixel != null) {
+                            imageGetter = compose(textureGetter, pixelsOf);
+                            shape = Shape.NATIVE_IMAGE;
+                            shapeDescription = field.getName() + ".getPixels() -> "
+                                    + imageType.getSimpleName() + " (" + describePixelMethods() + ")";
+                            LOGGER.info("Lightmap post-processing bound to {}", shapeDescription);
+                            return;
+                        }
+                    }
+                    continue;
+                }
                 if (field.getType().getSimpleName().equals("NativeImage")) {
                     imageGetter = lookup.unreflectGetter(field);
-                    final MethodHandles.Lookup imageLookup = MethodHandles.lookup();
-                    imageGetPixel = findMethod(imageLookup, field.getType(), "getPixel", "RGBA");
-                    imageSetPixel = findMethod(imageLookup, field.getType(), "setPixel", "ABGR");
+                    imageGetPixel = findPixelAccessor(lookup, field.getType(), "getPixel");
+                    imageSetPixel = findPixelAccessor(lookup, field.getType(), "setPixel");
                     if (imageGetPixel != null && imageSetPixel != null) {
                         shape = Shape.NATIVE_IMAGE;
-                        shapeDescription = "NativeImage " + field.getName() + " (ABGR)";
+                        shapeDescription = "NativeImage " + field.getName() + " (" + describePixelMethods() + ")";
                         LOGGER.info("Lightmap post-processing bound to {}", shapeDescription);
                         return;
                     }
                 }
             }
-            markUnsupported("no int[] pixels or NativeImage lightmap field found on " + type.getName());
+            markUnsupported("no int[] pixels, DynamicTexture or NativeImage lightmap field found on " + type.getName());
         } catch (final RuntimeException | LinkageError error) {
             markUnsupported(error.getClass().getSimpleName() + ": " + error.getMessage());
         } catch (final Throwable error) {
@@ -176,19 +205,67 @@ public final class LightmapWriter {
         }
     }
 
-    private static MethodHandle findMethod(final MethodHandles.Lookup lookup, final Class<?> type, final String name, final String suffixHint) {
-        for (final java.lang.reflect.Method method : type.getDeclaredMethods()) {
-            if (method.getName().equals(name) && method.getParameterCount() == 1) {
+    /** lightTexture.lightTextureField.getPixels(): one getter chained onto the other. */
+    private static MethodHandle compose(final MethodHandle outer, final MethodHandle inner) throws Throwable {
+        // collectArguments feeds the inner call's result into outer's only parameter slot;
+        // both getters are nullary, so the composition is a nullary getter of the image.
+        return MethodHandles.collectArguments(outer, 0, inner);
+    }
+
+    private static MethodHandle findGetter(final Class<?> type, final String name) {
+        for (final java.lang.reflect.Method method : type.getMethods()) {
+            if (method.getName().equals(name) && method.getParameterCount() == 0 && !method.getReturnType().equals(void.class)) {
                 try {
                     method.setAccessible(true);
-                    return lookup.unreflect(method);
-                } catch (final IllegalAccessException error) {
-                    LOGGER.dev("NativeImage#{} is not accessible: {}", name, error.getMessage());
+                    return MethodHandles.lookup().unreflect(method);
+                } catch (final RuntimeException | IllegalAccessException error) {
+                    LOGGER.dev("{}#{} is not accessible: {}", type.getSimpleName(), name, error.getClass().getSimpleName());
                     return null;
                 }
             }
         }
         return null;
+    }
+
+    /**
+     * Matches {@code getPixelABGR(int)}/{@code setPixelABGR(int,int)} and the RGBA pair by
+     * prefix, because NativeImage has never declared a plain {@code getPixel(int)}: the
+     * old exact-name matcher matched nothing on every version, which is how the entire
+     * NativeImage branch of this writer was dead code while looking alive.
+     */
+    private static MethodHandle findPixelAccessor(final MethodHandles.Lookup lookup, final Class<?> type, final String prefix) {
+        java.lang.reflect.Method best = null;
+        for (final java.lang.reflect.Method method : type.getMethods()) {
+            if (!method.getName().startsWith(prefix)) {
+                continue;
+            }
+            final boolean reader = prefix.equals("getPixel") && method.getParameterCount() == 1
+                    && method.getReturnType() == int.class;
+            final boolean writer = prefix.equals("setPixel") && method.getParameterCount() == 2
+                    && method.getReturnType() == void.class;
+            if (!reader && !writer) {
+                continue;
+            }
+            if (best == null || method.getName().length() < best.getName().length()) {
+                best = method; // shortest name = the plainest variant the version offers
+            }
+        }
+        if (best == null) {
+            return null;
+        }
+        try {
+            best.setAccessible(true);
+            return lookup.unreflect(best);
+        } catch (final RuntimeException | IllegalAccessException error) {
+            LOGGER.dev("{}#{} is not accessible: {}", type.getSimpleName(), best.getName(), error.getClass().getSimpleName());
+            return null;
+        }
+    }
+
+    private static String describePixelMethods() {
+        final String reader = imageGetPixel == null ? "?" : imageGetPixel.type().toString();
+        final String writer = imageSetPixel == null ? "?" : imageSetPixel.type().toString();
+        return reader + " / " + writer;
     }
 
     private static void markUnsupported(final String reason) {
@@ -231,7 +308,7 @@ public final class LightmapWriter {
             return 15;
         }
         final Level level = minecraft.level;
-        final var entity = minecraft.getCameraEntity();
+        final net.minecraft.world.entity.Entity entity = minecraft.getCameraEntity();
         final MethodHandle light = LIGHT_LEVEL;
         if (level == null || entity == null || light == null) {
             return 15;

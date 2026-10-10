@@ -38,12 +38,12 @@ public final class CustomEnvFile {
     public static Map<String, String> parse(final Path path) {
         Objects.requireNonNull(path, "path");
         if (!Files.isReadable(path)) {
-            return Map.of();
+            return Collections.emptyMap();
         }
         try {
             if (Files.size(path) > MAX_BYTES) {
                 LOGGER.warn("Refusing to read oversized env file {} ({} bytes)", path, Files.size(path));
-                return Map.of();
+                return Collections.emptyMap();
             }
             final List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
             final Map<String, String> out = new LinkedHashMap<>();
@@ -79,7 +79,7 @@ public final class CustomEnvFile {
             return Collections.unmodifiableMap(out);
         } catch (final IOException error) {
             LOGGER.warn("Could not read env file " + path + "; ignoring it", error);
-            return Map.of();
+            return Collections.emptyMap();
         }
     }
 

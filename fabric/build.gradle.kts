@@ -35,6 +35,11 @@ loom {
             sourceSet(sourceSets["test"])
         }
     }
+    mixin {
+        // Same pin as common/ and as CaffeineMC/sodium @ 1.21.1/stable: the legacy mixin
+        // AP must not run (mojmap sources, refmap-free build; remapJar rewrites targets).
+        useLegacyMixinAp = false
+    }
     // Run configurations are opt-in (aetherium.enableRunConfigs=false by default) because the exact
     // Loom 1.16 run DSL for this module's shape is not verified from upstream source here. Note what
     // CI taught us on 2026-10-06: naming a run-config property that Loom does not declare
@@ -56,7 +61,10 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
-    mappings(loom.officialMojangMappings())
+    // The layered{} form is the one CaffeineMC/sodium uses at this exact loom version
+    // (common/build.gradle.kts @ 1.21.1/stable); the officialMojangMappings() shortcut
+    // is not verified to still exist on the 1.16 line.
+    mappings(loom.layered { officialMojangMappings() })
 
     modImplementation("net.fabricmc:fabric-loader:${project.property("fabric_loader_version")}")
     // Fabric API is compile-only and optional: every hook Aetherium needs is a

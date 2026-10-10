@@ -56,10 +56,10 @@ public final class BenchmarkRecorder {
      */
     public static void start() {
         final String configured = System.getProperty(PROPERTY);
-        if (configured == null || configured.isBlank()) {
+        if (configured == null || configured.trim().isEmpty()) {
             return;
         }
-        final Path directory = Path.of(configured);
+        final Path directory = java.nio.file.Paths.get(configured);
         // A previous stop() latches the recorder off; starting a new run must clear that,
         // or `benchmark.sh --mc` twice in one JVM session would silently record nothing.
         disabled = false;
@@ -77,7 +77,7 @@ public final class BenchmarkRecorder {
             }
             intervalNanos = (long) (seconds * 1_000_000_000.0d);
             final String configuredLabel = System.getProperty(LABEL_PROPERTY);
-            label = configuredLabel == null || configuredLabel.isBlank() ? "aetherium" : configuredLabel;
+            label = configuredLabel == null || configuredLabel.trim().isEmpty() ? "aetherium" : configuredLabel;
             intervalStartNanos = System.nanoTime();
             LOGGER.warn("Benchmark recording to {} every {} s - this is not a play session",
                     file, String.format(Locale.ROOT, "%.1f", seconds));

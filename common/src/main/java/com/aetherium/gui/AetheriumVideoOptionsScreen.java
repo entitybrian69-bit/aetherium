@@ -40,13 +40,15 @@ import net.minecraft.network.chat.Component;
  *
  * <h2>Version porting</h2>
  * <p>The vanilla signatures used here are the 1.21.1 ones: {@code render(GuiGraphics,int,int,float)},
- * {@code mouseClicked(double,double,int)->boolean}, {@code mouseScrolled(double,double,double)->boolean},
- * {@code keyPressed(int,int,int)->boolean}, {@code onClose()->void}. Each of those
- * changed shape at known points in the porting range (GuiGraphics at 1.18,
- * {@code mouseClicked}/{@code mouseScrolled} return types at 1.20.2,
- * {@code onClose()->boolean} at 1.21.2), and {@code PORTING_MATRIX.md} lists the
- * exact override for every row; the delta patches rewrite these five method
- * signatures mechanically.</p>
+ * {@code renderBackground(GuiGraphics,int,int,float)}, {@code keyPressed(int,int,int)->boolean},
+ * {@code onClose()->void}. None of the mouse handlers are overridden on this screen -
+ * input reaches the {@code AbstractWidget} rows - so the two shapes that actually
+ * moved in the range ({@code GuiGraphics} arrives at 1.20, {@code renderBackground}
+ * gains its cursor arguments between 1.20.1 and 1.20.6) are the only ones the delta
+ * patches rewrite here. {@code mouseScrolled} did change arity at 1.20.2 (it gained a
+ * horizontal-scroll double) and {@code updateWidgetNarration} was
+ * {@code updateNarration} before 1.21; both are facts in {@code tools/porting_pins.json}
+ * and are rewritten in the widget classes, not here.</p>
  */
 public final class AetheriumVideoOptionsScreen extends Screen {
     private static final int CONTENT_TOP = 28;
@@ -184,11 +186,11 @@ public final class AetheriumVideoOptionsScreen extends Screen {
         this.setStatus("Conflict report written to the log (" + report.length() + " chars)");
     }
 
-    // [UNVERIFIED: this override set for 1.21.1 exactly - render(GuiGraphics,int,int,float),
-    // mouseClicked(double,double,int)->boolean, mouseScrolled(double,double,double)->boolean and
-    // onClose()->void. Each has changed once or twice in 1.16.5->26.3 (see the table in this
-    // class' javadoc); the per-version delta rewrites them mechanically, and a mismatch is a
-    // compile error, which is the loud kind we want.]
+    // [UNVERIFIED: the 1.21.1 override set beyond the ones read from Iris's own screens -
+    // render(GuiGraphics,int,int,float) and renderBackground(GuiGraphics,int,int,float) are
+    // both verified (Iris @ 1.21.1 FeatureMissingErrorScreen); keyPressed/onClose are stable
+    // across the whole range. A mismatch on a ported row is a compile error, which is the
+    // loud kind we want.]
     @Override
     public void render(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
         this.mouseX = mouseX;
@@ -200,15 +202,22 @@ public final class AetheriumVideoOptionsScreen extends Screen {
         }
         this.list.tickAnimations();
 
-        // 1.21.1's Screen#renderBackground takes the cursor and frame delta too (it dims and
-        // blurs behind the panel); the single-argument form is 1.21.2+.
+        // Screen#renderBackground: the 4-argument form is verified on 1.20.6 (Iris @ 1.20.6,
+        // FeatureMissingErrorScreen) and on 1.21.1 (Iris @ 1.21.1); 1.20.1 and 1.19.4 have the
+        // single-argument form (same file, those branches). The exact 1.20.2-1.20.5 boundary is
+        // recorded per row in tools/porting_pins.json (render_background_arity), and the delta
+        // rewrites this call for the rows that predate it.
         this.renderBackground(guiGraphics, mouseX, mouseY, delta);
         drawChrome(guiGraphics);
 
         final int contentX = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
         final int offsetX = (int) this.animations.getContentOffsetX();
         layoutRows();
-        guiGraphics.enableScissor(contentX - 4, CONTENT_TOP, this.contentWidth + 8, this.contentHeight);
+        // GuiGraphics#enableScissor takes CORNERS (x1, y1, x2, y2), not (x, y, width, height):
+        // the previous call passed width/height in the x2/y2 slots, which on a wide window puts
+        // x2 < x1 and the scissor clips the whole content list to nothing.
+        guiGraphics.enableScissor(contentX - 4, CONTENT_TOP, contentX + this.contentWidth + 4,
+                CONTENT_TOP + this.contentHeight);
         for (final AbstractWidget row : this.content) {
             final float reveal = MathUtil.easeOutCubic(MathUtil.clamp(
                     this.animations.getOpenProgress() * this.content.size() - this.content.indexOf(row), 0.0f, 1.0f));

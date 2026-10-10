@@ -116,7 +116,7 @@ public final class GlDevice implements AutoCloseable {
 
         if (config.programBinaryCache.get()) {
             try {
-                this.programCache = new GlProgramCache(java.nio.file.Path.of(System.getProperty("user.dir", "."), "aetherium", "program-cache"), this.backend);
+                this.programCache = new GlProgramCache(java.nio.file.Paths.get(System.getProperty("user.dir", "."), "aetherium", "program-cache"), this.backend);
             } catch (final RuntimeException error) {
                 LOGGER.warn("Program binary cache disabled after an init failure", error);
                 this.programCache = null;

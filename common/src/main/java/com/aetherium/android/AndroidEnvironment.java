@@ -6,7 +6,9 @@ import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -99,7 +101,7 @@ public final class AndroidEnvironment {
             if (renderer == AndroidRenderer.UNKNOWN && config.readCustomEnv.get()) {
                 // Launcher UIs sometimes only persist the choice in custom_env.txt.
                 final File file = AndroidLauncher.findCustomEnvFile(env);
-                final Map<String, String> overlay = file == null ? Map.of() : CustomEnvFile.parse(toPath(file));
+                final Map<String, String> overlay = file == null ? Collections.emptyMap() : CustomEnvFile.parse(toPath(file));
                 final String fromFile = overlay.get("POJAV_RENDERER");
                 if (fromFile != null) {
                     renderer = AndroidRenderer.parse(fromFile, overlay.get("MESA_GL_VERSION_OVERRIDE"));
@@ -123,12 +125,12 @@ public final class AndroidEnvironment {
         final String arch = System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
         final boolean is64 = arch.contains("64") || arch.contains("aarch64");
         final boolean isArm = arch.contains("arm") || arch.contains("aarch64");
-        final List<String> features = isArm ? readCpuFeatures() : List.of();
+        final List<String> features = isArm ? readCpuFeatures() : Collections.emptyList();
         final boolean neon = features.contains("asimd") || features.contains("neon") || arch.contains("aarch64");
         final boolean sve = features.contains("sve") || features.contains("sve2");
 
         final File envFileHandle = isAndroid && config.readCustomEnv.get() ? AndroidLauncher.findCustomEnvFile(env) : null;
-        final Map<String, String> overlay = envFileHandle == null ? Map.of() : CustomEnvFile.parse(toPath(envFileHandle));
+        final Map<String, String> overlay = envFileHandle == null ? Collections.emptyMap() : CustomEnvFile.parse(toPath(envFileHandle));
 
         LOGGER.info("Android probe: launcher={} renderer={} android={} glLevelDeclared={} budget={}MB heap={}MB cgroup={}MB arch={} neon={} sve={} envFile={}",
                 launcher.getDisplayName(), renderer.getDisplayName(), isAndroid,
@@ -147,7 +149,7 @@ public final class AndroidEnvironment {
 
     private static String firstNonNull(final String... values) {
         for (final String value : values) {
-            if (value != null && !value.isBlank()) {
+            if (value != null && !value.trim().isEmpty()) {
                 return value;
             }
         }
@@ -183,17 +185,17 @@ public final class AndroidEnvironment {
 
     /** cgroup v2 limit for the app's own slice; Android uses this to cap heap. */
     private static long readCgroupMemoryLimitMb() {
-        final Path v2 = Path.of("/sys/fs/cgroup/memory.max");
+        final Path v2 = Paths.get("/sys/fs/cgroup/memory.max");
         try {
             if (Files.isReadable(v2)) {
-                final String text = Files.readString(v2, StandardCharsets.UTF_8).trim();
+                final String text = new String(Files.readAllBytes(v2), StandardCharsets.UTF_8).trim();
                 if (!text.equals("max")) {
                     return Long.parseLong(text) / (1024L * 1024L);
                 }
             }
-            final Path v1 = Path.of("/sys/fs/cgroup/memory/memory.limit_in_bytes");
+            final Path v1 = Paths.get("/sys/fs/cgroup/memory/memory.limit_in_bytes");
             if (Files.isReadable(v1)) {
-                final long bytes = Long.parseLong(Files.readString(v1, StandardCharsets.UTF_8).trim());
+                final long bytes = Long.parseLong(new String(Files.readAllBytes(v1), StandardCharsets.UTF_8).trim());
                 // cgroup v1 uses a huge sentinel instead of "max".
                 return bytes > 0 && bytes < (1L << 40) ? bytes / (1024L * 1024L) : -1L;
             }
@@ -207,7 +209,7 @@ public final class AndroidEnvironment {
     private static List<String> readCpuFeatures() {
         final List<String> out = new ArrayList<>(16);
         try {
-            for (final String line : Files.readAllLines(Path.of("/proc/cpuinfo"), StandardCharsets.UTF_8)) {
+            for (final String line : Files.readAllLines(Paths.get("/proc/cpuinfo"), StandardCharsets.UTF_8)) {
                 if (line.startsWith("Features") || line.startsWith("features")) {
                     final int colon = line.indexOf(':');
                     if (colon > 0) {
@@ -221,7 +223,7 @@ public final class AndroidEnvironment {
         } catch (final IOException error) {
             LOGGER.dev("/proc/cpuinfo unreadable: {}", error.getMessage());
         }
-        return List.copyOf(out);
+        return Collections.unmodifiableList(new ArrayList<>(out));
     }
 
     public boolean isAndroid() {
@@ -353,11 +355,11 @@ public final class AndroidEnvironment {
                     continue;
                 }
                 try {
-                    final String kind = Files.readString(type.toPath(), StandardCharsets.UTF_8).trim().toLowerCase(Locale.ROOT);
+                    final String kind = new String(Files.readAllBytes(type.toPath()), StandardCharsets.UTF_8).trim().toLowerCase(Locale.ROOT);
                     if (!(kind.contains("cpu") || kind.contains("gpu") || kind.contains("package") || kind.contains("soc") || kind.contains("skill"))) {
                         continue;
                     }
-                    final long value = Long.parseLong(Files.readString(temp.toPath(), StandardCharsets.UTF_8).trim());
+                    final long value = Long.parseLong(new String(Files.readAllBytes(temp.toPath()), StandardCharsets.UTF_8).trim());
                     hottest = Math.max(hottest, (int) value);
                 } catch (final IOException | NumberFormatException error) {
                     LOGGER.dev("Thermal zone {} unreadable: {}", zone.getName(), error.getClass().getSimpleName());

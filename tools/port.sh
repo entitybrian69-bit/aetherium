@@ -111,6 +111,10 @@ if [ "$mode" = dry ]; then
     printf 'port: applying %s ... ' "$patch"
     (cd "$work" && git init -q . && git apply --whitespace=nowarn "$ROOT/$patch") ||
         die "patch did not apply"
+    if [ -f "$ROOT/deltas/$version/mixins.json" ]; then
+        cp "$ROOT/deltas/$version/mixins.json" \
+           "$work/common/src/main/resources/aetherium-common.mixins.json"
+    fi
     echo ok
     printf 'port: verifying the ported tree ... '
     if (cd "$work" && python3 "$ROOT/tools/check_refs.py" . >/dev/null 2>&1 &&
@@ -128,6 +132,21 @@ fi
 apply_check || die "$patch does not apply to this tree (regen it: sh tools/port.sh --regen $version)"
 git apply --whitespace=nowarn "$patch"
 echo "port: applied $patch"
+# The delta also ships the exact mixin config for this row (compatibilityLevel above all)
+# and a pin guard. Copying the mixin config keeps the file authoritative in one place,
+# and the guard proves the tree and the row agree after the patch - a port that
+# half-applied must fail here, not in a CI leg an hour later.
+if [ -f "$PATCHDIR/$version/mixins.json" ]; then
+    cp "$PATCHDIR/$version/mixins.json" "$ROOT/common/src/main/resources/aetherium-common.mixins.json"
+    echo "port: copied deltas/$version/mixins.json over aetherium-common.mixins.json"
+fi
+if [ -f "$PATCHDIR/$version/build.gradle.kts" ] && command -v kotlinc >/dev/null 2>&1; then
+    if (cd "$ROOT" && kotlinc -script "$PATCHDIR/$version/build.gradle.kts" >/dev/null 2>&1); then
+        echo "port: pin guard ok"
+    else
+        die "pin guard failed: the tree's gradle.properties does not match deltas/$version"
+    fi
+fi
 printf 'port: verifying ... '
 if python3 tools/check_refs.py . >/dev/null 2>&1 && python3 tools/check.py --skip-deltas >/dev/null 2>&1; then
     echo ok

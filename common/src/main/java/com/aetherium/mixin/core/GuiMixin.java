@@ -16,14 +16,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Draws Aetherium's overlays (FPS corner, frame graph, backend tag) and appends a
  * line to the F3 text.
  *
- * <p>Targets verified against {@code CaffeineMC/sodium @ 1.21.1/stable}, whose mixin
- * set for that version includes {@code features.options.overlays.GuiMixin} on
- * {@code net.minecraft.client.gui.Gui}. {@code Gui#render} keeps the
- * {@code float partialTick} parameter across the whole porting range, but the first
- * parameter changed type on 1.18 ({@code PoseStack} -&gt; {@code GuiGraphics}); the
- * two tolerant injections below cover both, and {@code require = 0}/{@code expect = 0}
- * means exactly one matches on any version (flip
- * {@code advanced.strict_mixins} to make a miss fatal instead).</p>
+ * <p>Target and handler shapes, read from real upstream mixins for each era:</p>
+ * <ul>
+ *   <li>1.21.1: {@code Gui#render(GuiGraphics, DeltaTracker)} —
+ *       IrisShaders/Iris @ 1.21.1, {@code MixinGui#iris$handleHudHidingScreens(GuiGraphics, DeltaTracker, ...)}.</li>
+ *   <li>1.20.6: {@code Gui#render(GuiGraphics, float)} —
+ *       Iris @ 1.20.6, same mixin, {@code (GuiGraphics, float, CallbackInfo)}.</li>
+ *   <li>1.19.4: {@code Gui#render(PoseStack, float, ...)} —
+ *       Iris @ 1.19.4, same mixin, {@code (PoseStack, float, CallbackInfo)}.</li>
+ * </ul>
+ *
+ * <p>Every era has exactly one method named {@code render} on {@code Gui}, so the
+ * injection uses the bare name and captures only the <em>prefix</em> it needs (the
+ * first parameter); Mixin binds a handler that declares a prefix of the target's
+ * arguments, so one handler is legal across every overload shape above. Pre-1.20.5
+ * rows rewrite {@code GuiGraphics} to {@code PoseStack}/{@code MatrixStack} in this
+ * handler and in the HUD (see {@code tools/gen_deltas.py}); a wrong era fact is a
+ * skipped injection ({@code require = 0}) and the overlay then only shows under F3.</p>
  *
  * <p>Overlay placement: TAIL of {@code Gui#render}, i.e. above the hotbar and boss
  * bars, below the debug screen. A performance readout must never intercept a click
@@ -32,25 +41,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Gui.class)
 public abstract class GuiMixin {
 
-    // [UNVERIFIED: the full descriptor "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V" for
-    // 1.21.1 - the parameter list is read from Sodium's Gui overlay mixin for that version, the
-    // exact first-parameter type is inferred. A wrong descriptor is a skipped injection, and the
-    // overlay then only shows under F3 (which uses a different hook).]
-    /** 1.18+ signature. */
-    @Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V", at = @At("TAIL"), require = 0, expect = 0)
-    private void aetherium$renderOverlaysGuiGraphics(final GuiGraphics guiGraphics, final int mouseX, final int mouseY,
-                                                      final float partialTick, final CallbackInfo ci) {
+    @Inject(method = "render", at = @At("TAIL"), require = 0, expect = 0)
+    private void aetherium$renderOverlays(final GuiGraphics guiGraphics, final CallbackInfo ci) {
         aetherium$draw(guiGraphics);
     }
 
-    /** 1.16.5-1.17.1 signature (PoseStack first). Kept for the port; a no-op on 1.18+. */
-    @Inject(method = "render(Lnet/minecraft/client/renderer/LightTexture;IIF)V", at = @At("TAIL"), require = 0, expect = 0)
-    private void aetherium$renderOverlaysLegacy(final Object ignored, final int mouseX, final int mouseY,
-                                                 final float partialTick, final CallbackInfo ci) {
-        // LightTexture-typed render() is the 1.16-era overload; the overlay on that
-        // version is drawn from the level-load screen instead, so this hook exists
-        // only so the config's method list has a legal target on 1.16.5.
-    }
+    // There is deliberately no second, legacy-descriptor injection here. An earlier
+    // revision carried `render(Lnet/minecraft/client/renderer/LightTexture;IIF)V` "for
+    // 1.16.5" - a descriptor no Minecraft version ever declared on Gui, invented from
+    // the LightTexture class sitting near Gui's render path. The 1.16.5 port rewrites
+    // the single injection above to the MatrixStack era (tools/gen_deltas.py, stack_class
+    // fact); keeping a fake second injection only added a guaranteed no-op and a
+    // misleading comment to every other row.
 
     private void aetherium$draw(final GuiGraphics guiGraphics) {
         final Aetherium.State state = Aetherium.getState();

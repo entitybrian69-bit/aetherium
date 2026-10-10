@@ -56,19 +56,27 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
      * table being in source rather than in a config file: it is generated, checked and
      * diffed like the rest of the engine.
      */
-    private static final Map<String, String> TARGETED_RANGES = Map.of(
-            "core.MinecraftMixin", "*",
-            "core.GameRendererMixin", "*",
-            "core.LevelRendererMixin", "*",
-            "core.LightTextureMixin", "*",
-            // Gui#render takes GuiGraphics from 1.20.2; before that the overlay is
-            // drawn by the legacy hook in the same class, so the range only gates the
-            // descriptor-typed injections.
-            "core.GuiMixin", "*",
-            // The options-screen hijack needs the video-settings lambda, which exists
-            // from 1.17.4 onward (older versions get the fallback button only).
-            "core.OptionsScreenMixin", "[1.17.4,)"
-    );
+    private static final Map<String, String> TARGETED_RANGES = buildTargetedRanges();
+
+    /**
+     * Java-8-compatible builder (Map.of is Java 9+ and the 1.16.5 row compiles this file
+     * on a Java 8 toolchain). Order matters only for readability; the map is read-only.
+     */
+    private static Map<String, String> buildTargetedRanges() {
+        final Map<String, String> ranges = new java.util.LinkedHashMap<>(8);
+        ranges.put("core.MinecraftMixin", "*");
+        ranges.put("core.GameRendererMixin", "*");
+        ranges.put("core.LevelRendererMixin", "*");
+        ranges.put("core.LightTextureMixin", "*");
+        // Gui#render takes GuiGraphics from 1.20.2; before that the overlay is
+        // drawn by the legacy hook in the same class, so the range only gates the
+        // descriptor-typed injections.
+        ranges.put("core.GuiMixin", "*");
+        // The options-screen hijack needs the video-settings lambda, which exists
+        // from 1.17.4 onward (older versions get the fallback button only).
+        ranges.put("core.OptionsScreenMixin", "[1.17.4,)");
+        return java.util.Collections.unmodifiableMap(ranges);
+    }
 
     /** AETHERIUM-PORT-GEN: global kill switch, flipped by the conflict scanner. */
     private static volatile boolean disabled;
@@ -197,7 +205,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
             return;
         }
         boolean sawLevelPass = false;
-        for (final var method : targetClassNode.methods) {
+        for (final org.objectweb.asm.tree.MethodNode method : targetClassNode.methods) {
             if (method != null && (method.name.startsWith("renderLevel") || method.name.startsWith("render(")
                     || "renderLevel".equals(method.name))) {
                 sawLevelPass = true;

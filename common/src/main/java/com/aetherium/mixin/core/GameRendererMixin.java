@@ -11,14 +11,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * Frame boundaries on the render thread: the only place GL work may start or end.
  *
- * <p>Target {@code GameRenderer#renderLevel(float)} exists on every version in the
- * porting range (1.16.5 -&gt; 26.x); the sibling overloads
- * {@code renderLevel(float, boolean, ...)} and {@code renderFinishingRainPass} were
- * verified present in 1.21.1-era mixin sets
- * ({@code CaffeineMC/sodium @ 1.21.1/stable}, {@code core.render.GameRendererMixin}
- * injects into {@code renderLevel}). Both names are listed with
- * {@code require = 0, expect = 0} so one version's extra overload is a no-op rather
- * than a launch failure.</p>
+ * <p>Target {@code GameRenderer#renderLevel} exists on every version in the porting
+ * range (1.16.5 -&gt; 26.x), but its parameter list moved three times, and each move
+ * was read from a real upstream mixin of that era:</p>
+ * <ul>
+ *   <li>1.21.1: {@code renderLevel(DeltaTracker, boolean, Camera, ...)} —
+ *       IrisShaders/Iris @ 1.21.1, {@code MixinGameRenderer#iris$runColorSpace(DeltaTracker, CallbackInfo)}.</li>
+ *   <li>1.20.6: {@code renderLevel(float, long, ...)} —
+ *       Iris @ 1.20.6, same mixin, {@code (float f, long l, CallbackInfo)}.</li>
+ *   <li>1.19.4: {@code renderLevel(float, long, PoseStack, ...)} —
+ *       Iris @ 1.19.4, same mixin, {@code (float, long, PoseStack, CallbackInfo)}.</li>
+ * </ul>
+ *
+ * <p>The handlers therefore capture <b>no</b> target arguments: Mixin binds an
+ * argument-less handler to any overload, which is the only shape that is legal in
+ * all three eras at once (a handler declaring {@code float tickDelta} applied to the
+ * 1.21.1 {@code DeltaTracker} form is an apply-time failure — exactly the bug the
+ * first draft of this file shipped). The bare method name matches every overload.</p>
  *
  * <p>Why these two points and not {@code GameRenderer#render}: {@code render()} also
  * covers the screen and the panoroma, where there is no level, no camera and no
@@ -31,7 +40,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GameRendererMixin {
 
     @Inject(method = {"renderLevel"}, at = @At("HEAD"))
-    private void aetherium$beginFrame(final float tickDelta, final CallbackInfo ci) {
+    private void aetherium$beginFrame(final CallbackInfo ci) {
         if (Aetherium.isVanillaPath()) {
             return;
         }
@@ -39,7 +48,7 @@ public abstract class GameRendererMixin {
     }
 
     @Inject(method = {"renderLevel"}, at = @At("TAIL"))
-    private void aetherium$endFrame(final float tickDelta, final CallbackInfo ci) {
+    private void aetherium$endFrame(final CallbackInfo ci) {
         if (Aetherium.isVanillaPath()) {
             return;
         }

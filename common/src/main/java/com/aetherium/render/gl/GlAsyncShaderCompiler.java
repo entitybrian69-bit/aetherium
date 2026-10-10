@@ -2,6 +2,7 @@ package com.aetherium.render.gl;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,6 +31,13 @@ import com.aetherium.util.AetheriumLog;
 public final class GlAsyncShaderCompiler implements AutoCloseable {
     private static final AetheriumLog LOGGER = AetheriumLog.of(GlAsyncShaderCompiler.class);
     private static final int MAX_POLLS_PER_FRAME = 8;
+    /**
+     * Compiler threads we ask the driver for. Above ~4 the driver clamps to its own
+     * internal maximum anyway (the parameter is a request, not an allocation), and a
+     * mobile GPU with one shader core gains nothing from a larger ask - but it also
+     * loses nothing, which is why this is a constant and not a config key.
+     */
+    private static final int MAX_COMPILER_THREADS = 4;
 
     /** A program submitted for linking, waiting on the driver. */
     public static final class Pending {
@@ -70,6 +78,8 @@ public final class GlAsyncShaderCompiler implements AutoCloseable {
     private int completed;
     private int cacheHits;
     private boolean asyncUsable = true;
+    /** Set once maxShaderCompilerThreads has been attempted; see submit(). */
+    private boolean capLifted;
 
     public GlAsyncShaderCompiler(final GlProgramCache cache) {
         this.cache = cache;
@@ -94,6 +104,21 @@ public final class GlAsyncShaderCompiler implements AutoCloseable {
         }
         if (!this.asyncUsable) {
             return true;
+        }
+        if (!this.capLifted) {
+            // First use: raise the driver's compiler-thread cap. Without this call the
+            // extension is allowed to default to one compiler thread, and "async"
+            // compiles queue behind each other - the exact stall this class exists to
+            // avoid. Idempotent in practice (the value is a driver setting), and done
+            // once here rather than at construction so a device that reports the
+            // extension and then refuses the call is caught by the same guard that
+            // handles a completion-status poll failing.
+            this.capLifted = true;
+            this.asyncUsable = GlProcs.maxShaderCompilerThreads(MAX_COMPILER_THREADS);
+            if (!this.asyncUsable) {
+                LOGGER.dev("parallel_shader_compile absent; compiling synchronously on the caller thread");
+                return true;
+            }
         }
         final Pending pending = new Pending(program, key, label);
         this.queue.addLast(pending);
@@ -147,7 +172,7 @@ public final class GlAsyncShaderCompiler implements AutoCloseable {
     /** @return programs finished since the last drain; the list is cleared by this call */
     public List<Pending> drainReady() {
         if (this.ready.isEmpty()) {
-            return List.of();
+            return Collections.emptyList();
         }
         final List<Pending> out = new ArrayList<>(this.ready);
         this.ready.clear();

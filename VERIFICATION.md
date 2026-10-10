@@ -382,3 +382,137 @@ plugin wiring with a regex — turned a passing `:common:compileJava` into "Scri
 5 errors" in the root build script. Two lessons in one line: a build script is code, and the only
 editor available here cannot type-check it. So the change is now one assignment and a comment, which
 is the smallest diff that could possibly work.
+
+---
+
+## Report 5 — 2026-10-10: what the first 33-leg ship run actually exposed, and the fixes
+
+The `ship` workflow (33 compile legs, one per porting-matrix row) ran for the first time on
+2026-10-08 and **every leg failed, including 1.21.1**. This report records what the failures
+were, which upstream sources settled each question, and what changed in the tree.
+
+### 1. The reference build did not compile: the mixin annotation processor
+
+`:common:compileJava` failed with 14 × `Unable to locate obfuscation mapping for @Inject target
+init / render / run / setSectionDirty / allChanged / tick / renderLevel / setLevel`. Root cause:
+`common/build.gradle.kts` declared `annotationProcessor("net.fabricmc:sponge-mixin:...")`, so the
+legacy Mixin AP ran and tried to write a named→intermediary refmap it had no mapping context for.
+
+Fix, both parts read from `CaffeineMC/sodium @ 1.21.1/stable` (`common/build.gradle.kts`):
+sponge-mixin is `compileOnly` **only**, and `loom { mixin { useLegacyMixinAp = false } }` is set in
+`common` and `fabric`. With the flag, Loom does not run the legacy AP; `remapJar` rewrites the
+annotation target strings itself. `fabric.mod.json` references no refmap, which this build never
+generates — consistent with sodium's fabric build at the same loom version.
+
+### 2. The Loom plugin id did not exist at the pinned version
+
+`libs.versions.toml` applied `fabric-loom` at `1.16.1`. Current Loom publishes exactly two plugin
+ids — read from `FabricMC/fabric-loom`'s own `build.gradle` (`gradlePlugin { plugins { fabricLoom {
+id = 'net.fabricmc.fabric-loom' } ... id = 'net.fabricmc.fabric-loom-remap' } }`); the bare
+`fabric-loom` id of the 1.8 era is gone. Sodium applies `net.fabricmc.fabric-loom-remap` at exactly
+1.16.1 on Gradle 9.4.1; the catalog now does the same. `mappings(loom.officialMojangMappings())`
+was also switched to the `loom.layered { officialMojangMappings() }` form sodium uses, because the
+shortcut was never verified to exist on the 1.16 line.
+
+### 3. Three mixin handler/descriptor bugs (compile-green, apply-time dead)
+
+- `GameRendererMixin` handlers declared `float tickDelta`. 1.21.1's `GameRenderer#renderLevel`
+  takes `DeltaTracker` first (Iris @ 1.21.1, `MixinGameRenderer#iris$runColorSpace(DeltaTracker,
+  CallbackInfo)`), so the handler could never bind. Handlers are now argument-less — the only
+  shape legal in all three verified eras (1.21.1 `(DeltaTracker, boolean, ...)`, 1.20.6
+  `(float, long, ...)`, 1.19.4 `(float, long, PoseStack, ...)` — each read from the Iris branch of
+  that version).
+- `GuiMixin` used the descriptor `render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V`, which no
+  version declares. Verified shapes: `(GuiGraphics, DeltaTracker)` on 1.21.1 and `(GuiGraphics,
+  float)` on 1.20.6 (both from Iris's `MixinGui`), `(PoseStack, float, ...)` on 1.19.4. The
+  injection is now the bare method name `render` — every era has exactly one such method on `Gui` —
+  with a handler capturing only the first-parameter prefix. A second, "1.16-era" injection with a
+  fabricated `render(Lnet/minecraft/client/renderer/LightTexture;IIF)V` descriptor was deleted: no
+  version read from a jar has that method.
+- `LightTextureMixin` targeted `{"updateTick", "tick"}` — names invented on both ends. The real
+  name is `updateLightTexture`, verified on **both** 1.19.4 and 1.21.1 by Iris's own
+  `MixinLightTexture`, which injects into that exact method on both branches. A `LightTexture#upload`
+  injection (no such method on any version examined) was deleted rather than kept as a permanent
+  no-op.
+- `OptionsScreenMixin`'s two `init` handlers declared `(final Screen previous, ...)`, implying an
+  `init(Screen)` overload that does not exist on any version in the range. Both now target
+  `init()V` (the no-argument `Screen#init` every version declares) with argument-less handlers, and
+  `countVanillaControls` moved from HEAD to TAIL of `init` — at HEAD, the buttons `init` is about
+  to add do not exist yet, so the count was always zero.
+
+### 4. A wrong GL constant silently killed async shader compilation
+
+`GlProcs.GL_COMPLETION_STATUS` was `0x82FF`. LWJGL's generated `ARBParallelShaderCompile.java`
+(read from the LWJGL/lwjgl3 repository) says `GL_COMPLETION_STATUS_ARB = 0x91B1`. Polling
+`0x82FF` returns garbage, i.e. every async compile polls as "never done". Fixed, and the compiler
+now calls `glMaxShaderCompilerThreadsARB(4)` (capability-gated) on first use, because the
+extension lets the driver default to a single compiler thread until the application lifts the cap —
+without that call "async" compiles serialize. `glMultiDrawElementsIndirectCount`'s placement in
+`GL46C` was verified against the same generated sources (it is correct there, with the
+`GL_PARAMETER_BUFFER`-bound form).
+
+### 5. `LightmapWriter`'s NativeImage path was dead code and the 1.21.1 shape was missing
+
+`findMethod(..., "getPixel", ...)` used `equals`, but NativeImage's accessors are named
+`getPixelABGR`/`setPixelABGR` (and the RGBA pair) — the matcher never matched anything, so the
+whole NativeImage branch was dead while looking alive. It now matches by prefix. The verified
+1.21.1 shape — `DynamicTexture lightTexture` on `LightTexture`, pixels behind
+`DynamicTexture#getPixels()` — comes from Iris's `LightTextureAccessor` (`@Accessor("lightTexture")`
+returning `DynamicTexture`) and is now the second probe path.
+
+### 6. The pre-1.20 ports did not compile, and the porting system could not fix that
+
+The 1.18 legs failed on `cannot find symbol: class GuiGraphics` — the old generator only commented
+out an import and left a "derivation recipe" for everything else. The generator now carries a real
+era-transform engine: stack class (`GuiGraphics`→`PoseStack`→`MatrixStack`), text components
+(`Component.literal`→`TextComponent`→`StringTextComponent`), narration
+(`updateWidgetNarration`→`updateNarration`→removed), `renderWidget`→`renderButton`,
+`renderBackground` 4-arg→1-arg, widget setters→public fields, `Button.builder`→constructor,
+`entitiesForRendering`→`entities`, `addRenderableWidget`→`addButton`,
+`CycleButton`→`CycleButtonWidget`, and `GuiGraphics` draw-call remaps to the
+`GuiComponent`/`Font`/`GL11` forms. Every boundary is dated in `tools/porting_pins.json` and marked
+VERIFIED (with the Iris branch it was read from) or UNVERIFIED in each delta's README.
+
+The reference tree was also downlevelled to Java-8-compatible syntax and APIs (`var`, pattern
+`instanceof`, records, `List.of`/`Map.of`, `Path.of`, `Files.readString`, switch expressions all
+replaced), because the 1.16.5 row compiles on a Java 8 toolchain and `--release 8` rejects those
+language features regardless of compiler vintage.
+
+### 7. `enabled_platforms` was read by nothing
+
+Pre-1.20.2 rows set `enabled_platforms=fabric`, but no build file consumed it: Gradle *configures*
+every included project, so a dangling `:neoforge` would have failed the whole tree before any
+compile. `settings.gradle.kts` now honors the property, and the delta disables the module in three
+coordinated places (property, settings include, root build aggregate).
+
+### 8. A scissor bug clipped the whole settings screen
+
+`AetheriumVideoOptionsScreen` passed `(x, y, width, height)` to
+`GuiGraphics#enableScissor(x1, y1, x2, y2)` — on a wide window `x2 < x1` and the content list was
+scissored to nothing. Fixed to corners; the pre-1.20 transform emits the matching
+`GL11.glScissor(x, y, w, h)` call.
+
+### What is newly verified as of this report
+
+| fact | value | source |
+| --- | --- | --- |
+| `neoforge_version` | `21.1.228` | sodium `BuildConfig.kt` (was a GUESS at 21.1.77) |
+| `fabric_api_version` | `0.116.17+1.21.1` | latest `+1.21.1` tag on `FabricMC/fabric` |
+| `fabric_loader_version` | `0.16.9` exists | `FabricMC/fabric-loader` tags |
+| Loom plugin id | `net.fabricmc.fabric-loom-remap` | `FabricMC/fabric-loom` `build.gradle` |
+| `Gui#render` | `(GuiGraphics, DeltaTracker)` 1.21.1; `(GuiGraphics, float)` 1.20.6; `(PoseStack, float, ...)` 1.19.4 | Iris branches of each version |
+| `GameRenderer#renderLevel` | `(DeltaTracker, ...)` 1.21.1; `(float, long, ...)` 1.20.6; `(float, long, PoseStack, ...)` 1.19.4 | Iris branches of each version |
+| `LightTexture#updateLightTexture` | exists on 1.19.4 and 1.21.1 | Iris `MixinLightTexture`, both branches |
+| `LightTexture.lightTexture` | `DynamicTexture` on 1.21.1 | Iris `LightTextureAccessor` |
+| `Screen#renderBackground` | 4-arg on 1.20.6 + 1.21.1; 1-arg on 1.20.1 + 1.19.4 | Iris `FeatureMissingErrorScreen`, four branches |
+| narration method | `updateNarration` on 1.20.6; `updateWidgetNarration` on 1.21.1 | Iris widgets, both branches |
+| `ClientLevel#entitiesForRendering` | exists on 1.21.1 | Iris `MixinLevelRenderer_SkipRendering` target |
+| `GL_COMPLETION_STATUS` | `0x91B1` | LWJGL generated `ARBParallelShaderCompile.java` |
+| `glMultiDrawElementsIndirectCount` | lives in `GL46C`, signature `(mode, type, long, long, int, int)` | LWJGL generated `GL46C.java` |
+| wrapper jar | committed (Gradle 9.4.1, 48,966 bytes) | byte-identical to sodium's at the same version |
+| 1.16.5/1.17 toolchains | Java 8 / Java 16 (table had 17 for both) | Minecraft-era requirements |
+| GuiGraphics arrival | 1.20 (table had 1.20.2) | Iris @ 1.20.1 already uses `GuiGraphics` |
+| 21.9+/26.x NeoForge | tags `21.9` `21.10` `21.11` `26.1.2` `26.2.0` `26.3.0` | neoforged/NeoForge tag listing |
+
+The compile correctness of the 33 legs is now the CI run's to prove; this report ends where the
+evidence in this environment ends.

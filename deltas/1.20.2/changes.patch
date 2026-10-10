@@ -4,11 +4,113 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.20.2/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.20.2/changes.patch
+diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
+index 14f9ff6..c34fcb0 100644
+--- a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
++++ b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
+@@ -592,7 +592,7 @@ public final class AetheriumTabs {
+         }
+ 
+         @Override
+-        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
++        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+             this.defaultButtonNarrationText(output);
+         }
+     }
+@@ -614,7 +614,7 @@ public final class AetheriumTabs {
+         }
+ 
+         @Override
+-        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
++        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+             this.defaultButtonNarrationText(output);
+         }
+     }
+diff --git a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
+index 62fcbd8..bb1e7c0 100644
+--- a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
++++ b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
+@@ -46,7 +46,7 @@ import net.minecraft.network.chat.Component;
+  * moved in the range ({@code GuiGraphics} arrives at 1.20, {@code renderBackground}
+  * gains its cursor arguments between 1.20.1 and 1.20.6) are the only ones the delta
+  * patches rewrite here. {@code mouseScrolled} did change arity at 1.20.2 (it gained a
+- * horizontal-scroll double) and {@code updateWidgetNarration} was
++ * horizontal-scroll double) and {@code updateNarration} was
+  * {@code updateNarration} before 1.21; both are facts in {@code tools/porting_pins.json}
+  * and are rewritten in the widget classes, not here.</p>
+  */
+@@ -207,7 +207,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+         // single-argument form (same file, those branches). The exact 1.20.2-1.20.5 boundary is
+         // recorded per row in tools/porting_pins.json (render_background_arity), and the delta
+         // rewrites this call for the rows that predate it.
+-        this.renderBackground(guiGraphics, mouseX, mouseY, delta);
++        this.renderBackground(guiGraphics);
+         drawChrome(guiGraphics);
+ 
+         final int contentX = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
+@@ -316,7 +316,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+         }
+ 
+         @Override
+-        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
++        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+             this.defaultButtonNarrationText(output);
+         }
+     }
+diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
+index 9aad1fb..87349fb 100644
+--- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
++++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
+@@ -134,12 +134,12 @@ public final class AetheriumWidgets {
+          */
+         @Override
+         /**
+-         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
++         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
+          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+          * override under the old name and the old access is two errors, not one (CI said exactly
+          * that: "does not override abstract method" plus "attempting to assign weaker access").
+          */
+-        public void updateWidgetNarration(final NarrationElementOutput output) {
++        public void updateNarration(final NarrationElementOutput output) {
+             this.defaultButtonNarrationText(output);
+         }
+ 
+@@ -341,12 +341,12 @@ public final class AetheriumWidgets {
+ 
+         @Override
+         /**
+-         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
++         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
+          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+          * override under the old name and the old access is two errors, not one (CI said exactly
+          * that: "does not override abstract method" plus "attempting to assign weaker access").
+          */
+-        public void updateWidgetNarration(final NarrationElementOutput output) {
++        public void updateNarration(final NarrationElementOutput output) {
+             this.updateMessage(this.label, String.format(java.util.Locale.ROOT, this.format, this.value));
+             this.defaultButtonNarrationText(output);
+         }
+@@ -417,12 +417,12 @@ public final class AetheriumWidgets {
+ 
+         @Override
+         /**
+-         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
++         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
+          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+          * override under the old name and the old access is two errors, not one (CI said exactly
+          * that: "does not override abstract method" plus "attempting to assign weaker access").
+          */
+-        public void updateWidgetNarration(final NarrationElementOutput output) {
++        public void updateNarration(final NarrationElementOutput output) {
+             final int index = this.getIndex == null ? 0 : this.getIndex.get();
+             this.updateMessage(this.label, index >= 0 && index < this.values.length ? this.values[index] : "unknown");
+             this.defaultButtonNarrationText(output);
 diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-index 58b62ff..c376672 100644
+index 7a9eddf..b86ea73 100644
 --- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
 +++ b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-@@ -89,7 +89,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
+@@ -97,7 +97,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
      }
  
      /** Written by {@code Aetherium} before the mixins are applied, read here. */
@@ -17,8 +119,34 @@ index 58b62ff..c376672 100644
  
      /**
       * Mixin runs transform-time code before a mod's own entry point on some loaders, so
+diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
+index 13a28dd..3a67161 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
+@@ -8,7 +8,7 @@ import com.aetherium.config.AetheriumConfig;
+ import com.aetherium.gui.AetheriumVideoOptionsScreen;
+ import net.minecraft.client.gui.components.CycleButton;
+ import net.minecraft.client.gui.screens.Screen;
+-import net.minecraft.client.gui.screens.options.OptionsScreen;
++import net.minecraft.client.gui.screens.OptionsScreen;
+ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
+index 49084c2..340240b 100644
+--- a/common/src/main/resources/aetherium-common.mixins.json
++++ b/common/src/main/resources/aetherium-common.mixins.json
+@@ -3,7 +3,7 @@
+   "minVersion": "0.8",
+   "package": "com.aetherium.mixin",
+   "plugin": "com.aetherium.mixin.AetheriumMixinPlugin",
+-  "compatibilityLevel": "JAVA_21",
++  "compatibilityLevel": "JAVA_17",
+   "injectors": {
+     "defaultRequire": 0,
+     "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index bc3b902..90330e4 100644
+index 2a01fa4..d941a7e 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
@@ -34,15 +162,20 @@ index bc3b902..90330e4 100644
  mapping_channel=mojmap
  # officialMojangMappings() is resolved by Loom; parchment is optional and off by
  # default so that a clean machine never needs the parchment maven.
-@@ -32,9 +32,9 @@ fabric_loom_version=1.16.1
+@@ -32,13 +32,13 @@ fabric_loom_version=1.16.1
  # Also `moddev` in gradle/libs.versions.toml; check.py keeps the pair equal.
  neoforge_moddev_version=2.0.141
- # (GUESS) latest 21.1.x NeoForge promotion; check https://mkremins.github.io/neoforged/versions/
--neoforge_version=21.1.77
+ # (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> buildSrc BuildConfig.kt
+-neoforge_version=21.1.228
 +neoforge_version=20.2.86
- # (GUESS) Fabric Loader current at reference-version time
+ # (VERIFIED) fabric-loader 0.16.9 exists (git ls-remote --tags FabricMC/fabric-loader);
+ # the latest loader line (0.19.x) also works, this pin keeps the reference era-accurate.
 -fabric_loader_version=0.16.9
 +fabric_loader_version=0.15.11
- fabric_api_version=0.102.0+1.21.1
+ # (VERIFIED) latest fabric-api tag for 1.21.1 read from FabricMC/fabric on 2026-10-10;
+ # compile-only and optional at runtime (see fabric/build.gradle.kts).
+-fabric_api_version=0.116.17+1.21.1
++fabric_api_version=0.91.6+1.20.2
  # (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> common/build.gradle.kts
  mixin_extras_version=0.5.3
+ # (VERIFIED) same source

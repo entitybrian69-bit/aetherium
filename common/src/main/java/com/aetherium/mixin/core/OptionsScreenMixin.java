@@ -56,11 +56,14 @@ public abstract class OptionsScreenMixin extends Screen {
      * screen, so a rename of the video-settings lambda degrades into "an extra
      * button" instead of "no access".
      */
-    // No descriptor on purpose: OptionsScreen's init overload changed shape across the range
-    // (init(CallbackInfo) vs init(Screen, CallbackInfo)), and a bare name matches whichever
-    // one the row declares - the handler is then bound to the compatible candidate.
+    // Target is Screen#init()V - the no-argument form that every version in the range
+    // (1.16.5 -> 1.21.x) declares, called on construction and on resize. An earlier
+    // revision declared `(final Screen previous, ...)` and claimed it matched some
+    // "init(Screen)" overload; no such method exists on any version read from a jar,
+    // and the extra parameter would have made the handler unbindable everywhere.
+    // Bare name + argument-less handler is the shape Mixin can bind on every row.
     @Inject(method = "init", at = @At("TAIL"), require = 0, expect = 0)
-    private void aetherium$appendOwnButton(final Screen previous, final CallbackInfo ci) {
+    private void aetherium$appendOwnButton(final CallbackInfo ci) {
         final net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
         if (minecraft == null || minecraft.options == null) {
             return;
@@ -92,10 +95,12 @@ public abstract class OptionsScreenMixin extends Screen {
      * {@link CycleButton}s; recording how many we saw is how the Advanced tab
      * reports "the hijack worked" versus "the fallback is in use".
      */
-    @Inject(method = "init", at = @At("HEAD"), require = 0, expect = 0)
-    private void aetherium$countVanillaControls(final Screen previous, final CallbackInfo ci) {
+    // TAIL, not HEAD: Screen#init is what *adds* the buttons, so a HEAD injection
+    // would count an always-empty list and report "fallback in use" on every version.
+    @Inject(method = "init", at = @At("TAIL"), require = 0, expect = 0)
+    private void aetherium$countVanillaControls(final CallbackInfo ci) {
         int cycles = 0;
-        for (final var child : ((Screen) (Object) this).children()) {
+        for (final net.minecraft.client.gui.components.events.GuiEventListener child : ((Screen) (Object) this).children()) {
             if (child instanceof CycleButton<?>) {
                 cycles++;
             }

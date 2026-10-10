@@ -17,8 +17,10 @@ import com.aetherium.util.AetheriumLog;
  * {@code .../IrisApiConfig.java}), which is why no method is looked up by a
  * fuzzy name:</p>
  * <pre>
- *   IrisApi.getInstance()          -&gt; static field
- *                                    net.irisshaders.iris.apiimpl.IrisApiV0Impl.INSTANCE
+ *   IrisApi.getInstance()          -&gt; static *interface method* (verified: the 1.21.1
+ *                                    IrisApi declares `static IrisApi getInstance()`
+ *                                    returning IrisApiInternal.INSTANCE). The bridge
+ *                                    also probes an INSTANCE field for older forks.
  *   int    getMinorApiRevision()
  *   boolean isShaderPackInUse()
  *   boolean isRenderingShadowPass()

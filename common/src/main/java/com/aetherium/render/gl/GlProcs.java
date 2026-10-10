@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
+import org.lwjgl.opengl.ARBParallelShaderCompile;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
@@ -161,8 +162,16 @@ public final class GlProcs {
     public static final int GL_PROGRAM_BINARY_RETRIEVABLE_HINT = 0x8257;
 
     // ---------------------------------- parallel_shader_compile / KHR sync
-    /** ARB/KHR_parallel_shader_compile: 1 once the driver finished on its thread. */
-    public static final int GL_COMPLETION_STATUS = 0x82FF;
+    /**
+     * ARB/KHR_parallel_shader_compile: 1 once the driver finished on its thread.
+     * Value verified against LWJGL's generated ARBParallelShaderCompile.java
+     * (0x91B1). The value shipped here before that check was 0x82FF, which is not
+     * any completion-status enum: polling it returned garbage, so every async
+     * compile polled as "never done". This constant is the whole feature.
+     */
+    public static final int GL_COMPLETION_STATUS = 0x91B1;
+    /** ARB/KHR_parallel_shader_compile: the driver's compiler-thread cap. */
+    public static final int GL_MAX_SHADER_COMPILER_THREADS = 0x91B0;
     /** Upper bound the driver will honour on glClientWaitSync (ms). */
     public static final int GL_MAX_SERVER_WAIT_TIMEOUT = 0x911D;
     public static final int GL_SYNC_GPU_COMMANDS_COMPLETE = 0x9117;
@@ -409,6 +418,33 @@ public final class GlProcs {
 
     public static int getProgrami(final int program, final int pname) {
         return GL20.glGetProgrami(program, pname);
+    }
+
+    /**
+     * Lifts the driver's shader-compiler thread cap so ARB/KHR_parallel_shader_compile
+     * actually compiles in parallel. The extension's contract is that the driver may
+     * default to a single compiler thread until the application calls this; polling
+     * {@link #GL_COMPLETION_STATUS} without lifting the cap works, but serially.
+     *
+     * <p>Guarded: parallel_shader_compile never went core, so the ARB or KHR boolean on
+     * {@code GL.getCapabilities()} is checked first (the LWJGL capability field names
+     * carry the {@code GL_} prefix, as CaffeineMC/sodium's {@code GL_ARB_buffer_storage}
+     * check shows). Absent extension: a no-op, and the async compiler falls back to
+     * blocking compiles on its own thread, which is correct, only slower.</p>
+     *
+     * @return true if the cap was set, false if the extension is absent.
+     */
+    public static boolean maxShaderCompilerThreads(final int count) {
+        final org.lwjgl.opengl.GLCapabilities caps = org.lwjgl.opengl.GL.getCapabilities();
+        if (caps.GL_ARB_parallel_shader_compile) {
+            ARBParallelShaderCompile.glMaxShaderCompilerThreadsARB(count);
+            return true;
+        }
+        if (caps.GL_KHR_parallel_shader_compile) {
+            org.lwjgl.opengl.KHRParallelShaderCompile.glMaxShaderCompilerThreadsKHR(count);
+            return true;
+        }
+        return false;
     }
 
     /**

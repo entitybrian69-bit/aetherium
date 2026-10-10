@@ -44,4 +44,12 @@ rootProject.name = "aetherium"
 
 include("common")
 include("fabric")
-include("neoforge")
+
+// NeoForge begins at Minecraft 1.20.2. Rows below that set enabled_platforms=fabric in
+// gradle.properties (the porting deltas do this), and Gradle configures every included
+// project before running any task - so a Fabric-only tree must not include the module
+// at all, or :neoforge would fail to resolve its (nonexistent) NeoForge build during
+// configuration and take :common and :fabric down with it.
+if (providers.gradleProperty("enabled_platforms").orElse("fabric,neoforge").get().split(",").contains("neoforge")) {
+    include("neoforge")
+}

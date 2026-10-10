@@ -260,12 +260,22 @@ public final class AetheriumHudRenderer {
         if (value == null) {
             return 0;
         }
-        return switch (value.trim().toLowerCase(java.util.Locale.ROOT)) {
-            case "top-right", "topright" -> 1;
-            case "bottom-left", "bottomleft" -> 2;
-            case "bottom-right", "bottomright" -> 3;
-            default -> 0;
-        };
+        // Classic switch, not an arrow expression: the source stays Java-8 parseable so
+        // the 1.16.5 row compiles on its era toolchain (see tools/porting_pins.json).
+        final String corner = value.trim().toLowerCase(java.util.Locale.ROOT);
+        switch (corner) {
+            case "top-right":
+            case "topright":
+                return 1;
+            case "bottom-left":
+            case "bottomleft":
+                return 2;
+            case "bottom-right":
+            case "bottomright":
+                return 3;
+            default:
+                return 0;
+        }
     }
 
     private static int cornerX(final int corner, final int screenWidth, final int panelWidth) {

@@ -19,7 +19,7 @@ a roadmap described in the present tense.
 | Area | Status | What that means |
 | --- | --- | --- |
 | Minecraft **1.21.1** | **reference implementation** | Complete engine, GUI, mixins, config, Android routing, Iris bridge. This is the version the code is written for. |
-| 32 further versions (1.16.5 → 26.3) | **mechanical porting system** | One delta directory per version — `changes.patch`, `derivation.md`, `notes.md` — linked individually in [PORTING_MATRIX.md → All versions](PORTING_MATRIX.md#all-versions). `tools/port.sh` applies them. No per-version source tree exists, by design. |
+| 32 further versions (1.16.5 → 26.3) | **mechanical porting system** | One delta directory per version — `changes.patch`, `README.md`, `mixins.json`, `build.gradle.kts` — linked individually in [PORTING_MATRIX.md → All versions](PORTING_MATRIX.md#all-versions). `tools/port.sh` applies them. No per-version source tree exists, by design. |
 | Backend abstraction (GL 4.6 DSA / Vulkan 1.3 / GL core / GL legacy) | implemented: probe, capability matrix, hot-swap, selection gates + tests | The Vulkan backend opens a device and reports capabilities; it does not draw chunks — the world path stays on GL. |
 | HZB occlusion culling, persistent mapped buffers, `glMultiDrawElementsIndirectCount` batching, async shader compile + program-binary cache, async distance-prioritized meshing | implemented against the GL abstraction | Two states ship: `ACTIVE` and `SHADOW` (Compatibility). |
 | `advanced.experimental_full_renderer = true` (route world geometry through Aetherium) | **NOT SHIPPED** | Refused at startup with a logged error and an automatic fallback to `SHADOW`. The GUI shows the switch as unavailable rather than hiding it. Reason: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#honest-status). |
@@ -47,16 +47,17 @@ not a claim this project makes, and the harness in [BENCHMARK.md](BENCHMARK.md) 
   `[UNVERIFIED: what was not verified and why]` marker; [VERIFICATION.md](VERIFICATION.md) lists every
   mark with its file and line, and `tools/check.py` counts them so the number in this
   repository cannot grow quietly.
-* **No `gradle/wrapper/gradle-wrapper.jar`.** A binary cannot be committed from this
-  authoring environment. Generate it once, locally:
+* **`gradle/wrapper/gradle-wrapper.jar` is committed** — the real Gradle 9.4.1 wrapper
+  jar, byte-identical to the one `CaffeineMC/sodium` ships at the same Gradle version —
+  so a clean clone builds with no bootstrap step:
 
   ```sh
-  gradle wrapper --gradle-version 9.4.1
   ./gradlew build
   ```
 
-  Everything else in the wrapper (`gradlew`, `gradlew.bat`,
-  `gradle/wrapper/gradle-wrapper.properties` pinned to Gradle 9.4.1) is present.
+  `gradlew`, `gradlew.bat` and `gradle/wrapper/gradle-wrapper.properties` (pinned to
+  Gradle 9.4.1) complete the wrapper. If a fork ever drops the jar, `gradle wrapper
+  --gradle-version 9.4.1` regenerates it.
 
 ---
 
@@ -80,7 +81,6 @@ exists only if the jar exists.
 
 
 ```sh
-gradle wrapper --gradle-version 9.4.1   # once; see the note above
 ./gradlew buildAll                       # common + fabric + neoforge jars
 ./gradlew :common:test                   # engine unit tests
 ./gradlew verifyAll                      # buildAll, tests, and tools/check.py
@@ -202,7 +202,7 @@ Type-checking, mixin descriptor validation and actual runtime behaviour require 
 common/     engine, GUI, mixins, config, platform SPI (100% of the code)
 fabric/     Fabric entry point, fabric.mod.json, remap/reobf
 neoforge/   NeoForge entry point, neoforge.mods.toml, jar-in-jar
-deltas/     per-version patches: changes.patch + derivation.md + notes.md
+deltas/     per-version ports: changes.patch + README.md + mixins.json + build.gradle.kts
 tools/      porting, generation, verification, benchmark scripts
 docs/       architecture, glossary, android, iris compat, troubleshooting, pins
 ```
@@ -210,7 +210,7 @@ docs/       architecture, glossary, android, iris compat, troubleshooting, pins
 ## Versions
 
 All 33 rows, linked individually: **[PORTING_MATRIX.md → All versions](PORTING_MATRIX.md#all-versions)**
-— one delta directory (`changes.patch`, `derivation.md`, `notes.md`) per version, grouped by
+— one delta directory (`changes.patch`, `README.md`, `mixins.json`, `build.gradle.kts`) per version, grouped by
 era, each row carrying its status grade. The list is generated from `tools/porting_pins.json`,
 so it is the only place to look and the only place that can be right: the range is
 1.16.5 → 1.20.6, 1.21 → 1.21.11, and the date-based 26.x line, with **1.21.1** as the

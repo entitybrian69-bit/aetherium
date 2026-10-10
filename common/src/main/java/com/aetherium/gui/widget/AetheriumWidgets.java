@@ -629,8 +629,8 @@ public final class AetheriumWidgets {
             this.scrollVelocity *= 0.88f;
             this.scroll = MathUtil.smoothDamp(this.scroll, this.targetScroll, 0.09f, delta);
             for (final AbstractWidget row : this.rows) {
-                if (row instanceof PurpleWidget purple) {
-                    purple.tickAnimations();
+                if (row instanceof PurpleWidget) {
+                    ((PurpleWidget) row).tickAnimations();
                 }
             }
         }

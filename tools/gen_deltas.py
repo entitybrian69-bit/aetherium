@@ -4,33 +4,45 @@
 Two artefacts are produced from one machine-readable table (``tools/porting_pins.json``):
 
 * ``PORTING_MATRIX.md`` - the human-facing 33-row table.
-* ``deltas/<version>/changes.patch`` + ``derivation.md`` + ``notes.md`` - the mechanical
-  delta a port applies, generated with ``git diff --no-index`` so that
-  ``git apply --check`` proves it applies (``tools/check.py`` runs that for every row).
+* ``deltas/<version>/{README.md,changes.patch,mixins.json,build.gradle.kts}`` - the
+  mechanical delta a port applies, generated with ``git diff --no-index`` so that
+  ``git apply --check`` proves it applies (``tools/gen_deltas.py --verify`` runs that
+  for every row, and also proves the emitted ``mixins.json`` equals what the patch
+  produces).
 
 Why a JSON instead of hand-written patches: a patch copied between 32 directories
 drifts. Here the patch is *derived*, so changing a rule here changes all 32 rows and
 the matrix text in the same commit.
 
-What a delta is allowed to contain - and this generator enforces it, refusing to emit
-anything else:
+A delta contains exactly two kinds of edit:
 
-1. build pins (``minecraft_version``, ``java_version``, ``neoforge_version``,
-   ``enabled_platforms``, the Fabric loader floor);
-2. the ``REFERENCE_MC`` string in ``AetheriumMixinPlugin`` and the
-   ``core.OptionsScreenMixin`` target range;
-3. a target-name append to an existing mixin candidate list (``method = {...}``);
-4. the primary GUI descriptor when the version predates ``GuiGraphics``.
+1. **Pin edits** - exact-string substitutions on build inputs
+   (``minecraft_version``, ``java_version``, ``neoforge_version``,
+   ``fabric_loader_version``, ``fabric_api_version``, the loom entry in the version
+   catalog, the mixin ``compatibilityLevel``, the NeoForge module include).
+2. **Era transforms** - the mechanical API rename every file undergoes when the row
+   predates a verified Minecraft boundary (``GuiGraphics`` -> ``PoseStack`` ->
+   ``MatrixStack``, ``Component.literal`` -> ``new TextComponent`` ->
+   ``new StringTextComponent``, ``updateWidgetNarration`` -> ``updateNarration`` ->
+   removed, ``renderWidget`` -> ``renderButton``, widget setters -> public fields,
+   the ``Button.builder`` chain -> the ``Button`` constructor, the 4-argument
+   ``renderBackground`` -> the 1-argument form, ``entitiesForRendering`` ->
+   ``entities``, ``addRenderableWidget`` -> ``addButton``,
+   ``CycleButton`` -> ``CycleButtonWidget``).
 
-Nothing in a delta restructures a class or changes an algorithm. If a port appears to
-need that, the correct fix is in ``common/`` so every row inherits it.
+Nothing in a delta restructures a class or changes an algorithm. If a port appears
+to need that, the correct fix is in ``common/`` so every row inherits it. Every era
+boundary that was read from a real upstream source is marked ``[VERIFIED: source]``
+in the emitted README; the ones inferred between two verified points are marked
+``[UNVERIFIED: which boundary is guessed]`` and are the first thing to check if a
+ship leg fails to compile.
 
 Statuses used in the table (the honesty part):
   ``reference``  - built and run against this exact version's mappings (1.21.1).
   ``documented`` - the pins were read from an upstream project that ships this version.
   ``derived``    - names were inferred from the rename they sit between; verify.
-  ``unverified`` - plausible but unchecked: the delta ships a derivation recipe, and
-                   README/PORTING_MATRIX say plainly that it has not been run.
+  ``unverified`` - plausible but unchecked: the delta ships the full transform set
+                   and the recipe to verify it.
 """
 from __future__ import annotations
 
@@ -38,7 +50,6 @@ import argparse
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -49,17 +60,29 @@ DELTAS_DIR = os.path.join(REPO, "deltas")
 MATRIX_PATH = os.path.join(REPO, "PORTING_MATRIX.md")
 REFERENCE = "1.21.1"
 
+SRC = "common/src/main/java/com/aetherium"
+
 FILES = {
     "gradle.properties": os.path.join(REPO, "gradle.properties"),
     # The Loom/ModDev plugin versions a build *applies* live in the catalog (a Kotlin DSL
     # plugins {} block cannot read a project property), so a port has to move them with the
     # property or tools/check.py rightly fails the ported tree.
     "catalog": os.path.join(REPO, "gradle", "libs.versions.toml"),
-    "plugin": os.path.join(REPO, "common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java"),
-    "light": os.path.join(REPO, "common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java"),
-    "gui": os.path.join(REPO, "common/src/main/java/com/aetherium/mixin/core/GuiMixin.java"),
-    "options": os.path.join(REPO, "common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java"),
-    "hud": os.path.join(REPO, "common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java"),
+    "settings": os.path.join(REPO, "settings.gradle.kts"),
+    "root_build": os.path.join(REPO, "build.gradle.kts"),
+    "mixins": os.path.join(REPO, "common/src/main/resources/aetherium-common.mixins.json"),
+    "plugin": os.path.join(SRC, "mixin/AetheriumMixinPlugin.java"),
+    "gamrenderer": os.path.join(SRC, "mixin/core/GameRendererMixin.java"),
+    "gui": os.path.join(SRC, "mixin/core/GuiMixin.java"),
+    "light": os.path.join(SRC, "mixin/core/LightTextureMixin.java"),
+    "options": os.path.join(SRC, "mixin/core/OptionsScreenMixin.java"),
+    "screen": os.path.join(SRC, "gui/AetheriumVideoOptionsScreen.java"),
+    "theme": os.path.join(SRC, "gui/AetheriumTheme.java"),
+    "tabs": os.path.join(SRC, "gui/AetheriumTabs.java"),
+    "animations": os.path.join(SRC, "gui/AetheriumAnimations.java"),
+    "widgets": os.path.join(SRC, "gui/widget/AetheriumWidgets.java"),
+    "hud": os.path.join(SRC, "hud/AetheriumHudRenderer.java"),
+    "hooks": os.path.join(SRC, "client/ClientHooks.java"),
 }
 
 # Files a delta is allowed to touch. Enforced, not advisory: a generator that can emit
@@ -67,11 +90,38 @@ FILES = {
 ALLOWED_TARGETS = {
     "gradle.properties",
     "gradle/libs.versions.toml",
-    "common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java",
-    "common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java",
-    "common/src/main/java/com/aetherium/mixin/core/GuiMixin.java",
-    "common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java",
-    "common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java",
+    "settings.gradle.kts",
+    "build.gradle.kts",
+    "common/src/main/resources/aetherium-common.mixins.json",
+    f"{SRC}/mixin/AetheriumMixinPlugin.java",
+    f"{SRC}/mixin/core/GameRendererMixin.java",
+    f"{SRC}/mixin/core/GuiMixin.java",
+    f"{SRC}/mixin/core/LightTextureMixin.java",
+    f"{SRC}/mixin/core/OptionsScreenMixin.java",
+    f"{SRC}/gui/AetheriumVideoOptionsScreen.java",
+    f"{SRC}/gui/AetheriumTheme.java",
+    f"{SRC}/gui/AetheriumTabs.java",
+    f"{SRC}/gui/AetheriumAnimations.java",
+    f"{SRC}/gui/widget/AetheriumWidgets.java",
+    f"{SRC}/hud/AetheriumHudRenderer.java",
+    f"{SRC}/client/ClientHooks.java",
+}
+
+STACK_FQN = {
+    "PoseStack": "com.mojang.blaze3d.vertex.PoseStack",
+    "MatrixStack": "com.mojang.blaze3d.matrix.MatrixStack",
+}
+STACK_VAR = {"PoseStack": "poseStack", "MatrixStack": "matrixStack"}
+
+COMPONENT_ERAS = {
+    # era -> (interface import fqn, literal ctor fqn, translatable ctor fqn)
+    "component": ("net.minecraft.network.chat.Component", None, None),
+    "text": ("net.minecraft.network.chat.ITextComponent",
+             "net.minecraft.network.chat.TextComponent",
+             "net.minecraft.network.chat.TranslatableComponent"),
+    "string_text": ("net.minecraft.network.chat.ITextComponent",
+                    "net.minecraft.network.chat.StringTextComponent",
+                    "net.minecraft.network.chat.TranslationTextComponent"),
 }
 
 
@@ -84,26 +134,42 @@ def load_rows() -> list[dict]:
     return rows
 
 
-def substitutions(row: dict) -> list[tuple[str, str, str]]:
-    """(file_key, find, replace) triples for one version row."""
+def ver_key(version: str):
+    return tuple(int(x) for x in version.split("."))
+
+
+# --------------------------------------------------------------------------
+# 1. pin substitutions (exact string, must match exactly once)
+# --------------------------------------------------------------------------
+
+def pins_subs(row: dict) -> list[tuple[str, str, str]]:
     subs: list[tuple[str, str, str]] = []
     version = row["version"]
 
-    # 1. build pins -------------------------------------------------------------
     subs.append(("gradle.properties", f"minecraft_version={REFERENCE}", f"minecraft_version={version}"))
     subs.append(("gradle.properties", "java_version=21", f"java_version={row['java']}"))
     if row["neoforge"]:
-        subs.append(("gradle.properties", "neoforge_version=21.1.77", f"neoforge_version={row['neoforge']}"))
+        subs.append(("gradle.properties", "neoforge_version=21.1.228", f"neoforge_version={row['neoforge']}"))
     else:
-        # No NeoForge exists for this version (NeoForge begins at 1.20.2). Shipping the
-        # NeoForge shell would produce a jar that cannot load, so the delta disables the
-        # module instead of pretending; `enabled_platforms` is read by CI and by
-        # tools/build_all.sh.
+        # No NeoForge exists for this version (NeoForge begins at 1.20.2). The module is
+        # disabled in three coordinated places - the property, the settings include and the
+        # root build aggregate - because a Gradle build *configures* every included project:
+        # one dangling :neoforge reference and the whole tree fails before a single compile.
+        subs.append(("gradle.properties",
+                     "# (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> buildSrc BuildConfig.kt\nneoforge_version=21.1.228",
+                     f"# No NeoForge release exists for this Minecraft version (NeoForge begins at 1.20.2);\n"
+                     f"# the module is excluded here, in settings.gradle.kts and in the root build (deltas/{version}/README.md).\n"
+                     f"neoforge_version=unavailable"))
         subs.append(("gradle.properties", "enabled_platforms=fabric,neoforge", "enabled_platforms=fabric"))
-        subs.append(("gradle.properties", "# (GUESS) latest 21.1.x NeoForge promotion; check https://mkremins.github.io/neoforged/versions/\nneoforge_version=21.1.77",
-                     "# No NeoForge release exists for this Minecraft version; the neoforge module is\n"
-                     "# excluded via enabled_platforms below. See deltas/%s/notes.md.\nneoforge_version=unavailable" % version))
+        subs.append(("settings", 'include("neoforge")',
+                     f'// include("neoforge") - no NeoForge for {version}; see deltas/{version}/README.md'))
+        subs.append(("root_build",
+                     'dependsOn(":common:build", ":fabric:build", ":neoforge:build")',
+                     'dependsOn(":common:build", ":fabric:build")'))
     subs.append(("gradle.properties", "fabric_loader_version=0.16.9", f"fabric_loader_version={row['fabric_loader']}"))
+    fabric_api = row["facts"].get("fabric_api")
+    if fabric_api:
+        subs.append(("gradle.properties", "fabric_api_version=0.116.17+1.21.1", f"fabric_api_version={fabric_api}"))
     if row.get("loom"):
         subs.append(("gradle.properties", "fabric_loom_version=1.16.1", f"fabric_loom_version={row['loom']}"))
         # Same value, second file, one rule: check.py compares them, so a delta that bumped
@@ -111,7 +177,11 @@ def substitutions(row: dict) -> list[tuple[str, str, str]]:
         # that half-applied.
         subs.append(("catalog", 'loom = "1.16.1"', f'loom = "{row["loom"]}"'))
 
-    # 2. the plugin's reference string (logged, and used as the range baseline) --
+    # mixin compatibilityLevel tracks the row's toolchain
+    compat = {8: "JAVA_8", 16: "JAVA_16", 17: "JAVA_17", 21: "JAVA_21", 25: "JAVA_25"}[int(row["java"])]
+    subs.append(("mixins", '"compatibilityLevel": "JAVA_21"', f'"compatibilityLevel": "{compat}"'))
+
+    # the plugin's reference string (logged, and used as the range baseline) --
     subs.append(("plugin", 'private static volatile String announcedVersion = "";',
                  f'private static volatile String announcedVersion = "{version}";'))
     hijack_range = row["facts"].get("options_hijack_range")
@@ -119,41 +189,324 @@ def substitutions(row: dict) -> list[tuple[str, str, str]]:
         subs.append(("plugin", '"core.OptionsScreenMixin", "[1.17.4,)"',
                      f'"core.OptionsScreenMixin", "{hijack_range}"'))
 
-    # 3. candidate-name appends (never a replacement: the reference names stay, so a
-    #    delta is additive and two ports can be merged without conflict) -----------
+    # candidate-name appends (never a replacement: the reference names stay, so a
+    # delta is additive and two ports can be merged without conflict)
     for target, extra in (row["facts"].get("append_candidates") or {}).items():
         subs.append((target["file"], target["find"], target["find"][:-1] + ", " + extra + "]"))
-
-    # 3b. CycleButton was named CycleButtonWidget until 1.19.1 (the rename landed with the
-    #     22w11a cycle-button rework). Token-only, three unique anchors; the reference file uses
-    #     the modern name because that is what 1.21.1 has.
-    parts = [int(x) for x in re.findall(r"\d+", version)[:3]]
-    if len(parts) >= 2 and (parts[0], parts[1]) < (1, 19) or (len(parts) >= 3 and (parts[0], parts[1]) == (1, 19) and parts[2] < 1):
-        cb = "net.minecraft.client.gui.components."
-        subs.append(("options", f"import {cb}CycleButton;", f"import {cb}CycleButtonWidget;"))
-        subs.append(("options", "if (child instanceof CycleButton<?>) {", "if (child instanceof CycleButtonWidget) {"))
-        subs.append(("options", "{@link CycleButton}s", "{@link CycleButtonWidget}s"))
-
-    # 4. GuiGraphics vs PoseStack for the overlay + HUD --------------------------
-    if not row["facts"].get("gui_graphics", True):
-        subs.append(("gui", '@Mixin(Gui.class)',
-                     '// Pre-GuiGraphics: the overlay is drawn by the legacy hook below, and the\n'
-                     '// GuiGraphics-typed injection is skipped by the plugin because its target\n'
-                     '// descriptor does not exist on this version.\n'
-                     '@Mixin(Gui.class)'))
-        subs.append(("hud", "import net.minecraft.client.gui.GuiGraphics;",
-                     "// [UNVERIFIED: on this version GuiGraphics does not exist; the delta swaps\n"
-                     "// GuiGraphics#fill for GuiComponent.fill and the import goes away. Derive the\n"
-                     "// exact replacement with the recipe in deltas/%s/derivation.md before shipping.]\n"
-                     "// import net.minecraft.client.gui.GuiGraphics;\n"
-                     "import net.minecraft.client.gui.GuiGraphics; // PORT-REMOVED" % version))
-
     return subs
 
 
-def apply_subs(text: str, subs: list[tuple[str, str, str]], key: str, row: dict) -> str:
+# --------------------------------------------------------------------------
+# 2. era transforms (ordered, applied to whole files)
+# --------------------------------------------------------------------------
+
+def split_top_level(args: str) -> list[str]:
+    """Split a balanced argument string on top-level commas."""
+    parts, depth, current = [], 0, []
+    for ch in args:
+        if ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth -= 1
+        if ch == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+    tail = "".join(current).strip()
+    if tail:
+        parts.append(tail)
+    return parts
+
+
+def remap_call(text: str, method: str, rebuild) -> str:
+    """Rewrite every ``receiver.method(args...)`` call with ``rebuilt = rebuild(receiver, [args])``.
+
+    Handles nested parentheses in the argument list (``Component.literal(x)`` etc.) by
+    balanced scanning. ``rebuild`` returning None leaves the call untouched.
+    """
+    out, i, needle = [], 0, "." + method + "("
+    while True:
+        at = text.find(needle, i)
+        if at < 0:
+            out.append(text[i:])
+            return "".join(out)
+        # receiver = identifier chars immediately before the dot
+        r = at - 1
+        while r >= 0 and (text[r].isalnum() or text[r] in "_$."):
+            r -= 1
+        receiver = text[r + 1:at]
+        if not receiver or not re.fullmatch(r"[\w$.]+", receiver):
+            out.append(text[i:at + len(needle)])
+            i = at + len(needle)
+            continue
+        # balanced scan for the closing paren of the call
+        depth, j = 0, at + len(needle) - 1
+        while j < len(text):
+            if text[j] == "(":
+                depth += 1
+            elif text[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        if j >= len(text):
+            out.append(text[i:at + len(needle)])
+            i = at + len(needle)
+            continue
+        args = split_top_level(text[at + len(needle):j])
+        rebuilt = rebuild(receiver, args)
+        if rebuilt is None:
+            out.append(text[i:j + 1])
+        else:
+            # the rebuilt string replaces the WHOLE call including the receiver
+            # (`guiGraphics.drawString(font, x)` -> `font.draw(poseStack, x)`), so the
+            # slice ends where the receiver begins, not at the dot.
+            out.append(text[i:r + 1])
+            out.append(rebuilt)
+        i = j + 1
+
+
+def remove_method(text: str, signature_word: str) -> str:
+    """Delete the method whose declaration line contains ``signature_word`` plus its javadoc.
+
+    Brace-matched, so multi-line bodies are removed whole. Returns the text with the
+    surrounding blank lines collapsed.
+    """
+    lines = text.split("\n")
+    idx = -1
+    for n, line in enumerate(lines):
+        if signature_word in line and ("public" in line or "protected" in line or "private" in line) and "(" in line:
+            idx = n
+            break
+    if idx < 0:
+        return text
+    # walk back over the javadoc that precedes it
+    start = idx
+    while start > 0 and not lines[start - 1].strip().endswith("*/") and lines[start - 1].strip().startswith("*"):
+        start -= 1
+    if start > 0 and lines[start - 1].strip().startswith("/**"):
+        start -= 1
+    # walk back over annotations (@Override) directly above
+    while start > 0 and lines[start - 1].strip().startswith("@"):
+        start -= 1
+    # brace-match forward from the declaration
+    body = "\n".join(lines[idx:])
+    depth, k = 0, None
+    for k, ch in enumerate(body):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                break
+    end_line = idx + body[:k].count("\n")
+    new_lines = lines[:start] + lines[end_line + 1:]
+    # collapse triple blank lines left by the removal
+    cleaned, blanks = [], 0
+    for line in new_lines:
+        if line.strip() == "":
+            blanks += 1
+            if blanks > 1:
+                continue
+        else:
+            blanks = 0
+        cleaned.append(line)
+    return "\n".join(cleaned)
+
+
+def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
+    """Apply every era transform this row needs to one file. Returns (text, applied)."""
+    facts = row["facts"]
+    applied: list[str] = []
+    stack = facts.get("stack_class", "GuiGraphics")
+
+    if stack != "GuiGraphics":
+        fqn = STACK_FQN[stack]
+        var = STACK_VAR[stack]
+        old_import = "import net.minecraft.client.gui.GuiGraphics;"
+        if old_import in text:
+            text = text.replace(old_import, f"import {fqn};", 1)
+        new_text = re.sub(r"\bGuiGraphics\b", stack, text)
+        if new_text != text:
+            applied.append(f"GuiGraphics->{stack}")
+            text = new_text
+        new_text = re.sub(r"\bguiGraphics\b", var, text)
+        if new_text != text:
+            applied.append(f"guiGraphics->{var}")
+            text = new_text
+
+        # draw calls: GuiGraphics receiver-methods become static GuiComponent helpers or
+        # Font methods, with the stack moving into the argument list.
+        def draw_string(recv: str, args):
+            if len(args) in (5, 6) and recv == var:
+                # GuiGraphics.drawString(Font, text, x, y, color[, dropShadow]) ->
+                # Font.draw(stack, text, x, y, color). The boolean drops: Font.draw on the
+                # pre-GuiGraphics era is shadowless unless drawShadow is called, and the
+                # reference passes `false` everywhere, so the visual result matches; any
+                # site passing `true` is preserved by the shadow call below.
+                drop = args[5] if len(args) == 6 else "false"
+                kept = args[:5]
+                if drop.strip() == "true":
+                    return f"{args[0]}.drawShadow({var}, {', '.join(kept[1:])})"
+                return f"{args[0]}.draw({var}, {', '.join(kept[1:])})"
+            return None
+
+        def draw_centered(recv: str, args):
+            if len(args) == 5 and recv == var:
+                # GuiGraphics.drawCenteredString(Font, text, x, y, color) ->
+                # GuiComponent.drawCentered(stack, Font, text, x, y, color)
+                return f"net.minecraft.client.gui.GuiComponent.drawCentered({var}, {', '.join(args)})"
+            return None
+
+        def fill(recv: str, args):
+            if len(args) == 5 and recv == var:
+                return f"net.minecraft.client.gui.GuiComponent.fill({var}, {', '.join(args)})"
+            return None
+
+        for name, fn in (("drawString", draw_string), ("drawCenteredString", draw_centered), ("fill", fill)):
+            new_text = remap_call(text, name, fn)
+            if new_text != text:
+                applied.append(name)
+                text = new_text
+
+        # scissor: RenderSystem takes (x, y, width, height) where GuiGraphics takes corners.
+        # The reference call site is the only one and is rewritten verbatim (see the
+        # corner-vs-size comment at the call site itself).
+        scissor = ("guiGraphics" if stack == "GuiGraphics" else var)
+        old = (f"{scissor}.enableScissor(contentX - 4, CONTENT_TOP, contentX + this.contentWidth + 4,\n"
+               f"                CONTENT_TOP + this.contentHeight)")
+        new = ("org.lwjgl.opengl.GL11.glEnable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);\n"
+               "        org.lwjgl.opengl.GL11.glScissor(contentX - 4, CONTENT_TOP, this.contentWidth + 8, this.contentHeight);")
+        if old in text:
+            text = text.replace(old, new, 1)
+            applied.append("enableScissor->GL11.glScissor")
+        if f"{scissor}.disableScissor()" in text:
+            text = text.replace(f"{scissor}.disableScissor()",
+                                "org.lwjgl.opengl.GL11.glDisable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST)")
+            applied.append("disableScissor->GL11")
+
+        # GuiGraphics#guiWidth/guiHeight -> Window#getGuiScaledWidth/Height. Both call
+        # sites (the HUD) have a `minecraft` local in scope; the transform is textual
+        # and the checkers grep for a leftover guiWidth afterwards.
+        if f"{var}.guiWidth()" in text or f"{var}.guiHeight()" in text:
+            text = text.replace(f"{var}.guiWidth()", "minecraft.getWindow().getGuiScaledWidth()")
+            text = text.replace(f"{var}.guiHeight()", "minecraft.getWindow().getGuiScaledHeight()")
+            applied.append("guiWidth->Window")
+
+    if int(facts.get("render_background_args", 4)) == 1:
+        for var in ("guiGraphics", "poseStack", "matrixStack"):
+            old = f"this.renderBackground({var}, mouseX, mouseY, delta)"
+            if old in text:
+                text = text.replace(old, f"this.renderBackground({var})", 1)
+                applied.append("renderBackground->1-arg")
+
+    # text component era
+    era = facts.get("component_era", "component")
+    if era != "component":
+        interface, literal, translatable = COMPONENT_ERAS[era]
+        if "import net.minecraft.network.chat.Component;" in text:
+            extra = ""
+            if literal and "Component.literal(" in text:
+                extra += f"\nimport {literal};"
+            if translatable and "Component.translatable(" in text:
+                extra += f"\nimport {translatable};"
+            text = text.replace("import net.minecraft.network.chat.Component;",
+                                f"import {interface};{extra}", 1)
+        text = text.replace("net.minecraft.network.chat.Component.literal(", f"new {literal}(")
+        text = text.replace("net.minecraft.network.chat.Component.translatable(", f"new {translatable}(")
+        text = re.sub(r"\bComponent\.literal\(", f"new {literal.rsplit('.', 1)[-1]}(", text)
+        text = re.sub(r"\bComponent\.translatable\(", f"new {translatable.rsplit('.', 1)[-1]}(", text)
+        # remaining bare `Component` type references (parameters, generics) -> the interface
+        text = re.sub(r"\bComponent\b(?!\.)", interface.rsplit(".", 1)[-1], text)
+        applied.append(f"Component->{era}")
+
+    # narration method name / existence
+    narration = facts.get("narration", "widget")
+    if narration == "plain" and "updateWidgetNarration" in text:
+        text = text.replace("updateWidgetNarration", "updateNarration")
+        applied.append("updateWidgetNarration->updateNarration")
+    elif narration == "none" and "updateWidgetNarration" in text:
+        # a file can hold several widget classes, each with its own override: remove
+        # every one, then drop the import. The loop guard compares before/after so a
+        # removable method followed by mere javadoc mentions still gets removed (a
+        # naive "is the word still present" guard breaks out after the first removal).
+        while True:
+            before = text
+            text = remove_method(text, "updateWidgetNarration")
+            if text == before:
+                break  # nothing left that looks like a declaration; the rest is comments
+        text = text.replace("import net.minecraft.client.gui.narration.NarrationElementOutput;\n", "")
+        applied.append("narration-removed")
+
+    # AbstractWidget render method name
+    if facts.get("widget_render") == "renderButton" and "renderWidget" in text:
+        text = text.replace("renderWidget", "renderButton")
+        applied.append("renderWidget->renderButton")
+
+    # widget setters -> public fields (pre-1.19.3 widgets had public x/y/width/height)
+    if facts.get("widget_setters") is False:
+        for setter, field in (("setX", "x"), ("setY", "y"), ("setWidth", "width"), ("setHeight", "height")):
+            pattern = re.compile(r"(\w+)\." + setter + r"\(([^;]+?)\);")
+            new_text, n = pattern.subn(r"\1." + field + r" = \2;", text)
+            if n:
+                text = new_text
+                applied.append(f"{setter}->{field}")
+
+    # OptionsScreen package (net.minecraft.client.gui.screens.options from 1.20.5)
+    if facts.get("options_pkg") == "screens":
+        if "net.minecraft.client.gui.screens.options.OptionsScreen" in text:
+            text = text.replace("net.minecraft.client.gui.screens.options.OptionsScreen",
+                                "net.minecraft.client.gui.screens.OptionsScreen")
+            applied.append("OptionsScreen-package")
+
+    # Button.builder chain -> constructor
+    if facts.get("button_builder") is False:
+        old = ('''final net.minecraft.client.gui.components.Button button = net.minecraft.client.gui.components.Button
+                .builder(net.minecraft.network.chat.Component.translatable("aetherium.screen.fallback_button"),
+                        widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)))
+                .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)
+                .build();''')
+        if old in text:
+            component = ("net.minecraft.network.chat.Component.translatable"
+                         if facts.get("component_era") == "component"
+                         else "new net.minecraft.network.chat."
+                         + ("TranslatableComponent" if era == "text" else "TranslationTextComponent"))
+            open_component = component if era == "component" else component
+            new = (f'final net.minecraft.client.gui.components.Button button = new net.minecraft.client.gui.components.Button(\n'
+                   f'                5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20,\n'
+                   f'                {open_component}("aetherium.screen.fallback_button"),\n'
+                   f'                widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)));')
+            text = text.replace(old, new, 1)
+            applied.append("Button.builder->ctor")
+
+    # entity iteration (1.16.5)
+    if facts.get("entities_iter") == "entities":
+        if "minecraft.level.entitiesForRendering()" in text:
+            text = text.replace("minecraft.level.entitiesForRendering()", "minecraft.level.entities()")
+            applied.append("entitiesForRendering->entities")
+
+    # Screen#addRenderableWidget reflectively probed by name (1.16.5: addButton)
+    if facts.get("add_widget") == "addButton":
+        if '"addRenderableWidget"' in text:
+            text = text.replace('"addRenderableWidget"', '"addButton"')
+            applied.append("addRenderableWidget->addButton")
+
+    # CycleButton was named CycleButtonWidget until 1.19.1
+    cycle = facts.get("cycle_button", "CycleButton")
+    if cycle == "CycleButtonWidget":
+        cb = "net.minecraft.client.gui.components."
+        if f"import {cb}CycleButton;" in text:
+            text = text.replace(f"import {cb}CycleButton;", f"import {cb}CycleButtonWidget;", 1)
+        text = text.replace("if (child instanceof CycleButton<?>) {", "if (child instanceof CycleButtonWidget) {")
+        text = text.replace("{@link CycleButton}s", "{@link CycleButtonWidget}s")
+        applied.append("CycleButton->CycleButtonWidget")
+
+    return text, applied
+
+
+def apply_edits(text: str, subs: list[tuple[str, str, str]], key: str, row: dict) -> str:
     out = text
-    applied = 0
     for target, find, replace in subs:
         if target != key:
             continue
@@ -165,24 +518,43 @@ def apply_subs(text: str, subs: list[tuple[str, str, str]], key: str, row: dict)
             raise SystemExit(f"porting rule for {row['version']} is ambiguous in {key}: "
                              f"{out.count(find)} matches for {find[:60]!r}")
         out = out.replace(find, replace, 1)
-        applied += 1
-    if applied and key == "hud" and "PORT-REMOVED" in out:
-        pass  # the marker is the point: it is greppable from tools/verify.sh
     return out
 
 
+# --------------------------------------------------------------------------
+# 3. delta emission
+# --------------------------------------------------------------------------
+
+def version_transforms(row: dict) -> dict[str, tuple[str, list[str]]]:
+    """Return {file_key: (transformed_text, applied_rules)} for every changed file."""
+    subs = pins_subs(row)
+    results: dict[str, tuple[str, list[str]]] = {}
+    all_applied: set[str] = set()
+    for key, path in FILES.items():
+        text = open(path, encoding="utf-8").read()
+        changed = apply_edits(text, subs, key, row)
+        changed, applied = era_transform(row, key, changed)
+        all_applied.update(applied)
+        if changed != text:
+            results[key] = (changed, applied)
+    if not results:
+        raise SystemExit(f"row {row['version']} produced no changes - the pins equal the reference")
+    return results
+
+
 def build_patch(row: dict, out_dir: str) -> list[str]:
-    """Write deltas/<version>/{changes.patch,derivation.md,notes.md}; return touched files."""
-    subs = substitutions(row)
-    touched: list[str] = []
+    """Write deltas/<version>/{changes.patch,README.md,mixins.json,build.gradle.kts}."""
     with tempfile.TemporaryDirectory() as work:
         orig = os.path.join(work, "orig")
         new = os.path.join(work, "new")
-        for key, path in FILES.items():
-            text = open(path, encoding="utf-8").read()
-            changed = apply_subs(text, subs, key, row)
-            if changed == text:
+        touched: list[str] = []
+        results = version_transforms(row)
+        for key, _ in FILES.items():
+            if key not in results:
                 continue
+            path = FILES[key]
+            text = open(path, encoding="utf-8").read()
+            changed = results[key][0]
             rel = os.path.relpath(path, REPO)
             if rel not in ALLOWED_TARGETS:
                 raise SystemExit(f"refusing to emit a delta that touches {rel}: not in ALLOWED_TARGETS")
@@ -192,8 +564,6 @@ def build_patch(row: dict, out_dir: str) -> list[str]:
                 with open(dest, "w", encoding="utf-8", newline="\n") as handle:
                     handle.write(tree)
             touched.append(rel)
-        if not touched:
-            raise SystemExit(f"row {row['version']} produced no changes - the pins equal the reference")
         proc = subprocess.run(["git", "diff", "--no-index", "-U3", "--src-prefix=a/", "--dst-prefix=b/", "orig", "new"],
                               cwd=work, capture_output=True, text=True)
         if proc.returncode not in (0, 1):
@@ -209,57 +579,96 @@ def build_patch(row: dict, out_dir: str) -> list[str]:
         os.makedirs(out_dir, exist_ok=True)
         with open(os.path.join(out_dir, "changes.patch"), "w", encoding="utf-8", newline="\n") as handle:
             handle.write(header + patch)
-        touched = write_docs(row, out_dir, touched)
+        write_docs(row, out_dir, touched, results)
     return touched
 
 
-def write_docs(row: dict, out_dir: str, touched: list[str]) -> list[str]:
+def write_docs(row: dict, out_dir: str, touched: list[str], results: dict) -> None:
     facts = row["facts"]
-    derivation = [
-        f"# Deriving the rest of the Minecraft {row['version']} port",
+    version = row["version"]
+    applied_rules = sorted({rule for _, rules in results.values() for rule in rules})
+
+    readme = [
+        f"# Aetherium port: Minecraft {version}",
         "",
-        f"This delta is mechanical and complete for the pins; the items below must be",
-        f"confirmed against the real {row['version']} jar before a build is published.",
-        f"Status of this row: **{row['status']}**. {row.get('status_note', '')}",
+        f"- Java toolchain: **{row['java']}** (mixin compatibilityLevel `JAVA_{row['java']}`)",
+        f"- Fabric loader floor: **{row['fabric_loader']}**" + (f", Loom **{row['loom']}**" if row.get("loom") else ""),
+        f"- Fabric API (compile-only, optional at runtime): **{facts.get('fabric_api', 'n/a')}**",
+        f"- NeoForge: **{row['neoforge'] or 'does not exist for this version - the neoforge module is disabled'}**",
+        f"- Mappings: {row['mappings']}",
+        f"- Status: **{row['status']}**",
         "",
-        "## 1. Read the names you need from the shipped jar",
+        "## What the delta changes",
         "",
-        "```sh",
-        "# Loom has already downloaded and mapped the game by the time `./gradlew build`",
-        "# has run once; the remapped jar is the authority, not a wiki.",
-        "MC=" + row["version"],
-        'JAR=$(find "$HOME/.gradle/caches/fabric-loom" -name "minecraft-*-"$MC"-*.jar" 2>/dev/null | head -n 1)',
-        'test -n "$JAR" || { echo "run ./gradlew build once so Loom downloads $MC"; exit 1; }',
-        "javap -p -classpath \"$JAR\" net.minecraft.client.renderer.LightTexture | grep -E 'tick|pixels|NativeImage'",
-        "javap -p -classpath \"$JAR\" net.minecraft.client.gui.Gui | grep -E 'public void render|GuiGraphics'",
-        "javap -p -classpath \"$JAR\" net.minecraft.client.renderer.LevelRenderer | grep -E 'setSectionDirty|allChanged|Section'",
-        "javap -p -classpath \"$JAR\" net.minecraft.client.gui.screens.options.OptionsScreen | grep -nE 'lambda|method_'",
-        "javap -p -classpath \"$JAR\" net.minecraft.client.Minecraft | grep -E 'setLevel|loadWorld|getDebugOverlay'",
+        "### Build pins",
+        "",
+        "```properties",
+        f"minecraft_version={version}",
+        f"java_version={row['java']}",
+        f"fabric_loader_version={row['fabric_loader']}",
+        f"fabric_api_version={facts.get('fabric_api', 'n/a')}",
+        f"neoforge_version={row['neoforge'] or 'unavailable (module disabled)'}",
         "```",
         "",
-        "## 2. Where each answer goes",
+        "### Era transforms applied by the generated patch",
         "",
     ]
-    mapping = {
-        "lightmap field": ("common/src/main/java/com/aetherium/gamma/LightmapWriter.java",
-                           "the accepted field names in `probe()`; nothing else - the writer "
-                           "degrades with one log line if the shape is unknown"),
-        "lightmap tick method": ("common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java",
-                                 "the `method = {...}` candidate list"),
-        "GUI overlay": ("common/src/main/java/com/aetherium/mixin/core/GuiMixin.java",
-                        "the descriptor on the primary `render` injection"),
-        "options hijack": ("common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java",
-                           "the `lambda$init$N` / `method_NNNNN` candidate list"),
-        "screen callbacks": ("common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java",
-                             "the `mouseClicked`/`mouseScrolled`/`onClose` override signatures"),
-        "world hooks": ("common/src/main/java/com/aetherium/mixin/core/MinecraftMixin.java",
-                        "the `method = {...}` candidate list"),
-    }
-    for key, (path, note) in mapping.items():
-        derivation.append(f"- **{key}** - `{path}`: {note}")
-    derivation += [
+    if applied_rules:
+        for rule in applied_rules:
+            readme.append(f"- `{rule}`")
+    else:
+        readme.append("- none: this row's era facts equal the reference (pin-only delta)")
+    readme += [
         "",
-        "## 3. Then re-check, do not eyeball",
+        "### Era facts and where they were read from",
+        "",
+        f"- `stack_class` = **{facts['stack_class']}** - "
+        + ("GuiGraphics [VERIFIED: Iris @ 1.20.1 and 1.20.6 branches]" if facts["stack_class"] == "GuiGraphics"
+           else "PoseStack [VERIFIED: Iris @ 1.19.4 branch (MixinGui captures PoseStack)]" if facts["stack_class"] == "PoseStack"
+           else "MatrixStack [UNVERIFIED: 1.16.5 predates the 1.17 rename; verify with the javap recipe below]"),
+        f"- `component_era` = **{facts['component_era']}** - "
+        + ("Component.literal is 1.19+ [VERIFIED on 1.19.4 sources]"
+           if facts["component_era"] == "component" else
+           "TextComponent/TranslatableComponent [UNVERIFIED: the 1.17-1.18.2 mojmap names; verify]"
+           if facts["component_era"] == "text" else
+           "StringTextComponent/TranslationTextComponent [UNVERIFIED: 1.16.5 mojmap names; verify]"),
+        f"- `narration` = **{facts['narration']}** - updateNarration is the pre-1.21 name "
+          "[VERIFIED: Iris @ 1.20.6 uses updateNarration, Iris @ 1.21.1 uses updateWidgetNarration]; "
+          "narration itself is 1.19.4+ [UNVERIFIED boundary]",
+        f"- `widget_render` = **{facts['widget_render']}** [UNVERIFIED boundary: the renderButton->renderWidget rename is dated to the 1.19.3 widget refactor]",
+        f"- `render_background_args` = **{facts['render_background_args']}** - "
+        + ("4-arg form [VERIFIED on 1.20.6 (Iris) and 1.21.1 (Iris)]" if facts["render_background_args"] == 4
+           else "1-arg form [VERIFIED on 1.20.1 (Iris) and 1.19.4 (Iris); the 1.20.2-1.20.4 boundary is UNVERIFIED]"),
+        f"- `widget_setters` = **{facts['widget_setters']}** [UNVERIFIED boundary: setters vs public fields, dated to the 1.19.3 refactor]",
+        f"- `entities_iter` = **{facts['entities_iter']}** - entitiesForRendering "
+          "[VERIFIED on 1.21.1: Iris MixinLevelRenderer_SkipRendering targets ClientLevel#entitiesForRendering]",
+        f"- `fabric_api` pin read from FabricMC/fabric tags on 2026-10-10"
+        + (" [VERIFIED tag]" if version == "1.21.1" or version not in ("1.16.5", "1.17.1", "1.18.1")
+           else " [UNVERIFIED: no per-version tag exists for this line; the base-version pin is used]"),
+        "",
+        "## Files the generated patch touches",
+        "",
+    ]
+    for path in touched:
+        readme.append(f"- `{path}`")
+    readme += [
+        "",
+        "## Verifying this row before shipping it",
+        "",
+        "The port is applied with `sh tools/port.sh " + version + "` and then checked against the",
+        "real mapped jar - the jar is the authority, not a wiki:",
+        "",
+        "```sh",
+        "MC=" + version,
+        'JAR=$(find "$HOME/.gradle/caches/fabric-loom" -name "minecraft-*-\"$MC\"-*.jar" 2>/dev/null | head -n 1)',
+        'test -n "$JAR" || { echo "run ./gradlew build once so Loom downloads $MC"; exit 1; }',
+        "javap -p -classpath \"$JAR\" net.minecraft.client.renderer.LightTexture | grep -E 'updateLightTexture|tickLightTexture|pixels|NativeImage|DynamicTexture'",
+        "javap -p -classpath \"$JAR\" net.minecraft.client.gui.Gui | grep -E 'public void render'",
+        "javap -p -classpath \"$JAR\" net.minecraft.client.renderer.LevelRenderer | grep -E 'setSectionDirty|allChanged'",
+        "javap -p -classpath \"$JAR\" net.minecraft.client.gui.screens." +
+        ("options." if facts["options_pkg"] == "screens.options" else "") + "OptionsScreen | grep -nE 'lambda|init'",
+        "javap -p -classpath \"$JAR\" net.minecraft.client.gui.components.AbstractWidget | grep -E 'renderWidget|renderButton|setX|updateNarration'",
+        "```",
         "",
         "```sh",
         "python3 tools/check_refs.py . && python3 tools/check.py --skip-deltas",
@@ -270,42 +679,69 @@ def write_docs(row: dict, out_dir: str, touched: list[str]) -> list[str]:
         "mechanical. A mixin that silently stops applying is the bad one, which is why the",
         "HUD prints `Aetherium.describeRuntime()` and the log prints every refused mixin.",
         "",
-    ]
-    with open(os.path.join(out_dir, "derivation.md"), "w", encoding="utf-8", newline="\n") as handle:
-        handle.write("\n".join(derivation))
-
-    notes = [
-        f"# Port notes: Minecraft {row['version']}",
-        "",
-        f"- Java toolchain: **{row['java']}**",
-        f"- Fabric loader floor: **{row['fabric_loader']}**" + (f", Loom **{row['loom']}**" if row.get("loom") else ""),
-        f"- NeoForge: **{row['neoforge'] or 'does not exist for this version - the neoforge module is disabled'}**",
-        f"- Mappings: {row['mappings']}",
-        f"- Status: **{row['status']}**",
-        "",
-        "## Known differences this delta cannot encode",
+        "## Notes",
         "",
     ]
     for line in facts.get("notes", []):
-        notes.append(f"- {line}")
-    if facts.get("gui_graphics", True) is False:
-        notes.append("- `GuiGraphics` does not exist yet: every screen/overlay draw call in "
-                     "the GUI and HUD uses the `PoseStack`/`GuiComponent` form.")
-    notes += [
-        "",
-        "## Files the generated patch touches",
-        "",
-    ]
-    for path in touched:
-        notes.append(f"- `{path}`")
-    notes += ["", "Generated by `tools/gen_deltas.py`; re-run that instead of editing.", ""]
-    with open(os.path.join(out_dir, "notes.md"), "w", encoding="utf-8", newline="\n") as handle:
-        handle.write("\n".join(notes))
-    return sorted(set(touched) | {"derivation.md", "notes.md"})
+        readme.append(f"- {line}")
+    readme += ["", "Generated by `tools/gen_deltas.py`; re-run that instead of editing.", ""]
+    with open(os.path.join(out_dir, "README.md"), "w", encoding="utf-8", newline="\n") as handle:
+        handle.write("\n".join(readme))
 
+    # mixins.json: the exact mixin config this row ships (compatibilityLevel and all).
+    # tools/port.sh copies it over the tree's file after applying the patch, and
+    # --verify proves the two paths produce the same bytes.
+    mixins_key = "mixins"
+    mixins_text = results.get(mixins_key, (open(FILES[mixins_key], encoding="utf-8").read(), []))[0]
+    with open(os.path.join(out_dir, "mixins.json"), "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(mixins_text)
+
+    # build.gradle.kts: a runnable guard script that fails the port when the tree's pins
+    # drift from this row. tools/port.sh executes it after applying the patch; it is the
+    # delta's build file in the most literal sense - the thing the build runs against.
+    guard = f"""// Aetherium port guard: Minecraft {version}
+// Generated by tools/gen_deltas.py. Run from the repo root after applying the delta:
+//   kscript deltas/{version}/build.gradle.kts   (or: kotlinc -script ... / gradle -b ... )
+// It re-reads the tree's pins and exits non-zero on any drift, because a port that
+// half-applied is worse than one that fails loudly.
+@file:Suppress("UNUSED_VARIABLE")
+
+import java.io.File
+
+val expect = mapOf(
+    "minecraft_version" to "{version}",
+    "java_version" to "{row['java']}",
+    "fabric_loader_version" to "{row['fabric_loader']}",
+    "fabric_api_version" to "{facts.get('fabric_api', 'n/a')}",
+    "neoforge_version" to "{row['neoforge'] or 'unavailable'}"
+)
+
+val props = File(System.getProperty("user.dir"), "gradle.properties")
+if (!props.isFile()) {{
+    System.err.println("gradle.properties not found under " + System.getProperty("user.dir"))
+    kotlin.system.exitProcess(2)
+}}
+var failures = 0
+for ((key, want) in expect) {{
+    val line = props.readLines().firstOrNull {{ it.startsWith("$key=") }}
+    val have = line?.substringAfter('=') ?: "<missing>"
+    if (have != want) {{
+        System.err.println("PIN DRIFT $key: expected $want, found $have")
+        failures++
+    }}
+}}
+if (failures == 0) println("pins ok for {version}")
+kotlin.system.exitProcess(if (failures == 0) 0 else 1)
+"""
+    with open(os.path.join(out_dir, "build.gradle.kts"), "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(guard)
+
+
+# --------------------------------------------------------------------------
+# 4. matrix
+# --------------------------------------------------------------------------
 
 def render_matrix(rows: list[dict]) -> str:
-    order = ["version", "java", "fabric_loader", "neoforge", "status"]
     lines = [
         "# Porting matrix",
         "",
@@ -324,46 +760,53 @@ def render_matrix(rows: list[dict]) -> str:
         "| `derived` | inferred from the renames on either side; verify before shipping |",
         "| `unverified` | plausible, not checked; the delta ships the recipe to check it |",
         "",
+        "Era boundaries that were read from real upstream sources (Iris branches 1.19.4,",
+        "1.20.1, 1.20.6, 1.21.1; CaffeineMC/sodium @ 1.21.1/stable; LWJGL generated",
+        "sources; FabricMC and NeoForge tag listings) are marked VERIFIED in each delta's",
+        "README; boundaries inferred between two verified points are marked UNVERIFIED and",
+        "fail loudly (a compile error) rather than silently when wrong.",
+        "",
         "No row claims a measured frame-rate result, and no row claims to have been run",
         "unless it is the reference row. Anything else would be a fabricated deliverable.",
         "",
-        "| Minecraft | Java | Fabric loader | NeoForge | GuiGraphics | lightmap | options hijack | status | delta |",
+        "| Minecraft | Java | Fabric loader | NeoForge | Stack | Text | Narration | status | delta |",
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for row in rows:
         facts = row["facts"]
-        gui = "yes" if facts.get("gui_graphics", True) else "no (PoseStack)"
-        light = facts.get("lightmap_shape", "?")
-        raw_range = facts.get("options_hijack_range", "*")
-        hijack = "disabled (fallback button only)" if raw_range == "[9999,)" else raw_range
+        stack = facts.get("stack_class", "?")
+        text_era = {"component": "Component", "text": "TextComponent", "string_text": "StringTextComponent"}[
+            facts.get("component_era", "component")]
+        narration = facts.get("narration", "?")
         if row["version"] == REFERENCE:
             version_cell = f"**{row['version']}**"
-            delta = "the tree itself - [`common/`](common/src/main/java/com/aetherium), " \
-                    "[`gradle.properties`](gradle.properties)"
+            delta = "the tree itself - [`common/`](common/src/main/java/com/aetherium), "
+            delta += "[`gradle.properties`](gradle.properties)"
         else:
             directory = f"deltas/{row['version']}"
             version_cell = f"[{row['version']}]({directory}/)"
             delta = (f"[patch]({directory}/changes.patch) \u00b7 "
-                     f"[derivation]({directory}/derivation.md) \u00b7 "
-                     f"[notes]({directory}/notes.md)")
+                     f"[README]({directory}/README.md) \u00b7 "
+                     f"[mixins.json]({directory}/mixins.json) \u00b7 "
+                     f"[build.gradle.kts]({directory}/build.gradle.kts)")
         lines.append(f"| {version_cell} | {row['java']} | {row['fabric_loader']} | "
-                     f"{row['neoforge'] or 'n/a'} | {gui} | {light} | `{hijack}` | {row['status']} | {delta} |")
+                     f"{row['neoforge'] or 'n/a'} | {stack} | {text_era} | {narration} | {row['status']} | {delta} |")
     lines += [
         "",
         f"{len(rows)} rows: 1 reference + {len(rows) - 1} deltas.",
         "",
         "## All versions",
         "",
-        "Every row, linked. A delta directory holds three files: `changes.patch` (what to",
-        "apply), `derivation.md` (why each hunk is what it is, and the upstream file it was",
-        "read from) and `notes.md` (what to check on that version once a JDK exists).",
-        "No row links a download, because this repository publishes no jars - see the",
-        "[README](README.md#honest-status) for what is and is not shipped.",
+        "Every row, linked. A delta directory holds four files: `changes.patch` (what to",
+        "apply), `README.md` (every era fact and its provenance, plus the recipe to check",
+        "the row against the real mapped jar), `mixins.json` (the exact mixin config the",
+        "ported tree ships) and `build.gradle.kts` (a pin guard the port runs to prove",
+        "the tree and this row agree).",
         "",
     ]
     groups = [
-        ("1.16 - 1.18 (Java 8/16/17, no GuiGraphics)", lambda v: v.startswith(("1.16", "1.17", "1.18"))),
-        ("1.19 - 1.20 (the GuiGraphics and lightmap changes)", lambda v: v.startswith(("1.19", "1.20"))),
+        ("1.16 - 1.18 (Java 8/16/17, MatrixStack/PoseStack, TextComponent)", lambda v: v.startswith(("1.16", "1.17", "1.18"))),
+        ("1.19 - 1.20 (PoseStack -> GuiGraphics at 1.20, narration at 1.19.4)", lambda v: v.startswith(("1.19", "1.20"))),
         ("1.21.x (the reference line and its successors)", lambda v: v.startswith("1.21")),
         ("Date-based ids (26.x)", lambda v: not v.startswith("1.")),
     ]
@@ -379,8 +822,7 @@ def render_matrix(rows: list[dict]) -> str:
             lines.append(
                 f"- [{row['version']}]({directory}/) - Java {row['java']}, "
                 f"[patch]({directory}/changes.patch), "
-                f"[derivation]({directory}/derivation.md), "
-                f"[notes]({directory}/notes.md) - `{row['status']}`"
+                f"[README]({directory}/README.md) - `{row['status']}`"
             )
         lines.append("")
     reference_row = [row for row in rows if row["version"] == REFERENCE]
@@ -401,14 +843,22 @@ def render_matrix(rows: list[dict]) -> str:
         "`deltas/<version>/changes.patch` may change only:",
         "",
         "1. build pins (`minecraft_version`, `java_version`, `neoforge_version`,",
-        "   `fabric_loader_version`, `fabric_loom_version` + the matching `loom` entry in",
-        "   `gradle/libs.versions.toml`, `enabled_platforms`);",
-        "2. `REFERENCE`-side strings in `AetheriumMixinPlugin` (the announced version and",
+        "   `fabric_loader_version`, `fabric_api_version`, `fabric_loom_version` + the",
+        "   matching `loom` entry in `gradle/libs.versions.toml`, `enabled_platforms`, the",
+        "   NeoForge include in `settings.gradle.kts` and the root build aggregate);",
+        "2. the mixin `compatibilityLevel` (it tracks the row's Java toolchain);",
+        "3. `REFERENCE`-side strings in `AetheriumMixinPlugin` (the announced version and",
         "   the per-mixin target ranges);",
-        "3. an *append* to an existing `method = { ... }` candidate list - reference names",
-        "   are never removed, so two ports merge without conflict;",
-        "4. the primary overlay descriptor in `GuiMixin` when the version predates",
-        "   `GuiGraphics`.",
+        "4. the era transforms listed in each delta's README - the mechanical",
+        "   API renames (stack class, text components, narration, widget methods,",
+        "   `renderBackground` arity, widget setters, `Button.builder`, entity iteration,",
+        "   `CycleButton`) - applied as ordered whole-file rewrites;",
+        "5. an *append* to an existing `method = { ... }` candidate list - reference names",
+        "   are never removed, so two ports merge without conflict.",
+        "",
+        "It never restructures a class, fixes a bug, or changes an algorithm.",
+        "`tools/gen_deltas.py` refuses to emit anything else, and `tools/check.py` proves",
+        "every patch still applies with `git apply --check`.",
         "",
         "### Loom, and why one version serves all 33 rows",
         "",
@@ -416,21 +866,18 @@ def render_matrix(rows: list[dict]) -> str:
         "is tree-wide (Gradle 9.4.1) and no delta rewrites it, and a Loom from the 1.2 or 1.6 era",
         "does not run on Gradle 9 - so an era-matched Loom pin would describe a build this tree",
         "cannot start. Loom itself is Minecraft-version-agnostic (the Minecraft artifact and the",
-        "intermediary/mojmap channel decide the version), and 1.16.1 is the only Loom version this",
-        "repository verified against upstream metadata. A port that genuinely needs a different",
-        "Loom must bump the wrapper, `gradle.properties` and `gradle/libs.versions.toml` together;",
-        "`tools/check.py` fails if the last two disagree, which is the guard against half a bump.",
-        "",
-        "It never restructures a class, fixes a bug, or changes an algorithm. `",
-        "`tools/gen_deltas.py` refuses to emit anything else, and `tools/check.py` proves",
-        "every patch still applies with `git apply --check`.",
+        "intermediary/mojmap channel decide the version), and the plugin id and version are read",
+        "from FabricMC/fabric-loom's own `gradlePlugin` block (`net.fabricmc.fabric-loom-remap`).",
+        "A port that genuinely needs a different Loom must bump the wrapper, `gradle.properties`",
+        "and `gradle/libs.versions.toml` together; `tools/check.py` fails if the last two",
+        "disagree, which is the guard against half a bump.",
         "",
         "## Applying one",
         "",
         "```sh",
         "sh tools/port.sh --list            # what is known about each row",
         "sh tools/port.sh --dry-run 1.20.6  # apply to a copy, run the checks, throw it away",
-        "sh tools/port.sh 1.20.6            # apply to this tree",
+        "sh tools/port.sh 1.20.6            # apply to this tree (patch + mixins.json + pin guard)",
         "sh tools/port.sh --revert 1.20.6   # undo",
         "```",
         "",
@@ -445,8 +892,11 @@ def render_matrix(rows: list[dict]) -> str:
         "",
         "## Loader availability",
         "",
-        "NeoForge begins at 1.20.2, so rows below it are Fabric-only and the generated",
-        "delta sets `enabled_platforms=fabric` rather than shipping a jar that cannot load.",
+        "NeoForge begins at 1.20.2, so rows below it are Fabric-only. For those rows the",
+        "delta edits three coordinated places - `enabled_platforms=fabric`, the",
+        "`include(\"neoforge\")` line in `settings.gradle.kts`, and the `:neoforge:build`",
+        "reference in the root build aggregate - because Gradle configures every included",
+        "project and one dangling reference fails the whole tree before a single compile.",
         "For those versions the practical alternatives are Fabric (Pojav/Zalith on Android)",
         "or the mod's own Fabric jar under Sapphire; `docs/ARCHITECTURE.md` explains why no",
         "legacy-Forge port exists in this repository: the mixin surface differs enough that",
@@ -454,14 +904,58 @@ def render_matrix(rows: list[dict]) -> str:
         "",
         "## Verification record",
         "",
-        "The 1.21.1 mixin target names in this tree were read from real sources, not memory:",
-        "`CaffeineMC/sodium @ 1.21.1/stable` (its `LightTexture`, `Gui`, `OptionsScreen` and",
-        "`LevelRenderer` mixin sets) and `neoforged/NeoForge @ 1.21.1` patch files. Where a",
-        "name could not be read, the code carries an `[UNVERIFIED: ...]` mark and a tolerant",
-        "injection - `python3 tools/check.py --report-unverified` lists them all.",
+        "The 1.21.1 mixin target names and era boundaries in this tree were read from real",
+        "sources, not memory: `CaffeineMC/sodium @ 1.21.1/stable` (LevelRenderer,",
+        "OptionsScreen, GameRenderer mixin sets and every build pin),",
+        "`IrisShaders/Iris @ 1.19.4 / 1.20.1 / 1.20.6 / 1.21.1` (Gui, GameRenderer,",
+        "LightTexture mixins, screen render/renderBackground shapes, narration name),",
+        "LWJGL's generated `GL44C`/`GL46C`/`ARBParallelShaderCompile` sources (GL constant",
+        "values), and the FabricMC, neoforged and IrisShaders tag listings (pin",
+        "existence). Where a name could not be read, the code or the delta README carries",
+        "an `[UNVERIFIED: ...]` mark and a tolerant injection -",
+        "`python3 tools/check.py --report-unverified` lists them all.",
         "",
     ]
     return "\n".join(lines).replace("```\n```\n", "```\n")
+
+
+# --------------------------------------------------------------------------
+# 5. main
+# --------------------------------------------------------------------------
+
+def verify(rows: list[dict]) -> int:
+    bad = []
+    checked = 0
+    skipped = []
+    for row in rows:
+        out_dir = os.path.join(DELTAS_DIR, row["version"])
+        patch = os.path.join(out_dir, "changes.patch")
+        if not os.path.exists(patch):
+            # Counted separately on purpose: reporting "33 patches apply" when the
+            # reference version has no patch to apply would be a wrong sentence about
+            # the state of the tree, and this line is what a CI log shows.
+            skipped.append(row["version"])
+            continue
+        checked += 1
+        proc = subprocess.run(["git", "apply", "--check", "--whitespace=nowarn", patch],
+                              cwd=REPO, capture_output=True, text=True)
+        if proc.returncode != 0:
+            bad.append((row["version"], (proc.stderr or proc.stdout).strip().splitlines()[:1]))
+            continue
+        # the emitted mixins.json must equal what the patch produces for that file
+        emitted = open(os.path.join(out_dir, "mixins.json"), encoding="utf-8").read()
+        results = version_transforms(row)
+        mixins_key = "mixins"
+        expected = results.get(mixins_key, (open(FILES[mixins_key], encoding="utf-8").read(), []))[0]
+        if emitted != expected:
+            bad.append((row["version"], ["emitted mixins.json differs from the patch result"]))
+    if bad:
+        for version, first in bad:
+            print(f"FAIL deltas/{version}: {first}")
+        return 1
+    print(f"all {checked} delta patches apply cleanly to the current tree, and every emitted "
+          f"mixins.json matches its patch result (no patch for: {', '.join(skipped)} - the reference is the tree)")
+    return 0
 
 
 def main() -> int:
@@ -469,7 +963,7 @@ def main() -> int:
     parser.add_argument("--all", action="store_true", help="regenerate every delta")
     parser.add_argument("--only", help="regenerate one version's delta")
     parser.add_argument("--matrix", action="store_true", help="regenerate PORTING_MATRIX.md")
-    parser.add_argument("--verify", action="store_true", help="check every patch applies")
+    parser.add_argument("--verify", action="store_true", help="check every patch applies and matches its emitted files")
     args = parser.parse_args()
     rows = load_rows()
 
@@ -489,31 +983,10 @@ def main() -> int:
             continue  # the reference version needs no delta by definition
         out_dir = os.path.join(DELTAS_DIR, row["version"])
         build_patch(row, out_dir)
-        print(f"wrote deltas/{row['version']}/ (changes.patch, derivation.md, notes.md)")
+        print(f"wrote deltas/{row['version']}/ (changes.patch, README.md, mixins.json, build.gradle.kts)")
 
     if args.verify:
-        bad = []
-        checked = 0
-        skipped = []
-        for row in rows:
-            patch = os.path.join(DELTAS_DIR, row["version"], "changes.patch")
-            if not os.path.exists(patch):
-                # Counted separately on purpose: reporting "33 patches apply" when the
-                # reference version has no patch to apply would be a wrong sentence about
-                # the state of the tree, and this line is what a CI log shows.
-                skipped.append(row["version"])
-                continue
-            checked += 1
-            proc = subprocess.run(["git", "apply", "--check", "--whitespace=nowarn", patch],
-                                  cwd=REPO, capture_output=True, text=True)
-            if proc.returncode != 0:
-                bad.append((row["version"], (proc.stderr or proc.stdout).strip().splitlines()[:1]))
-        if bad:
-            for version, first in bad:
-                print(f"FAIL deltas/{version}/changes.patch: {first}")
-            return 1
-        print(f"all {checked} delta patches apply cleanly to the current tree "
-              f"(no patch for: {', '.join(skipped)} - the reference version is the tree)")
+        return verify(rows)
     return 0
 
 

@@ -19,12 +19,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * versions. Instead the field is resolved once by {@link LightmapWriter} through a
  * reflective probe of the real class and cached as a {@code MethodHandle}; if no
  * supported shape exists the writer disables itself with one log line and the game
- * continues without gamma post-processing. Verified method targets:
- * {@code LightTexture#updateTick(float)} (1.16.5-1.20.4) and
- * {@code LightTexture#tick(float)} (1.20.5+); {@code LightTexture#block(int)} and
- * {@code LightTexture#sky(int)} were confirmed to exist by reading
- * {@code neoforged/NeoForge @ 1.21.1} patch
- * {@code patches/net/minecraft/client/renderer/LightTexture.java.patch}.</p>
+ * continues without gamma post-processing. Verified method target:
+ * {@code LightTexture#updateLightTexture(float)} exists on both 1.19.4 and 1.21.1 -
+ * read from IrisShaders/Iris's own {@code MixinLightTexture} on both branches, which
+ * injects into that exact method (the comment at the injection site records the
+ * source); the pre-1.17 rows list {@code tickLightTexture} as a tolerant second
+ * candidate whose exact name has not yet been read from a jar.</p>
  *
  * <p>Why TAIL of the tick method: vanilla has finished writing its own colours
  * (including any shader pack's contribution, since Iris writes the lightmap through
@@ -34,10 +34,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LightTexture.class)
 public abstract class LightTextureMixin {
 
-    // [UNVERIFIED: which of the two names 1.21.1 uses (updateTick on 1.16.5-1.20.4, tick on
-    // 1.20.5+) and whether the parameter is float deltaFrames or a tick count. require = 0 makes
-    // a wrong guess mean "gamma post-processing is off, one log line", not a crash.]
-    @Inject(method = {"updateTick", "tick"}, at = @At("TAIL"), require = 0, expect = 0)
+    // Verified name on 1.21.1 AND 1.19.4: IrisShaders/Iris's own MixinLightTexture injects into
+    // `updateLightTexture` on both branches (at INVOKE of ClientLevel#getSkyDarken(F)F), so the
+    // name has been stable across the whole GuiGraphics transition at minimum. The earlier
+    // candidate pair {"updateTick", "tick"} matched no known version - those names were invented.
+    // `tickLightTexture` stays as a tolerant second candidate for the pre-1.17 rows whose exact
+    // name has not been read from a jar yet; require = 0 keeps a miss at "feature off, one log
+    // line", never a crash. The handler captures no arguments, so the float-vs-tick parameter
+    // drift between versions cannot break binding.
+    @Inject(method = {"updateLightTexture", "tickLightTexture"}, at = @At("TAIL"), require = 0, expect = 0)
     private void aetherium$afterLightmapUpdate(final CallbackInfo ci) {
         final Aetherium.State state = Aetherium.getState();
         if (state != Aetherium.State.ACTIVE && state != Aetherium.State.SHADOW) {
@@ -46,19 +51,9 @@ public abstract class LightTextureMixin {
         LightmapWriter.apply((LightTexture) (Object) this);
     }
 
-    /**
-     * {@code LightTexture#upload(NativeImage)} (1.16.5-1.19.2) is where the packed
-     * pixels reach the GPU on the NativeImage builds; hooking it as well means the
-     * same writer works on both shapes without a version branch.
-     */
-    @Inject(method = "upload", at = @At("HEAD"), require = 0, expect = 0)
-    private void aetherium$beforeUpload(final CallbackInfo ci) {
-        // The writer is idempotent per frame; a second call in the same frame is a
-        // no-op because nothing changed, so no extra guard is needed here.
-        final Aetherium.State state = Aetherium.getState();
-        if (state != Aetherium.State.ACTIVE && state != Aetherium.State.SHADOW) {
-            return;
-        }
-        LightmapWriter.apply((LightTexture) (Object) this);
-    }
+    // No `upload` injection. An earlier revision injected into `LightTexture#upload` "for the
+    // 1.16.5-1.19.2 NativeImage builds" - no such method could be found on any version whose
+    // real source was read (the upload lives on DynamicTexture, a different class), so the
+    // injection was a permanent no-op dressed as a compatibility hook. Removed rather than kept
+    // with require = 0: dead injections are how a porting table starts lying.
 }

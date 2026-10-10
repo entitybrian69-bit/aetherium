@@ -143,7 +143,7 @@ public enum AndroidRenderer {
      * @param mesaGlVersion {@code MESA_GL_VERSION_OVERRIDE}, may be null
      */
     public static AndroidRenderer parse(final String rendererValue, final String mesaGlVersion) {
-        if (rendererValue == null || rendererValue.isBlank()) {
+        if (rendererValue == null || rendererValue.trim().isEmpty()) {
             return mesaGlVersion != null ? ZINK : UNKNOWN;
         }
         final String value = rendererValue.trim().toLowerCase(Locale.ROOT);
@@ -180,7 +180,7 @@ public enum AndroidRenderer {
 
     /** Declared GL level implied by {@code MESA_GL_VERSION_OVERRIDE}, or -1. */
     public static int declaredGlLevel(final String mesaGlVersion) {
-        if (mesaGlVersion == null || mesaGlVersion.isBlank()) {
+        if (mesaGlVersion == null || mesaGlVersion.trim().isEmpty()) {
             return -1;
         }
         final String[] parts = mesaGlVersion.trim().split("\\.");

@@ -133,8 +133,8 @@ by `tools/gen_resources.py` from `AetheriumConfig`. Never hand-edited;
 **Reference version.** 1.21.1 — the only version with a complete source tree. Everything else
 is derived from it.
 
-**Delta.** `deltas/<version>/changes.patch` plus `derivation.md` (why each hunk is what it is)
-and `notes.md`. A delta may change pins, the plugin's version table and a mixin's target-name
+**Delta.** `deltas/<version>/changes.patch` plus `README.md` (why each hunk is what it is)
+and `README.md`. A delta may change pins, the plugin's version table and a mixin's target-name
 lists. Nothing else.
 
 **Pins.** Exact versions in `tools/porting_pins.json` (and mirrored into

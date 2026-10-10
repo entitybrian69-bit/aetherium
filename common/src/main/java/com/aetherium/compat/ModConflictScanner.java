@@ -58,9 +58,55 @@ public final class ModConflictScanner {
         NEITHER
     }
 
-    /** One known overlapping mod. Ids are the real loader ids. */
-    public record KnownConflict(String modId, String displayName, String[] alternativeIds, Severity severity,
-                                Ownership ownership, String advice) {
+    /**
+     * One known overlapping mod. Ids are the real loader ids.
+     *
+     * <p>A final class with record-style accessors rather than a {@code record}, so the
+     * 1.16.5 row compiles this file on its Java 8 toolchain; the accessor names are the
+     * record component names, so call sites are unchanged.</p>
+     */
+    public static final class KnownConflict {
+        private final String modId;
+        private final String displayName;
+        private final String[] alternativeIds;
+        private final Severity severity;
+        private final Ownership ownership;
+        private final String advice;
+
+        public KnownConflict(final String modId, final String displayName, final String[] alternativeIds,
+                             final Severity severity, final Ownership ownership, final String advice) {
+            this.modId = Objects.requireNonNull(modId, "modId");
+            this.displayName = Objects.requireNonNull(displayName, "displayName");
+            this.alternativeIds = Objects.requireNonNull(alternativeIds, "alternativeIds");
+            this.severity = Objects.requireNonNull(severity, "severity");
+            this.ownership = Objects.requireNonNull(ownership, "ownership");
+            this.advice = Objects.requireNonNull(advice, "advice");
+        }
+
+        public String modId() {
+            return this.modId;
+        }
+
+        public String displayName() {
+            return this.displayName;
+        }
+
+        public String[] alternativeIds() {
+            return this.alternativeIds;
+        }
+
+        public Severity severity() {
+            return this.severity;
+        }
+
+        public Ownership ownership() {
+            return this.ownership;
+        }
+
+        public String advice() {
+            return this.advice;
+        }
+
         public boolean matches(final PlatformAdapter platform) {
             if (platform.isModLoaded(this.modId)) {
                 return true;

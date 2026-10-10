@@ -11,6 +11,11 @@ junit = "5.11.4"
 gitversion = "1.0.0"
 
 [plugins]
-fabric-loom = { id = "fabric-loom", version.ref = "loom" }
+# The plugin id is read from FabricMC/fabric-loom's own build.gradle (gradlePlugin block):
+# current Loom publishes exactly two ids - "net.fabricmc.fabric-loom" (no remap) and
+# "net.fabricmc.fabric-loom-remap" (full classic behaviour incl. remapJar). The bare
+# "fabric-loom" id of the 1.8 era no longer resolves at 1.16.1; CaffeineMC/sodium @
+# 1.21.1/stable applies the -remap id at exactly the pinned version on this Gradle.
+fabric-loom = { id = "net.fabricmc.fabric-loom-remap", version.ref = "loom" }
 neoforge-moddev = { id = "net.neoforged.moddev", version.ref = "moddev" }
 gitversion = { id = "com.palantir.git-version", version.ref = "gitversion" }

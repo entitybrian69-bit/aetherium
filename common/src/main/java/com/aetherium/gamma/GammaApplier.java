@@ -241,12 +241,12 @@ public final class GammaApplier {
          * which is what the GUI editor expects while a point is being dragged.
          */
         public static GammaCurve parse(final String spec) {
-            if (spec == null || spec.isBlank()) {
+            if (spec == null || spec.trim().isEmpty()) {
                 return identity();
             }
             final List<float[]> points = new ArrayList<>(8);
             for (final String token : spec.split("[,;\\s]+")) {
-                if (token.isBlank()) {
+                if (token.trim().isEmpty()) {
                     continue;
                 }
                 final String[] pair = token.split("[:=]");

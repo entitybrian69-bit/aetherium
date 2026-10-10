@@ -4,37 +4,1094 @@
 # status: documented
 # apply:  git apply --whitespace=nowarn deltas/1.16.5/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.16.5/changes.patch
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 004733e..fcb3d2d 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -68,7 +68,7 @@ subprojects {
+ tasks.register("buildAll") {
+     group = "aetherium"
+     description = "Builds common, fabric and neoforge artifacts for the reference version."
+-    dependsOn(":common:build", ":fabric:build", ":neoforge:build")
++    dependsOn(":common:build", ":fabric:build")
+ }
+ 
+ /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
+diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
+index d753fd1..c456463 100644
+--- a/common/src/main/java/com/aetherium/client/ClientHooks.java
++++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
+@@ -190,7 +190,7 @@ public final class ClientHooks {
+         if (Aetherium.config().dynamicLightsEntities.get()) {
+             final int range = Aetherium.config().dynamicLightsRange.get();
+             final int rangeSq = range * range;
+-            for (final net.minecraft.world.entity.Entity entity : minecraft.level.entitiesForRendering()) {
++            for (final net.minecraft.world.entity.Entity entity : minecraft.level.entities()) {
+                 if (entity == null || entity == player) {
+                     continue;
+                 }
+diff --git a/common/src/main/java/com/aetherium/gui/AetheriumAnimations.java b/common/src/main/java/com/aetherium/gui/AetheriumAnimations.java
+index 827c04e..bcca846 100644
+--- a/common/src/main/java/com/aetherium/gui/AetheriumAnimations.java
++++ b/common/src/main/java/com/aetherium/gui/AetheriumAnimations.java
+@@ -4,7 +4,7 @@ import java.util.ArrayList;
+ import java.util.List;
+ 
+ import com.aetherium.util.MathUtil;
+-import net.minecraft.client.gui.GuiGraphics;
++import com.mojang.blaze3d.matrix.MatrixStack;
+ 
+ /**
+  * Motion for the purple GUI: per-widget animated values, the morphing screen
+@@ -305,7 +305,7 @@ public final class AetheriumAnimations {
+     }
+ 
+     /** Draws the particles. Called after content so sparks sit on top of the panel. */
+-    public void drawParticles(final GuiGraphics guiGraphics) {
++    public void drawParticles(final MatrixStack matrixStack) {
+         for (final Particle particle : this.particles) {
+             if (!particle.alive) {
+                 continue;
+@@ -316,11 +316,11 @@ public final class AetheriumAnimations {
+             final int y = Math.round(particle.y);
+             final int size = Math.max(1, Math.round(particle.size * (0.5f + life)));
+             final int color = (alpha << 24) | (particle.color & 0xFFFFFF);
+-            guiGraphics.fill(x, y, x + size, y + size, color);
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y, x + size, y + size, color);
+             // Halo: one pixel of halo on each side at a quarter alpha, which is what
+             // makes it read as a glow rather than as a stray dot.
+-            guiGraphics.fill(x - 1, y, x, y + size, (alpha / 4 << 24) | (particle.color & 0xFFFFFF));
+-            guiGraphics.fill(x + size, y, x + size + 1, y + size, (alpha / 4 << 24) | (particle.color & 0xFFFFFF));
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x - 1, y, x, y + size, (alpha / 4 << 24) | (particle.color & 0xFFFFFF));
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + size, y, x + size + 1, y + size, (alpha / 4 << 24) | (particle.color & 0xFFFFFF));
+         }
+     }
+ 
+diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
+index 14f9ff6..c087a1d 100644
+--- a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
++++ b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
+@@ -16,9 +16,11 @@ import com.aetherium.render.gl.GlDevice;
+ import com.aetherium.render.mesh.ChunkMeshScheduler;
+ import com.aetherium.util.MathUtil;
+ import net.minecraft.client.Minecraft;
+-import net.minecraft.client.gui.GuiGraphics;
++import com.mojang.blaze3d.matrix.MatrixStack;
+ import net.minecraft.client.gui.components.AbstractWidget;
+-import net.minecraft.network.chat.Component;
++import net.minecraft.network.chat.ITextComponent;
++import net.minecraft.network.chat.StringTextComponent;
++import net.minecraft.network.chat.TranslationTextComponent;
+ 
+ /**
+  * The seven sidebar tabs, built from the live config object.
+@@ -497,7 +499,7 @@ public final class AetheriumTabs {
+                                           final String format, final java.util.function.DoubleSupplier getter,
+                                           final java.util.function.DoubleConsumer setter, final Runnable afterChange,
+                                           final int x, final int y) {
+-        return new AetheriumWidgets.SliderWidget(theme, x, y, 300, theme.rowHeight(), Component.translatable(labelKey).getString(),
++        return new AetheriumWidgets.SliderWidget(theme, x, y, 300, theme.rowHeight(), new TranslationTextComponent(labelKey).getString(),
+                 min, max, getter, value -> {
+                     setter.accept(value);
+                     afterChange.run();
+@@ -509,7 +511,7 @@ public final class AetheriumTabs {
+                                          final AetheriumWidgets.CycleWidget.IntConsumer setter, final Runnable afterChange,
+                                          final int x, final int y) {
+         return new AetheriumWidgets.CycleWidget(theme, x, y, 300, theme.rowHeight(),
+-                Component.translatable(labelKey).getString(), values, () -> {
++                new TranslationTextComponent(labelKey).getString(), values, () -> {
+                     final int raw = getter.get();
+                     return raw < 0 ? 0 : raw;
+                 }, value -> {
+@@ -521,7 +523,7 @@ public final class AetheriumTabs {
+     private static AbstractWidget action(final AetheriumTheme theme, final String labelKey, final int x, final int y,
+                                           final int width, final Runnable action, final int accent) {
+         return new AetheriumWidgets.ActionWidget(theme, x, y, width, theme.rowHeight() - 2,
+-                Component.translatable(labelKey), action, () -> true, accent);
++                new TranslationTextComponent(labelKey), action, () -> true, accent);
+     }
+ 
+     private static String backendSummary() {
+@@ -575,26 +577,21 @@ public final class AetheriumTabs {
+         private final String key;
+ 
+         HeaderWidget(final AetheriumTheme theme, final int x, final int y, final String key) {
+-            super(x, y, 300, 12, Component.translatable(key));
++            super(x, y, 300, 12, new TranslationTextComponent(key));
+             this.theme = theme;
+             this.key = key;
+         }
+ 
+         @Override
+-        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
++        public void renderButton(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
+             final Minecraft minecraft = Minecraft.getInstance();
+             if (minecraft != null && minecraft.font != null) {
+-                guiGraphics.drawString(minecraft.font, Component.translatable(this.key)
+-                        .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), this.getX(), this.getY(),
+-                        AetheriumTheme.ACCENT, false);
++                minecraft.font.draw(matrixStack, new TranslationTextComponent(this.key)
++                        .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), this.getX(), this.getY(), AetheriumTheme.ACCENT);
+             }
+-            guiGraphics.fill(this.getX(), this.getY() + 11, this.getX() + this.getWidth(), this.getY() + 12, AetheriumTheme.BORDER);
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, this.getX(), this.getY() + 11, this.getX() + this.getWidth(), this.getY() + 12, AetheriumTheme.BORDER);
+         }
+ 
+-        @Override
+-        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+-            this.defaultButtonNarrationText(output);
+-        }
+     }
+ 
+     /** Wrapping note text; {@code text} is measured, never truncated mid-word. */
+@@ -603,19 +600,15 @@ public final class AetheriumTabs {
+         private final String text;
+ 
+         NoteWidget(final AetheriumTheme theme, final int x, final int y, final String text) {
+-            super(x, y, 300, 10, Component.literal(text));
++            super(x, y, 300, 10, new StringTextComponent(text));
+             this.theme = theme;
+             this.text = text;
+         }
+ 
+         @Override
+-        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
+-            this.theme.drawLabel(guiGraphics, this.text, this.getX(), this.getY(), AetheriumTheme.TEXT_DIM);
++        public void renderButton(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
++            this.theme.drawLabel(matrixStack, this.text, this.getX(), this.getY(), AetheriumTheme.TEXT_DIM);
+         }
+ 
+-        @Override
+-        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+-            this.defaultButtonNarrationText(output);
+-        }
+     }
+ }
+diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
+index ed450a1..f456d09 100644
+--- a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
++++ b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
+@@ -5,7 +5,7 @@ import java.util.Objects;
+ import com.aetherium.util.MathUtil;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.Font;
+-import net.minecraft.client.gui.GuiGraphics;
++import com.mojang.blaze3d.matrix.MatrixStack;
+ import net.minecraft.resources.ResourceLocation;
+ 
+ /**
+@@ -16,7 +16,7 @@ import net.minecraft.resources.ResourceLocation;
+  * the GUI and every widget asks this class instead of holding a constant. A
+  * reviewer can therefore check the whole theme in one file.</p>
+  *
+- * <p>All drawing is done with {@link GuiGraphics#fill(int,int,int,int,int)} plus a
++ * <p>All drawing is done with {@link MatrixStack#fill(int,int,int,int,int)} plus a
+  * corner-suppression loop rather than a textured 9-slice: it works on every version
+  * from 1.18 to 26.x, needs no atlas registration, and costs ~14 fill calls per
+  * panel — measurably nothing next to a chunk rebuild.</p>
+@@ -103,19 +103,19 @@ public final class AetheriumTheme {
+     // ------------------------------------------------------------------- drawing
+ 
+     /** Fills a rounded rectangle by insetting the corner pixels of each row. */
+-    public void fillRounded(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height, final int color) {
++    public void fillRounded(final MatrixStack matrixStack, final int x, final int y, final int width, final int height, final int color) {
+         if (width <= 0 || height <= 0) {
+             return;
+         }
+         final int radius = Math.min(this.cornerRadius(), Math.min(width / 2, height / 2));
+         if (radius <= 0) {
+-            guiGraphics.fill(x, y, x + width, y + height, color);
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y, x + width, y + height, color);
+             return;
+         }
+         // Rows that touch a corner are shortened; the middle rows are full width.
+         for (int row = 0; row < height; row++) {
+             final int inset = cornerInset(row, height, radius);
+-            guiGraphics.fill(x + inset, y + row, x + width - inset, y + row + 1, color);
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + inset, y + row, x + width - inset, y + row + 1, color);
+         }
+     }
+ 
+@@ -129,57 +129,57 @@ public final class AetheriumTheme {
+         return Math.round(radius * (1.0f - (float) Math.sqrt(Math.max(0.0f, 1.0f - t * t))));
+     }
+ 
+-    public void drawPanel(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height) {
++    public void drawPanel(final MatrixStack matrixStack, final int x, final int y, final int width, final int height) {
+         // Outer glow first, so the panel edge reads as a light source rather than a
+         // border: 3 expanding halos at decreasing alpha.
+         for (int i = 3; i >= 1; i--) {
+             final int alpha = 0x14 * i;
+-            guiGraphics.fill(x - i, y - i, x + width + i, y + height + i, (alpha << 24) | (ACCENT & 0xFFFFFF));
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x - i, y - i, x + width + i, y + height + i, (alpha << 24) | (ACCENT & 0xFFFFFF));
+         }
+-        fillRounded(guiGraphics, x, y, width, height, PANEL);
+-        outlineRounded(guiGraphics, x, y, width, height, BORDER);
++        fillRounded(matrixStack, x, y, width, height, PANEL);
++        outlineRounded(matrixStack, x, y, width, height, BORDER);
+     }
+ 
+-    public void outlineRounded(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height, final int color) {
++    public void outlineRounded(final MatrixStack matrixStack, final int x, final int y, final int width, final int height, final int color) {
+         final int radius = Math.min(this.cornerRadius(), Math.min(width / 2, height / 2));
+         for (int row = 0; row < height; row++) {
+             final int inset = cornerInset(row, height, radius);
+             if (inset > 0) {
+-                guiGraphics.fill(x + inset, y + row, x + inset + 1, y + row + 1, color);
+-                guiGraphics.fill(x + width - inset - 1, y + row, x + width - inset, y + row + 1, color);
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + inset, y + row, x + inset + 1, y + row + 1, color);
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + width - inset - 1, y + row, x + width - inset, y + row + 1, color);
+             } else if (row == 0 || row == height - 1) {
+-                guiGraphics.fill(x + radius, y + row, x + width - radius, y + row + 1, color);
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + radius, y + row, x + width - radius, y + row + 1, color);
+             } else {
+-                guiGraphics.fill(x, y + row, x + 1, y + row + 1, color);
+-                guiGraphics.fill(x + width - 1, y + row, x + width, y + row + 1, color);
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y + row, x + 1, y + row + 1, color);
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + width - 1, y + row, x + width, y + row + 1, color);
+             }
+         }
+     }
+ 
+     /** Hover glow: a two-pixel violet frame plus a soft inner wash. */
+-    public void drawHoverGlow(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height, final float strength) {
++    public void drawHoverGlow(final MatrixStack matrixStack, final int x, final int y, final int width, final int height, final float strength) {
+         final float amount = MathUtil.clamp(strength, 0.0f, 1.0f);
+         if (amount <= 0.01f) {
+             return;
+         }
+         final int blended = blendColors(BORDER, BORDER_HOVER, amount);
+-        outlineRounded(guiGraphics, x, y, width, height, blended);
++        outlineRounded(matrixStack, x, y, width, height, blended);
+         final int washAlpha = (int) (0x26 * amount);
+-        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, (washAlpha << 24) | (ACCENT & 0xFFFFFF));
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + 1, y + 1, x + width - 1, y + height - 1, (washAlpha << 24) | (ACCENT & 0xFFFFFF));
+     }
+ 
+     /** A violet bar whose alpha falls off, used under the active sidebar entry. */
+-    public void drawActiveUnderline(final GuiGraphics guiGraphics, final int x, final int y, final int width, final float progress) {
++    public void drawActiveUnderline(final MatrixStack matrixStack, final int x, final int y, final int width, final float progress) {
+         final int filled = (int) Math.round(width * MathUtil.clamp(progress, 0.0f, 1.0f));
+-        guiGraphics.fill(x, y, x + filled, y + 2, ACCENT);
+-        guiGraphics.fill(x, y + 2, x + (int) (filled * 0.7), y + 3, ACCENT_SOFT);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y, x + filled, y + 2, ACCENT);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y + 2, x + (int) (filled * 0.7), y + 3, ACCENT_SOFT);
+     }
+ 
+-    public void drawGradientBar(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height,
++    public void drawGradientBar(final MatrixStack matrixStack, final int x, final int y, final int width, final int height,
+                                 final int leftColor, final int rightColor) {
+         for (int column = 0; column < width; column++) {
+             final float t = width <= 1 ? 0.0f : column / (float) (width - 1);
+-            guiGraphics.fill(x + column, y, x + column + 1, y + height, blendColors(leftColor, rightColor, t));
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + column, y, x + column + 1, y + height, blendColors(leftColor, rightColor, t));
+         }
+     }
+ 
+@@ -193,16 +193,14 @@ public final class AetheriumTheme {
+     }
+ 
+     /** Text with a 1 px dark drop shadow, which is what keeps labels readable on violet. */
+-    public void drawLabel(final GuiGraphics guiGraphics, final String text, final int x, final int y, final int color) {
++    public void drawLabel(final MatrixStack matrixStack, final String text, final int x, final int y, final int color) {
+         final Minecraft minecraft = Minecraft.getInstance();
+         final Font font = minecraft == null ? null : minecraft.font;
+         if (font == null) {
+             return;
+         }
+-        guiGraphics.drawString(font, net.minecraft.network.chat.Component.literal(text).withStyle(style -> style.withColor(color & 0xFFFFFF)),
+-                x, y + 1, 0x80000000 | (color & 0xFFFFFF), false);
+-        guiGraphics.drawString(font, net.minecraft.network.chat.Component.literal(text).withStyle(style -> style.withColor(color & 0xFFFFFF)),
+-                x, y, color, false);
++        font.draw(matrixStack, new net.minecraft.network.chat.StringTextComponent(text).withStyle(style -> style.withColor(color & 0xFFFFFF)), x, y + 1, 0x80000000 | (color & 0xFFFFFF));
++        font.draw(matrixStack, new net.minecraft.network.chat.StringTextComponent(text).withStyle(style -> style.withColor(color & 0xFFFFFF)), x, y, color);
+     }
+ 
+     public int labelWidth(final String text) {
+@@ -212,14 +210,14 @@ public final class AetheriumTheme {
+     }
+ 
+     /** The logo strip across the top of the screen; text-only when the texture is absent. */
+-    public void drawBrand(final GuiGraphics guiGraphics, final int x, final int y, final int width) {
+-        Objects.requireNonNull(guiGraphics, "guiGraphics");
+-        drawGradientBar(guiGraphics, x, y, width, 1, ACCENT_DEEP, ACCENT);
++    public void drawBrand(final MatrixStack matrixStack, final int x, final int y, final int width) {
++        Objects.requireNonNull(matrixStack, "matrixStack");
++        drawGradientBar(matrixStack, x, y, width, 1, ACCENT_DEEP, ACCENT);
+         final String title = "A E T H E R I U M";
+         final Minecraft minecraft = Minecraft.getInstance();
+         final Font font = minecraft == null ? null : minecraft.font;
+         if (font != null) {
+-            guiGraphics.drawCenteredString(font, net.minecraft.network.chat.Component.literal(title)
++            net.minecraft.client.gui.GuiComponent.drawCentered(matrixStack, font, new net.minecraft.network.chat.StringTextComponent(title)
+                     .withStyle(style -> style.withColor(ACCENT & 0xFFFFFF)), x + width / 2, y + 4, TEXT);
+         }
+     }
+diff --git a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
+index 62fcbd8..b4a477d 100644
+--- a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
++++ b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
+@@ -8,10 +8,12 @@ import com.aetherium.Aetherium;
+ import com.aetherium.gui.widget.AetheriumWidgets;
+ import com.aetherium.util.MathUtil;
+ import net.minecraft.client.Minecraft;
+-import net.minecraft.client.gui.GuiGraphics;
++import com.mojang.blaze3d.matrix.MatrixStack;
+ import net.minecraft.client.gui.components.AbstractWidget;
+ import net.minecraft.client.gui.screens.Screen;
+-import net.minecraft.network.chat.Component;
++import net.minecraft.network.chat.ITextComponent;
++import net.minecraft.network.chat.StringTextComponent;
++import net.minecraft.network.chat.TranslationTextComponent;
+ 
+ /**
+  * Aetherium's video options screen — the mod's whole UI surface in one class.
+@@ -39,11 +41,11 @@ import net.minecraft.network.chat.Component;
+  * turns all of it off — accessibility is not a nice-to-have.</p>
+  *
+  * <h2>Version porting</h2>
+- * <p>The vanilla signatures used here are the 1.21.1 ones: {@code render(GuiGraphics,int,int,float)},
+- * {@code renderBackground(GuiGraphics,int,int,float)}, {@code keyPressed(int,int,int)->boolean},
++ * <p>The vanilla signatures used here are the 1.21.1 ones: {@code render(MatrixStack,int,int,float)},
++ * {@code renderBackground(MatrixStack,int,int,float)}, {@code keyPressed(int,int,int)->boolean},
+  * {@code onClose()->void}. None of the mouse handlers are overridden on this screen -
+  * input reaches the {@code AbstractWidget} rows - so the two shapes that actually
+- * moved in the range ({@code GuiGraphics} arrives at 1.20, {@code renderBackground}
++ * moved in the range ({@code MatrixStack} arrives at 1.20, {@code renderBackground}
+  * gains its cursor arguments between 1.20.1 and 1.20.6) are the only ones the delta
+  * patches rewrite here. {@code mouseScrolled} did change arity at 1.20.2 (it gained a
+  * horizontal-scroll double) and {@code updateWidgetNarration} was
+@@ -78,7 +80,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+     private int mouseY;
+ 
+     private AetheriumVideoOptionsScreen(final Screen parent) {
+-        super(Component.translatable("aetherium.screen.title"));
++        super(new TranslationTextComponent("aetherium.screen.title"));
+         this.parent = parent;
+         this.theme = AetheriumTheme.forCurrentConfig();
+         this.tabs = AetheriumTabs.visibleTabs();
+@@ -187,12 +189,12 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+     }
+ 
+     // [UNVERIFIED: the 1.21.1 override set beyond the ones read from Iris's own screens -
+-    // render(GuiGraphics,int,int,float) and renderBackground(GuiGraphics,int,int,float) are
++    // render(MatrixStack,int,int,float) and renderBackground(MatrixStack,int,int,float) are
+     // both verified (Iris @ 1.21.1 FeatureMissingErrorScreen); keyPressed/onClose are stable
+     // across the whole range. A mismatch on a ported row is a compile error, which is the
+     // loud kind we want.]
+     @Override
+-    public void render(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
++    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
+         this.mouseX = mouseX;
+         this.mouseY = mouseY;
+         this.animations.beginFrame();
+@@ -207,29 +209,29 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+         // single-argument form (same file, those branches). The exact 1.20.2-1.20.5 boundary is
+         // recorded per row in tools/porting_pins.json (render_background_arity), and the delta
+         // rewrites this call for the rows that predate it.
+-        this.renderBackground(guiGraphics, mouseX, mouseY, delta);
+-        drawChrome(guiGraphics);
++        this.renderBackground(matrixStack);
++        drawChrome(matrixStack);
+ 
+         final int contentX = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
+         final int offsetX = (int) this.animations.getContentOffsetX();
+         layoutRows();
+-        // GuiGraphics#enableScissor takes CORNERS (x1, y1, x2, y2), not (x, y, width, height):
++        // MatrixStack#enableScissor takes CORNERS (x1, y1, x2, y2), not (x, y, width, height):
+         // the previous call passed width/height in the x2/y2 slots, which on a wide window puts
+         // x2 < x1 and the scissor clips the whole content list to nothing.
+-        guiGraphics.enableScissor(contentX - 4, CONTENT_TOP, contentX + this.contentWidth + 4,
+-                CONTENT_TOP + this.contentHeight);
++        org.lwjgl.opengl.GL11.glEnable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);
++        org.lwjgl.opengl.GL11.glScissor(contentX - 4, CONTENT_TOP, this.contentWidth + 8, this.contentHeight);;
+         for (final AbstractWidget row : this.content) {
+             final float reveal = MathUtil.easeOutCubic(MathUtil.clamp(
+                     this.animations.getOpenProgress() * this.content.size() - this.content.indexOf(row), 0.0f, 1.0f));
+             if (reveal <= 0.01f) {
+                 continue;
+             }
+-            row.render(guiGraphics, mouseX + offsetX, mouseY, delta);
++            row.render(matrixStack, mouseX + offsetX, mouseY, delta);
+         }
+-        guiGraphics.disableScissor();
++        org.lwjgl.opengl.GL11.glDisable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);
+ 
+-        this.animations.drawParticles(guiGraphics);
+-        drawFooter(guiGraphics);
++        this.animations.drawParticles(matrixStack);
++        drawFooter(matrixStack);
+     }
+ 
+     /**
+@@ -240,36 +242,34 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+     private void layoutRows() {
+         int y = CONTENT_TOP + this.theme.dp(8) - (int) this.list.getScroll();
+         for (final AbstractWidget row : this.content) {
+-            row.setX(this.theme.sidebarWidth() + this.theme.dp(8) * 2);
+-            row.setY(y);
++            row.x = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
++            row.y = y;
+             if (row.getWidth() > this.contentWidth) {
+-                row.setWidth(this.contentWidth);
++                row.width = this.contentWidth;
+             }
+             y += this.theme.rowHeight() + 4;
+         }
+     }
+ 
+-    private void drawChrome(final GuiGraphics guiGraphics) {
++    private void drawChrome(final MatrixStack matrixStack) {
+         final int sidebarWidth = this.theme.sidebarWidth();
+-        guiGraphics.fill(0, 0, sidebarWidth + this.theme.dp(6), this.height, 0x66120819);
+-        this.theme.drawBrand(guiGraphics, sidebarWidth + this.theme.dp(10), 8, this.width - sidebarWidth - this.theme.dp(20));
+-        this.theme.drawActiveUnderline(guiGraphics, this.theme.dp(8),
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, 0, 0, sidebarWidth + this.theme.dp(6), this.height, 0x66120819);
++        this.theme.drawBrand(matrixStack, sidebarWidth + this.theme.dp(10), 8, this.width - sidebarWidth - this.theme.dp(20));
++        this.theme.drawActiveUnderline(matrixStack, this.theme.dp(8),
+                 CONTENT_TOP + this.tabIndex * (this.theme.rowHeight() + 4) - 2, sidebarWidth, 1.0f);
+     }
+ 
+-    private void drawFooter(final GuiGraphics guiGraphics) {
++    private void drawFooter(final MatrixStack matrixStack) {
+         final int y = this.height - FOOTER_HEIGHT + 4;
+-        guiGraphics.fill(0, y - 5, this.width, y + FOOTER_HEIGHT, 0x66120819);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, 0, y - 5, this.width, y + FOOTER_HEIGHT, 0x66120819);
+         final String status = this.statusLine;
+         if (!status.isEmpty() && this.font != null) {
+             final boolean fresh = System.nanoTime() < this.statusUntil;
+-            guiGraphics.drawString(this.font, Component.literal(status), this.theme.dp(10), y,
+-                    fresh ? AetheriumTheme.TEXT_DIM : AetheriumTheme.TEXT_DISABLED, false);
++            this.font.draw(matrixStack, new StringTextComponent(status), this.theme.dp(10), y, fresh ? AetheriumTheme.TEXT_DIM : AetheriumTheme.TEXT_DISABLED);
+         }
+         if (this.animations.isTransitioning()) {
+-            guiGraphics.drawString(this.font, Component.literal("morph: " + this.animations.getPhase().name()
+-                    + " (" + this.animations.getActiveParticleCount() + " sparks)"),
+-                    this.width - 220, y, AetheriumTheme.TEXT_DISABLED, false);
++            this.font.draw(matrixStack, new StringTextComponent("morph: " + this.animations.getPhase().name()
++                    + " (" + this.animations.getActiveParticleCount() + " sparks)"), this.width - 220, y, AetheriumTheme.TEXT_DISABLED);
+         }
+     }
+ 
+@@ -282,7 +282,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+ 
+         SidebarEntry(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
+                      final AetheriumTabs.Tab tab, final boolean activeTab, final Runnable onSelect) {
+-            super(theme, x, y, width, height, Component.translatable(tab.labelKey()));
++            super(theme, x, y, width, height, new TranslationTextComponent(tab.labelKey()));
+             this.tab = tab;
+             this.activeTab = activeTab;
+             this.onSelect = onSelect;
+@@ -296,28 +296,24 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+         }
+ 
+         @Override
+-        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
++        public void renderButton(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
+             this.glow.set(this.activeTab || isMouseOver(mouseX, mouseY) ? 1.0f : 0.0f);
+             this.glow.tick(AetheriumAnimations.suggestedDeltaSeconds());
+             final int surface = this.activeTab ? AetheriumTheme.PANEL_RAISED : 0x00000000;
+             if (surface != 0) {
+-                this.theme.fillRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), surface);
++                this.theme.fillRounded(matrixStack, this.getX(), this.getY(), this.getWidth(), this.getHeight(), surface);
+             }
+             if (this.glow.get() > 0.02f) {
+-                this.theme.drawHoverGlow(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), this.glow.get());
++                this.theme.drawHoverGlow(matrixStack, this.getX(), this.getY(), this.getWidth(), this.getHeight(), this.glow.get());
+             }
+             final String glyph = this.tab.glyph();
+-            this.theme.drawLabel(guiGraphics, glyph + "  " + this.getMessage().getString(),
++            this.theme.drawLabel(matrixStack, glyph + "  " + this.getMessage().getString(),
+                     this.getX() + 6, this.getY() + (this.getHeight() - 8) / 2,
+                     this.activeTab ? AetheriumTheme.ACCENT : AetheriumTheme.TEXT_DIM);
+             if (this.activeTab) {
+-                guiGraphics.fill(this.getX(), this.getY() + 2, this.getX() + 2, this.getY() + this.getHeight() - 2, AetheriumTheme.ACCENT);
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, this.getX(), this.getY() + 2, this.getX() + 2, this.getY() + this.getHeight() - 2, AetheriumTheme.ACCENT);
+             }
+         }
+ 
+-        @Override
+-        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
+-            this.defaultButtonNarrationText(output);
+-        }
+     }
+ }
+diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
+index 9aad1fb..a9ea88f 100644
+--- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
++++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
+@@ -16,10 +16,11 @@ import com.aetherium.hud.FrameStats;
+ import com.aetherium.util.MathUtil;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.Font;
+-import net.minecraft.client.gui.GuiGraphics;
++import com.mojang.blaze3d.matrix.MatrixStack;
+ import net.minecraft.client.gui.components.AbstractWidget;
+-import net.minecraft.client.gui.narration.NarrationElementOutput;
+-import net.minecraft.network.chat.Component;
++import net.minecraft.network.chat.ITextComponent;
++import net.minecraft.network.chat.StringTextComponent;
++import net.minecraft.network.chat.TranslationTextComponent;
+ 
+ /**
+  * Every animated purple control in one file, as nested classes.
+@@ -27,8 +28,8 @@ import net.minecraft.network.chat.Component;
+  * <p>Nesting is a deliberate structural choice, not laziness: all six widgets share
+  * the same hover/glow/touch/animation contract, they are only ever constructed by
+  * {@code AetheriumTabs}, and keeping them together means a version delta that
+- * changes one vanilla signature (for example {@code renderWidget} -> {@code render}
+- * on 1.16.5, or {@code GuiGraphics} not existing before 1.18) is a patch to one
++ * changes one vanilla signature (for example {@code renderButton} -> {@code render}
++ * on 1.16.5, or {@code MatrixStack} not existing before 1.18) is a patch to one
+  * file instead of six.</p>
+  *
+  * <p>Shared contract, implemented in {@link PurpleWidget}:</p>
+@@ -68,7 +69,7 @@ public final class AetheriumWidgets {
+         private boolean pressed;
+ 
+         protected PurpleWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
+-                               final Component message) {
++                               final ITextComponent message) {
+             super(x, y, width, height, message);
+             this.theme = Objects.requireNonNull(theme, "theme");
+         }
+@@ -109,19 +110,17 @@ public final class AetheriumWidgets {
+             }
+         }
+ 
+-        protected void drawSharedBackground(final GuiGraphics guiGraphics, final int mouseX, final int mouseY) {
++        protected void drawSharedBackground(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+             final boolean hovered = isMouseOver(mouseX, mouseY);
+             this.hoverValue.set(hovered ? 1.0f : 0.0f);
+-            this.theme.fillRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(),
++            this.theme.fillRounded(matrixStack, this.getX(), this.getY(), this.getWidth(), this.getHeight(),
+                     hovered ? AetheriumTheme.PANEL_RAISED : AetheriumTheme.PANEL_SUNKEN);
+-            this.theme.drawHoverGlow(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(),
++            this.theme.drawHoverGlow(matrixStack, this.getX(), this.getY(), this.getWidth(), this.getHeight(),
+                     this.hoverValue.get());
+             final float press = this.pressValue.get();
+             if (press > 0.01f) {
+                 // A 2 px violet flash on press: the eye reads it as the button moving.
+-                guiGraphics.fill(this.getX(), this.getY() + this.getHeight() - 2,
+-                        this.getX() + this.getWidth(), this.getY() + this.getHeight(),
+-                        (int) ((0x80 * (1.0f - press)) * 255) << 24 | (AetheriumTheme.ACCENT & 0xFFFFFF));
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, this.getX(), this.getY() + this.getHeight() - 2, this.getX() + this.getWidth(), this.getY() + this.getHeight(), (int) ((0x80 * (1.0f - press)) * 255) << 24 | (AetheriumTheme.ACCENT & 0xFFFFFF));
+             }
+         }
+ 
+@@ -139,9 +138,6 @@ public final class AetheriumWidgets {
+          * override under the old name and the old access is two errors, not one (CI said exactly
+          * that: "does not override abstract method" plus "attempting to assign weaker access").
+          */
+-        public void updateWidgetNarration(final NarrationElementOutput output) {
+-            this.defaultButtonNarrationText(output);
+-        }
+ 
+         /** Keeps the announced string in sync with the visible one. */
+         /**
+@@ -153,7 +149,7 @@ public final class AetheriumWidgets {
+         protected void updateMessage(final String label, final String value) {
+             final String wanted = value == null ? label : label + ": " + value;
+             if (!wanted.equals(this.getMessage().getString())) {
+-                this.setMessage(Component.literal(wanted));
++                this.setMessage(new StringTextComponent(wanted));
+             }
+         }
+     }
+@@ -168,7 +164,7 @@ public final class AetheriumWidgets {
+ 
+         public ToggleWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
+                             final ConfigValue<Boolean> option, final Supplier<String> suffix, final Runnable afterChange) {
+-            super(theme, x, y, width, height, Component.translatable(option.getTranslationKey()));
++            super(theme, x, y, width, height, new TranslationTextComponent(option.getTranslationKey()));
+             this.option = Objects.requireNonNull(option, "option");
+             this.suffix = suffix;
+             this.afterChange = afterChange;
+@@ -188,44 +184,43 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
++        public void renderButton(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
+             this.knob.tick(AetheriumAnimations.suggestedDeltaSeconds());
+-            drawSharedBackground(guiGraphics, mouseX, mouseY);
++            drawSharedBackground(matrixStack, mouseX, mouseY);
+ 
+             final Font font = fontOrNull();
+             this.label = this.getMessage().getString();
+             final int textX = this.getX() + 6;
+             final int textY = this.getY() + (this.getHeight() - (font == null ? 8 : font.lineHeight)) / 2;
+-            this.theme.drawLabel(guiGraphics, this.label, textX, textY,
++            this.theme.drawLabel(matrixStack, this.label, textX, textY,
+                     this.option.isDefault() ? AetheriumTheme.TEXT : AetheriumTheme.ACCENT);
+ 
+             final int trackWidth = 26;
+             final int trackHeight = Math.min(12, this.getHeight() - 6);
+             final int trackX = this.getX() + this.getWidth() - trackWidth - 6;
+             final int trackY = this.getY() + (this.getHeight() - trackHeight) / 2;
+-            this.theme.fillRounded(guiGraphics, trackX, trackY, trackWidth, trackHeight, AetheriumTheme.SLIDER_TRACK);
++            this.theme.fillRounded(matrixStack, trackX, trackY, trackWidth, trackHeight, AetheriumTheme.SLIDER_TRACK);
+             final int fillWidth = (int) Math.round((trackWidth - 2) * this.knob.get());
+             if (fillWidth > 0) {
+-                this.theme.drawGradientBar(guiGraphics, trackX + 1, trackY + 1, fillWidth, trackHeight - 2,
++                this.theme.drawGradientBar(matrixStack, trackX + 1, trackY + 1, fillWidth, trackHeight - 2,
+                         AetheriumTheme.ACCENT_DEEP, AetheriumTheme.ACCENT);
+             }
+             final int knobSize = trackHeight - 2;
+             final int knobX = trackX + 1 + fillWidth - (knobSize + 1) / 2;
+-            this.theme.fillRounded(guiGraphics, Math.max(trackX + 1, knobX), trackY + 1, knobSize, knobSize,
++            this.theme.fillRounded(matrixStack, Math.max(trackX + 1, knobX), trackY + 1, knobSize, knobSize,
+                     this.knob.get() > 0.5f ? AetheriumTheme.TEXT : AetheriumTheme.TEXT_DISABLED);
+             if (this.suffix != null) {
+                 final String extra = this.suffix.get();
+                 if (extra != null && !extra.isEmpty() && font != null) {
+-                    guiGraphics.drawString(font, Component.literal(extra)
+-                                    .withStyle(style -> style.withColor(AetheriumTheme.TEXT_DIM & 0xFFFFFF)),
+-                            trackX - font.width(extra) - 8, textY, AetheriumTheme.TEXT_DIM, false);
++                    font.draw(matrixStack, new StringTextComponent(extra)
++                                    .withStyle(style -> style.withColor(AetheriumTheme.TEXT_DIM & 0xFFFFFF)), trackX - font.width(extra) - 8, textY, AetheriumTheme.TEXT_DIM);
+                 }
+             }
+             if (this.isHoveredOrFocused()) {
+                 // Comment as an in-place subtitle instead of a tooltip: the vanilla
+                 // tooltip path needs Tooltip.create + setTooltip, whose signature moved
+                 // in 1.20.2, and a subtitle is more readable on a phone anyway.
+-                this.theme.drawLabel(guiGraphics, this.option.getComment(), this.getX() + 6,
++                this.theme.drawLabel(matrixStack, this.option.getComment(), this.getX() + 6,
+                         this.getY() + this.getHeight() + 1, AetheriumTheme.TEXT_DISABLED);
+             }
+         }
+@@ -248,7 +243,7 @@ public final class AetheriumWidgets {
+         public SliderWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
+                             final String label, final double min, final double max, final DoubleSupplier getter,
+                             final DoubleConsumer setter, final String format, final Consumer<Double> onCommit) {
+-            super(theme, x, y, width, height, Component.literal(label));
++            super(theme, x, y, width, height, new StringTextComponent(label));
+             this.label = Objects.requireNonNull(label, "label");
+             this.min = min;
+             this.max = max;
+@@ -309,33 +304,32 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
++        public void renderButton(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
+             if (!this.dragging) {
+                 this.value = this.getter.getAsDouble();
+                 this.thumb.set((float) normalized(this.value));
+             }
+             this.thumb.tick(AetheriumAnimations.suggestedDeltaSeconds());
+-            drawSharedBackground(guiGraphics, mouseX, mouseY);
++            drawSharedBackground(matrixStack, mouseX, mouseY);
+ 
+             final int trackX = this.getX() + 8;
+             final int trackWidth = this.getWidth() - 16;
+             final int trackY = this.getY() + this.getHeight() - 9;
+-            this.theme.fillRounded(guiGraphics, trackX, trackY, trackWidth, 4, AetheriumTheme.SLIDER_TRACK);
++            this.theme.fillRounded(matrixStack, trackX, trackY, trackWidth, 4, AetheriumTheme.SLIDER_TRACK);
+             final int filled = (int) Math.round(trackWidth * this.thumb.get());
+-            this.theme.drawGradientBar(guiGraphics, trackX, trackY, filled, 4, AetheriumTheme.ACCENT_DEEP, AetheriumTheme.ACCENT);
++            this.theme.drawGradientBar(matrixStack, trackX, trackY, filled, 4, AetheriumTheme.ACCENT_DEEP, AetheriumTheme.ACCENT);
+             final int thumbX = trackX + filled;
+             this.hoverPulse = isMouseOver(mouseX, mouseY) ? Math.min(1.0f, this.hoverPulse + 0.12f) : Math.max(0.0f, this.hoverPulse - 0.12f);
+             final int glow = 2 + (int) (this.hoverPulse * 2);
+-            guiGraphics.fill(thumbX - glow, trackY - glow, thumbX + glow, trackY + 4 + glow, AetheriumTheme.ACCENT_SOFT);
+-            this.theme.fillRounded(guiGraphics, thumbX - 2, trackY - 2, 4, 8, AetheriumTheme.TEXT);
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, thumbX - glow, trackY - glow, thumbX + glow, trackY + 4 + glow, AetheriumTheme.ACCENT_SOFT);
++            this.theme.fillRounded(matrixStack, thumbX - 2, trackY - 2, 4, 8, AetheriumTheme.TEXT);
+ 
+             final String valueText = String.format(java.util.Locale.ROOT, this.format, this.value);
+             final Font font = fontOrNull();
+             if (font != null) {
+-                guiGraphics.drawString(font, Component.literal(this.label), this.getX() + 6, this.getY() + 3, AetheriumTheme.TEXT, false);
++                font.draw(matrixStack, new StringTextComponent(this.label), this.getX() + 6, this.getY() + 3, AetheriumTheme.TEXT);
+                 final String right = valueText;
+-                guiGraphics.drawString(font, Component.literal(right).withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)),
+-                        this.getX() + this.getWidth() - 6 - font.width(right), this.getY() + 3, AetheriumTheme.ACCENT, false);
++                font.draw(matrixStack, new StringTextComponent(right).withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), this.getX() + this.getWidth() - 6 - font.width(right), this.getY() + 3, AetheriumTheme.ACCENT);
+             }
+         }
+ 
+@@ -346,10 +340,6 @@ public final class AetheriumWidgets {
+          * override under the old name and the old access is two errors, not one (CI said exactly
+          * that: "does not override abstract method" plus "attempting to assign weaker access").
+          */
+-        public void updateWidgetNarration(final NarrationElementOutput output) {
+-            this.updateMessage(this.label, String.format(java.util.Locale.ROOT, this.format, this.value));
+-            this.defaultButtonNarrationText(output);
+-        }
+     }
+ 
+     /** Enum / boolean cycle control with a sliding value indicator. */
+@@ -364,7 +354,7 @@ public final class AetheriumWidgets {
+         public CycleWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
+                            final String label, final String[] values, final Supplier<Integer> getIndex,
+                            final IntConsumer setIndex, final Runnable afterChange) {
+-            super(theme, x, y, width, height, Component.literal(label));
++            super(theme, x, y, width, height, new StringTextComponent(label));
+             this.label = label;
+             this.values = values == null || values.length == 0 ? new String[]{"off"} : values;
+             this.getIndex = getIndex;
+@@ -392,27 +382,24 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
++        public void renderButton(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
+             this.slide.tick(AetheriumAnimations.suggestedDeltaSeconds());
+-            drawSharedBackground(guiGraphics, mouseX, mouseY);
++            drawSharedBackground(matrixStack, mouseX, mouseY);
+             final Font font = fontOrNull();
+             if (font == null) {
+                 return;
+             }
+             final int index = this.getIndex == null ? 0 : MathUtil.clamp(this.getIndex.get(), 0, this.values.length - 1);
+             final String value = this.values[index];
+-            guiGraphics.drawString(font, Component.literal(this.label), this.getX() + 6, this.getY() + (this.getHeight() - font.lineHeight) / 2,
+-                    AetheriumTheme.TEXT, false);
++            font.draw(matrixStack, new StringTextComponent(this.label), this.getX() + 6, this.getY() + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.TEXT);
+             final String arrow = "< ";
+             final int valueX = this.getX() + this.getWidth() - 6 - font.width(value) - font.width(arrow);
+-            guiGraphics.drawString(font, Component.literal(value).withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)),
+-                    valueX, this.getY() + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.ACCENT, false);
+-            guiGraphics.drawString(font, Component.literal(arrow), valueX - font.width(arrow),
+-                    this.getY() + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.TEXT_DIM, false);
++            font.draw(matrixStack, new StringTextComponent(value).withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), valueX, this.getY() + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.ACCENT);
++            font.draw(matrixStack, new StringTextComponent(arrow), valueX - font.width(arrow), this.getY() + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.TEXT_DIM);
+             // The indicator is a 1 px violet line whose x tracks the index: it makes a
+             // long cycle list (weather: off/fast/fancy/fancy+) readable at a glance.
+             final int indicatorX = this.getX() + (int) ((this.getWidth() - 4) * this.slide.get());
+-            guiGraphics.fill(indicatorX, this.getY() + this.getHeight() - 2, indicatorX + 4, this.getY() + this.getHeight(), AetheriumTheme.ACCENT);
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, indicatorX, this.getY() + this.getHeight() - 2, indicatorX + 4, this.getY() + this.getHeight(), AetheriumTheme.ACCENT);
+         }
+ 
+         @Override
+@@ -422,11 +409,6 @@ public final class AetheriumWidgets {
+          * override under the old name and the old access is two errors, not one (CI said exactly
+          * that: "does not override abstract method" plus "attempting to assign weaker access").
+          */
+-        public void updateWidgetNarration(final NarrationElementOutput output) {
+-            final int index = this.getIndex == null ? 0 : this.getIndex.get();
+-            this.updateMessage(this.label, index >= 0 && index < this.values.length ? this.values[index] : "unknown");
+-            this.defaultButtonNarrationText(output);
+-        }
+ 
+         /** Mirrors {@link java.util.function.IntConsumer} without importing it into the public API. */
+         public interface IntConsumer {
+@@ -441,7 +423,7 @@ public final class AetheriumWidgets {
+         private final int accentColor;
+ 
+         public ActionWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
+-                            final Component message, final Runnable action, final BooleanSupplier enabled, final int accentColor) {
++                            final ITextComponent message, final Runnable action, final BooleanSupplier enabled, final int accentColor) {
+             super(theme, x, y, width, height, message);
+             this.action = Objects.requireNonNull(action, "action");
+             this.enabled = enabled;
+@@ -458,22 +440,20 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
++        public void renderButton(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
+             final boolean usable = this.enabled == null || this.enabled.getAsBoolean();
+             this.active = usable;
+-            drawSharedBackground(guiGraphics, mouseX, mouseY);
++            drawSharedBackground(matrixStack, mouseX, mouseY);
+             if (!usable) {
+-                guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0x88120819);
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0x88120819);
+             }
+             final Font font = fontOrNull();
+             if (font == null) {
+                 return;
+             }
+             final String text = this.getMessage().getString();
+-            guiGraphics.drawCenteredString(font, Component.literal(text)
+-                            .withStyle(style -> style.withColor((usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED) & 0xFFFFFF)),
+-                    this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - font.lineHeight) / 2,
+-                    usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED);
++            net.minecraft.client.gui.GuiComponent.drawCentered(matrixStack, font, new StringTextComponent(text)
++                            .withStyle(style -> style.withColor((usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED) & 0xFFFFFF)), this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - font.lineHeight) / 2, usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED);
+         }
+     }
+ 
+@@ -488,7 +468,7 @@ public final class AetheriumWidgets {
+ 
+         public PreviewWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
+                              final Supplier<FrameStats> stats) {
+-            super(theme, x, y, width, height, Component.translatable("aetherium.preview.title"));
++            super(theme, x, y, width, height, new TranslationTextComponent("aetherium.preview.title"));
+             this.stats = Objects.requireNonNull(stats, "stats");
+         }
+ 
+@@ -503,7 +483,7 @@ public final class AetheriumWidgets {
+         }
+ 
+         @Override
+-        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
++        public void renderButton(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float delta) {
+             final FrameStats local = this.stats.get();
+             if (local == null) {
+                 return;
+@@ -513,21 +493,20 @@ public final class AetheriumWidgets {
+             this.fpsValue.tick(AetheriumAnimations.suggestedDeltaSeconds());
+             this.p99Value.tick(AetheriumAnimations.suggestedDeltaSeconds());
+ 
+-            this.theme.fillRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), AetheriumTheme.PANEL);
+-            this.theme.outlineRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), AetheriumTheme.BORDER);
++            this.theme.fillRounded(matrixStack, this.getX(), this.getY(), this.getWidth(), this.getHeight(), AetheriumTheme.PANEL);
++            this.theme.outlineRounded(matrixStack, this.getX(), this.getY(), this.getWidth(), this.getHeight(), AetheriumTheme.BORDER);
+ 
+             final Font font = fontOrNull();
+             if (font == null) {
+                 return;
+             }
+             final int centerX = this.getX() + this.getWidth() / 2;
+-            guiGraphics.drawCenteredString(font, Component.literal(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
++            net.minecraft.client.gui.GuiComponent.drawCentered(matrixStack, font, new StringTextComponent(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
+                     .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), centerX, this.getY() + 4, AetheriumTheme.TEXT);
+             final AetheriumTheme.AetheriumStatus status = local.getP99Ms() > 50.0 ? AetheriumTheme.AetheriumStatus.BLOCKED
+                     : local.getP99Ms() > 22.0 ? AetheriumTheme.AetheriumStatus.CAUTION : AetheriumTheme.AetheriumStatus.GOOD;
+-            guiGraphics.drawCenteredString(font, Component.literal(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
+-                            .withStyle(style -> style.withColor(AetheriumTheme.statusColor(status) & 0xFFFFFF)),
+-                    centerX, this.getY() + 15, AetheriumTheme.statusColor(status));
++            net.minecraft.client.gui.GuiComponent.drawCentered(matrixStack, font, new StringTextComponent(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
++                            .withStyle(style -> style.withColor(AetheriumTheme.statusColor(status) & 0xFFFFFF)), centerX, this.getY() + 15, AetheriumTheme.statusColor(status));
+ 
+             final int count = local.copyRecentGraph(this.graph, this.graph.length);
+             this.lines.clear();
+@@ -540,8 +519,7 @@ public final class AetheriumWidgets {
+                 for (int i = 0; i < count; i++) {
+                     final int barHeight = Math.max(1, (int) (14.0 * Math.min(1.0, this.graph[i] / peak)));
+                     final int barX = this.getX() + 4 + (int) ((this.getWidth() - 8) * i / (float) Math.max(1, count - 1));
+-                    guiGraphics.fill(barX, graphY + 14 - barHeight, barX + 1, graphY + 14,
+-                            this.graph[i] > 50.0 ? AetheriumTheme.DANGER : AetheriumTheme.ACCENT_SOFT);
++                    net.minecraft.client.gui.GuiComponent.fill(matrixStack, barX, graphY + 14 - barHeight, barX + 1, graphY + 14, this.graph[i] > 50.0 ? AetheriumTheme.DANGER : AetheriumTheme.ACCENT_SOFT);
+                 }
+                 this.refresh += delta;
+             }
 diff --git a/common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java b/common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java
-index 717762a..6a6f2f8 100644
+index 625afdf..f8d3922 100644
 --- a/common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java
 +++ b/common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java
-@@ -9,7 +9,11 @@ import com.aetherium.render.mesh.MeshCounters;
+@@ -9,15 +9,16 @@ import com.aetherium.render.mesh.MeshCounters;
  import net.minecraft.ChatFormatting;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.Font;
 -import net.minecraft.client.gui.GuiGraphics;
-+// [UNVERIFIED: on this version GuiGraphics does not exist; the delta swaps
-+// GuiGraphics#fill for GuiComponent.fill and the import goes away. Derive the
-+// exact replacement with the recipe in deltas/1.16.5/derivation.md before shipping.]
-+// import net.minecraft.client.gui.GuiGraphics;
-+import net.minecraft.client.gui.GuiGraphics; // PORT-REMOVED
- import net.minecraft.network.chat.Component;
+-import net.minecraft.network.chat.Component;
++import com.mojang.blaze3d.matrix.MatrixStack;
++import net.minecraft.network.chat.ITextComponent;
++import net.minecraft.network.chat.StringTextComponent;
  
  /**
+  * The purple performance overlay: corner FPS, 99th-percentile frame time, a spike
+  * graph, and the backend tag.
+  *
+- * <p>Drawn with {@link GuiGraphics} only — no RenderLayer, no custom vertex format —
+- * so it works identically on every version from 1.18 (when GuiGraphics appeared) to
++ * <p>Drawn with {@link MatrixStack} only — no RenderLayer, no custom vertex format —
++ * so it works identically on every version from 1.18 (when MatrixStack appeared) to
+  * 26.x, and on 1.16.5/1.17 the delta swaps the two {@code fill} calls for
+  * {@code PoseStack}-based quads (see {@code deltas/1.16.5/changes.patch}).</p>
+  *
+@@ -56,15 +57,15 @@ public final class AetheriumHudRenderer {
+     private AetheriumHudRenderer() {
+     }
+ 
+-    public static void render(final GuiGraphics guiGraphics) {
+-        INSTANCE.renderInternal(guiGraphics);
++    public static void render(final MatrixStack matrixStack) {
++        INSTANCE.renderInternal(matrixStack);
+     }
+ 
+     /** Small always-on tag: "[Aetherium/GL46_DSA]" in the top-right, under the ping. */
+-    // [UNVERIFIED: the 6-arg GuiGraphics#drawString(Font, Component, int, int, int, boolean)
++    // [UNVERIFIED: the 6-arg MatrixStack#drawString(Font, ITextComponent, int, int, int, boolean)
+     // overload on 1.21.1 (the 5-arg form exists on 1.20.x); the delta for pre-1.20.2 rows swaps
+-    // it. GuiGraphics#guiWidth/guiHeight are read the same way.]
+-    public static void drawBackendTag(final GuiGraphics guiGraphics) {
++    // it. MatrixStack#guiWidth/guiHeight are read the same way.]
++    public static void drawBackendTag(final MatrixStack matrixStack) {
+         final Minecraft minecraft = Minecraft.getInstance();
+         if (minecraft == null || minecraft.font == null) {
+             return;
+@@ -77,9 +78,9 @@ public final class AetheriumHudRenderer {
+             final String tag = "[Aetherium/"
+                     + (device == null ? Aetherium.getState().name() : device.getBackend().getId()) + ']';
+             final int width = minecraft.font.width(tag);
+-            final int x = guiGraphics.guiWidth() - width - 3;
+-            guiGraphics.fill(x - 2, 1, x + width + 2, lineHeight + 3, 0x991D0F2E);
+-            guiGraphics.drawString(minecraft.font, Component.literal(tag).withStyle(s -> s.withColor(ACCENT & 0xFFFFFF)), x, nextLineY, TEXT, false);
++            final int x = minecraft.getWindow().getGuiScaledWidth() - width - 3;
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x - 2, 1, x + width + 2, lineHeight + 3, 0x991D0F2E);
++            minecraft.font.draw(matrixStack, new StringTextComponent(tag).withStyle(s -> s.withColor(ACCENT & 0xFFFFFF)), x, nextLineY, TEXT);
+             nextLineY += lineHeight + 2;
+         }
+ 
+@@ -92,12 +93,11 @@ public final class AetheriumHudRenderer {
+             final String notice = conflictNotice();
+             if (!notice.isEmpty()) {
+                 final int width = Math.min(220, minecraft.font.width(notice));
+-                final int x = guiGraphics.guiWidth() - width - 5;
+-                guiGraphics.fill(x - 3, nextLineY - 2, guiGraphics.guiWidth() - 1,
+-                        nextLineY + lineHeight + 2, 0xCC2A0E1E);
+-                // Wrapped by hand: GuiGraphics has no word-wrap primitive on any version we
++                final int x = minecraft.getWindow().getGuiScaledWidth() - width - 5;
++                net.minecraft.client.gui.GuiComponent.fill(matrixStack, x - 3, nextLineY - 2, minecraft.getWindow().getGuiScaledWidth() - 1, nextLineY + lineHeight + 2, 0xCC2A0E1E);
++                // Wrapped by hand: MatrixStack has no word-wrap primitive on any version we
+                 // target, and a clipped sentence about a crash-adjacent problem is useless.
+-                drawWrappedNotice(guiGraphics, minecraft.font, notice, x, nextLineY);
++                drawWrappedNotice(matrixStack, minecraft.font, notice, x, nextLineY);
+             }
+         }
+     }
+@@ -117,14 +117,14 @@ public final class AetheriumHudRenderer {
+         return "Delegated to: " + scanner.summarize();
+     }
+ 
+-    private static void drawWrappedNotice(final GuiGraphics guiGraphics, final Font font, final String notice,
++    private static void drawWrappedNotice(final MatrixStack matrixStack, final Font font, final String notice,
+                                           final int x, final int y) {
+         final int maxWidth = 220;
+         final StringBuilder line = new StringBuilder(notice.length());
+         int cursorY = y;
+         for (final String word : notice.split(" ")) {
+             if (font.width(line + " " + word) > maxWidth && line.length() > 0) {
+-                guiGraphics.drawString(font, Component.literal(line.toString()), x, cursorY, TEXT, false);
++                font.draw(matrixStack, new StringTextComponent(line.toString()), x, cursorY, TEXT);
+                 cursorY += font.lineHeight;
+                 line.setLength(0);
+             }
+@@ -134,11 +134,11 @@ public final class AetheriumHudRenderer {
+             line.append(word);
+         }
+         if (line.length() > 0) {
+-            guiGraphics.drawString(font, Component.literal(line.toString()), x, cursorY, TEXT, false);
++            font.draw(matrixStack, new StringTextComponent(line.toString()), x, cursorY, TEXT);
+         }
+     }
+ 
+-    private void renderInternal(final GuiGraphics guiGraphics) {
++    private void renderInternal(final MatrixStack matrixStack) {
+         final AetheriumConfig config = Aetherium.config();
+         final boolean fps = config.showFrameHud.get();
+         final boolean graph = config.showFrameGraph.get();
+@@ -150,8 +150,8 @@ public final class AetheriumHudRenderer {
+         if (font == null) {
+             return;
+         }
+-        final int scaledWidth = guiGraphics.guiWidth();
+-        final int scaledHeight = guiGraphics.guiHeight();
++        final int scaledWidth = minecraft.getWindow().getGuiScaledWidth();
++        final int scaledHeight = minecraft.getWindow().getGuiScaledHeight();
+         if (scaledWidth != this.cachedWidth || scaledHeight != this.cachedHeight) {
+             this.cachedWidth = scaledWidth;
+             this.cachedHeight = scaledHeight;
+@@ -181,16 +181,16 @@ public final class AetheriumHudRenderer {
+         final int x = cornerX(cornerIndex, scaledWidth, panelWidth);
+         final int y = cornerY(cornerIndex, scaledHeight, panelHeight);
+ 
+-        guiGraphics.fill(x, y, x + panelWidth, y + panelHeight, PANEL_COLOR);
+-        drawEdges(guiGraphics, x, y, panelWidth, panelHeight);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y, x + panelWidth, y + panelHeight, PANEL_COLOR);
++        drawEdges(matrixStack, x, y, panelWidth, panelHeight);
+ 
+         int cursorY = y + padding;
+         for (final String line : this.cachedLines.split("\n")) {
+-            guiGraphics.drawString(font, Component.literal(line), x + padding, cursorY, TEXT, false);
++            font.draw(matrixStack, new StringTextComponent(line), x + padding, cursorY, TEXT);
+             cursorY += lineHeight;
+         }
+         if (graph) {
+-            drawGraph(guiGraphics, stats, x + padding, cursorY + padding);
++            drawGraph(matrixStack, stats, x + padding, cursorY + padding);
+         }
+     }
+ 
+@@ -224,7 +224,7 @@ public final class AetheriumHudRenderer {
+         return builder.toString();
+     }
+ 
+-    private void drawGraph(final GuiGraphics guiGraphics, final FrameStats stats, final int x, final int y) {
++    private void drawGraph(final MatrixStack matrixStack, final FrameStats stats, final int x, final int y) {
+         final int count = stats.copyRecentGraph(this.graphSamples, this.graphSamples.length);
+         this.sampleCount = count;
+         double peak = Math.max(1.0, this.cachedPeak * 0.9);
+@@ -232,25 +232,25 @@ public final class AetheriumHudRenderer {
+             peak = Math.max(peak, this.graphSamples[i]);
+         }
+         this.cachedPeak = peak;
+-        guiGraphics.fill(x, y, x + GRAPH_WIDTH, y + GRAPH_HEIGHT, 0x66000000);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y, x + GRAPH_WIDTH, y + GRAPH_HEIGHT, 0x66000000);
+         // 16.67 ms reference line: a graph without a budget line cannot be read.
+         final int budgetLine = y + GRAPH_HEIGHT - (int) (GRAPH_HEIGHT * Math.min(1.0, 16.67 / peak));
+-        guiGraphics.fill(x, budgetLine, x + GRAPH_WIDTH, budgetLine + 1, 0x33FFFFFF);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, budgetLine, x + GRAPH_WIDTH, budgetLine + 1, 0x33FFFFFF);
+         final int bars = Math.max(1, Math.min(count, GRAPH_WIDTH));
+         final int offset = Math.max(0, count - bars);
+         for (int i = 0; i < bars; i++) {
+             final double ms = this.graphSamples[offset + i];
+             final int barHeight = (int) Math.max(1, GRAPH_HEIGHT * Math.min(1.0, ms / peak));
+             final int color = ms > 50.0 ? SPIKE_COLOR : ms > 33.3 ? GRAPH_FILL : ACCENT;
+-            guiGraphics.fill(x + i, y + GRAPH_HEIGHT - barHeight, x + i + 1, y + GRAPH_HEIGHT, color);
++            net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + i, y + GRAPH_HEIGHT - barHeight, x + i + 1, y + GRAPH_HEIGHT, color);
+         }
+     }
+ 
+-    private static void drawEdges(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height) {
+-        guiGraphics.fill(x, y, x + width, y + 1, PANEL_EDGE);
+-        guiGraphics.fill(x, y + height - 1, x + width, y + height, PANEL_EDGE);
+-        guiGraphics.fill(x, y, x + 1, y + height, PANEL_EDGE);
+-        guiGraphics.fill(x + width - 1, y, x + width, y + height, PANEL_EDGE);
++    private static void drawEdges(final MatrixStack matrixStack, final int x, final int y, final int width, final int height) {
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y, x + width, y + 1, PANEL_EDGE);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y + height - 1, x + width, y + height, PANEL_EDGE);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x, y, x + 1, y + height, PANEL_EDGE);
++        net.minecraft.client.gui.GuiComponent.fill(matrixStack, x + width - 1, y, x + width, y + height, PANEL_EDGE);
+     }
+ 
+     private static int resolveCorner(final AetheriumConfig config, final int scaledWidth) {
+@@ -296,7 +296,7 @@ public final class AetheriumHudRenderer {
+     }
+ 
+     /** {@code ChatFormatting} keeps the colour codes out of the lang files. */
+-    public static Component colored(final String text, final ChatFormatting formatting) {
+-        return Component.literal(text).withStyle(formatting);
++    public static ITextComponent colored(final String text, final ChatFormatting formatting) {
++        return new StringTextComponent(text).withStyle(formatting);
+     }
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-index 58b62ff..1c70acd 100644
+index 7a9eddf..53a027c 100644
 --- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
 +++ b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-@@ -67,7 +67,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
-             "core.GuiMixin", "*",
-             // The options-screen hijack needs the video-settings lambda, which exists
-             // from 1.17.4 onward (older versions get the fallback button only).
--            "core.OptionsScreenMixin", "[1.17.4,)"
-+            "core.OptionsScreenMixin", "[9999,)"
-     );
+@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
+  * used on every injection in {@code com.aetherium.mixin.core}), or refusing the mixin
+  * up front. Aetherium uses both, because they catch different mistakes: the
+  * annotations absorb a renamed <em>method</em>, while this plugin absorbs a version
+- * where a whole hook is meaningless (no {@code GuiGraphics} before 1.20.2, no
++ * where a whole hook is meaningless (no {@code MatrixStack} before 1.20.2, no
+  * {@code LevelRenderer#onSectionCompleted} before 1.17) and, more importantly, turns
+  * "the mod is inert because a HARD conflict was detected" into one boolean instead of
+  * a half-transformed game.</p>
+@@ -68,13 +68,13 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
+         ranges.put("core.GameRendererMixin", "*");
+         ranges.put("core.LevelRendererMixin", "*");
+         ranges.put("core.LightTextureMixin", "*");
+-        // Gui#render takes GuiGraphics from 1.20.2; before that the overlay is
++        // Gui#render takes MatrixStack from 1.20.2; before that the overlay is
+         // drawn by the legacy hook in the same class, so the range only gates the
+         // descriptor-typed injections.
+         ranges.put("core.GuiMixin", "*");
+         // The options-screen hijack needs the video-settings lambda, which exists
+         // from 1.17.4 onward (older versions get the fallback button only).
+-        ranges.put("core.OptionsScreenMixin", "[1.17.4,)");
++        ranges.put("core.OptionsScreenMixin", "[9999,)");
+         return java.util.Collections.unmodifiableMap(ranges);
+     }
  
-     /** AETHERIUM-PORT-GEN: global kill switch, flipped by the conflict scanner. */
-@@ -89,7 +89,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
+@@ -97,7 +97,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
      }
  
      /** Written by {@code Aetherium} before the mixins are applied, read here. */
@@ -44,33 +1101,123 @@ index 58b62ff..1c70acd 100644
      /**
       * Mixin runs transform-time code before a mod's own entry point on some loaders, so
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
-index 16f9e50..5a02730 100644
+index 269963b..625efb9 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
-@@ -29,6 +29,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-  * bars, below the debug screen. A performance readout must never intercept a click
-  * and must never be hidden by a health-recently-taken flash.</p>
-  */
-+// Pre-GuiGraphics: the overlay is drawn by the legacy hook below, and the
-+// GuiGraphics-typed injection is skipped by the plugin because its target
-+// descriptor does not exist on this version.
- @Mixin(Gui.class)
+@@ -5,7 +5,7 @@ import java.util.List;
+ import com.aetherium.Aetherium;
+ import com.aetherium.hud.AetheriumHudRenderer;
+ import net.minecraft.client.gui.Gui;
+-import net.minecraft.client.gui.GuiGraphics;
++import com.mojang.blaze3d.matrix.MatrixStack;
+ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+@@ -18,10 +18,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+  *
+  * <p>Target and handler shapes, read from real upstream mixins for each era:</p>
+  * <ul>
+- *   <li>1.21.1: {@code Gui#render(GuiGraphics, DeltaTracker)} —
+- *       IrisShaders/Iris @ 1.21.1, {@code MixinGui#iris$handleHudHidingScreens(GuiGraphics, DeltaTracker, ...)}.</li>
+- *   <li>1.20.6: {@code Gui#render(GuiGraphics, float)} —
+- *       Iris @ 1.20.6, same mixin, {@code (GuiGraphics, float, CallbackInfo)}.</li>
++ *   <li>1.21.1: {@code Gui#render(MatrixStack, DeltaTracker)} —
++ *       IrisShaders/Iris @ 1.21.1, {@code MixinGui#iris$handleHudHidingScreens(MatrixStack, DeltaTracker, ...)}.</li>
++ *   <li>1.20.6: {@code Gui#render(MatrixStack, float)} —
++ *       Iris @ 1.20.6, same mixin, {@code (MatrixStack, float, CallbackInfo)}.</li>
+  *   <li>1.19.4: {@code Gui#render(PoseStack, float, ...)} —
+  *       Iris @ 1.19.4, same mixin, {@code (PoseStack, float, CallbackInfo)}.</li>
+  * </ul>
+@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+  * injection uses the bare name and captures only the <em>prefix</em> it needs (the
+  * first parameter); Mixin binds a handler that declares a prefix of the target's
+  * arguments, so one handler is legal across every overload shape above. Pre-1.20.5
+- * rows rewrite {@code GuiGraphics} to {@code PoseStack}/{@code MatrixStack} in this
++ * rows rewrite {@code MatrixStack} to {@code PoseStack}/{@code MatrixStack} in this
+  * handler and in the HUD (see {@code tools/gen_deltas.py}); a wrong era fact is a
+  * skipped injection ({@code require = 0}) and the overlay then only shows under F3.</p>
+  *
+@@ -42,8 +42,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  public abstract class GuiMixin {
  
+     @Inject(method = "render", at = @At("TAIL"), require = 0, expect = 0)
+-    private void aetherium$renderOverlays(final GuiGraphics guiGraphics, final CallbackInfo ci) {
+-        aetherium$draw(guiGraphics);
++    private void aetherium$renderOverlays(final MatrixStack matrixStack, final CallbackInfo ci) {
++        aetherium$draw(matrixStack);
+     }
+ 
+     // There is deliberately no second, legacy-descriptor injection here. An earlier
+@@ -54,7 +54,7 @@ public abstract class GuiMixin {
+     // fact); keeping a fake second injection only added a guaranteed no-op and a
+     // misleading comment to every other row.
+ 
+-    private void aetherium$draw(final GuiGraphics guiGraphics) {
++    private void aetherium$draw(final MatrixStack matrixStack) {
+         final Aetherium.State state = Aetherium.getState();
+         if (state != Aetherium.State.ACTIVE && state != Aetherium.State.SHADOW) {
+             return;
+@@ -64,10 +64,10 @@ public abstract class GuiMixin {
+             return;
+         }
+         if (isDebugScreenOpen(minecraft)) {
+-            AetheriumHudRenderer.drawBackendTag(guiGraphics);
++            AetheriumHudRenderer.drawBackendTag(matrixStack);
+             return;
+         }
+-        AetheriumHudRenderer.render(guiGraphics);
++        AetheriumHudRenderer.render(matrixStack);
+     }
+ 
+     /**
+diff --git a/common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java b/common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java
+index 4d204fc..785ca78 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java
+@@ -36,7 +36,7 @@ public abstract class LightTextureMixin {
+ 
+     // Verified name on 1.21.1 AND 1.19.4: IrisShaders/Iris's own MixinLightTexture injects into
+     // `updateLightTexture` on both branches (at INVOKE of ClientLevel#getSkyDarken(F)F), so the
+-    // name has been stable across the whole GuiGraphics transition at minimum. The earlier
++    // name has been stable across the whole MatrixStack transition at minimum. The earlier
+     // candidate pair {"updateTick", "tick"} matched no known version - those names were invented.
+     // `tickLightTexture` stays as a tolerant second candidate for the pre-1.17 rows whose exact
+     // name has not been read from a jar yet; require = 0 keeps a miss at "feature off, one log
 diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-index bb23901..2b6bf3f 100644
+index 13a28dd..e20f593 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-@@ -6,7 +6,7 @@ import java.lang.invoke.MethodHandles;
+@@ -6,9 +6,9 @@ import java.lang.invoke.MethodHandles;
  import com.aetherium.Aetherium;
  import com.aetherium.config.AetheriumConfig;
  import com.aetherium.gui.AetheriumVideoOptionsScreen;
 -import net.minecraft.client.gui.components.CycleButton;
 +import net.minecraft.client.gui.components.CycleButtonWidget;
  import net.minecraft.client.gui.screens.Screen;
- import net.minecraft.client.gui.screens.options.OptionsScreen;
+-import net.minecraft.client.gui.screens.options.OptionsScreen;
++import net.minecraft.client.gui.screens.OptionsScreen;
  import org.spongepowered.asm.mixin.Mixin;
-@@ -89,14 +89,14 @@ public abstract class OptionsScreenMixin extends Screen {
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+@@ -35,7 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ @Mixin(OptionsScreen.class)
+ public abstract class OptionsScreenMixin extends Screen {
+ 
+-    protected OptionsScreenMixin(final net.minecraft.network.chat.Component title) {
++    protected OptionsScreenMixin(final net.minecraft.network.chat.ITextComponent title) {
+         super(title);
+     }
+ 
+@@ -69,7 +69,7 @@ public abstract class OptionsScreenMixin extends Screen {
+             return;
+         }
+         final net.minecraft.client.gui.components.Button button = net.minecraft.client.gui.components.Button
+-                .builder(net.minecraft.network.chat.Component.translatable("aetherium.screen.fallback_button"),
++                .builder(new net.minecraft.network.chat.TranslationTextComponent("aetherium.screen.fallback_button"),
+                         widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)))
+                 .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)
+                 .build();
+@@ -92,7 +92,7 @@ public abstract class OptionsScreenMixin extends Screen {
  
      /**
       * Vanilla's own video-settings screen is built from a list of
@@ -78,17 +1225,40 @@ index bb23901..2b6bf3f 100644
 +     * {@link CycleButtonWidget}s; recording how many we saw is how the Advanced tab
       * reports "the hijack worked" versus "the fallback is in use".
       */
-     @Inject(method = "init", at = @At("HEAD"), require = 0, expect = 0)
-     private void aetherium$countVanillaControls(final Screen previous, final CallbackInfo ci) {
+     // TAIL, not HEAD: Screen#init is what *adds* the buttons, so a HEAD injection
+@@ -101,7 +101,7 @@ public abstract class OptionsScreenMixin extends Screen {
+     private void aetherium$countVanillaControls(final CallbackInfo ci) {
          int cycles = 0;
-         for (final var child : ((Screen) (Object) this).children()) {
+         for (final net.minecraft.client.gui.components.events.GuiEventListener child : ((Screen) (Object) this).children()) {
 -            if (child instanceof CycleButton<?>) {
 +            if (child instanceof CycleButtonWidget) {
                  cycles++;
              }
          }
+@@ -146,7 +146,7 @@ public abstract class OptionsScreenMixin extends Screen {
+      */
+     private static MethodHandle findAddRenderableWidget() {
+         for (final java.lang.reflect.Method candidate : Screen.class.getDeclaredMethods()) {
+-            if (candidate.getName().equals("addRenderableWidget") && candidate.getParameterCount() == 1) {
++            if (candidate.getName().equals("addButton") && candidate.getParameterCount() == 1) {
+                 try {
+                     candidate.setAccessible(true);
+                     return MethodHandles.lookup().unreflect(candidate);
+diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
+index 49084c2..f3eda44 100644
+--- a/common/src/main/resources/aetherium-common.mixins.json
++++ b/common/src/main/resources/aetherium-common.mixins.json
+@@ -3,7 +3,7 @@
+   "minVersion": "0.8",
+   "package": "com.aetherium.mixin",
+   "plugin": "com.aetherium.mixin.AetheriumMixinPlugin",
+-  "compatibilityLevel": "JAVA_21",
++  "compatibilityLevel": "JAVA_8",
+   "injectors": {
+     "defaultRequire": 0,
+     "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index bc3b902..9a18fd7 100644
+index 2a01fa4..7013c94 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
@@ -96,7 +1266,7 @@ index bc3b902..9a18fd7 100644
  
  # ------------------------------------------------------------------ toolchain
 -java_version=21
-+java_version=17
++java_version=8
  
  # ------------------------------------------------------------------- minecraft
 -minecraft_version=1.21.1
@@ -104,22 +1274,27 @@ index bc3b902..9a18fd7 100644
  mapping_channel=mojmap
  # officialMojangMappings() is resolved by Loom; parchment is optional and off by
  # default so that a clean machine never needs the parchment maven.
-@@ -31,10 +31,11 @@ fabric_loom_version=1.16.1
+@@ -31,14 +31,15 @@ fabric_loom_version=1.16.1
  # (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> neoforge/build.gradle.kts
  # Also `moddev` in gradle/libs.versions.toml; check.py keeps the pair equal.
  neoforge_moddev_version=2.0.141
--# (GUESS) latest 21.1.x NeoForge promotion; check https://mkremins.github.io/neoforged/versions/
--neoforge_version=21.1.77
-+# No NeoForge release exists for this Minecraft version; the neoforge module is
-+# excluded via enabled_platforms below. See deltas/1.16.5/notes.md.
+-# (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> buildSrc BuildConfig.kt
+-neoforge_version=21.1.228
++# No NeoForge release exists for this Minecraft version (NeoForge begins at 1.20.2);
++# the module is excluded here, in settings.gradle.kts and in the root build (deltas/1.16.5/README.md).
 +neoforge_version=unavailable
- # (GUESS) Fabric Loader current at reference-version time
+ # (VERIFIED) fabric-loader 0.16.9 exists (git ls-remote --tags FabricMC/fabric-loader);
+ # the latest loader line (0.19.x) also works, this pin keeps the reference era-accurate.
 -fabric_loader_version=0.16.9
 +fabric_loader_version=0.14.24
- fabric_api_version=0.102.0+1.21.1
+ # (VERIFIED) latest fabric-api tag for 1.21.1 read from FabricMC/fabric on 2026-10-10;
+ # compile-only and optional at runtime (see fabric/build.gradle.kts).
+-fabric_api_version=0.116.17+1.21.1
++fabric_api_version=0.42.0+1.16
  # (VERIFIED) read from CaffeineMC/sodium @ 1.21.1/stable -> common/build.gradle.kts
  mixin_extras_version=0.5.3
-@@ -60,6 +61,6 @@ mod_issue_tracker=https://github.com/entitybrian69-bit/aetherium/issues
+ # (VERIFIED) same source
+@@ -63,6 +64,6 @@ mod_issue_tracker=https://github.com/entitybrian69-bit/aetherium/issues
  mod_license=LGPL-3.0-only
  maven_group=com.aetherium
  archives_base_name=aetherium
@@ -127,3 +1302,14 @@ index bc3b902..9a18fd7 100644
 +enabled_platforms=fabric
  # Set to false on machines without a GPU (CI compile-only jobs).
  aetherium.enableRunConfigs=false
+diff --git a/settings.gradle.kts b/settings.gradle.kts
+index bc5aaab..06a8314 100644
+--- a/settings.gradle.kts
++++ b/settings.gradle.kts
+@@ -51,5 +51,5 @@ include("fabric")
+ // at all, or :neoforge would fail to resolve its (nonexistent) NeoForge build during
+ // configuration and take :common and :fabric down with it.
+ if (providers.gradleProperty("enabled_platforms").orElse("fabric,neoforge").get().split(",").contains("neoforge")) {
+-    include("neoforge")
++    // include("neoforge") - no NeoForge for 1.16.5; see deltas/1.16.5/README.md
+ }
