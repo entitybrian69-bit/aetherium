@@ -88,7 +88,12 @@ jobs:
           jar=""
           cands=$(find "$HOME/.gradle/caches" "$RUNNER_TEMP/tree/.gradle" -name 'minecraft*.jar' ! -name '*sources*' 2>/dev/null)
           { echo "# candidates:"; echo "$cands" | sed 's/^/#   /'; } > "$RUNNER_TEMP/cands.txt"
-          for c in $(echo "$cands" | grep -E 'minecraftMaven|loom-cache' ) $(echo "$cands"); do
+          # The Gradle cache is shared between workflows and holds jars of other versions, so only
+          # a jar whose file name carries this row's exact version counts (1.20 must not match 1.20.1).
+          ver_rx="[-_]$(echo '${{ matrix.version }}' | sed 's/\./\\./g')([-_]|\.jar$)"
+          echo "# version filter: $ver_rx" >> "$RUNNER_TEMP/cands.txt"
+          mine=$(echo "$cands" | while read -r c; do [ -n "$c" ] && basename "$c" | grep -Eq "$ver_rx" && echo "$c"; done)
+          for c in $(echo "$mine" | grep -E 'minecraftMaven|loom-cache' ) $(echo "$mine"); do
             if unzip -l "$c" 2>/dev/null | grep -q ' net/minecraft/client/Minecraft.class$'; then jar="$c"; break; fi
           done
           echo "# minecraft ${{ matrix.version }} jar: ${jar:-NONE}" > "$file"
