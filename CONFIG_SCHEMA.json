@@ -37,30 +37,6 @@
               "default": false,
               "description": "Enable dev-level logging (hot-path cost: near zero when off).",
               "x-java-field": "debugLogging"
-            },
-            "advanced.experimental_full_renderer": {
-              "type": "boolean",
-              "default": false,
-              "description": "NOT SHIPPED. Setting this true is refused at startup: an error is logged and the engine runs in shadow (Compatibility) mode. See docs/ARCHITECTURE.md, \"Honest status\".",
-              "x-java-field": "experimentalFullRenderer"
-            },
-            "advanced.fail_fast_gpu": {
-              "type": "boolean",
-              "default": false,
-              "description": "Crash with a report instead of falling back to Compatibility mode.",
-              "x-java-field": "failFastUnsupportedGpu"
-            },
-            "advanced.gl_errors": {
-              "type": "boolean",
-              "default": true,
-              "description": "Check glGetError at pass boundaries in debug builds.",
-              "x-java-field": "glErrors"
-            },
-            "advanced.strict_mixins": {
-              "type": "boolean",
-              "default": false,
-              "description": "require=1 on every injection, so a version delta that no longer matches fails the launch instead of silently skipping.",
-              "x-java-field": "strictMixins"
             }
           }
         },
@@ -68,10 +44,18 @@
           "type": "object",
           "additionalProperties": true,
           "properties": {
+            "android.battery_fps_cap": {
+              "type": "integer",
+              "default": 30,
+              "minimum": 15,
+              "maximum": 60,
+              "description": "Frame-rate cap used by battery saver.",
+              "x-java-field": "batteryFpsCap"
+            },
             "android.battery_saver": {
               "type": "boolean",
               "default": false,
-              "description": "Cap FPS, halve upload budget, stop background meshing on battery.",
+              "description": "Cap the frame rate to save battery.",
               "x-java-field": "batterySaver"
             },
             "android.enabled": {
@@ -91,14 +75,8 @@
               "default": 1024,
               "minimum": 256,
               "maximum": 8192,
-              "description": "Soft ceiling for native arenas; auto-detected from cgroup limits when 0.",
+              "description": "Heap budget reported for the device; auto-detected from cgroup limits.",
               "x-java-field": "memoryBudgetMb"
-            },
-            "android.mobile_memory": {
-              "type": "boolean",
-              "default": true,
-              "description": "Shrink arenas, mesh cache and texture mips to the heap budget.",
-              "x-java-field": "mobileMemoryMode"
             },
             "android.read_custom_env": {
               "type": "boolean",
@@ -111,20 +89,58 @@
               "default": 68,
               "minimum": 40,
               "maximum": 95,
-              "description": "Package temperature at which Aetherium starts shedding work.",
+              "description": "Package temperature at which the thermal guard engages.",
               "x-java-field": "thermalCeilingC"
             },
-            "android.thermal_throttle": {
+            "android.thermal_guard": {
               "type": "boolean",
               "default": true,
-              "description": "Read thermal zones and back off before the SoC clocks down.",
-              "x-java-field": "thermalThrottle"
+              "description": "Cap the frame rate at 30 while the device is above the thermal ceiling.",
+              "x-java-field": "thermalGuard"
             },
             "android.touch_mode": {
               "type": "boolean",
-              "default": true,
-              "description": "48dp hit targets, swipe scroll, long-press tooltips.",
+              "default": false,
+              "description": "Taller rows and larger hit targets in the Aetherium screen.",
               "x-java-field": "touchMode"
+            }
+          }
+        },
+        "effects": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "effects.dynamic_lights": {
+              "type": "string",
+              "default": "FAST",
+              "description": "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick.",
+              "x-java-field": "dynamicLights"
+            },
+            "effects.dynamic_lights.entities": {
+              "type": "boolean",
+              "default": true,
+              "description": "Dropped luminous items, burning entities and blazes emit light.",
+              "x-java-field": "dynamicLightsEntities"
+            },
+            "effects.dynamic_lights.held": {
+              "type": "boolean",
+              "default": true,
+              "description": "Torches and other luminous items held by players and mobs emit light.",
+              "x-java-field": "dynamicLightsHeld"
+            },
+            "effects.fullbright": {
+              "type": "boolean",
+              "default": false,
+              "description": "Override the brightness so caves and nights are fully lit.",
+              "x-java-field": "fullbright"
+            },
+            "effects.fullbright.strength": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 10,
+              "maximum": 100,
+              "description": "Fullbright strength in percent.",
+              "x-java-field": "fullbrightStrength"
             }
           }
         },
@@ -135,14 +151,8 @@
             "general.enabled": {
               "type": "boolean",
               "default": true,
-              "description": "Master switch. false = Compatibility mode (vanilla renderer), live, no restart.",
+              "description": "Master switch. true = OpenGL 3.0 backend (Aetherium hooks active), false = Vanilla. Live, no restart.",
               "x-java-field": "enabled"
-            },
-            "general.hud.backend_tag": {
-              "type": "boolean",
-              "default": true,
-              "description": "Append [Aetherium/GL46] to the F3 header line.",
-              "x-java-field": "showBackendTag"
             },
             "general.hud.corner": {
               "type": "string",
@@ -153,20 +163,20 @@
             "general.hud.fps": {
               "type": "boolean",
               "default": false,
-              "description": "Corner FPS + 99th-percentile overlay.",
+              "description": "Corner FPS overlay.",
               "x-java-field": "showFrameHud"
-            },
-            "general.hud.frame_graph": {
-              "type": "boolean",
-              "default": false,
-              "description": "Spike graph of the last 240 frames.",
-              "x-java-field": "showFrameGraph"
             },
             "general.notify_conflicts": {
               "type": "boolean",
               "default": true,
-              "description": "Show a notice on screen (top-right, under the backend tag) when a conflicting renderer mod is present.",
+              "description": "Log and show a notice when a conflicting mod is present.",
               "x-java-field": "notifyConflicts"
+            },
+            "general.preset": {
+              "type": "string",
+              "default": "CUSTOM",
+              "description": "Last applied performance preset; any manual change turns it back into CUSTOM.",
+              "x-java-field": "preset"
             }
           }
         },
@@ -174,87 +184,41 @@
           "type": "object",
           "additionalProperties": true,
           "properties": {
-            "performance.async_meshing": {
+            "performance.adaptive_distance": {
               "type": "boolean",
-              "default": true,
-              "description": "Mesh sections off-thread with distance priority.",
-              "x-java-field": "asyncMeshing"
+              "default": false,
+              "description": "Lower the render distance while FPS stays under the target, raise it back when there is headroom.",
+              "x-java-field": "adaptiveDistance"
             },
-            "performance.async_shaders": {
-              "type": "boolean",
-              "default": true,
-              "description": "Use ARB_parallel_shader_compile where available.",
-              "x-java-field": "asyncShaderCompile"
-            },
-            "performance.backend": {
-              "type": "string",
-              "default": "AUTO",
-              "description": "Backend selection. AUTO probes the GPU and picks the best available.",
-              "x-java-field": "backend"
-            },
-            "performance.hzb": {
-              "type": "boolean",
-              "default": true,
-              "description": "Hierarchical Z-buffer occlusion culling.",
-              "x-java-field": "hzb"
-            },
-            "performance.hzb.levels": {
+            "performance.adaptive_target_fps": {
               "type": "integer",
-              "default": 6,
-              "minimum": 1,
-              "maximum": 12,
-              "description": "Pyramid depth; larger = cheaper tests, coarser rejection.",
-              "x-java-field": "hzbDepth"
+              "default": 60,
+              "minimum": 20,
+              "maximum": 240,
+              "description": "FPS the adaptive render distance tries to hold.",
+              "x-java-field": "adaptiveTargetFps"
             },
-            "performance.indirect_batch_capacity": {
+            "performance.entity_cull_distance": {
               "type": "integer",
-              "default": 4096,
-              "minimum": 256,
-              "maximum": 65536,
-              "description": "Draw-command slots allocated up front; the GPU-visible count decides how many are used.",
-              "x-java-field": "indirectBatchCapacity"
+              "default": 64,
+              "minimum": 16,
+              "maximum": 256,
+              "description": "Entities farther than this many blocks are not rendered.",
+              "x-java-field": "entityCullDistance"
             },
-            "performance.indirect_draw": {
+            "performance.entity_culling": {
               "type": "boolean",
               "default": true,
-              "description": "glMultiDrawElementsIndirectCount batching (needs ARB_indirect_parameters / GL 4.6).",
-              "x-java-field": "indirectDraw"
+              "description": "Skip rendering entities beyond the cull distance (bosses, vehicles and the camera entity are exempt).",
+              "x-java-field": "entityCulling"
             },
-            "performance.mesh_workers": {
+            "performance.particle_density": {
               "type": "integer",
-              "default": 0,
+              "default": 100,
               "minimum": 0,
-              "maximum": 32,
-              "description": "0 = auto (min(availableProcessors()-1, 8)). Applies on next world load.",
-              "x-java-field": "meshWorkers"
-            },
-            "performance.persistent_buffers": {
-              "type": "boolean",
-              "default": true,
-              "description": "Persistent mapped buffers with triple buffering + fences.",
-              "x-java-field": "persistentBuffers"
-            },
-            "performance.program_cache": {
-              "type": "boolean",
-              "default": true,
-              "description": "Disk-cache GL program binaries (skips recompiles across launches).",
-              "x-java-field": "programBinaryCache"
-            },
-            "performance.target_fps": {
-              "type": "integer",
-              "default": 0,
-              "minimum": 0,
-              "maximum": 1000,
-              "description": "0 = uncapped. Soft cap applied after the swap; never blocks the render thread.",
-              "x-java-field": "targetFps"
-            },
-            "performance.upload_budget_kb": {
-              "type": "integer",
-              "default": 24576,
-              "minimum": 512,
-              "maximum": 262144,
-              "description": "Per-frame ceiling on mapped-buffer uploads; keeps upload spikes out of the frame graph.",
-              "x-java-field": "uploadBudgetKb"
+              "maximum": 100,
+              "description": "Percentage of spawned particles that are kept.",
+              "x-java-field": "particleDensity"
             }
           }
         },
@@ -262,49 +226,17 @@
           "type": "object",
           "additionalProperties": true,
           "properties": {
-            "quality.biome_blend": {
+            "quality.vignette": {
               "type": "boolean",
               "default": true,
-              "description": "Per-vertex biome blending.",
-              "x-java-field": "biomeBlend"
-            },
-            "quality.clouds": {
-              "type": "string",
-              "default": "FANCY",
-              "description": "Cloud rendering quality.",
-              "x-java-field": "cloudQuality"
-            },
-            "quality.entity_culling": {
-              "type": "boolean",
-              "default": true,
-              "description": "Frustum + occlusion culling of entity render dispatches.",
-              "x-java-field": "entityCulling"
-            },
-            "quality.fog": {
-              "type": "string",
-              "default": "FANCY",
-              "description": "Fog rendering quality.",
-              "x-java-field": "fogQuality"
-            },
-            "quality.max_direct_light": {
-              "type": "integer",
-              "default": 15,
-              "minimum": 0,
-              "maximum": 15,
-              "description": "Maximum direct block light written to the lightmap.",
-              "x-java-field": "maxDirectLight"
-            },
-            "quality.smooth_lighting": {
-              "type": "boolean",
-              "default": true,
-              "description": "Ambient-occlusion-smoothed vertex lighting.",
-              "x-java-field": "smoothLighting"
+              "description": "Draw the darkened screen edges.",
+              "x-java-field": "vignette"
             },
             "quality.weather": {
-              "type": "string",
-              "default": "FANCY",
-              "description": "Rain/snow quality; FAST also silences weather particle churn.",
-              "x-java-field": "weatherQuality"
+              "type": "boolean",
+              "default": true,
+              "description": "Render rain and snow. Off saves a lot of fill rate on mobile GPUs.",
+              "x-java-field": "weather"
             }
           }
         },
@@ -321,124 +253,8 @@
             "shaders.pause_dynamic_lights_with_shaders": {
               "type": "boolean",
               "default": true,
-              "description": "Disable dynamic lightmap writes while a shader pack owns the lightmap.",
+              "description": "Pause dynamic lights while a shader pack is active.",
               "x-java-field": "pauseDynamicLights"
-            },
-            "shaders.reload_on_world_change": {
-              "type": "boolean",
-              "default": false,
-              "description": "Re-apply pack options on dimension/world change.",
-              "x-java-field": "reloadShadersOnWorldChange"
-            }
-          }
-        },
-        "utilities": {
-          "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "utilities.dynamic_lights.colored": {
-              "type": "boolean",
-              "default": true,
-              "description": "Use per-source RGB instead of a white falloff.",
-              "x-java-field": "dynamicLightsColored"
-            },
-            "utilities.dynamic_lights.enabled": {
-              "type": "boolean",
-              "default": true,
-              "description": "Item/entity light sources written into the lightmap.",
-              "x-java-field": "dynamicLights"
-            },
-            "utilities.dynamic_lights.entities": {
-              "type": "boolean",
-              "default": true,
-              "description": "Light from entities holding a light source.",
-              "x-java-field": "dynamicLightsEntities"
-            },
-            "utilities.dynamic_lights.intensity": {
-              "type": "number",
-              "default": 0.0,
-              "minimum": 0.1,
-              "maximum": 2.0,
-              "description": "Multiplier on emitted light level.",
-              "x-java-field": "dynamicLightsIntensity"
-            },
-            "utilities.dynamic_lights.quality": {
-              "type": "integer",
-              "default": 2,
-              "minimum": 0,
-              "maximum": 3,
-              "description": "0 off, 1 sources only, 2 + attenuation smoothing, 3 + occlusion test.",
-              "x-java-field": "dynamicLightsQuality"
-            },
-            "utilities.dynamic_lights.range": {
-              "type": "integer",
-              "default": 14,
-              "minimum": 4,
-              "maximum": 15,
-              "description": "Propagation radius in blocks.",
-              "x-java-field": "dynamicLightsRange"
-            },
-            "utilities.gamma.amount": {
-              "type": "number",
-              "default": 0.0,
-              "minimum": 0.0,
-              "maximum": 20.0,
-              "description": "Full-brightness slider; 20.0 is the cave-vision ceiling.",
-              "x-java-field": "gammaAmount"
-            },
-            "utilities.gamma.cave_vision": {
-              "type": "boolean",
-              "default": false,
-              "description": "Raise the block-light floor only while the camera is under skylight 0.",
-              "x-java-field": "caveVision"
-            },
-            "utilities.gamma.cave_vision_floor": {
-              "type": "number",
-              "default": 0.0,
-              "minimum": 0.0,
-              "maximum": 15.0,
-              "description": "Effective block light guaranteed by cave vision.",
-              "x-java-field": "caveVisionFloor"
-            },
-            "utilities.gamma.curve": {
-              "type": "string",
-              "default": "0:0,1:1",
-              "description": "Monotone control points 'x:y,...' \u2014 see gamma.GammaCurve; blank disables the curve editor.",
-              "x-java-field": "gammaCurve"
-            },
-            "utilities.gamma.enabled": {
-              "type": "boolean",
-              "default": false,
-              "description": "Override the vanilla lightmap gamma response.",
-              "x-java-field": "gammaEnabled"
-            },
-            "utilities.gamma.night_vision": {
-              "type": "boolean",
-              "default": false,
-              "description": "Brighten the sky-light channel at night without changing block light.",
-              "x-java-field": "nightVisionBoost"
-            },
-            "utilities.gamma.night_vision_level": {
-              "type": "number",
-              "default": 0.0,
-              "minimum": 0.0,
-              "maximum": 15.0,
-              "description": "Sky-light floor applied by night vision boost.",
-              "x-java-field": "nightVisionLevel"
-            },
-            "utilities.gamma.time_based": {
-              "type": "boolean",
-              "default": false,
-              "description": "Blend gamma between a day and a night target using world time.",
-              "x-java-field": "timeBasedGamma"
-            },
-            "utilities.gamma.time_based_night": {
-              "type": "number",
-              "default": 8.0,
-              "minimum": 0.0,
-              "maximum": 20.0,
-              "description": "Gamma applied at midnight when time-based gamma is on.",
-              "x-java-field": "gammaNightTarget"
             }
           }
         }

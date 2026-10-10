@@ -55,6 +55,8 @@ import sys
 import tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(REPO, "tools"))
+import eras  # noqa: E402
 PINS_PATH = os.path.join(REPO, "tools", "porting_pins.json")
 DELTAS_DIR = os.path.join(REPO, "deltas")
 MATRIX_PATH = os.path.join(REPO, "PORTING_MATRIX.md")
@@ -62,7 +64,8 @@ REFERENCE = "1.21.1"
 
 SRC = "common/src/main/java/com/aetherium"
 
-FILES = {
+# Build files a delta may rewrite (pins, the NeoForge switch, the 26.x Loom setup).
+BUILD_FILES = {
     "gradle.properties": os.path.join(REPO, "gradle.properties"),
     # The Loom/ModDev plugin versions a build *applies* live in the catalog (a Kotlin DSL
     # plugins {} block cannot read a project property), so a port has to move them with the
@@ -71,79 +74,36 @@ FILES = {
     "settings": os.path.join(REPO, "settings.gradle.kts"),
     "root_build": os.path.join(REPO, "build.gradle.kts"),
     "mixins": os.path.join(REPO, "common/src/main/resources/aetherium-common.mixins.json"),
-    "plugin": os.path.join(SRC, "mixin/AetheriumMixinPlugin.java"),
-    "gamrenderer": os.path.join(SRC, "mixin/core/GameRendererMixin.java"),
-    "gui": os.path.join(SRC, "mixin/core/GuiMixin.java"),
-    "light": os.path.join(SRC, "mixin/core/LightTextureMixin.java"),
-    "options": os.path.join(SRC, "mixin/core/OptionsScreenMixin.java"),
-    "screen": os.path.join(SRC, "gui/AetheriumVideoOptionsScreen.java"),
-    "theme": os.path.join(SRC, "gui/AetheriumTheme.java"),
-    "tabs": os.path.join(SRC, "gui/AetheriumTabs.java"),
-    "animations": os.path.join(SRC, "gui/AetheriumAnimations.java"),
-    "widgets": os.path.join(SRC, "gui/widget/AetheriumWidgets.java"),
-    "hud": os.path.join(SRC, "hud/AetheriumHudRenderer.java"),
-    # BenchmarkRecorder reads Options#renderDistance()/simulationDistance(), which are
-    # public int fields (or absent entirely) before 1.19 - the options_access transform
-    # rewrites those two reads per era.
-    "bench": os.path.join(SRC, "hud/BenchmarkRecorder.java"),
-    "hooks": os.path.join(SRC, "client/ClientHooks.java"),
-    # AetheriumLog is the only slf4j user; 1.16.5 has no slf4j on its compile
-    # classpath (log4j2 era), so its delta swaps the facade's imports.
-    "log": os.path.join(SRC, "util/AetheriumLog.java"),
     # 26.x ships unobfuscated jars: the no-remap Loom plugin id + the removal of the
-    # mappings()/remapJar blocks live in these three build files.
+    # mappings()/remapJar blocks live in these build files.
     "common_build": os.path.join(REPO, "common", "build.gradle.kts"),
     "fabric_build": os.path.join(REPO, "fabric", "build.gradle.kts"),
 }
 
-# Files a delta is allowed to touch. Enforced, not advisory: a generator that can emit
-# an arbitrary edit is one bad rule away from 32 silently divergent engines.
-ALLOWED_TARGETS = {
-    "gradle.properties",
-    "gradle/libs.versions.toml",
-    "settings.gradle.kts",
-    "build.gradle.kts",
-    "common/src/main/resources/aetherium-common.mixins.json",
-    f"{SRC}/mixin/AetheriumMixinPlugin.java",
-    f"{SRC}/mixin/core/GameRendererMixin.java",
-    f"{SRC}/mixin/core/GuiMixin.java",
-    f"{SRC}/mixin/core/LightTextureMixin.java",
-    f"{SRC}/mixin/core/OptionsScreenMixin.java",
-    f"{SRC}/gui/AetheriumVideoOptionsScreen.java",
-    f"{SRC}/gui/AetheriumTheme.java",
-    f"{SRC}/gui/AetheriumTabs.java",
-    f"{SRC}/gui/AetheriumAnimations.java",
-    f"{SRC}/gui/widget/AetheriumWidgets.java",
-    f"{SRC}/hud/AetheriumHudRenderer.java",
-    f"{SRC}/client/ClientHooks.java",
-    f"{SRC}/util/AetheriumLog.java",
-    "common/build.gradle.kts",
-    "fabric/build.gradle.kts",
-    f"{SRC}/hud/BenchmarkRecorder.java",
-}
+SOURCE_ROOTS = ("common/src/main/java", "fabric/src/main/java", "neoforge/src/main/java")
 
-STACK_FQN = {
-    "PoseStack": "com.mojang.blaze3d.vertex.PoseStack",
-    "MatrixStack": "com.mojang.blaze3d.matrix.MatrixStack",
-}
-STACK_VAR = {"PoseStack": "poseStack", "MatrixStack": "matrixStack"}
 
-# Era shapes, all verified against real mojmap sources on 2026-10-10:
-#   * >=1.19   : interface Component (network.chat) + Component.literal/translatable factories.
-#   * 1.16.5-1.18.2: interface is STILL Component (network.chat) with `new TextComponent(...)`
-#     / `new TranslatableComponent(...)` constructors. Evidence: quat1024/apathy's
-#     common-1.16.5 imports net.minecraft.network.chat.Component under
-#     officialMojangMappings; the 1.16.5 ship leg rejected BOTH net.minecraft.util.text
-#     (MCP's package) and com.mojang.blaze3d.matrix (MCP's MatrixStack name). Mojang's
-#     own 1.16.5 mappings already used the "modern" names - the ITextComponent /
-#     StringTextComponent / MatrixStack / util.text names are MCP-only.
-COMPONENT_ERAS = {
-    # era -> (interface import fqn, literal ctor fqn, translatable ctor fqn)
-    "component": ("net.minecraft.network.chat.Component", None, None),
-    "text": ("net.minecraft.network.chat.Component",
-             "net.minecraft.network.chat.TextComponent",
-             "net.minecraft.network.chat.TranslatableComponent"),
-}
+def era_files() -> dict[str, str]:
+    """Every Java source with era blocks, keyed "java:<repo-relative path>"."""
+    out: dict[str, str] = {}
+    for root in SOURCE_ROOTS:
+        for base, _, names in os.walk(os.path.join(REPO, root)):
+            for name in sorted(names):
+                if not name.endswith(".java"):
+                    continue
+                path = os.path.join(base, name)
+                with open(path, encoding="utf-8") as handle:
+                    if eras.has_markers(handle.read()):
+                        out["java:" + os.path.relpath(path, REPO).replace(os.sep, "/")] = path
+    return dict(sorted(out.items()))
+
+
+FILES = dict(BUILD_FILES)
+FILES.update(era_files())
+
+# Files a delta is allowed to touch. Enforced, not advisory: build files from the list
+# above, and Java sources only through their own era blocks.
+ALLOWED_TARGETS = {os.path.relpath(path, REPO).replace(os.sep, "/") for path in FILES.values()}
 
 
 def load_rows() -> list[dict]:
@@ -202,14 +162,6 @@ def pins_subs(row: dict) -> list[tuple[str, str, str]]:
     compat = {8: "JAVA_8", 16: "JAVA_16", 17: "JAVA_17", 21: "JAVA_21", 25: "JAVA_25"}[int(row["java"])]
     subs.append(("mixins", '"compatibilityLevel": "JAVA_21"', f'"compatibilityLevel": "{compat}"'))
 
-    # the plugin's reference string (logged, and used as the range baseline) --
-    subs.append(("plugin", 'private static volatile String announcedVersion = "";',
-                 f'private static volatile String announcedVersion = "{version}";'))
-    hijack_range = row["facts"].get("options_hijack_range")
-    if hijack_range:
-        subs.append(("plugin", '"core.OptionsScreenMixin", "[1.17.4,)"',
-                     f'"core.OptionsScreenMixin", "{hijack_range}"'))
-
     # candidate-name appends (never a replacement: the reference names stay, so a
     # delta is additive and two ports can be merged without conflict)
     for target, extra in (row["facts"].get("append_candidates") or {}).items():
@@ -218,323 +170,17 @@ def pins_subs(row: dict) -> list[tuple[str, str, str]]:
 
 
 # --------------------------------------------------------------------------
-# 2. era transforms (ordered, applied to whole files)
+# 2. version transforms
+#    * Java: every per-version difference is an era block in the source itself
+#      (tools/eras.py). The delta is simply the source with each block switched to
+#      this row's variant - no regex surgery, and tools/stubcheck.py compiles exactly
+#      the same selection against each version's real signatures.
+#    * Build files: the 26.x unobfuscated-jar Loom setup below.
 # --------------------------------------------------------------------------
 
-def split_top_level(args: str) -> list[str]:
-    """Split a balanced argument string on top-level commas."""
-    parts, depth, current = [], 0, []
-    for ch in args:
-        if ch in "([":
-            depth += 1
-        elif ch in ")]":
-            depth -= 1
-        if ch == "," and depth == 0:
-            parts.append("".join(current).strip())
-            current = []
-        else:
-            current.append(ch)
-    tail = "".join(current).strip()
-    if tail:
-        parts.append(tail)
-    return parts
-
-
-def remap_call(text: str, method: str, rebuild) -> str:
-    """Rewrite every ``receiver.method(args...)`` call with ``rebuilt = rebuild(receiver, [args])``.
-
-    Handles nested parentheses in the argument list (``Component.literal(x)`` etc.) by
-    balanced scanning. ``rebuild`` returning None leaves the call untouched.
-    """
-    out, i, needle = [], 0, "." + method + "("
-    while True:
-        at = text.find(needle, i)
-        if at < 0:
-            out.append(text[i:])
-            return "".join(out)
-        # receiver = identifier chars immediately before the dot
-        r = at - 1
-        while r >= 0 and (text[r].isalnum() or text[r] in "_$."):
-            r -= 1
-        receiver = text[r + 1:at]
-        if not receiver or not re.fullmatch(r"[\w$.]+", receiver):
-            out.append(text[i:at + len(needle)])
-            i = at + len(needle)
-            continue
-        # balanced scan for the closing paren of the call
-        depth, j = 0, at + len(needle) - 1
-        while j < len(text):
-            if text[j] == "(":
-                depth += 1
-            elif text[j] == ")":
-                depth -= 1
-                if depth == 0:
-                    break
-            j += 1
-        if j >= len(text):
-            out.append(text[i:at + len(needle)])
-            i = at + len(needle)
-            continue
-        args = split_top_level(text[at + len(needle):j])
-        rebuilt = rebuild(receiver, args)
-        if rebuilt is None:
-            out.append(text[i:j + 1])
-        else:
-            # the rebuilt string replaces the WHOLE call including the receiver
-            # (`guiGraphics.drawString(font, x)` -> `font.draw(poseStack, x)`), so the
-            # slice ends where the receiver begins, not at the dot.
-            out.append(text[i:r + 1])
-            out.append(rebuilt)
-        i = j + 1
-
-
-def remove_method(text: str, signature_word: str) -> str:
-    """Delete the method whose declaration line contains ``signature_word`` plus its javadoc.
-
-    Brace-matched, so multi-line bodies are removed whole. Returns the text with the
-    surrounding blank lines collapsed.
-    """
-    lines = text.split("\n")
-    idx = -1
-    for n, line in enumerate(lines):
-        if signature_word in line and ("public" in line or "protected" in line or "private" in line) and "(" in line:
-            idx = n
-            break
-    if idx < 0:
-        return text
-    # walk back over whatever directly precedes the declaration: annotations and/or a
-    # javadoc block, in EITHER order (this file has `@Override` above the javadoc in two
-    # places, which is why a single fixed-order walk left orphaned `@Override` javadoc
-    # fragments behind - and an orphaned annotation is a compile error, "illegal start of
-    # type"). Consume upward until neither an annotation line nor a comment block ends
-    # immediately above the cut.
-    start = idx
-    progressed = True
-    while progressed and start > 0:
-        progressed = False
-        above = lines[start - 1].strip()
-        if above.startswith("@"):
-            start -= 1
-            progressed = True
-            continue
-        if above.endswith("*/"):
-            j = start - 1
-            while j > 0 and not lines[j].strip().startswith("/**"):
-                j -= 1
-            if lines[j].strip().startswith("/**"):
-                start = j
-                progressed = True
-        elif above.startswith("//"):
-            start -= 1
-            progressed = True
-    # brace-match forward from the declaration
-    body = "\n".join(lines[idx:])
-    depth, k = 0, None
-    for k, ch in enumerate(body):
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                break
-    end_line = idx + body[:k].count("\n")
-    new_lines = lines[:start] + lines[end_line + 1:]
-    # collapse triple blank lines left by the removal
-    cleaned, blanks = [], 0
-    for line in new_lines:
-        if line.strip() == "":
-            blanks += 1
-            if blanks > 1:
-                continue
-        else:
-            blanks = 0
-        cleaned.append(line)
-    return "\n".join(cleaned)
-
-
-def rewrite_mouse_input(text: str) -> str:
-    """Rewrite the double-based AbstractWidget mouse overrides into the 1.21.9+ event forms.
-
-    Every rewrite is brace-matched on the exact reference signature, so the transform
-    cannot touch unrelated methods. onClick overrides become mouseClicked overrides (the
-    26.x-era AbstractWidget has no onClick), gated on button 0 to keep the old
-    left-click-only semantics.
-    """
-    plans = [
-        ("public void onClick(final double mouseX, final double mouseY) {",
-         "public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {",
-         True),
-        ("public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double deltaX, final double deltaY) {",
-         "public boolean mouseDragged(final net.minecraft.client.input.MouseButtonEvent event, final double deltaX, final double deltaY) {",
-         False),
-        ("public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {",
-         "public boolean mouseReleased(final net.minecraft.client.input.MouseButtonEvent event) {",
-         False),
-    ]
-    for find, replacement, was_on_click in plans:
-        while find in text:
-            start = text.index(find)
-            body_start = start + len(find)
-            depth, j = 1, body_start
-            while j < len(text) and depth > 0:
-                if text[j] == "{":
-                    depth += 1
-                elif text[j] == "}":
-                    depth -= 1
-                j += 1
-            body = text[body_start:j - 1]
-            body = body.replace("super.onClick(mouseX, mouseY);", "super.mouseClicked(event, doubleClick);")
-            body = body.replace("mouseX", "event.x()").replace("mouseY", "event.y()")
-            if was_on_click:
-                # void onClick's early exits become "not consumed"; the fall-through end
-                # of a handled click becomes "consumed". An appended return after a
-                # trailing return would be unreachable code (a compile error), hence the
-                # endswith guard.
-                body = body.replace("return;", "return false;")
-                body = body.rstrip()
-                if not (body.endswith("return false;") or body.endswith("return true;")):
-                    body = body + "\n                return true;"
-            text = text[:start] + replacement + body + "\n        }" + text[j:]
-    return text
-
-
-def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
-    """Apply every era transform this row needs to one file. Returns (text, applied)."""
+def build_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
     facts = row["facts"]
     applied: list[str] = []
-    stack = facts.get("stack_class", "GuiGraphics")
-
-    if stack != "GuiGraphics":
-        fqn = STACK_FQN[stack]
-        var = STACK_VAR[stack]
-        old_import = "import net.minecraft.client.gui.GuiGraphics;"
-        if old_import in text:
-            text = text.replace(old_import, f"import {fqn};", 1)
-        new_text = re.sub(r"\bGuiGraphics\b", stack, text)
-        if new_text != text:
-            applied.append(f"GuiGraphics->{stack}")
-            text = new_text
-        new_text = re.sub(r"\bguiGraphics\b", var, text)
-        if new_text != text:
-            applied.append(f"guiGraphics->{var}")
-            text = new_text
-
-        # draw calls: GuiGraphics receiver-methods become static GuiComponent helpers or
-        # Font methods, with the stack moving into the argument list.
-        def draw_string(recv: str, args):
-            if len(args) in (5, 6) and recv == var:
-                # GuiGraphics.drawString(Font, text, x, y, color[, dropShadow]) ->
-                # Font.draw(stack, text, x, y, color). The boolean drops: Font.draw on the
-                # pre-GuiGraphics era is shadowless unless drawShadow is called, and the
-                # reference passes `false` everywhere, so the visual result matches; any
-                # site passing `true` is preserved by the shadow call below.
-                drop = args[5] if len(args) == 6 else "false"
-                kept = args[:5]
-                if drop.strip() == "true":
-                    return f"{args[0]}.drawShadow({var}, {', '.join(kept[1:])})"
-                return f"{args[0]}.draw({var}, {', '.join(kept[1:])})"
-            return None
-
-        def draw_centered(recv: str, args):
-            if len(args) == 5 and recv == var:
-                # GuiGraphics.drawCenteredString(Font, text, x, y, color) ->
-                # GuiComponent.drawCenteredString(stack, Font, text, x, y, color). The
-                # pre-GuiGraphics name carries the String suffix (verified: GuiComponent @
-                # 1.17.1/1.18.2/1.19.3 in the official-mapping javadocs has exactly
-                # drawCenteredString(PoseStack, Font, String|Component, int, int, int);
-                # the 1.19.4 ship leg rejected a bare drawCentered with this exact shape).
-                # The String overload exists on every one of those versions, so the text
-                # argument is flattened with getString() unconditionally.
-                text_arg = args[1]
-                if not text_arg.startswith('"'):
-                    text_arg += ".getString()"
-                return (f"net.minecraft.client.gui.GuiComponent.drawCenteredString("
-                        f"{var}, {args[0]}, {text_arg}, {args[2]}, {args[3]}, {args[4]})")
-            return None
-
-        def fill(recv: str, args):
-            if len(args) == 5 and recv == var:
-                return f"net.minecraft.client.gui.GuiComponent.fill({var}, {', '.join(args)})"
-            return None
-
-        for name, fn in (("drawString", draw_string), ("drawCenteredString", draw_centered), ("fill", fill)):
-            new_text = remap_call(text, name, fn)
-            if new_text != text:
-                applied.append(name)
-                text = new_text
-
-        # scissor: RenderSystem takes (x, y, width, height) where GuiGraphics takes corners.
-        # The reference call site is the only one and is rewritten verbatim (see the
-        # corner-vs-size comment at the call site itself).
-        scissor = ("guiGraphics" if stack == "GuiGraphics" else var)
-        old = (f"{scissor}.enableScissor(contentX - 4, CONTENT_TOP, contentX + this.contentWidth + 4,\n"
-               f"                CONTENT_TOP + this.contentHeight)")
-        new = ("org.lwjgl.opengl.GL11.glEnable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);\n"
-               "        org.lwjgl.opengl.GL11.glScissor(contentX - 4, CONTENT_TOP, this.contentWidth + 8, this.contentHeight);")
-        if old in text:
-            text = text.replace(old, new, 1)
-            applied.append("enableScissor->GL11.glScissor")
-        if f"{scissor}.disableScissor()" in text:
-            text = text.replace(f"{scissor}.disableScissor()",
-                                "org.lwjgl.opengl.GL11.glDisable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST)")
-            applied.append("disableScissor->GL11")
-
-        # GuiGraphics#guiWidth/guiHeight -> Window#getGuiScaledWidth/Height. Both call
-        # sites (the HUD) have a `minecraft` local in scope; the transform is textual
-        # and the checkers grep for a leftover guiWidth afterwards.
-        if f"{var}.guiWidth()" in text or f"{var}.guiHeight()" in text:
-            text = text.replace(f"{var}.guiWidth()", "minecraft.getWindow().getGuiScaledWidth()")
-            text = text.replace(f"{var}.guiHeight()", "minecraft.getWindow().getGuiScaledHeight()")
-            applied.append("guiWidth->Window")
-
-    # 26.x: the gui render-state extraction rework. GuiGraphics becomes
-    # GuiGraphicsExtractor, Screen#render becomes extractRenderState, the text calls
-    # lose their shadow boolean and gain new names, and the background call becomes a
-    # super call. All verified from CaffeineMC/sodium @ 26.1.2/stable and 26.2/stable
-    # (26.3 is derived from 26.2 - no sodium 26.3 branch exists to read).
-    if facts.get("gui_extractor"):
-        new_text = re.sub(r"\bGuiGraphics\b", "GuiGraphicsExtractor", text)
-        if new_text != text:
-            applied.append("GuiGraphics->GuiGraphicsExtractor")
-            text = new_text
-
-        def extractor_text(recv: str, args):
-            # drawString(Font, text, x, y, color[, shadow]) -> text(Font, text, x, y, color);
-            # the extractor's text() has no shadow argument (every call site here passes false).
-            if recv == "guiGraphics" and len(args) in (5, 6):
-                return f"{args[0]}.text({', '.join(args[:5])})"
-            return None
-
-        def extractor_centered(recv: str, args):
-            if recv == "guiGraphics" and len(args) == 5:
-                return f"{args[0]}.centeredText({', '.join(args)})"
-            return None
-
-        for name, fn, target_name in (("drawString", extractor_text, "text"),
-                                      ("drawCenteredString", extractor_centered, "centeredText")):
-            new_text = remap_call(text, name, fn)
-            if new_text != text:
-                applied.append(f"{name}->{target_name}")
-                text = new_text
-
-        old_render = ("public void render(final GuiGraphicsExtractor guiGraphics, "
-                      "final int mouseX, final int mouseY, final float delta)")
-        new_render = old_render.replace("public void render(", "public void extractRenderState(")
-        if old_render in text:
-            text = text.replace(old_render, new_render, 1)
-            applied.append("Screen.render->extractRenderState")
-        old_bg = "this.renderBackground(guiGraphics, mouseX, mouseY, delta);"
-        if old_bg in text:
-            text = text.replace(old_bg, "super.extractRenderState(guiGraphics, mouseX, mouseY, delta);", 1)
-            applied.append("renderBackground->super.extractRenderState")
-
-    # 26.x ships unobfuscated jars. Loom therefore publishes/needs the NO-REMAP plugin
-    # id ("net.fabricmc.fabric-loom") and NO mappings() line at all - sodium @
-    # 26.2/stable applies exactly that plugin id at the same 1.16.1 version and its
-    # fabric build declares only the minecraft() dependency. The remap id + mojmap
-    # lookup is what produced "Failed to find official mojang mappings for 26.x" on
-    # the 26.1/26.2/26.3 legs. There is also no remapJar task to depend on: the plain
-    # jar is the shipped jar.
     if facts.get("no_remap_loom"):
         if key == "catalog":
             old_id = 'fabric-loom = { id = "net.fabricmc.fabric-loom-remap", version.ref = "loom" }'
@@ -582,230 +228,16 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
             if old_remap in text:
                 text = text.replace(old_remap, new_remap, 1)
                 applied.append("remapJar-block-removed")
-
-    # ResourceLocation -> Identifier from 1.21.11 (sodium @ 1.21.11/stable:
-    # net.minecraft.resources.Identifier + Identifier.fromNamespaceAndPath(ns, path)).
-    if facts.get("identifier"):
-        if "ResourceLocation" in text:
-            text = text.replace("import net.minecraft.resources.ResourceLocation;",
-                                "import net.minecraft.resources.Identifier;")
-            text = re.sub(r"\bResourceLocation\b", "Identifier", text)
-            applied.append("ResourceLocation->Identifier")
-        text = re.sub(r'Identifier\.parse\("([^"]+):([^"]+)"\)',
-                      r'Identifier.fromNamespaceAndPath("\1", "\2")', text)
-
-    if int(facts.get("render_background_args", 4)) == 1:
-        for var in ("guiGraphics", "poseStack", "matrixStack"):
-            old = f"this.renderBackground({var}, mouseX, mouseY, delta)"
-            if old in text:
-                text = text.replace(old, f"this.renderBackground({var})", 1)
-                applied.append("renderBackground->1-arg")
-
-    # Button.builder chain -> constructor. This MUST run before the component-era
-    # transform below: its anchor names Component.translatable, which that transform
-    # rewrites first (the 1.17/1.18.2 legs kept a dangling Button.builder because the
-    # anchor no longer matched). The constructor form is 1.16.5-1.19.2; Button.builder
-    # arrives with the 1.19.3 screen rework (the 1.19.3 leg rejected the ctor with
-    # "constructor Button cannot be applied").
-    if facts.get("button_builder") is False:
-        button_era = facts.get("component_era", "component")
-        old = ('final net.minecraft.client.gui.components.Button button = net.minecraft.client.gui.components.Button\n'
-               '                .builder(net.minecraft.network.chat.Component.translatable("aetherium.screen.fallback_button"),\n'
-               '                        widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)))\n'
-               '                .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)\n'
-               '                .build();')
-        if old in text:
-            translatable_fqn = COMPONENT_ERAS[button_era][2]
-            component = ("net.minecraft.network.chat.Component.translatable"
-                         if button_era == "component" else f"new {translatable_fqn}")
-            new = ('final net.minecraft.client.gui.components.Button button = new net.minecraft.client.gui.components.Button(\n'
-                   '                5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20,\n'
-                   f'                {component}("aetherium.screen.fallback_button"),\n'
-                   '                widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)));')
-            text = text.replace(old, new, 1)
-            applied.append("Button.builder->ctor")
-
-    # text component era
-    era = facts.get("component_era", "component")
-    if era != "component":
-        interface, literal, translatable = COMPONENT_ERAS[era]
-        iface_short = interface.rsplit(".", 1)[-1]
-        lit_short = literal.rsplit(".", 1)[-1]
-        tra_short = translatable.rsplit(".", 1)[-1]
-        if "import net.minecraft.network.chat.Component;" in text:
-            extra = ""
-            if "Component.literal(" in text or "net.minecraft.network.chat.Component.literal(" in text:
-                extra += f"\nimport {literal};"
-            if "Component.translatable(" in text or "net.minecraft.network.chat.Component.translatable(" in text:
-                extra += f"\nimport {translatable};"
-            # 1.17-1.18.2 keep the Component interface import; 1.16.5 swaps it for
-            # net.minecraft.util.text.ITextComponent (the chat package does not exist).
-            text = text.replace("import net.minecraft.network.chat.Component;",
-                                f"import {interface};{extra}", 1)
-        # fully-qualified factory calls first (the Button.builder fallback block uses them)
-        text = text.replace("net.minecraft.network.chat.Component.literal(", f"new {literal}(")
-        text = text.replace("net.minecraft.network.chat.Component.translatable(", f"new {translatable}(")
-        text = re.sub(r"\bComponent\.literal\(", f"new {lit_short}(", text)
-        text = re.sub(r"\bComponent\.translatable\(", f"new {tra_short}(", text)
-        if era == "string_text":
-            # remaining bare `Component` type references (parameters, generics, casts)
-            # -> ITextComponent; on 1.17-1.18.2 the interface is still named Component.
-            text = re.sub(r"\bComponent\b(?!\.)", iface_short, text)
-        applied.append(f"Component->{era}")
-
-    # narration method name / existence
-    narration = facts.get("narration", "widget")
-    if narration == "plain" and "updateWidgetNarration" in text:
-        # 1.19-1.19.2: NarrationSupplier#updateNarration is the abstract method (the
-        # 1.19.2 leg demanded it); AbstractWidget#updateWidgetNarration only exists
-        # from 1.19.3 on (official-mapping javadoc @ 1.19.3 has both, the rename to
-        # the widget-scoped name completed there).
-        text = text.replace("updateWidgetNarration", "updateNarration")
-        applied.append("updateWidgetNarration->updateNarration")
-    if narration == "none" and "updateWidgetNarration" in text:
-        # AbstractWidget gained the (abstract) updateWidgetNarration + NarrationSupplier at
-        # the 1.19.4 accessibility rework; below that neither exists and the override (and
-        # its import) must be REMOVED - there is no rename era, the 1.19.4/1.20 ship legs
-        # rejected updateNarration as "cannot override" while demanding updateWidgetNarration.
-        while True:
-            before = text
-            text = remove_method(text, "updateWidgetNarration")
-            if text == before:
-                break  # nothing left that looks like a declaration; the rest is comments
-        text = text.replace("import net.minecraft.client.gui.narration.NarrationElementOutput;\n", "")
-        text = text.replace("import net.minecraft.client.gui.narration.NarrationElementOutput;\r\n", "")
-        applied.append("narration-removed")
-
-    # Logging facade: 1.16.5's classpath has log4j2, not slf4j (the 1.16.5 leg
-    # rejected org.slf4j; every 1.17+ leg compiles it). Log4j2's Logger has the same
-    # info/warn/error/debug(String, Object...) surface with {} placeholders, and
-    # LogManager.getLogger(String) replaces LoggerFactory.getLogger(String), so the
-    # swap is two imports and one factory call - the facade keeps its API.
-    if facts.get("logging") == "log4j":
-        if "import org.slf4j.Logger;" in text:
-            text = text.replace("import org.slf4j.Logger;", "import org.apache.logging.log4j.Logger;", 1)
-            text = text.replace("import org.slf4j.LoggerFactory;", "import org.apache.logging.log4j.LogManager;", 1)
-            text = text.replace("LoggerFactory.getLogger(", "LogManager.getLogger(")
-            applied.append("slf4j->log4j2")
-
-    # AbstractWidget render method name
-    if facts.get("widget_render") == "renderButton" and "renderWidget" in text:
-        text = text.replace("renderWidget", "renderButton")
-        applied.append("renderWidget->renderButton")
-
-    # AbstractWidget geometry access. getX/getY/setX/setY exist from 1.19.3 on
-    # (official-mapping javadoc @ 1.19.3 lists them; @ 1.17.1/1.18.2 only
-    # getWidth/getHeight/setWidth/setHeight exist, and the 1.19.2 leg rejected
-    # this.getX()). x/y are public fields 1.16.5-1.19.2 and private from 1.19.3,
-    # so the pre-1.19.3 rows rewrite ONLY the x/y accessors to field form and keep
-    # width/height methods, which exist across the whole range.
-    if facts.get("widget_access") == "fields":
-        for getter, field in (("getX", "x"), ("getY", "y")):
-            new_text = text.replace(f"this.{getter}()", f"this.{field}")
-            if new_text != text:
-                text = new_text
-                applied.append(f"this.{getter}()->this.{field}")
-        for setter, field in (("setX", "x"), ("setY", "y")):
-            pattern = re.compile(r"(\w+)\." + setter + r"\(([^;]+?)\);")
-            new_text, n = pattern.subn(r"\1." + field + r" = \2;", text)
-            if n:
-                text = new_text
-                applied.append(f"{setter}->{field}")
-
-    # isHoveredOrFocused() exists from 1.18 on (official-mapping javadoc @ 1.18.2 lists
-    # it; @ 1.17.1 has isHovered/isFocused only, and the 1.17 leg rejected the compound).
-    if facts.get("hover_or_focus") is False and "this.isHoveredOrFocused()" in text:
-        text = text.replace("this.isHoveredOrFocused()", "(this.isHovered() || this.isFocused())")
-        applied.append("isHoveredOrFocused->isHovered||isFocused")
-
-    # Options#renderDistance()/simulationDistance() getters returning OptionInstance
-    # exist from 1.19 on (the 1.19/1.19.1/1.19.2 legs compiled them; 1.18.2 rejected
-    # them). 1.17-1.18.2 expose public int fields instead, and simulationDistance
-    # itself only exists from 1.18 - so 1.16.5/1.17.x lose the " sim=" label segment
-    # rather than the whole benchmark row.
-    options_access = facts.get("options_access", "getters")
-    if options_access != "getters":
-        if ".renderDistance().get()" in text:
-            text = text.replace("client.options.renderDistance().get()", "client.options.renderDistance")
-            applied.append("renderDistance()->field")
-        if options_access == "fields_sim":
-            if ".simulationDistance().get()" in text:
-                text = text.replace("client.options.simulationDistance().get()", "client.options.simulationDistance")
-                applied.append("simulationDistance()->field")
-        else:
-            old_sim = 'builder.append(" sim=").append(client.options.simulationDistance().get());'
-            if old_sim in text:
-                text = text.replace(old_sim, 'builder.append(" sim=n/a"); // no simulation distance before 1.18')
-                applied.append("simulationDistance->n/a")
-
-    # OptionsScreen package (net.minecraft.client.gui.screens.options from 1.21; the
-    # 1.20.5 and 1.20.6 ship legs both rejected the package, 1.21.1 compiles against it)
-    if facts.get("options_pkg") == "screens":
-        if "net.minecraft.client.gui.screens.options.OptionsScreen" in text:
-            text = text.replace("net.minecraft.client.gui.screens.options.OptionsScreen",
-                                "net.minecraft.client.gui.screens.OptionsScreen")
-            applied.append("OptionsScreen-package")
-
-    # ResourceLocation.parse(String) is 1.21+ (the 1.19.4/1.20 legs rejected parse);
-    # earlier rows use the two-arg-free constructor form.
-    if facts.get("resource_location") == "ctor":
-        if "ResourceLocation.parse(" in text:
-            text = text.replace("ResourceLocation.parse(", "new ResourceLocation(")
-            applied.append("ResourceLocation.parse->ctor")
-
-    # Level#getMinSection()/getMaxSection() exist through 1.21.1 and are renamed to
-    # getMinSectionY()/getMaxSectionY() from 1.21.2 (sodium @ 1.21.4 uses the *Y forms;
-    # the 1.21.2+ ship legs rejected the old names while 1.21.1 accepted them).
-    if facts.get("level_sections") == "minSectionY":
-        if ".getMinSection()" in text or ".getMaxSection()" in text:
-            text = text.replace(".getMinSection()", ".getMinSectionY()")
-            text = text.replace(".getMaxSection()", ".getMaxSectionY()")
-            applied.append("getMinSection->getMinSectionY")
-
-    # 1.21.9 replaced the double-based mouse handlers with event objects. Verified from
-    # sodium @ 26.2/stable: mouseClicked(MouseButtonEvent, boolean), mouseReleased(
-    # MouseButtonEvent), mouseDragged(MouseButtonEvent, double, double), and
-    # MouseButtonEvent#x()/y()/button() accessors. onClick no longer exists there, so
-    # onClick overrides become mouseClicked overrides (gated on button 0 to keep the
-    # old left-click-only semantics).
-    if facts.get("input_events") == "event":
-        new_text = rewrite_mouse_input(text)
-        if new_text != text:
-            applied.append("mouse-handlers->MouseButtonEvent")
-            text = new_text
-
-
-    # entity iteration (1.16.5)
-    if facts.get("entities_iter") == "entities":
-        if "minecraft.level.entitiesForRendering()" in text:
-            text = text.replace("minecraft.level.entitiesForRendering()", "minecraft.level.entities()")
-            applied.append("entitiesForRendering->entities")
-
-    # Screen#addRenderableWidget reflectively probed by name (1.16.5: addButton)
-    if facts.get("add_widget") == "addButton":
-        if '"addRenderableWidget"' in text:
-            text = text.replace('"addRenderableWidget"', '"addButton"')
-            applied.append("addRenderableWidget->addButton")
-
-    # CycleButton exists under that exact mojmap name from 1.17 on (official-mapping
-    # javadoc @ 1.17.1/1.18.2 list net.minecraft.client.gui.components.CycleButton); the
-    # CycleButtonWidget rename never existed and the 1.17/1.18.2 legs rejected it.
-    # 1.16.5 has no CycleButton class at all: the vanilla-controls counter counts
-    # AbstractWidget instead (the 1.16.5 leg rejected the CycleButton import).
-    cycle = facts.get("cycle_button", "CycleButton")
-    if cycle == "none":
-        cb = "net.minecraft.client.gui.components."
-        # The only CycleButton user is OptionsScreenMixin's vanilla-controls counter,
-        # which does not otherwise import AbstractWidget - so the import is swapped,
-        # not removed, and the counter keeps its meaning (every vanilla control in
-        # OptionsScreen is an AbstractWidget there; CycleButton does not exist yet).
-        if f"import {cb}CycleButton;" in text:
-            text = text.replace(f"import {cb}CycleButton;", f"import {cb}AbstractWidget;", 1)
-        text = text.replace("if (child instanceof CycleButton<?>) {", "if (child instanceof AbstractWidget) {")
-        text = text.replace("{@link CycleButton}s", "{@link AbstractWidget}s")
-        applied.append("CycleButton->AbstractWidget(1.16.5)")
-
     return text, applied
+
+
+def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
+    """Apply this row's transforms to one file. Returns (text, applied rule names)."""
+    if key.startswith("java:"):
+        used: set[str] = set()
+        out = eras.select_all(text, row["version"], key[5:], used)
+        return out, sorted(f"{name}={eras.variant_for(name, row['version'])}" for name in used)
+    return build_transform(row, key, text)
 
 
 def apply_edits(text: str, subs: list[tuple[str, str, str]], key: str, row: dict) -> str:
@@ -923,44 +355,15 @@ def write_docs(row: dict, out_dir: str, touched: list[str], results: dict) -> No
         readme.append("- none: this row's era facts equal the reference (pin-only delta)")
     readme += [
         "",
-        "### Era facts and where they were read from",
+        "### Where the per-version Java comes from",
         "",
-        f"- `stack_class` = **{facts['stack_class']}** - "
-        + ("GuiGraphics [VERIFIED: Iris @ 1.20.1 and 1.20.6 branches]" if facts["stack_class"] == "GuiGraphics"
-           else "PoseStack [VERIFIED: Iris @ 1.19.4; 1.16.5 is ALSO PoseStack - Mojang's own mappings "
-                "never used MCP's MatrixStack name (apathy common-1.16.5 + MasaGadget under "
-                "officialMojangMappings; the 1.16.5 leg rejected com.mojang.blaze3d.matrix)]"),
-        f"- `component_era` = **{facts['component_era']}** - "
-        + ("Component.literal is 1.19+ [VERIFIED on 1.19.4 sources]"
-           if facts["component_era"] == "component" else
-           "interface stays Component, factories become new TextComponent/new TranslatableComponent "
-           "[VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2; the 1.17/1.18.2 legs rejected ITextComponent]"
-           if facts["component_era"] == "text" else
-           "net.minecraft.util.text.ITextComponent + new StringTextComponent/new TranslationTextComponent "
-           "[VERIFIED: 1.16.5 official-mapping javadoc; the 1.16.5 leg rejected net.minecraft.network.chat]"),
-        f"- `narration` = **{facts['narration']}** - "
-        + ("AbstractWidget declares the abstract `updateWidgetNarration` from 1.19.3 on "
-           "[VERIFIED: official-mapping javadoc @ 1.19.3 lists updateWidgetNarration; 1.19.4 "
-           "and 1.20 legs rejected `updateNarration` as 'cannot override' while demanding "
-           "updateWidgetNarration]"
-           if facts["narration"] == "widget" else
-           "NarrationSupplier#updateNarration is the abstract method 1.16.5-1.19.2 "
-           "[VERIFIED: the 1.17, 1.18.2 and 1.19.2 legs all demanded it; the narration "
-           "system ships with 1.16.5's accessibility rework]"),
-        f"- `widget_render` = **{facts['widget_render']}** - renderWidget from 1.19.4 "
-          "[VERIFIED by the 1.19.4 ship leg rejecting renderButton; renderWidget verified on "
-          "1.21.1 via sodium's widget set]",
-        f"- `render_background_args` = **{facts['render_background_args']}** - "
-        + ("4-arg form [VERIFIED on 1.20.2 (ship leg rejected the 1-arg call), 1.20.6 (Iris) and 1.21.1 (Iris)]" if facts["render_background_args"] == 4
-           else "1-arg form [VERIFIED on 1.20.1 (Iris) and 1.19.4 (Iris)]"),
-        f"- `widget_access` = **{facts.get('widget_access', 'accessors')}** - getX/setX/getY/setY "
-          "exist from 1.19.3 on; 1.16.5-1.19.2 expose public x/y fields instead, and only the x/y "
-          "accessors are rewritten (getWidth/setWidth/getHeight/setHeight exist across the whole "
-          "range) [VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2/1.19.3; the 1.19.2 leg "
-          "rejected this.getX()]",
-        f"- `hover_or_focus` = **{facts.get('hover_or_focus', True)}** - AbstractWidget#isHoveredOrFocused "
-          "exists from 1.18 on; 1.16.5-1.17.1 get the `(isHovered() || isFocused())` rewrite "
-          "[VERIFIED: javadoc @ 1.18.2 lists it, @ 1.17.1 does not, and the 1.17 leg rejected it]",
+        "Every Java difference is an era block in the source (`// @era:<name>-begin ...`), selected",
+        "by `tools/eras.py`; the variant names above say which shape this row compiles.",
+        "`python3 tools/stubcheck.py " + version + "` compiles exactly this selection against the",
+        "Minecraft signatures CI extracted from this version's jar (`tools/probe/" + version + ".txt`).",
+        "",
+        "### Version facts from earlier porting research (historical; tools/eras.py is authoritative)",
+        "",
         f"- `options_access` = **{facts.get('options_access', 'getters')}** - Options#renderDistance()/"
           "simulationDistance() OptionInstance getters are 1.19+; 1.17-1.18.2 read public int fields, "
           "and 1.16.5-1.17.x have no simulationDistance at all (the benchmark label degrades to "
@@ -1283,6 +686,14 @@ def render_matrix(rows: list[dict]) -> str:
 
 def verify(rows: list[dict]) -> int:
     bad = []
+    # The reference build applies no patch, so every era block must already sit on its
+    # reference variant; otherwise 1.21.1 would compile another version's code.
+    for key, path in FILES.items():
+        if key.startswith("java:"):
+            text = open(path, encoding="utf-8").read()
+            if eras.select_all(text, REFERENCE, key[5:]) != text:
+                bad.append((REFERENCE, [f"{key[5:]} is not on its {REFERENCE} variants "
+                                        f"(normalise with eras.select_all)"]))
     checked = 0
     skipped = []
     for row in rows:

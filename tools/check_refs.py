@@ -154,6 +154,10 @@ def main(root: str) -> int:
     java_files: list[str] = []
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in {".git", "build", ".gradle", "node_modules", "out", "run"}]
+        # Offline compile stand-ins (tools/stubs_lib, tools/minijunit) are not mod sources and
+        # must not shadow the real library APIs this checker knows about.
+        if os.path.relpath(dirpath, root).replace(os.sep, "/") == "tools":
+            dirnames[:] = [d for d in dirnames if d not in {"stubs_lib", "minijunit"}]
         for filename in filenames:
             if filename.endswith(".java"):
                 java_files.append(os.path.join(dirpath, filename))

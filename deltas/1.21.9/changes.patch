@@ -4,183 +4,186 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.21.9/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.9/changes.patch
-diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index d753fd1..027b6d2 100644
---- a/common/src/main/java/com/aetherium/client/ClientHooks.java
-+++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -295,7 +295,7 @@ public final class ClientHooks {
-             for (int dy = -1; dy <= 1; dy++) {
-                 for (int dz = -radiusSections; dz <= radiusSections; dz++) {
-                     final int sectionY = baseY + dy;
--                    if (sectionY < level.getMinSection() || sectionY >= level.getMaxSection()) {
-+                    if (sectionY < level.getMinSectionY() || sectionY >= level.getMaxSectionY()) {
-                         continue;
-                     }
-                     final int x = baseX + dx;
-diff --git a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-index 62fcbd8..b084a96 100644
---- a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-+++ b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-@@ -290,9 +290,10 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-         }
+diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
+index 41f2572..c4efb5a 100644
+--- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
++++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
+@@ -16,10 +16,10 @@ import net.minecraft.client.gui.GuiGraphics;
+ //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
+ // @era:gui-end
+ import net.minecraft.client.gui.screens.Screen;
+-// @era:input-begin doubles
+-// @era:input-else events
+-//~ import net.minecraft.client.input.KeyEvent;
+-//~ import net.minecraft.client.input.MouseButtonEvent;
++// @era:input-begin events
++import net.minecraft.client.input.KeyEvent;
++import net.minecraft.client.input.MouseButtonEvent;
++// @era:input-else doubles
+ // @era:input-end
+ import net.minecraft.network.chat.Component;
  
-         @Override
--        public void onClick(final double mouseX, final double mouseY) {
--            super.onClick(mouseX, mouseY);
-+        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
-+            super.mouseClicked(event, doubleClick);
-             this.onSelect.run();
-+                return true;
-         }
+@@ -106,52 +106,52 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
  
-         @Override
-diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-index 9aad1fb..86cccb1 100644
---- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-+++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-@@ -91,11 +91,12 @@ public final class AetheriumWidgets {
-         }
+     // ------------------------------------------------------------------ input
  
-         @Override
--        public void onClick(final double mouseX, final double mouseY) {
-+        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
-             if (!this.active) {
--                return;
-+                return false;
-             }
-             this.pressValue.snap(1.0f);
-+                return true;
-         }
- 
-         /** Called by the owning screen every render pass so animations advance. */
-@@ -179,12 +180,13 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void onClick(final double mouseX, final double mouseY) {
--            super.onClick(mouseX, mouseY);
-+        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
-+            super.mouseClicked(event, doubleClick);
-             this.option.set(!this.option.get());
-             if (this.afterChange != null) {
-                 this.afterChange.run();
-             }
-+                return true;
-         }
- 
-         @Override
-@@ -265,29 +267,32 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void onClick(final double mouseX, final double mouseY) {
--            super.onClick(mouseX, mouseY);
-+        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
-+            super.mouseClicked(event, doubleClick);
-             this.dragging = true;
--            applyFromMouse(mouseX);
-+            applyFromMouse(event.x());
-+                return true;
-         }
- 
-         // Both input handlers return boolean on 1.21.1 (GuiEventListener#mouseDragged/#mouseReleased
-         // report whether the event was consumed); void overrides are a compile error, and claiming the
-         // release is what stops the drag from being left half-applied by whatever is behind the slider.
-         @Override
--        public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double deltaX, final double deltaY) {
-+        public boolean mouseDragged(final net.minecraft.client.input.MouseButtonEvent event, final double deltaX, final double deltaY) {
-             if (!this.dragging) {
-                 return false;
-             }
--            applyFromMouse(mouseX);
-+            applyFromMouse(event.x());
-             return true;
-+        
-         }
- 
-         @Override
--        public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
-+        public boolean mouseReleased(final net.minecraft.client.input.MouseButtonEvent event) {
-             final boolean wasDragging = this.dragging;
-             this.dragging = false;
-             return wasDragging;
-+        
-         }
- 
-         private void applyFromMouse(final double mouseX) {
-@@ -374,12 +379,12 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void onClick(final double mouseX, final double mouseY) {
--            super.onClick(mouseX, mouseY);
-+        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
-+            super.mouseClicked(event, doubleClick);
-             if (this.getIndex == null || this.setIndex == null) {
--                return;
-+                return false;
-             }
--            final boolean backwards = mouseX < this.getX() + this.getWidth() / 3.0;
-+            final boolean backwards = event.x() < this.getX() + this.getWidth() / 3.0;
-             final int current = this.getIndex.get();
-             final int next = backwards
-                     ? Math.floorMod(current - 1, this.values.length)
-@@ -389,6 +394,7 @@ public final class AetheriumWidgets {
-             if (this.afterChange != null) {
-                 this.afterChange.run();
-             }
-+                return true;
-         }
- 
-         @Override
-@@ -449,12 +455,13 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void onClick(final double mouseX, final double mouseY) {
--            super.onClick(mouseX, mouseY);
-+        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
-+            super.mouseClicked(event, doubleClick);
-             if (this.enabled != null && !this.enabled.getAsBoolean()) {
--                return;
-+                return false;
-             }
-             this.action.run();
-+                return true;
-         }
- 
-         @Override
-@@ -493,13 +500,14 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void onClick(final double mouseX, final double mouseY) {
-+        public boolean mouseClicked(final net.minecraft.client.input.MouseButtonEvent event, final boolean doubleClick) {
-             // Read-only: a click resets the window, which is the gesture a benchmark
-             // user wants ("start counting from here").
-             final FrameStats local = this.stats.get();
-             if (local != null) {
-                 local.resetWindow();
-             }
-+                return true;
-         }
- 
-         @Override
-diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-index 7a9eddf..2ebe7be 100644
---- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-+++ b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-@@ -97,7 +97,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
+-    // @era:input-begin doubles
++    // @era:input-begin events
+     @Override
+-    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+-        return this.view != null && this.view.mouseClicked(mouseX, mouseY, button)
+-                || super.mouseClicked(mouseX, mouseY, button);
++    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
++        return this.view != null && this.view.mouseClicked(event.x(), event.y(), event.button())
++                || super.mouseClicked(event, doubleClick);
      }
  
-     /** Written by {@code Aetherium} before the mixins are applied, read here. */
--    private static volatile String announcedVersion = "";
-+    private static volatile String announcedVersion = "1.21.9";
+     @Override
+-    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
+-        return this.view != null && this.view.mouseReleased(mouseX, mouseY, button)
+-                || super.mouseReleased(mouseX, mouseY, button);
++    public boolean mouseReleased(final MouseButtonEvent event) {
++        return this.view != null && this.view.mouseReleased(event.x(), event.y(), event.button())
++                || super.mouseReleased(event);
+     }
  
-     /**
-      * Mixin runs transform-time code before a mod's own entry point on some loaders, so
+     @Override
+-    public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double dragX,
+-                                final double dragY) {
+-        return this.view != null && this.view.mouseDragged(mouseX, mouseY, button)
+-                || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
++    public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
++        return this.view != null && this.view.mouseDragged(event.x(), event.y(), event.button())
++                || super.mouseDragged(event, dragX, dragY);
+     }
+ 
+     @Override
+-    public boolean keyPressed(final int key, final int scanCode, final int modifiers) {
+-        return this.view != null && this.view.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
++    public boolean keyPressed(final KeyEvent event) {
++        return this.view != null && this.view.keyPressed(event.key()) || super.keyPressed(event);
+     }
+-    // @era:input-else events
++    // @era:input-else doubles
+     //~ @Override
+-    //~ public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+-        //~ return this.view != null && this.view.mouseClicked(event.x(), event.y(), event.button())
+-                //~ || super.mouseClicked(event, doubleClick);
++    //~ public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
++        //~ return this.view != null && this.view.mouseClicked(mouseX, mouseY, button)
++                //~ || super.mouseClicked(mouseX, mouseY, button);
+     //~ }
+ 
+     //~ @Override
+-    //~ public boolean mouseReleased(final MouseButtonEvent event) {
+-        //~ return this.view != null && this.view.mouseReleased(event.x(), event.y(), event.button())
+-                //~ || super.mouseReleased(event);
++    //~ public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
++        //~ return this.view != null && this.view.mouseReleased(mouseX, mouseY, button)
++                //~ || super.mouseReleased(mouseX, mouseY, button);
+     //~ }
+ 
+     //~ @Override
+-    //~ public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
+-        //~ return this.view != null && this.view.mouseDragged(event.x(), event.y(), event.button())
+-                //~ || super.mouseDragged(event, dragX, dragY);
++    //~ public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double dragX,
++                                //~ final double dragY) {
++        //~ return this.view != null && this.view.mouseDragged(mouseX, mouseY, button)
++                //~ || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+     //~ }
+ 
+     //~ @Override
+-    //~ public boolean keyPressed(final KeyEvent event) {
+-        //~ return this.view != null && this.view.keyPressed(event.key()) || super.keyPressed(event);
++    //~ public boolean keyPressed(final int key, final int scanCode, final int modifiers) {
++        //~ return this.view != null && this.view.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
+     //~ }
+     // @era:input-end
+ 
+diff --git a/common/src/main/java/com/aetherium/client/McCanvas.java b/common/src/main/java/com/aetherium/client/McCanvas.java
+index afb236d..02a420e 100644
+--- a/common/src/main/java/com/aetherium/client/McCanvas.java
++++ b/common/src/main/java/com/aetherium/client/McCanvas.java
+@@ -58,10 +58,10 @@ public final class McCanvas extends GuiCanvas {
+ 
+     @Override
+     protected void rawLayer() {
+-        // @era:gui-layer-begin none
+-        // Immediate-mode GUI: draw order is already layer order.
+-        // @era:gui-layer-else stratum
+-        //~ this.graphics.nextStratum();
++        // @era:gui-layer-begin stratum
++        this.graphics.nextStratum();
++        // @era:gui-layer-else none
++        //~ // Immediate-mode GUI: draw order is already layer order.
+         // @era:gui-layer-end
+     }
+     // @era:gui-else stack
+diff --git a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
+index fb558a9..dc12d6f 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
+@@ -21,18 +21,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ @Mixin(LevelRenderer.class)
+ public abstract class LightLevelMixin {
+ 
+-    // @era:light-hook-begin color
+-    @Inject(method = "getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
++    // @era:light-hook-begin brightness
++    @Inject(method = "getLightColor(Lnet/minecraft/client/renderer/LevelRenderer$BrightnessGetter;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
+             at = @At("RETURN"), cancellable = true, require = 0)
+-    private static void aetherium$light(final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
++    private static void aetherium$light(final LevelRenderer.BrightnessGetter getter,
++                                        final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
+                                         final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
+         adjust(pos, cir);
+     }
+-    // @era:light-hook-else brightness
+-    //~ @Inject(method = "getLightColor(Lnet/minecraft/client/renderer/LevelRenderer$BrightnessGetter;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
++    // @era:light-hook-else color
++    //~ @Inject(method = "getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
+             //~ at = @At("RETURN"), cancellable = true, require = 0)
+-    //~ private static void aetherium$light(final LevelRenderer.BrightnessGetter getter,
+-                                        //~ final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
++    //~ private static void aetherium$light(final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
+                                         //~ final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
+         //~ adjust(pos, cir);
+     //~ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
+index dd489bc..090bb2c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
+@@ -13,18 +13,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  * changes almost every version, so every candidate name is listed with
+  * require = 0 and a CallbackInfo-only handler (valid for any descriptor).
+  */
+-// @era:weather-begin level
+-@Mixin(net.minecraft.client.renderer.LevelRenderer.class)
+-// @era:weather-else effect
+-//~ @Mixin(net.minecraft.client.renderer.WeatherEffectRenderer.class)
++// @era:weather-begin effect
++@Mixin(net.minecraft.client.renderer.WeatherEffectRenderer.class)
++// @era:weather-else level
++//~ @Mixin(net.minecraft.client.renderer.LevelRenderer.class)
+ // @era:weather-end
+ public abstract class WeatherMixin {
+ 
+-    // @era:weather-begin level
+-    @Inject(method = {"renderSnowAndRain", "tickRain"}, at = @At("HEAD"), cancellable = true, require = 0)
+-    // @era:weather-else effect
+-    //~ @Inject(method = {"render", "extractRenderState", "prepare", "renderOit", "tickRainParticles"},
+-            //~ at = @At("HEAD"), cancellable = true, require = 0)
++    // @era:weather-begin effect
++    @Inject(method = {"render", "extractRenderState", "prepare", "renderOit", "tickRainParticles"},
++            at = @At("HEAD"), cancellable = true, require = 0)
++    // @era:weather-else level
++    //~ @Inject(method = {"renderSnowAndRain", "tickRain"}, at = @At("HEAD"), cancellable = true, require = 0)
+     // @era:weather-end
+     private void aetherium$hideWeather(final CallbackInfo ci) {
+         if (ClientHooks.hideWeather()) {
 diff --git a/gradle.properties b/gradle.properties
-index 2a01fa4..0889aa9 100644
+index 396e7c3..791deb4 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@ org.gradle.daemon=true

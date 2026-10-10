@@ -92,7 +92,7 @@ def _deactivate(lines):
     out = []
     for line in lines:
         if not line.strip():
-            out.append(line)
+            out.append("")  # never leave trailing whitespace in a ported tree
             continue
         indent = len(line) - len(line.lstrip())
         out.append(line[:indent] + "//~ " + line[indent:])

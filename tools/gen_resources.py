@@ -11,7 +11,7 @@ in the GUI/lang/schema:
     under a widget is translated.
   * ``CONFIG_SCHEMA.json`` — JSON Schema (draft 2020-12) for ``<game>/aetherium.json``,
     with the group/option tree, defaults, ranges and descriptions.
-  * purple PNG textures (icon, panel, glow, slider track) — generated with zlib so
+  * the mod icon PNG — generated with zlib so
     the repository contains no binary blobs to hand-maintain and a re-skin is a diff
     in ``VIOLET``/``panel_pixel`` below rather than an image editor session.
 
@@ -369,9 +369,6 @@ def write_textures() -> list[str]:
     written: list[str] = []
     targets = [
         (ICON_PATH, 64, icon_pixel),
-        (os.path.join(GUI_TEXTURE_DIR, "panel_purple.png"), 16, panel_pixel),
-        (os.path.join(GUI_TEXTURE_DIR, "glow_violet.png"), 32, glow_pixel),
-        (os.path.join(GUI_TEXTURE_DIR, "slider_track.png"), 64, track_pixel),
     ]
     for path, size, pixel in targets:
         write_png(path, size, size, lambda x, y, p=pixel, s=size: p(x, y, s))
@@ -403,9 +400,11 @@ def main() -> int:
     if not os.path.exists(CONFIG_JAVA):
         print(f"missing {CONFIG_JAVA}", file=sys.stderr)
         return 2
-    options = parse_options(open(CONFIG_JAVA, encoding="utf-8").read())
-    if len(options) < 40:
-        print(f"only parsed {len(options)} config options; the parser and AetheriumConfig "
+    config_text = open(CONFIG_JAVA, encoding="utf-8").read()
+    options = parse_options(config_text)
+    declared = len(re.findall(r"public final ConfigValue<", config_text))
+    if len(options) != declared:
+        print(f"parsed {len(options)} of {declared} config options; the parser and AetheriumConfig "
               f"have drifted apart - fix this generator before trusting its output", file=sys.stderr)
         return 2
     en, pt = build_lang(options)

@@ -17,1255 +17,1106 @@ index 004733e..fcb3d2d 100644
  }
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
-diff --git a/common/src/main/java/com/aetherium/gui/AetheriumAnimations.java b/common/src/main/java/com/aetherium/gui/AetheriumAnimations.java
-index 827c04e..7ca3daf 100644
---- a/common/src/main/java/com/aetherium/gui/AetheriumAnimations.java
-+++ b/common/src/main/java/com/aetherium/gui/AetheriumAnimations.java
-@@ -4,7 +4,7 @@ import java.util.ArrayList;
+diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
+index 73ba518..40e751c 100644
+--- a/common/src/main/java/com/aetherium/Capabilities.java
++++ b/common/src/main/java/com/aetherium/Capabilities.java
+@@ -37,10 +37,10 @@ public final class Capabilities {
+     // @era:hud-end
+ 
+     /** Gamma lives in an {@code OptionInstance}, so fullbright is a read override, not a write. */
+-    // @era:options-begin instances
+-    public static final boolean GAMMA_INSTANCE = true;
+-    // @era:options-else fields
+-    //~ public static final boolean GAMMA_INSTANCE = false;
++    // @era:options-begin fields
++    public static final boolean GAMMA_INSTANCE = false;
++    // @era:options-else instances
++    //~ public static final boolean GAMMA_INSTANCE = true;
+     // @era:options-end
+ 
+     /** Vanilla has a separate simulation distance (1.18+). */
+diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
+index 41f2572..8a20e55 100644
+--- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
++++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
+@@ -8,10 +8,10 @@ import com.aetherium.util.AetheriumLog;
+ 
  import java.util.List;
  
- import com.aetherium.util.MathUtil;
+-// @era:gui-begin graphics
 -import net.minecraft.client.gui.GuiGraphics;
+-// @era:gui-else stack
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
++// @era:gui-begin stack
 +import com.mojang.blaze3d.vertex.PoseStack;
++// @era:gui-else graphics
++//~ import net.minecraft.client.gui.GuiGraphics;
+ // @era:gui-else extractor
+ //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
+ // @era:gui-end
+@@ -67,18 +67,18 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
  
- /**
-  * Motion for the purple GUI: per-widget animated values, the morphing screen
-@@ -305,7 +305,7 @@ public final class AetheriumAnimations {
-     }
+     // ------------------------------------------------------------------ rendering
  
-     /** Draws the particles. Called after content so sparks sit on top of the panel. */
--    public void drawParticles(final GuiGraphics guiGraphics) {
-+    public void drawParticles(final PoseStack poseStack) {
-         for (final Particle particle : this.particles) {
-             if (!particle.alive) {
-                 continue;
-@@ -316,11 +316,11 @@ public final class AetheriumAnimations {
-             final int y = Math.round(particle.y);
-             final int size = Math.max(1, Math.round(particle.size * (0.5f + life)));
-             final int color = (alpha << 24) | (particle.color & 0xFFFFFF);
--            guiGraphics.fill(x, y, x + size, y + size, color);
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y, x + size, y + size, color);
-             // Halo: one pixel of halo on each side at a quarter alpha, which is what
-             // makes it read as a glow rather than as a stray dot.
--            guiGraphics.fill(x - 1, y, x, y + size, (alpha / 4 << 24) | (particle.color & 0xFFFFFF));
--            guiGraphics.fill(x + size, y, x + size + 1, y + size, (alpha / 4 << 24) | (particle.color & 0xFFFFFF));
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x - 1, y, x, y + size, (alpha / 4 << 24) | (particle.color & 0xFFFFFF));
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x + size, y, x + size + 1, y + size, (alpha / 4 << 24) | (particle.color & 0xFFFFFF));
-         }
-     }
- 
-diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
-index 14f9ff6..9851822 100644
---- a/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
-+++ b/common/src/main/java/com/aetherium/gui/AetheriumTabs.java
-@@ -16,9 +16,11 @@ import com.aetherium.render.gl.GlDevice;
- import com.aetherium.render.mesh.ChunkMeshScheduler;
- import com.aetherium.util.MathUtil;
- import net.minecraft.client.Minecraft;
--import net.minecraft.client.gui.GuiGraphics;
-+import com.mojang.blaze3d.vertex.PoseStack;
- import net.minecraft.client.gui.components.AbstractWidget;
- import net.minecraft.network.chat.Component;
-+import net.minecraft.network.chat.TextComponent;
-+import net.minecraft.network.chat.TranslatableComponent;
- 
- /**
-  * The seven sidebar tabs, built from the live config object.
-@@ -497,7 +499,7 @@ public final class AetheriumTabs {
-                                           final String format, final java.util.function.DoubleSupplier getter,
-                                           final java.util.function.DoubleConsumer setter, final Runnable afterChange,
-                                           final int x, final int y) {
--        return new AetheriumWidgets.SliderWidget(theme, x, y, 300, theme.rowHeight(), Component.translatable(labelKey).getString(),
-+        return new AetheriumWidgets.SliderWidget(theme, x, y, 300, theme.rowHeight(), new TranslatableComponent(labelKey).getString(),
-                 min, max, getter, value -> {
-                     setter.accept(value);
-                     afterChange.run();
-@@ -509,7 +511,7 @@ public final class AetheriumTabs {
-                                          final AetheriumWidgets.CycleWidget.IntConsumer setter, final Runnable afterChange,
-                                          final int x, final int y) {
-         return new AetheriumWidgets.CycleWidget(theme, x, y, 300, theme.rowHeight(),
--                Component.translatable(labelKey).getString(), values, () -> {
-+                new TranslatableComponent(labelKey).getString(), values, () -> {
-                     final int raw = getter.get();
-                     return raw < 0 ? 0 : raw;
-                 }, value -> {
-@@ -521,7 +523,7 @@ public final class AetheriumTabs {
-     private static AbstractWidget action(final AetheriumTheme theme, final String labelKey, final int x, final int y,
-                                           final int width, final Runnable action, final int accent) {
-         return new AetheriumWidgets.ActionWidget(theme, x, y, width, theme.rowHeight() - 2,
--                Component.translatable(labelKey), action, () -> true, accent);
-+                new TranslatableComponent(labelKey), action, () -> true, accent);
-     }
- 
-     private static String backendSummary() {
-@@ -575,24 +577,23 @@ public final class AetheriumTabs {
-         private final String key;
- 
-         HeaderWidget(final AetheriumTheme theme, final int x, final int y, final String key) {
--            super(x, y, 300, 12, Component.translatable(key));
-+            super(x, y, 300, 12, new TranslatableComponent(key));
-             this.theme = theme;
-             this.key = key;
-         }
- 
-         @Override
--        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
-+        public void renderButton(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-             final Minecraft minecraft = Minecraft.getInstance();
-             if (minecraft != null && minecraft.font != null) {
--                guiGraphics.drawString(minecraft.font, Component.translatable(this.key)
--                        .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), this.getX(), this.getY(),
--                        AetheriumTheme.ACCENT, false);
-+                minecraft.font.draw(poseStack, new TranslatableComponent(this.key)
-+                        .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), this.x, this.y, AetheriumTheme.ACCENT);
-             }
--            guiGraphics.fill(this.getX(), this.getY() + 11, this.getX() + this.getWidth(), this.getY() + 12, AetheriumTheme.BORDER);
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, this.x, this.y + 11, this.x + this.getWidth(), this.y + 12, AetheriumTheme.BORDER);
-         }
- 
-         @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-+        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-             this.defaultButtonNarrationText(output);
-         }
-     }
-@@ -603,18 +604,18 @@ public final class AetheriumTabs {
-         private final String text;
- 
-         NoteWidget(final AetheriumTheme theme, final int x, final int y, final String text) {
--            super(x, y, 300, 10, Component.literal(text));
-+            super(x, y, 300, 10, new TextComponent(text));
-             this.theme = theme;
-             this.text = text;
-         }
- 
-         @Override
--        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
--            this.theme.drawLabel(guiGraphics, this.text, this.getX(), this.getY(), AetheriumTheme.TEXT_DIM);
-+        public void renderButton(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-+            this.theme.drawLabel(poseStack, this.text, this.x, this.y, AetheriumTheme.TEXT_DIM);
-         }
- 
-         @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-+        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-             this.defaultButtonNarrationText(output);
-         }
-     }
-diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
-index ed450a1..c1d19b6 100644
---- a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
-+++ b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
-@@ -5,7 +5,7 @@ import java.util.Objects;
- import com.aetherium.util.MathUtil;
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.gui.Font;
--import net.minecraft.client.gui.GuiGraphics;
-+import com.mojang.blaze3d.vertex.PoseStack;
- import net.minecraft.resources.ResourceLocation;
- 
- /**
-@@ -16,7 +16,7 @@ import net.minecraft.resources.ResourceLocation;
-  * the GUI and every widget asks this class instead of holding a constant. A
-  * reviewer can therefore check the whole theme in one file.</p>
-  *
-- * <p>All drawing is done with {@link GuiGraphics#fill(int,int,int,int,int)} plus a
-+ * <p>All drawing is done with {@link PoseStack#fill(int,int,int,int,int)} plus a
-  * corner-suppression loop rather than a textured 9-slice: it works on every version
-  * from 1.18 to 26.x, needs no atlas registration, and costs ~14 fill calls per
-  * panel — measurably nothing next to a chunk rebuild.</p>
-@@ -53,10 +53,10 @@ public final class AetheriumTheme {
-     public static final int CORNER_RADIUS = 3;
-     public static final int MILLISECONDS_PER_ANIMATION = 260;
- 
--    public static final ResourceLocation TEXTURE_PANEL = ResourceLocation.parse("aetherium:textures/gui/panel_purple.png");
--    public static final ResourceLocation TEXTURE_GLOW = ResourceLocation.parse("aetherium:textures/gui/glow_violet.png");
--    public static final ResourceLocation TEXTURE_SLIDER = ResourceLocation.parse("aetherium:textures/gui/slider_track.png");
--    public static final ResourceLocation TEXTURE_LOGO = ResourceLocation.parse("aetherium:textures/gui/aetherium_logo.png");
-+    public static final ResourceLocation TEXTURE_PANEL = new ResourceLocation("aetherium:textures/gui/panel_purple.png");
-+    public static final ResourceLocation TEXTURE_GLOW = new ResourceLocation("aetherium:textures/gui/glow_violet.png");
-+    public static final ResourceLocation TEXTURE_SLIDER = new ResourceLocation("aetherium:textures/gui/slider_track.png");
-+    public static final ResourceLocation TEXTURE_LOGO = new ResourceLocation("aetherium:textures/gui/aetherium_logo.png");
- 
-     /** Desktop layout is 1.0; touch mode widens hit targets and spacing. */
-     private final boolean touchMode;
-@@ -103,19 +103,19 @@ public final class AetheriumTheme {
-     // ------------------------------------------------------------------- drawing
- 
-     /** Fills a rounded rectangle by insetting the corner pixels of each row. */
--    public void fillRounded(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height, final int color) {
-+    public void fillRounded(final PoseStack poseStack, final int x, final int y, final int width, final int height, final int color) {
-         if (width <= 0 || height <= 0) {
-             return;
-         }
-         final int radius = Math.min(this.cornerRadius(), Math.min(width / 2, height / 2));
-         if (radius <= 0) {
--            guiGraphics.fill(x, y, x + width, y + height, color);
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y, x + width, y + height, color);
-             return;
-         }
-         // Rows that touch a corner are shortened; the middle rows are full width.
-         for (int row = 0; row < height; row++) {
-             final int inset = cornerInset(row, height, radius);
--            guiGraphics.fill(x + inset, y + row, x + width - inset, y + row + 1, color);
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x + inset, y + row, x + width - inset, y + row + 1, color);
-         }
-     }
- 
-@@ -129,57 +129,57 @@ public final class AetheriumTheme {
-         return Math.round(radius * (1.0f - (float) Math.sqrt(Math.max(0.0f, 1.0f - t * t))));
-     }
- 
--    public void drawPanel(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height) {
-+    public void drawPanel(final PoseStack poseStack, final int x, final int y, final int width, final int height) {
-         // Outer glow first, so the panel edge reads as a light source rather than a
-         // border: 3 expanding halos at decreasing alpha.
-         for (int i = 3; i >= 1; i--) {
-             final int alpha = 0x14 * i;
--            guiGraphics.fill(x - i, y - i, x + width + i, y + height + i, (alpha << 24) | (ACCENT & 0xFFFFFF));
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x - i, y - i, x + width + i, y + height + i, (alpha << 24) | (ACCENT & 0xFFFFFF));
-         }
--        fillRounded(guiGraphics, x, y, width, height, PANEL);
--        outlineRounded(guiGraphics, x, y, width, height, BORDER);
-+        fillRounded(poseStack, x, y, width, height, PANEL);
-+        outlineRounded(poseStack, x, y, width, height, BORDER);
-     }
- 
--    public void outlineRounded(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height, final int color) {
-+    public void outlineRounded(final PoseStack poseStack, final int x, final int y, final int width, final int height, final int color) {
-         final int radius = Math.min(this.cornerRadius(), Math.min(width / 2, height / 2));
-         for (int row = 0; row < height; row++) {
-             final int inset = cornerInset(row, height, radius);
-             if (inset > 0) {
--                guiGraphics.fill(x + inset, y + row, x + inset + 1, y + row + 1, color);
--                guiGraphics.fill(x + width - inset - 1, y + row, x + width - inset, y + row + 1, color);
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, x + inset, y + row, x + inset + 1, y + row + 1, color);
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, x + width - inset - 1, y + row, x + width - inset, y + row + 1, color);
-             } else if (row == 0 || row == height - 1) {
--                guiGraphics.fill(x + radius, y + row, x + width - radius, y + row + 1, color);
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, x + radius, y + row, x + width - radius, y + row + 1, color);
-             } else {
--                guiGraphics.fill(x, y + row, x + 1, y + row + 1, color);
--                guiGraphics.fill(x + width - 1, y + row, x + width, y + row + 1, color);
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y + row, x + 1, y + row + 1, color);
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, x + width - 1, y + row, x + width, y + row + 1, color);
-             }
-         }
-     }
- 
-     /** Hover glow: a two-pixel violet frame plus a soft inner wash. */
--    public void drawHoverGlow(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height, final float strength) {
-+    public void drawHoverGlow(final PoseStack poseStack, final int x, final int y, final int width, final int height, final float strength) {
-         final float amount = MathUtil.clamp(strength, 0.0f, 1.0f);
-         if (amount <= 0.01f) {
-             return;
-         }
-         final int blended = blendColors(BORDER, BORDER_HOVER, amount);
--        outlineRounded(guiGraphics, x, y, width, height, blended);
-+        outlineRounded(poseStack, x, y, width, height, blended);
-         final int washAlpha = (int) (0x26 * amount);
--        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, (washAlpha << 24) | (ACCENT & 0xFFFFFF));
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x + 1, y + 1, x + width - 1, y + height - 1, (washAlpha << 24) | (ACCENT & 0xFFFFFF));
-     }
- 
-     /** A violet bar whose alpha falls off, used under the active sidebar entry. */
--    public void drawActiveUnderline(final GuiGraphics guiGraphics, final int x, final int y, final int width, final float progress) {
-+    public void drawActiveUnderline(final PoseStack poseStack, final int x, final int y, final int width, final float progress) {
-         final int filled = (int) Math.round(width * MathUtil.clamp(progress, 0.0f, 1.0f));
--        guiGraphics.fill(x, y, x + filled, y + 2, ACCENT);
--        guiGraphics.fill(x, y + 2, x + (int) (filled * 0.7), y + 3, ACCENT_SOFT);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y, x + filled, y + 2, ACCENT);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y + 2, x + (int) (filled * 0.7), y + 3, ACCENT_SOFT);
-     }
- 
--    public void drawGradientBar(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height,
-+    public void drawGradientBar(final PoseStack poseStack, final int x, final int y, final int width, final int height,
-                                 final int leftColor, final int rightColor) {
-         for (int column = 0; column < width; column++) {
-             final float t = width <= 1 ? 0.0f : column / (float) (width - 1);
--            guiGraphics.fill(x + column, y, x + column + 1, y + height, blendColors(leftColor, rightColor, t));
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x + column, y, x + column + 1, y + height, blendColors(leftColor, rightColor, t));
-         }
-     }
- 
-@@ -193,16 +193,14 @@ public final class AetheriumTheme {
-     }
- 
-     /** Text with a 1 px dark drop shadow, which is what keeps labels readable on violet. */
--    public void drawLabel(final GuiGraphics guiGraphics, final String text, final int x, final int y, final int color) {
-+    public void drawLabel(final PoseStack poseStack, final String text, final int x, final int y, final int color) {
-         final Minecraft minecraft = Minecraft.getInstance();
-         final Font font = minecraft == null ? null : minecraft.font;
-         if (font == null) {
-             return;
-         }
--        guiGraphics.drawString(font, net.minecraft.network.chat.Component.literal(text).withStyle(style -> style.withColor(color & 0xFFFFFF)),
--                x, y + 1, 0x80000000 | (color & 0xFFFFFF), false);
--        guiGraphics.drawString(font, net.minecraft.network.chat.Component.literal(text).withStyle(style -> style.withColor(color & 0xFFFFFF)),
--                x, y, color, false);
-+        font.draw(poseStack, new net.minecraft.network.chat.TextComponent(text).withStyle(style -> style.withColor(color & 0xFFFFFF)), x, y + 1, 0x80000000 | (color & 0xFFFFFF));
-+        font.draw(poseStack, new net.minecraft.network.chat.TextComponent(text).withStyle(style -> style.withColor(color & 0xFFFFFF)), x, y, color);
-     }
- 
-     public int labelWidth(final String text) {
-@@ -212,15 +210,15 @@ public final class AetheriumTheme {
-     }
- 
-     /** The logo strip across the top of the screen; text-only when the texture is absent. */
--    public void drawBrand(final GuiGraphics guiGraphics, final int x, final int y, final int width) {
--        Objects.requireNonNull(guiGraphics, "guiGraphics");
--        drawGradientBar(guiGraphics, x, y, width, 1, ACCENT_DEEP, ACCENT);
-+    public void drawBrand(final PoseStack poseStack, final int x, final int y, final int width) {
-+        Objects.requireNonNull(poseStack, "poseStack");
-+        drawGradientBar(poseStack, x, y, width, 1, ACCENT_DEEP, ACCENT);
-         final String title = "A E T H E R I U M";
-         final Minecraft minecraft = Minecraft.getInstance();
-         final Font font = minecraft == null ? null : minecraft.font;
-         if (font != null) {
--            guiGraphics.drawCenteredString(font, net.minecraft.network.chat.Component.literal(title)
--                    .withStyle(style -> style.withColor(ACCENT & 0xFFFFFF)), x + width / 2, y + 4, TEXT);
-+            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, new net.minecraft.network.chat.TextComponent(title)
-+                    .withStyle(style -> style.withColor(ACCENT & 0xFFFFFF)).getString(), x + width / 2, y + 4, TEXT);
-         }
-     }
- 
-diff --git a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-index 62fcbd8..e0ccba0 100644
---- a/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-+++ b/common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java
-@@ -8,10 +8,12 @@ import com.aetherium.Aetherium;
- import com.aetherium.gui.widget.AetheriumWidgets;
- import com.aetherium.util.MathUtil;
- import net.minecraft.client.Minecraft;
--import net.minecraft.client.gui.GuiGraphics;
-+import com.mojang.blaze3d.vertex.PoseStack;
- import net.minecraft.client.gui.components.AbstractWidget;
- import net.minecraft.client.gui.screens.Screen;
- import net.minecraft.network.chat.Component;
-+import net.minecraft.network.chat.TextComponent;
-+import net.minecraft.network.chat.TranslatableComponent;
- 
- /**
-  * Aetherium's video options screen — the mod's whole UI surface in one class.
-@@ -39,14 +41,14 @@ import net.minecraft.network.chat.Component;
-  * turns all of it off — accessibility is not a nice-to-have.</p>
-  *
-  * <h2>Version porting</h2>
-- * <p>The vanilla signatures used here are the 1.21.1 ones: {@code render(GuiGraphics,int,int,float)},
-- * {@code renderBackground(GuiGraphics,int,int,float)}, {@code keyPressed(int,int,int)->boolean},
-+ * <p>The vanilla signatures used here are the 1.21.1 ones: {@code render(PoseStack,int,int,float)},
-+ * {@code renderBackground(PoseStack,int,int,float)}, {@code keyPressed(int,int,int)->boolean},
-  * {@code onClose()->void}. None of the mouse handlers are overridden on this screen -
-  * input reaches the {@code AbstractWidget} rows - so the two shapes that actually
-- * moved in the range ({@code GuiGraphics} arrives at 1.20, {@code renderBackground}
-+ * moved in the range ({@code PoseStack} arrives at 1.20, {@code renderBackground}
-  * gains its cursor arguments between 1.20.1 and 1.20.6) are the only ones the delta
-  * patches rewrite here. {@code mouseScrolled} did change arity at 1.20.2 (it gained a
-- * horizontal-scroll double) and {@code updateWidgetNarration} was
-+ * horizontal-scroll double) and {@code updateNarration} was
-  * {@code updateNarration} before 1.21; both are facts in {@code tools/porting_pins.json}
-  * and are rewritten in the widget classes, not here.</p>
-  */
-@@ -78,7 +80,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-     private int mouseY;
- 
-     private AetheriumVideoOptionsScreen(final Screen parent) {
--        super(Component.translatable("aetherium.screen.title"));
-+        super(new TranslatableComponent("aetherium.screen.title"));
-         this.parent = parent;
-         this.theme = AetheriumTheme.forCurrentConfig();
-         this.tabs = AetheriumTabs.visibleTabs();
-@@ -187,12 +189,12 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-     }
- 
-     // [UNVERIFIED: the 1.21.1 override set beyond the ones read from Iris's own screens -
--    // render(GuiGraphics,int,int,float) and renderBackground(GuiGraphics,int,int,float) are
-+    // render(PoseStack,int,int,float) and renderBackground(PoseStack,int,int,float) are
-     // both verified (Iris @ 1.21.1 FeatureMissingErrorScreen); keyPressed/onClose are stable
-     // across the whole range. A mismatch on a ported row is a compile error, which is the
-     // loud kind we want.]
+-    // @era:gui-begin graphics
++    // @era:gui-begin stack
      @Override
--    public void render(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
-+    public void render(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-         this.mouseX = mouseX;
-         this.mouseY = mouseY;
-         this.animations.beginFrame();
-@@ -207,29 +209,29 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-         // single-argument form (same file, those branches). The exact 1.20.2-1.20.5 boundary is
-         // recorded per row in tools/porting_pins.json (render_background_arity), and the delta
-         // rewrites this call for the rows that predate it.
--        this.renderBackground(guiGraphics, mouseX, mouseY, delta);
--        drawChrome(guiGraphics);
-+        this.renderBackground(poseStack);
-+        drawChrome(poseStack);
- 
-         final int contentX = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
-         final int offsetX = (int) this.animations.getContentOffsetX();
-         layoutRows();
--        // GuiGraphics#enableScissor takes CORNERS (x1, y1, x2, y2), not (x, y, width, height):
-+        // PoseStack#enableScissor takes CORNERS (x1, y1, x2, y2), not (x, y, width, height):
-         // the previous call passed width/height in the x2/y2 slots, which on a wide window puts
-         // x2 < x1 and the scissor clips the whole content list to nothing.
--        guiGraphics.enableScissor(contentX - 4, CONTENT_TOP, contentX + this.contentWidth + 4,
--                CONTENT_TOP + this.contentHeight);
-+        org.lwjgl.opengl.GL11.glEnable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);
-+        org.lwjgl.opengl.GL11.glScissor(contentX - 4, CONTENT_TOP, this.contentWidth + 8, this.contentHeight);;
-         for (final AbstractWidget row : this.content) {
-             final float reveal = MathUtil.easeOutCubic(MathUtil.clamp(
-                     this.animations.getOpenProgress() * this.content.size() - this.content.indexOf(row), 0.0f, 1.0f));
-             if (reveal <= 0.01f) {
-                 continue;
-             }
--            row.render(guiGraphics, mouseX + offsetX, mouseY, delta);
-+            row.render(poseStack, mouseX + offsetX, mouseY, delta);
-         }
--        guiGraphics.disableScissor();
-+        org.lwjgl.opengl.GL11.glDisable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);
- 
--        this.animations.drawParticles(guiGraphics);
--        drawFooter(guiGraphics);
-+        this.animations.drawParticles(poseStack);
-+        drawFooter(poseStack);
-     }
- 
-     /**
-@@ -240,8 +242,8 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-     private void layoutRows() {
-         int y = CONTENT_TOP + this.theme.dp(8) - (int) this.list.getScroll();
-         for (final AbstractWidget row : this.content) {
--            row.setX(this.theme.sidebarWidth() + this.theme.dp(8) * 2);
--            row.setY(y);
-+            row.x = this.theme.sidebarWidth() + this.theme.dp(8) * 2;
-+            row.y = y;
-             if (row.getWidth() > this.contentWidth) {
-                 row.setWidth(this.contentWidth);
-             }
-@@ -249,27 +251,25 @@ public final class AetheriumVideoOptionsScreen extends Screen {
+-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
++    public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
+         if (this.view != null) {
+-            this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
++            this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
          }
      }
+-    // @era:gui-else stack
++    // @era:gui-else graphics
+     //~ @Override
+-    //~ public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
++    //~ public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
+         //~ if (this.view != null) {
+-            //~ this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
++            //~ this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
+         //~ }
+     //~ }
+     // @era:gui-else extractor
+@@ -92,11 +92,11 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+     // @era:gui-end
  
--    private void drawChrome(final GuiGraphics guiGraphics) {
-+    private void drawChrome(final PoseStack poseStack) {
-         final int sidebarWidth = this.theme.sidebarWidth();
--        guiGraphics.fill(0, 0, sidebarWidth + this.theme.dp(6), this.height, 0x66120819);
--        this.theme.drawBrand(guiGraphics, sidebarWidth + this.theme.dp(10), 8, this.width - sidebarWidth - this.theme.dp(20));
--        this.theme.drawActiveUnderline(guiGraphics, this.theme.dp(8),
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, 0, 0, sidebarWidth + this.theme.dp(6), this.height, 0x66120819);
-+        this.theme.drawBrand(poseStack, sidebarWidth + this.theme.dp(10), 8, this.width - sidebarWidth - this.theme.dp(20));
-+        this.theme.drawActiveUnderline(poseStack, this.theme.dp(8),
-                 CONTENT_TOP + this.tabIndex * (this.theme.rowHeight() + 4) - 2, sidebarWidth, 1.0f);
+     // The view paints an opaque background, so vanilla's (a blur pass on 1.21+) is skipped.
+-    // @era:background-begin render
+-    @Override
+-    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
+-    }
+-    // @era:background-else none
++    // @era:background-begin none
++    // @era:background-else render
++    //~ @Override
++    //~ public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
++    //~ }
+     // @era:background-else extract
+     //~ @Override
+     //~ public void extractBackground(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
+@@ -155,17 +155,17 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+     //~ }
+     // @era:input-end
+ 
+-    // @era:scroll-begin four
++    // @era:scroll-begin three
+     @Override
+-    public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
+-        return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
+-                || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
++    public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
++        return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
++                || super.mouseScrolled(mouseX, mouseY, amount);
+     }
+-    // @era:scroll-else three
++    // @era:scroll-else four
+     //~ @Override
+-    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
+-        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
+-                //~ || super.mouseScrolled(mouseX, mouseY, amount);
++    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
++        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
++                //~ || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+     //~ }
+     // @era:scroll-end
+ 
+diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
+index 6e31c46..aa0a28b 100644
+--- a/common/src/main/java/com/aetherium/client/ClientHooks.java
++++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
+@@ -276,10 +276,10 @@ public final class ClientHooks {
+     /** Opens vanilla's own video screen on top of ours (escape hatch). */
+     public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
+         bypassVideoScreen = true;
+-        // @era:screen-pkg-begin options
+-        setScreen(mc, new net.minecraft.client.gui.screens.options.VideoSettingsScreen(parent, mc, mc.options));
+-        // @era:screen-pkg-else flat
+-        //~ setScreen(mc, new net.minecraft.client.gui.screens.VideoSettingsScreen(parent, mc.options));
++        // @era:screen-pkg-begin flat
++        setScreen(mc, new net.minecraft.client.gui.screens.VideoSettingsScreen(parent, mc.options));
++        // @era:screen-pkg-else options
++        //~ setScreen(mc, new net.minecraft.client.gui.screens.options.VideoSettingsScreen(parent, mc, mc.options));
+         // @era:screen-pkg-end
+         bypassVideoScreen = false;
+     }
+@@ -317,10 +317,10 @@ public final class ClientHooks {
      }
  
--    private void drawFooter(final GuiGraphics guiGraphics) {
-+    private void drawFooter(final PoseStack poseStack) {
-         final int y = this.height - FOOTER_HEIGHT + 4;
--        guiGraphics.fill(0, y - 5, this.width, y + FOOTER_HEIGHT, 0x66120819);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, 0, y - 5, this.width, y + FOOTER_HEIGHT, 0x66120819);
-         final String status = this.statusLine;
-         if (!status.isEmpty() && this.font != null) {
-             final boolean fresh = System.nanoTime() < this.statusUntil;
--            guiGraphics.drawString(this.font, Component.literal(status), this.theme.dp(10), y,
--                    fresh ? AetheriumTheme.TEXT_DIM : AetheriumTheme.TEXT_DISABLED, false);
-+            this.font.draw(poseStack, new TextComponent(status), this.theme.dp(10), y, fresh ? AetheriumTheme.TEXT_DIM : AetheriumTheme.TEXT_DISABLED);
-         }
-         if (this.animations.isTransitioning()) {
--            guiGraphics.drawString(this.font, Component.literal("morph: " + this.animations.getPhase().name()
--                    + " (" + this.animations.getActiveParticleCount() + " sparks)"),
--                    this.width - 220, y, AetheriumTheme.TEXT_DISABLED, false);
-+            this.font.draw(poseStack, new TextComponent("morph: " + this.animations.getPhase().name()
-+                    + " (" + this.animations.getActiveParticleCount() + " sparks)"), this.width - 220, y, AetheriumTheme.TEXT_DISABLED);
-         }
-     }
- 
-@@ -282,7 +282,7 @@ public final class AetheriumVideoOptionsScreen extends Screen {
- 
-         SidebarEntry(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
-                      final AetheriumTabs.Tab tab, final boolean activeTab, final Runnable onSelect) {
--            super(theme, x, y, width, height, Component.translatable(tab.labelKey()));
-+            super(theme, x, y, width, height, new TranslatableComponent(tab.labelKey()));
-             this.tab = tab;
-             this.activeTab = activeTab;
-             this.onSelect = onSelect;
-@@ -296,27 +296,27 @@ public final class AetheriumVideoOptionsScreen extends Screen {
-         }
- 
-         @Override
--        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
-+        public void renderButton(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-             this.glow.set(this.activeTab || isMouseOver(mouseX, mouseY) ? 1.0f : 0.0f);
-             this.glow.tick(AetheriumAnimations.suggestedDeltaSeconds());
-             final int surface = this.activeTab ? AetheriumTheme.PANEL_RAISED : 0x00000000;
-             if (surface != 0) {
--                this.theme.fillRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), surface);
-+                this.theme.fillRounded(poseStack, this.x, this.y, this.getWidth(), this.getHeight(), surface);
-             }
-             if (this.glow.get() > 0.02f) {
--                this.theme.drawHoverGlow(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), this.glow.get());
-+                this.theme.drawHoverGlow(poseStack, this.x, this.y, this.getWidth(), this.getHeight(), this.glow.get());
-             }
-             final String glyph = this.tab.glyph();
--            this.theme.drawLabel(guiGraphics, glyph + "  " + this.getMessage().getString(),
--                    this.getX() + 6, this.getY() + (this.getHeight() - 8) / 2,
-+            this.theme.drawLabel(poseStack, glyph + "  " + this.getMessage().getString(),
-+                    this.x + 6, this.y + (this.getHeight() - 8) / 2,
-                     this.activeTab ? AetheriumTheme.ACCENT : AetheriumTheme.TEXT_DIM);
-             if (this.activeTab) {
--                guiGraphics.fill(this.getX(), this.getY() + 2, this.getX() + 2, this.getY() + this.getHeight() - 2, AetheriumTheme.ACCENT);
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, this.x, this.y + 2, this.x + 2, this.y + this.getHeight() - 2, AetheriumTheme.ACCENT);
-             }
-         }
- 
-         @Override
--        public void updateWidgetNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-+        public void updateNarration(final net.minecraft.client.gui.narration.NarrationElementOutput output) {
-             this.defaultButtonNarrationText(output);
-         }
-     }
-diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-index 9aad1fb..fbcec27 100644
---- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-+++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-@@ -16,10 +16,12 @@ import com.aetherium.hud.FrameStats;
- import com.aetherium.util.MathUtil;
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.gui.Font;
--import net.minecraft.client.gui.GuiGraphics;
-+import com.mojang.blaze3d.vertex.PoseStack;
- import net.minecraft.client.gui.components.AbstractWidget;
- import net.minecraft.client.gui.narration.NarrationElementOutput;
- import net.minecraft.network.chat.Component;
-+import net.minecraft.network.chat.TextComponent;
-+import net.minecraft.network.chat.TranslatableComponent;
- 
- /**
-  * Every animated purple control in one file, as nested classes.
-@@ -27,8 +29,8 @@ import net.minecraft.network.chat.Component;
-  * <p>Nesting is a deliberate structural choice, not laziness: all six widgets share
-  * the same hover/glow/touch/animation contract, they are only ever constructed by
-  * {@code AetheriumTabs}, and keeping them together means a version delta that
-- * changes one vanilla signature (for example {@code renderWidget} -> {@code render}
-- * on 1.16.5, or {@code GuiGraphics} not existing before 1.18) is a patch to one
-+ * changes one vanilla signature (for example {@code renderButton} -> {@code render}
-+ * on 1.16.5, or {@code PoseStack} not existing before 1.18) is a patch to one
-  * file instead of six.</p>
-  *
-  * <p>Shared contract, implemented in {@link PurpleWidget}:</p>
-@@ -85,9 +87,9 @@ public final class AetheriumWidgets {
-         @Override
-         public boolean isMouseOver(final double mouseX, final double mouseY) {
-             final int inset = this.theme.hitTargetInset();
--            return mouseX >= this.getX() - inset && mouseY >= this.getY() - inset
--                    && mouseX < this.getX() + this.getWidth() + inset * 2
--                    && mouseY < this.getY() + this.getHeight() + inset * 2;
-+            return mouseX >= this.x - inset && mouseY >= this.y - inset
-+                    && mouseX < this.x + this.getWidth() + inset * 2
-+                    && mouseY < this.y + this.getHeight() + inset * 2;
-         }
- 
-         @Override
-@@ -109,19 +111,17 @@ public final class AetheriumWidgets {
-             }
-         }
- 
--        protected void drawSharedBackground(final GuiGraphics guiGraphics, final int mouseX, final int mouseY) {
-+        protected void drawSharedBackground(final PoseStack poseStack, final int mouseX, final int mouseY) {
-             final boolean hovered = isMouseOver(mouseX, mouseY);
-             this.hoverValue.set(hovered ? 1.0f : 0.0f);
--            this.theme.fillRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(),
-+            this.theme.fillRounded(poseStack, this.x, this.y, this.getWidth(), this.getHeight(),
-                     hovered ? AetheriumTheme.PANEL_RAISED : AetheriumTheme.PANEL_SUNKEN);
--            this.theme.drawHoverGlow(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(),
-+            this.theme.drawHoverGlow(poseStack, this.x, this.y, this.getWidth(), this.getHeight(),
-                     this.hoverValue.get());
-             final float press = this.pressValue.get();
-             if (press > 0.01f) {
-                 // A 2 px violet flash on press: the eye reads it as the button moving.
--                guiGraphics.fill(this.getX(), this.getY() + this.getHeight() - 2,
--                        this.getX() + this.getWidth(), this.getY() + this.getHeight(),
--                        (int) ((0x80 * (1.0f - press)) * 255) << 24 | (AetheriumTheme.ACCENT & 0xFFFFFF));
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, this.x, this.y + this.getHeight() - 2, this.x + this.getWidth(), this.y + this.getHeight(), (int) ((0x80 * (1.0f - press)) * 255) << 24 | (AetheriumTheme.ACCENT & 0xFFFFFF));
-             }
-         }
- 
-@@ -134,12 +134,12 @@ public final class AetheriumWidgets {
-          */
-         @Override
-         /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
-+         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
-          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
-+        public void updateNarration(final NarrationElementOutput output) {
-             this.defaultButtonNarrationText(output);
-         }
- 
-@@ -153,7 +153,7 @@ public final class AetheriumWidgets {
-         protected void updateMessage(final String label, final String value) {
-             final String wanted = value == null ? label : label + ": " + value;
-             if (!wanted.equals(this.getMessage().getString())) {
--                this.setMessage(Component.literal(wanted));
-+                this.setMessage(new TextComponent(wanted));
-             }
-         }
-     }
-@@ -168,7 +168,7 @@ public final class AetheriumWidgets {
- 
-         public ToggleWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
-                             final ConfigValue<Boolean> option, final Supplier<String> suffix, final Runnable afterChange) {
--            super(theme, x, y, width, height, Component.translatable(option.getTranslationKey()));
-+            super(theme, x, y, width, height, new TranslatableComponent(option.getTranslationKey()));
-             this.option = Objects.requireNonNull(option, "option");
-             this.suffix = suffix;
-             this.afterChange = afterChange;
-@@ -188,45 +188,44 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
-+        public void renderButton(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-             this.knob.tick(AetheriumAnimations.suggestedDeltaSeconds());
--            drawSharedBackground(guiGraphics, mouseX, mouseY);
-+            drawSharedBackground(poseStack, mouseX, mouseY);
- 
-             final Font font = fontOrNull();
-             this.label = this.getMessage().getString();
--            final int textX = this.getX() + 6;
--            final int textY = this.getY() + (this.getHeight() - (font == null ? 8 : font.lineHeight)) / 2;
--            this.theme.drawLabel(guiGraphics, this.label, textX, textY,
-+            final int textX = this.x + 6;
-+            final int textY = this.y + (this.getHeight() - (font == null ? 8 : font.lineHeight)) / 2;
-+            this.theme.drawLabel(poseStack, this.label, textX, textY,
-                     this.option.isDefault() ? AetheriumTheme.TEXT : AetheriumTheme.ACCENT);
- 
-             final int trackWidth = 26;
-             final int trackHeight = Math.min(12, this.getHeight() - 6);
--            final int trackX = this.getX() + this.getWidth() - trackWidth - 6;
--            final int trackY = this.getY() + (this.getHeight() - trackHeight) / 2;
--            this.theme.fillRounded(guiGraphics, trackX, trackY, trackWidth, trackHeight, AetheriumTheme.SLIDER_TRACK);
-+            final int trackX = this.x + this.getWidth() - trackWidth - 6;
-+            final int trackY = this.y + (this.getHeight() - trackHeight) / 2;
-+            this.theme.fillRounded(poseStack, trackX, trackY, trackWidth, trackHeight, AetheriumTheme.SLIDER_TRACK);
-             final int fillWidth = (int) Math.round((trackWidth - 2) * this.knob.get());
-             if (fillWidth > 0) {
--                this.theme.drawGradientBar(guiGraphics, trackX + 1, trackY + 1, fillWidth, trackHeight - 2,
-+                this.theme.drawGradientBar(poseStack, trackX + 1, trackY + 1, fillWidth, trackHeight - 2,
-                         AetheriumTheme.ACCENT_DEEP, AetheriumTheme.ACCENT);
-             }
-             final int knobSize = trackHeight - 2;
-             final int knobX = trackX + 1 + fillWidth - (knobSize + 1) / 2;
--            this.theme.fillRounded(guiGraphics, Math.max(trackX + 1, knobX), trackY + 1, knobSize, knobSize,
-+            this.theme.fillRounded(poseStack, Math.max(trackX + 1, knobX), trackY + 1, knobSize, knobSize,
-                     this.knob.get() > 0.5f ? AetheriumTheme.TEXT : AetheriumTheme.TEXT_DISABLED);
-             if (this.suffix != null) {
-                 final String extra = this.suffix.get();
-                 if (extra != null && !extra.isEmpty() && font != null) {
--                    guiGraphics.drawString(font, Component.literal(extra)
--                                    .withStyle(style -> style.withColor(AetheriumTheme.TEXT_DIM & 0xFFFFFF)),
--                            trackX - font.width(extra) - 8, textY, AetheriumTheme.TEXT_DIM, false);
-+                    font.draw(poseStack, new TextComponent(extra)
-+                                    .withStyle(style -> style.withColor(AetheriumTheme.TEXT_DIM & 0xFFFFFF)), trackX - font.width(extra) - 8, textY, AetheriumTheme.TEXT_DIM);
-                 }
-             }
-             if (this.isHoveredOrFocused()) {
-                 // Comment as an in-place subtitle instead of a tooltip: the vanilla
-                 // tooltip path needs Tooltip.create + setTooltip, whose signature moved
-                 // in 1.20.2, and a subtitle is more readable on a phone anyway.
--                this.theme.drawLabel(guiGraphics, this.option.getComment(), this.getX() + 6,
--                        this.getY() + this.getHeight() + 1, AetheriumTheme.TEXT_DISABLED);
-+                this.theme.drawLabel(poseStack, this.option.getComment(), this.x + 6,
-+                        this.y + this.getHeight() + 1, AetheriumTheme.TEXT_DISABLED);
-             }
-         }
-     }
-@@ -248,7 +247,7 @@ public final class AetheriumWidgets {
-         public SliderWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
-                             final String label, final double min, final double max, final DoubleSupplier getter,
-                             final DoubleConsumer setter, final String format, final Consumer<Double> onCommit) {
--            super(theme, x, y, width, height, Component.literal(label));
-+            super(theme, x, y, width, height, new TextComponent(label));
-             this.label = Objects.requireNonNull(label, "label");
-             this.min = min;
-             this.max = max;
-@@ -291,7 +290,7 @@ public final class AetheriumWidgets {
-         }
- 
-         private void applyFromMouse(final double mouseX) {
--            final double fraction = MathUtil.clamp((mouseX - this.getX() - 8) / (double) Math.max(1, this.getWidth() - 16), 0.0, 1.0);
-+            final double fraction = MathUtil.clamp((mouseX - this.x - 8) / (double) Math.max(1, this.getWidth() - 16), 0.0, 1.0);
-             final double raw = this.min + fraction * (this.max - this.min);
-             this.value = raw;
-             this.setter.accept(raw);
-@@ -309,44 +308,43 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
-+        public void renderButton(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-             if (!this.dragging) {
-                 this.value = this.getter.getAsDouble();
-                 this.thumb.set((float) normalized(this.value));
-             }
-             this.thumb.tick(AetheriumAnimations.suggestedDeltaSeconds());
--            drawSharedBackground(guiGraphics, mouseX, mouseY);
-+            drawSharedBackground(poseStack, mouseX, mouseY);
- 
--            final int trackX = this.getX() + 8;
-+            final int trackX = this.x + 8;
-             final int trackWidth = this.getWidth() - 16;
--            final int trackY = this.getY() + this.getHeight() - 9;
--            this.theme.fillRounded(guiGraphics, trackX, trackY, trackWidth, 4, AetheriumTheme.SLIDER_TRACK);
-+            final int trackY = this.y + this.getHeight() - 9;
-+            this.theme.fillRounded(poseStack, trackX, trackY, trackWidth, 4, AetheriumTheme.SLIDER_TRACK);
-             final int filled = (int) Math.round(trackWidth * this.thumb.get());
--            this.theme.drawGradientBar(guiGraphics, trackX, trackY, filled, 4, AetheriumTheme.ACCENT_DEEP, AetheriumTheme.ACCENT);
-+            this.theme.drawGradientBar(poseStack, trackX, trackY, filled, 4, AetheriumTheme.ACCENT_DEEP, AetheriumTheme.ACCENT);
-             final int thumbX = trackX + filled;
-             this.hoverPulse = isMouseOver(mouseX, mouseY) ? Math.min(1.0f, this.hoverPulse + 0.12f) : Math.max(0.0f, this.hoverPulse - 0.12f);
-             final int glow = 2 + (int) (this.hoverPulse * 2);
--            guiGraphics.fill(thumbX - glow, trackY - glow, thumbX + glow, trackY + 4 + glow, AetheriumTheme.ACCENT_SOFT);
--            this.theme.fillRounded(guiGraphics, thumbX - 2, trackY - 2, 4, 8, AetheriumTheme.TEXT);
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, thumbX - glow, trackY - glow, thumbX + glow, trackY + 4 + glow, AetheriumTheme.ACCENT_SOFT);
-+            this.theme.fillRounded(poseStack, thumbX - 2, trackY - 2, 4, 8, AetheriumTheme.TEXT);
- 
-             final String valueText = String.format(java.util.Locale.ROOT, this.format, this.value);
-             final Font font = fontOrNull();
-             if (font != null) {
--                guiGraphics.drawString(font, Component.literal(this.label), this.getX() + 6, this.getY() + 3, AetheriumTheme.TEXT, false);
-+                font.draw(poseStack, new TextComponent(this.label), this.x + 6, this.y + 3, AetheriumTheme.TEXT);
-                 final String right = valueText;
--                guiGraphics.drawString(font, Component.literal(right).withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)),
--                        this.getX() + this.getWidth() - 6 - font.width(right), this.getY() + 3, AetheriumTheme.ACCENT, false);
-+                font.draw(poseStack, new TextComponent(right).withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), this.x + this.getWidth() - 6 - font.width(right), this.y + 3, AetheriumTheme.ACCENT);
-             }
-         }
- 
-         @Override
-         /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
-+         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
-          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
-+        public void updateNarration(final NarrationElementOutput output) {
-             this.updateMessage(this.label, String.format(java.util.Locale.ROOT, this.format, this.value));
-             this.defaultButtonNarrationText(output);
-         }
-@@ -364,7 +362,7 @@ public final class AetheriumWidgets {
-         public CycleWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
-                            final String label, final String[] values, final Supplier<Integer> getIndex,
-                            final IntConsumer setIndex, final Runnable afterChange) {
--            super(theme, x, y, width, height, Component.literal(label));
-+            super(theme, x, y, width, height, new TextComponent(label));
-             this.label = label;
-             this.values = values == null || values.length == 0 ? new String[]{"off"} : values;
-             this.getIndex = getIndex;
-@@ -379,7 +377,7 @@ public final class AetheriumWidgets {
-             if (this.getIndex == null || this.setIndex == null) {
-                 return;
-             }
--            final boolean backwards = mouseX < this.getX() + this.getWidth() / 3.0;
-+            final boolean backwards = mouseX < this.x + this.getWidth() / 3.0;
-             final int current = this.getIndex.get();
-             final int next = backwards
-                     ? Math.floorMod(current - 1, this.values.length)
-@@ -392,37 +390,34 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
-+        public void renderButton(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-             this.slide.tick(AetheriumAnimations.suggestedDeltaSeconds());
--            drawSharedBackground(guiGraphics, mouseX, mouseY);
-+            drawSharedBackground(poseStack, mouseX, mouseY);
-             final Font font = fontOrNull();
-             if (font == null) {
-                 return;
-             }
-             final int index = this.getIndex == null ? 0 : MathUtil.clamp(this.getIndex.get(), 0, this.values.length - 1);
-             final String value = this.values[index];
--            guiGraphics.drawString(font, Component.literal(this.label), this.getX() + 6, this.getY() + (this.getHeight() - font.lineHeight) / 2,
--                    AetheriumTheme.TEXT, false);
-+            font.draw(poseStack, new TextComponent(this.label), this.x + 6, this.y + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.TEXT);
-             final String arrow = "< ";
--            final int valueX = this.getX() + this.getWidth() - 6 - font.width(value) - font.width(arrow);
--            guiGraphics.drawString(font, Component.literal(value).withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)),
--                    valueX, this.getY() + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.ACCENT, false);
--            guiGraphics.drawString(font, Component.literal(arrow), valueX - font.width(arrow),
--                    this.getY() + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.TEXT_DIM, false);
-+            final int valueX = this.x + this.getWidth() - 6 - font.width(value) - font.width(arrow);
-+            font.draw(poseStack, new TextComponent(value).withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), valueX, this.y + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.ACCENT);
-+            font.draw(poseStack, new TextComponent(arrow), valueX - font.width(arrow), this.y + (this.getHeight() - font.lineHeight) / 2, AetheriumTheme.TEXT_DIM);
-             // The indicator is a 1 px violet line whose x tracks the index: it makes a
-             // long cycle list (weather: off/fast/fancy/fancy+) readable at a glance.
--            final int indicatorX = this.getX() + (int) ((this.getWidth() - 4) * this.slide.get());
--            guiGraphics.fill(indicatorX, this.getY() + this.getHeight() - 2, indicatorX + 4, this.getY() + this.getHeight(), AetheriumTheme.ACCENT);
-+            final int indicatorX = this.x + (int) ((this.getWidth() - 4) * this.slide.get());
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, indicatorX, this.y + this.getHeight() - 2, indicatorX + 4, this.y + this.getHeight(), AetheriumTheme.ACCENT);
-         }
- 
-         @Override
-         /**
--         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
-+         * 1.21.1 renamed this to {@code updateNarration} and made it the abstract member of
-          * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
--        public void updateWidgetNarration(final NarrationElementOutput output) {
-+        public void updateNarration(final NarrationElementOutput output) {
-             final int index = this.getIndex == null ? 0 : this.getIndex.get();
-             this.updateMessage(this.label, index >= 0 && index < this.values.length ? this.values[index] : "unknown");
-             this.defaultButtonNarrationText(output);
-@@ -458,22 +453,20 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
-+        public void renderButton(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-             final boolean usable = this.enabled == null || this.enabled.getAsBoolean();
-             this.active = usable;
--            drawSharedBackground(guiGraphics, mouseX, mouseY);
-+            drawSharedBackground(poseStack, mouseX, mouseY);
-             if (!usable) {
--                guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0x88120819);
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, this.x, this.y, this.x + this.getWidth(), this.y + this.getHeight(), 0x88120819);
-             }
-             final Font font = fontOrNull();
-             if (font == null) {
-                 return;
-             }
-             final String text = this.getMessage().getString();
--            guiGraphics.drawCenteredString(font, Component.literal(text)
--                            .withStyle(style -> style.withColor((usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED) & 0xFFFFFF)),
--                    this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - font.lineHeight) / 2,
--                    usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED);
-+            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, new TextComponent(text)
-+                            .withStyle(style -> style.withColor((usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED) & 0xFFFFFF)).getString(), this.x + this.getWidth() / 2, this.y + (this.getHeight() - font.lineHeight) / 2, usable ? this.accentColor : AetheriumTheme.TEXT_DISABLED);
-         }
-     }
- 
-@@ -488,7 +481,7 @@ public final class AetheriumWidgets {
- 
-         public PreviewWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
-                              final Supplier<FrameStats> stats) {
--            super(theme, x, y, width, height, Component.translatable("aetherium.preview.title"));
-+            super(theme, x, y, width, height, new TranslatableComponent("aetherium.preview.title"));
-             this.stats = Objects.requireNonNull(stats, "stats");
-         }
- 
-@@ -503,7 +496,7 @@ public final class AetheriumWidgets {
-         }
- 
-         @Override
--        public void renderWidget(final GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float delta) {
-+        public void renderButton(final PoseStack poseStack, final int mouseX, final int mouseY, final float delta) {
-             final FrameStats local = this.stats.get();
-             if (local == null) {
-                 return;
-@@ -513,21 +506,20 @@ public final class AetheriumWidgets {
-             this.fpsValue.tick(AetheriumAnimations.suggestedDeltaSeconds());
-             this.p99Value.tick(AetheriumAnimations.suggestedDeltaSeconds());
- 
--            this.theme.fillRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), AetheriumTheme.PANEL);
--            this.theme.outlineRounded(guiGraphics, this.getX(), this.getY(), this.getWidth(), this.getHeight(), AetheriumTheme.BORDER);
-+            this.theme.fillRounded(poseStack, this.x, this.y, this.getWidth(), this.getHeight(), AetheriumTheme.PANEL);
-+            this.theme.outlineRounded(poseStack, this.x, this.y, this.getWidth(), this.getHeight(), AetheriumTheme.BORDER);
- 
-             final Font font = fontOrNull();
-             if (font == null) {
-                 return;
-             }
--            final int centerX = this.getX() + this.getWidth() / 2;
--            guiGraphics.drawCenteredString(font, Component.literal(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
--                    .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)), centerX, this.getY() + 4, AetheriumTheme.TEXT);
-+            final int centerX = this.x + this.getWidth() / 2;
-+            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, new TextComponent(String.format(java.util.Locale.ROOT, "%.0f fps", this.fpsValue.get()))
-+                    .withStyle(style -> style.withColor(AetheriumTheme.ACCENT & 0xFFFFFF)).getString(), centerX, this.y + 4, AetheriumTheme.TEXT);
-             final AetheriumTheme.AetheriumStatus status = local.getP99Ms() > 50.0 ? AetheriumTheme.AetheriumStatus.BLOCKED
-                     : local.getP99Ms() > 22.0 ? AetheriumTheme.AetheriumStatus.CAUTION : AetheriumTheme.AetheriumStatus.GOOD;
--            guiGraphics.drawCenteredString(font, Component.literal(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
--                            .withStyle(style -> style.withColor(AetheriumTheme.statusColor(status) & 0xFFFFFF)),
--                    centerX, this.getY() + 15, AetheriumTheme.statusColor(status));
-+            net.minecraft.client.gui.GuiComponent.drawCenteredString(poseStack, font, new TextComponent(String.format(java.util.Locale.ROOT, "p99 %.2f ms", this.p99Value.get()))
-+                            .withStyle(style -> style.withColor(AetheriumTheme.statusColor(status) & 0xFFFFFF)).getString(), centerX, this.y + 15, AetheriumTheme.statusColor(status));
- 
-             final int count = local.copyRecentGraph(this.graph, this.graph.length);
-             this.lines.clear();
-@@ -536,12 +528,11 @@ public final class AetheriumWidgets {
-                 for (int i = 0; i < count; i++) {
-                     peak = Math.max(peak, this.graph[i]);
-                 }
--                final int graphY = this.getY() + this.getHeight() - 16;
-+                final int graphY = this.y + this.getHeight() - 16;
-                 for (int i = 0; i < count; i++) {
-                     final int barHeight = Math.max(1, (int) (14.0 * Math.min(1.0, this.graph[i] / peak)));
--                    final int barX = this.getX() + 4 + (int) ((this.getWidth() - 8) * i / (float) Math.max(1, count - 1));
--                    guiGraphics.fill(barX, graphY + 14 - barHeight, barX + 1, graphY + 14,
--                            this.graph[i] > 50.0 ? AetheriumTheme.DANGER : AetheriumTheme.ACCENT_SOFT);
-+                    final int barX = this.x + 4 + (int) ((this.getWidth() - 8) * i / (float) Math.max(1, count - 1));
-+                    net.minecraft.client.gui.GuiComponent.fill(poseStack, barX, graphY + 14 - barHeight, barX + 1, graphY + 14, this.graph[i] > 50.0 ? AetheriumTheme.DANGER : AetheriumTheme.ACCENT_SOFT);
-                 }
-                 this.refresh += delta;
-             }
-diff --git a/common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java b/common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java
-index 625afdf..54828ea 100644
---- a/common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java
-+++ b/common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java
-@@ -9,15 +9,16 @@ import com.aetherium.render.mesh.MeshCounters;
- import net.minecraft.ChatFormatting;
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.gui.Font;
--import net.minecraft.client.gui.GuiGraphics;
-+import com.mojang.blaze3d.vertex.PoseStack;
- import net.minecraft.network.chat.Component;
-+import net.minecraft.network.chat.TextComponent;
- 
- /**
-  * The purple performance overlay: corner FPS, 99th-percentile frame time, a spike
-  * graph, and the backend tag.
-  *
-- * <p>Drawn with {@link GuiGraphics} only — no RenderLayer, no custom vertex format —
-- * so it works identically on every version from 1.18 (when GuiGraphics appeared) to
-+ * <p>Drawn with {@link PoseStack} only — no RenderLayer, no custom vertex format —
-+ * so it works identically on every version from 1.18 (when PoseStack appeared) to
-  * 26.x, and on 1.16.5/1.17 the delta swaps the two {@code fill} calls for
-  * {@code PoseStack}-based quads (see {@code deltas/1.16.5/changes.patch}).</p>
-  *
-@@ -56,15 +57,15 @@ public final class AetheriumHudRenderer {
-     private AetheriumHudRenderer() {
-     }
- 
--    public static void render(final GuiGraphics guiGraphics) {
--        INSTANCE.renderInternal(guiGraphics);
-+    public static void render(final PoseStack poseStack) {
-+        INSTANCE.renderInternal(poseStack);
-     }
- 
-     /** Small always-on tag: "[Aetherium/GL46_DSA]" in the top-right, under the ping. */
--    // [UNVERIFIED: the 6-arg GuiGraphics#drawString(Font, Component, int, int, int, boolean)
-+    // [UNVERIFIED: the 6-arg PoseStack#drawString(Font, Component, int, int, int, boolean)
-     // overload on 1.21.1 (the 5-arg form exists on 1.20.x); the delta for pre-1.20.2 rows swaps
--    // it. GuiGraphics#guiWidth/guiHeight are read the same way.]
--    public static void drawBackendTag(final GuiGraphics guiGraphics) {
-+    // it. PoseStack#guiWidth/guiHeight are read the same way.]
-+    public static void drawBackendTag(final PoseStack poseStack) {
-         final Minecraft minecraft = Minecraft.getInstance();
-         if (minecraft == null || minecraft.font == null) {
-             return;
-@@ -77,9 +78,9 @@ public final class AetheriumHudRenderer {
-             final String tag = "[Aetherium/"
-                     + (device == null ? Aetherium.getState().name() : device.getBackend().getId()) + ']';
-             final int width = minecraft.font.width(tag);
--            final int x = guiGraphics.guiWidth() - width - 3;
--            guiGraphics.fill(x - 2, 1, x + width + 2, lineHeight + 3, 0x991D0F2E);
--            guiGraphics.drawString(minecraft.font, Component.literal(tag).withStyle(s -> s.withColor(ACCENT & 0xFFFFFF)), x, nextLineY, TEXT, false);
-+            final int x = minecraft.getWindow().getGuiScaledWidth() - width - 3;
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x - 2, 1, x + width + 2, lineHeight + 3, 0x991D0F2E);
-+            minecraft.font.draw(poseStack, new TextComponent(tag).withStyle(s -> s.withColor(ACCENT & 0xFFFFFF)), x, nextLineY, TEXT);
-             nextLineY += lineHeight + 2;
-         }
- 
-@@ -92,12 +93,11 @@ public final class AetheriumHudRenderer {
-             final String notice = conflictNotice();
-             if (!notice.isEmpty()) {
-                 final int width = Math.min(220, minecraft.font.width(notice));
--                final int x = guiGraphics.guiWidth() - width - 5;
--                guiGraphics.fill(x - 3, nextLineY - 2, guiGraphics.guiWidth() - 1,
--                        nextLineY + lineHeight + 2, 0xCC2A0E1E);
--                // Wrapped by hand: GuiGraphics has no word-wrap primitive on any version we
-+                final int x = minecraft.getWindow().getGuiScaledWidth() - width - 5;
-+                net.minecraft.client.gui.GuiComponent.fill(poseStack, x - 3, nextLineY - 2, minecraft.getWindow().getGuiScaledWidth() - 1, nextLineY + lineHeight + 2, 0xCC2A0E1E);
-+                // Wrapped by hand: PoseStack has no word-wrap primitive on any version we
-                 // target, and a clipped sentence about a crash-adjacent problem is useless.
--                drawWrappedNotice(guiGraphics, minecraft.font, notice, x, nextLineY);
-+                drawWrappedNotice(poseStack, minecraft.font, notice, x, nextLineY);
-             }
-         }
-     }
-@@ -117,14 +117,14 @@ public final class AetheriumHudRenderer {
-         return "Delegated to: " + scanner.summarize();
-     }
- 
--    private static void drawWrappedNotice(final GuiGraphics guiGraphics, final Font font, final String notice,
-+    private static void drawWrappedNotice(final PoseStack poseStack, final Font font, final String notice,
-                                           final int x, final int y) {
-         final int maxWidth = 220;
-         final StringBuilder line = new StringBuilder(notice.length());
-         int cursorY = y;
-         for (final String word : notice.split(" ")) {
-             if (font.width(line + " " + word) > maxWidth && line.length() > 0) {
--                guiGraphics.drawString(font, Component.literal(line.toString()), x, cursorY, TEXT, false);
-+                font.draw(poseStack, new TextComponent(line.toString()), x, cursorY, TEXT);
-                 cursorY += font.lineHeight;
-                 line.setLength(0);
-             }
-@@ -134,11 +134,11 @@ public final class AetheriumHudRenderer {
-             line.append(word);
-         }
-         if (line.length() > 0) {
--            guiGraphics.drawString(font, Component.literal(line.toString()), x, cursorY, TEXT, false);
-+            font.draw(poseStack, new TextComponent(line.toString()), x, cursorY, TEXT);
-         }
-     }
- 
--    private void renderInternal(final GuiGraphics guiGraphics) {
-+    private void renderInternal(final PoseStack poseStack) {
-         final AetheriumConfig config = Aetherium.config();
-         final boolean fps = config.showFrameHud.get();
-         final boolean graph = config.showFrameGraph.get();
-@@ -150,8 +150,8 @@ public final class AetheriumHudRenderer {
-         if (font == null) {
-             return;
-         }
--        final int scaledWidth = guiGraphics.guiWidth();
--        final int scaledHeight = guiGraphics.guiHeight();
-+        final int scaledWidth = minecraft.getWindow().getGuiScaledWidth();
-+        final int scaledHeight = minecraft.getWindow().getGuiScaledHeight();
-         if (scaledWidth != this.cachedWidth || scaledHeight != this.cachedHeight) {
-             this.cachedWidth = scaledWidth;
-             this.cachedHeight = scaledHeight;
-@@ -181,16 +181,16 @@ public final class AetheriumHudRenderer {
-         final int x = cornerX(cornerIndex, scaledWidth, panelWidth);
-         final int y = cornerY(cornerIndex, scaledHeight, panelHeight);
- 
--        guiGraphics.fill(x, y, x + panelWidth, y + panelHeight, PANEL_COLOR);
--        drawEdges(guiGraphics, x, y, panelWidth, panelHeight);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y, x + panelWidth, y + panelHeight, PANEL_COLOR);
-+        drawEdges(poseStack, x, y, panelWidth, panelHeight);
- 
-         int cursorY = y + padding;
-         for (final String line : this.cachedLines.split("\n")) {
--            guiGraphics.drawString(font, Component.literal(line), x + padding, cursorY, TEXT, false);
-+            font.draw(poseStack, new TextComponent(line), x + padding, cursorY, TEXT);
-             cursorY += lineHeight;
-         }
-         if (graph) {
--            drawGraph(guiGraphics, stats, x + padding, cursorY + padding);
-+            drawGraph(poseStack, stats, x + padding, cursorY + padding);
-         }
-     }
- 
-@@ -224,7 +224,7 @@ public final class AetheriumHudRenderer {
-         return builder.toString();
-     }
- 
--    private void drawGraph(final GuiGraphics guiGraphics, final FrameStats stats, final int x, final int y) {
-+    private void drawGraph(final PoseStack poseStack, final FrameStats stats, final int x, final int y) {
-         final int count = stats.copyRecentGraph(this.graphSamples, this.graphSamples.length);
-         this.sampleCount = count;
-         double peak = Math.max(1.0, this.cachedPeak * 0.9);
-@@ -232,25 +232,25 @@ public final class AetheriumHudRenderer {
-             peak = Math.max(peak, this.graphSamples[i]);
-         }
-         this.cachedPeak = peak;
--        guiGraphics.fill(x, y, x + GRAPH_WIDTH, y + GRAPH_HEIGHT, 0x66000000);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y, x + GRAPH_WIDTH, y + GRAPH_HEIGHT, 0x66000000);
-         // 16.67 ms reference line: a graph without a budget line cannot be read.
-         final int budgetLine = y + GRAPH_HEIGHT - (int) (GRAPH_HEIGHT * Math.min(1.0, 16.67 / peak));
--        guiGraphics.fill(x, budgetLine, x + GRAPH_WIDTH, budgetLine + 1, 0x33FFFFFF);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x, budgetLine, x + GRAPH_WIDTH, budgetLine + 1, 0x33FFFFFF);
-         final int bars = Math.max(1, Math.min(count, GRAPH_WIDTH));
-         final int offset = Math.max(0, count - bars);
-         for (int i = 0; i < bars; i++) {
-             final double ms = this.graphSamples[offset + i];
-             final int barHeight = (int) Math.max(1, GRAPH_HEIGHT * Math.min(1.0, ms / peak));
-             final int color = ms > 50.0 ? SPIKE_COLOR : ms > 33.3 ? GRAPH_FILL : ACCENT;
--            guiGraphics.fill(x + i, y + GRAPH_HEIGHT - barHeight, x + i + 1, y + GRAPH_HEIGHT, color);
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, x + i, y + GRAPH_HEIGHT - barHeight, x + i + 1, y + GRAPH_HEIGHT, color);
-         }
-     }
- 
--    private static void drawEdges(final GuiGraphics guiGraphics, final int x, final int y, final int width, final int height) {
--        guiGraphics.fill(x, y, x + width, y + 1, PANEL_EDGE);
--        guiGraphics.fill(x, y + height - 1, x + width, y + height, PANEL_EDGE);
--        guiGraphics.fill(x, y, x + 1, y + height, PANEL_EDGE);
--        guiGraphics.fill(x + width - 1, y, x + width, y + height, PANEL_EDGE);
-+    private static void drawEdges(final PoseStack poseStack, final int x, final int y, final int width, final int height) {
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y, x + width, y + 1, PANEL_EDGE);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y + height - 1, x + width, y + height, PANEL_EDGE);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x, y, x + 1, y + height, PANEL_EDGE);
-+        net.minecraft.client.gui.GuiComponent.fill(poseStack, x + width - 1, y, x + width, y + height, PANEL_EDGE);
-     }
- 
-     private static int resolveCorner(final AetheriumConfig config, final int scaledWidth) {
-@@ -297,6 +297,6 @@ public final class AetheriumHudRenderer {
- 
-     /** {@code ChatFormatting} keeps the colour codes out of the lang files. */
-     public static Component colored(final String text, final ChatFormatting formatting) {
--        return Component.literal(text).withStyle(formatting);
-+        return new TextComponent(text).withStyle(formatting);
+     private static boolean isVideoSettings(final Screen screen) {
+-        // @era:screen-pkg-begin options
+-        return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
+-        // @era:screen-pkg-else flat
+-        //~ return screen instanceof net.minecraft.client.gui.screens.VideoSettingsScreen;
++        // @era:screen-pkg-begin flat
++        return screen instanceof net.minecraft.client.gui.screens.VideoSettingsScreen;
++        // @era:screen-pkg-else options
++        //~ return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
+         // @era:screen-pkg-end
      }
  }
-diff --git a/common/src/main/java/com/aetherium/hud/BenchmarkRecorder.java b/common/src/main/java/com/aetherium/hud/BenchmarkRecorder.java
-index 4b531d9..563a47a 100644
---- a/common/src/main/java/com/aetherium/hud/BenchmarkRecorder.java
-+++ b/common/src/main/java/com/aetherium/hud/BenchmarkRecorder.java
-@@ -187,8 +187,8 @@ public final class BenchmarkRecorder {
-         }
-         try {
-             final StringBuilder builder = new StringBuilder(48);
--            builder.append(" rd=").append(client.options.renderDistance().get());
--            builder.append(" sim=").append(client.options.simulationDistance().get());
-+            builder.append(" rd=").append(client.options.renderDistance);
-+            builder.append(" sim=").append(client.options.simulationDistance);
-             // The seed is handed in by tools/benchmark.sh (-Daetherium.benchmark.seed) instead of
-             // read off the level: ClientLevel has no getSeed() on 1.21.1 (javac: cannot find symbol),
-             // and a row that quietly lost its seed would look reproducible without being one. An
-diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-index 7a9eddf..368b7c5 100644
---- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-+++ b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
-  * used on every injection in {@code com.aetherium.mixin.core}), or refusing the mixin
-  * up front. Aetherium uses both, because they catch different mistakes: the
-  * annotations absorb a renamed <em>method</em>, while this plugin absorbs a version
-- * where a whole hook is meaningless (no {@code GuiGraphics} before 1.20.2, no
-+ * where a whole hook is meaningless (no {@code PoseStack} before 1.20.2, no
-  * {@code LevelRenderer#onSectionCompleted} before 1.17) and, more importantly, turns
-  * "the mod is inert because a HARD conflict was detected" into one boolean instead of
-  * a half-transformed game.</p>
-@@ -68,7 +68,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
-         ranges.put("core.GameRendererMixin", "*");
-         ranges.put("core.LevelRendererMixin", "*");
-         ranges.put("core.LightTextureMixin", "*");
--        // Gui#render takes GuiGraphics from 1.20.2; before that the overlay is
-+        // Gui#render takes PoseStack from 1.20.2; before that the overlay is
-         // drawn by the legacy hook in the same class, so the range only gates the
-         // descriptor-typed injections.
-         ranges.put("core.GuiMixin", "*");
-@@ -97,7 +97,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
+diff --git a/common/src/main/java/com/aetherium/client/McCanvas.java b/common/src/main/java/com/aetherium/client/McCanvas.java
+index afb236d..ffe04fe 100644
+--- a/common/src/main/java/com/aetherium/client/McCanvas.java
++++ b/common/src/main/java/com/aetherium/client/McCanvas.java
+@@ -4,12 +4,12 @@ import com.aetherium.gui.GuiCanvas;
+ 
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.Font;
+-// @era:gui-begin graphics
+-import net.minecraft.client.gui.GuiGraphics;
+-// @era:gui-else stack
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import net.minecraft.client.gui.GuiComponent;
++// @era:gui-begin stack
++import com.mojang.blaze3d.systems.RenderSystem;
++import com.mojang.blaze3d.vertex.PoseStack;
++import net.minecraft.client.gui.GuiComponent;
++// @era:gui-else graphics
++//~ import net.minecraft.client.gui.GuiGraphics;
+ // @era:gui-else extractor
+ //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
+ // @era:gui-end
+@@ -25,12 +25,12 @@ public final class McCanvas extends GuiCanvas {
+     public static final McCanvas INSTANCE = new McCanvas();
+ 
+     private Font font;
+-    // @era:gui-begin graphics
+-    private GuiGraphics graphics;
++    // @era:gui-begin stack
++    private PoseStack pose;
+ 
+-    /** Points the canvas at this frame's draw context. */
+-    public McCanvas begin(final GuiGraphics graphics) {
+-        this.graphics = graphics;
++    /** Points the canvas at this frame's pose stack. */
++    public McCanvas begin(final PoseStack pose) {
++        this.pose = pose;
+         this.font = Minecraft.getInstance().font;
+         beginFrame();
+         return this;
+@@ -38,38 +38,44 @@ public final class McCanvas extends GuiCanvas {
+ 
+     @Override
+     protected void rawFill(final int x1, final int y1, final int x2, final int y2, final int argb) {
+-        this.graphics.fill(x1, y1, x2, y2, argb);
++        GuiComponent.fill(this.pose, x1, y1, x2, y2, argb);
      }
  
-     /** Written by {@code Aetherium} before the mixins are applied, read here. */
--    private static volatile String announcedVersion = "";
-+    private static volatile String announcedVersion = "1.18.1";
+     @Override
+     protected void rawText(final String text, final int x, final int y, final int argb) {
+-        this.graphics.drawString(this.font, text, x, y, argb, false);
++        this.font.draw(this.pose, text, (float) x, (float) y, argb);
+     }
  
-     /**
-      * Mixin runs transform-time code before a mod's own entry point on some loaders, so
+     @Override
+     protected void rawPushClip(final int x1, final int y1, final int x2, final int y2) {
+-        this.graphics.enableScissor(x1, y1, x2, y2);
++        scissor(x1, y1, x2, y2);
+     }
+ 
+     @Override
+     protected void rawPopClip(final boolean restore, final int x1, final int y1, final int x2, final int y2) {
+-        this.graphics.disableScissor();
++        if (restore) {
++            scissor(x1, y1, x2, y2);
++        } else {
++            RenderSystem.disableScissor();
++        }
+     }
+ 
+-    @Override
+-    protected void rawLayer() {
+-        // @era:gui-layer-begin none
+-        // Immediate-mode GUI: draw order is already layer order.
+-        // @era:gui-layer-else stratum
+-        //~ this.graphics.nextStratum();
+-        // @era:gui-layer-end
++    /** RenderSystem's scissor takes framebuffer pixels with a bottom-left origin. */
++    private static void scissor(final int x1, final int y1, final int x2, final int y2) {
++        final com.mojang.blaze3d.platform.Window window = Minecraft.getInstance().getWindow();
++        final double scale = window.getGuiScale();
++        final int px = (int) Math.floor(x1 * scale);
++        final int py = (int) Math.floor(window.getHeight() - y2 * scale);
++        final int pw = Math.max(0, (int) Math.ceil((x2 - x1) * scale));
++        final int ph = Math.max(0, (int) Math.ceil((y2 - y1) * scale));
++        RenderSystem.enableScissor(px, Math.max(0, py), pw, ph);
+     }
+-    // @era:gui-else stack
+-    //~ private PoseStack pose;
++    // @era:gui-else graphics
++    //~ private GuiGraphics graphics;
+ 
+-    //~ /** Points the canvas at this frame's pose stack. */
+-    //~ public McCanvas begin(final PoseStack pose) {
+-        //~ this.pose = pose;
++    //~ /** Points the canvas at this frame's draw context. */
++    //~ public McCanvas begin(final GuiGraphics graphics) {
++        //~ this.graphics = graphics;
+         //~ this.font = Minecraft.getInstance().font;
+         //~ beginFrame();
+         //~ return this;
+@@ -77,37 +83,31 @@ public final class McCanvas extends GuiCanvas {
+ 
+     //~ @Override
+     //~ protected void rawFill(final int x1, final int y1, final int x2, final int y2, final int argb) {
+-        //~ GuiComponent.fill(this.pose, x1, y1, x2, y2, argb);
++        //~ this.graphics.fill(x1, y1, x2, y2, argb);
+     //~ }
+ 
+     //~ @Override
+     //~ protected void rawText(final String text, final int x, final int y, final int argb) {
+-        //~ this.font.draw(this.pose, text, (float) x, (float) y, argb);
++        //~ this.graphics.drawString(this.font, text, x, y, argb, false);
+     //~ }
+ 
+     //~ @Override
+     //~ protected void rawPushClip(final int x1, final int y1, final int x2, final int y2) {
+-        //~ scissor(x1, y1, x2, y2);
++        //~ this.graphics.enableScissor(x1, y1, x2, y2);
+     //~ }
+ 
+     //~ @Override
+     //~ protected void rawPopClip(final boolean restore, final int x1, final int y1, final int x2, final int y2) {
+-        //~ if (restore) {
+-            //~ scissor(x1, y1, x2, y2);
+-        //~ } else {
+-            //~ RenderSystem.disableScissor();
+-        //~ }
++        //~ this.graphics.disableScissor();
+     //~ }
+ 
+-    //~ /** RenderSystem's scissor takes framebuffer pixels with a bottom-left origin. */
+-    //~ private static void scissor(final int x1, final int y1, final int x2, final int y2) {
+-        //~ final com.mojang.blaze3d.platform.Window window = Minecraft.getInstance().getWindow();
+-        //~ final double scale = window.getGuiScale();
+-        //~ final int px = (int) Math.floor(x1 * scale);
+-        //~ final int py = (int) Math.floor(window.getHeight() - y2 * scale);
+-        //~ final int pw = Math.max(0, (int) Math.ceil((x2 - x1) * scale));
+-        //~ final int ph = Math.max(0, (int) Math.ceil((y2 - y1) * scale));
+-        //~ RenderSystem.enableScissor(px, Math.max(0, py), pw, ph);
++    //~ @Override
++    //~ protected void rawLayer() {
++        //~ // @era:gui-layer-begin none
++        //~ // Immediate-mode GUI: draw order is already layer order.
++        //~ // @era:gui-layer-else stratum
++        //~ //~ this.graphics.nextStratum();
++        //~ // @era:gui-layer-end
+     //~ }
+     // @era:gui-else extractor
+     //~ private GuiGraphicsExtractor graphics;
+diff --git a/common/src/main/java/com/aetherium/client/VanillaOptions.java b/common/src/main/java/com/aetherium/client/VanillaOptions.java
+index 735fcbe..6c600aa 100644
+--- a/common/src/main/java/com/aetherium/client/VanillaOptions.java
++++ b/common/src/main/java/com/aetherium/client/VanillaOptions.java
+@@ -2,13 +2,13 @@ package com.aetherium.client;
+ 
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.Options;
+-// @era:options-begin instances
+-import net.minecraft.client.OptionInstance;
+-// @era:options-else fields
+-//~ import net.minecraft.client.AmbientOcclusionStatus;
+-//~ import net.minecraft.client.CloudStatus;
+-//~ import net.minecraft.client.GraphicsStatus;
+-//~ import net.minecraft.client.ParticleStatus;
++// @era:options-begin fields
++import net.minecraft.client.AmbientOcclusionStatus;
++import net.minecraft.client.CloudStatus;
++import net.minecraft.client.GraphicsStatus;
++import net.minecraft.client.ParticleStatus;
++// @era:options-else instances
++//~ import net.minecraft.client.OptionInstance;
+ // @era:options-end
+ // @era:graphics-begin status
+ // @era:graphics-else preset
+@@ -38,10 +38,10 @@ public final class VanillaOptions {
+     static Object gammaInstance;
+     /** True while vanilla serialises options.txt, so the override is never persisted. */
+     static boolean saving;
+-    // @era:options-begin instances
+-    // @era:options-else fields
+-    //~ private static double savedGamma = Double.NaN;
+-    //~ private static boolean pendingAllChanged;
++    // @era:options-begin fields
++    private static double savedGamma = Double.NaN;
++    private static boolean pendingAllChanged;
++    // @era:options-else instances
+     // @era:options-end
+ 
+     private VanillaOptions() {
+@@ -55,14 +55,14 @@ public final class VanillaOptions {
+     // ------------------------------------------------------------------ distances
+ 
+     public static boolean hasSimulationDistance() {
+-        // @era:options-begin instances
++        // @era:options-begin fields
++        // @era:simdist-begin sim
+         return true;
+-        // @era:options-else fields
+-        //~ // @era:simdist-begin none
++        // @era:simdist-else none
+         //~ return false;
+-        //~ // @era:simdist-else sim
+-        //~ //~ return true;
+-        //~ // @era:simdist-end
++        // @era:simdist-end
++        // @era:options-else instances
++        //~ return true;
+         // @era:options-end
+     }
+ 
+@@ -71,10 +71,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return 8;
+         }
+-        // @era:options-begin instances
+-        return o.renderDistance().get().intValue();
+-        // @era:options-else fields
+-        //~ return o.renderDistance;
++        // @era:options-begin fields
++        return o.renderDistance;
++        // @era:options-else instances
++        //~ return o.renderDistance().get().intValue();
+         // @era:options-end
+     }
+ 
+@@ -83,16 +83,16 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        setInt(o.renderDistance(), chunks, 16);
+-        // @era:options-else fields
+-        //~ if (o.renderDistance != chunks) {
+-            //~ o.renderDistance = chunks;
+-            //~ final Minecraft mc = Minecraft.getInstance();
+-            //~ if (mc.levelRenderer != null) {
+-                //~ mc.levelRenderer.needsUpdate();
+-            //~ }
+-        //~ }
++        // @era:options-begin fields
++        if (o.renderDistance != chunks) {
++            o.renderDistance = chunks;
++            final Minecraft mc = Minecraft.getInstance();
++            if (mc.levelRenderer != null) {
++                mc.levelRenderer.needsUpdate();
++            }
++        }
++        // @era:options-else instances
++        //~ setInt(o.renderDistance(), chunks, 16);
+         // @era:options-end
+     }
+ 
+@@ -101,14 +101,14 @@ public final class VanillaOptions {
+         if (o == null) {
+             return 8;
+         }
+-        // @era:options-begin instances
+-        return o.simulationDistance().get().intValue();
+-        // @era:options-else fields
+-        //~ // @era:simdist-begin none
++        // @era:options-begin fields
++        // @era:simdist-begin sim
++        return o.simulationDistance;
++        // @era:simdist-else none
+         //~ return o.renderDistance;
+-        //~ // @era:simdist-else sim
+-        //~ //~ return o.simulationDistance;
+-        //~ // @era:simdist-end
++        // @era:simdist-end
++        // @era:options-else instances
++        //~ return o.simulationDistance().get().intValue();
+         // @era:options-end
+     }
+ 
+@@ -117,14 +117,14 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        setInt(o.simulationDistance(), chunks, 12);
+-        // @era:options-else fields
+-        //~ // @era:simdist-begin none
++        // @era:options-begin fields
++        // @era:simdist-begin sim
++        o.simulationDistance = chunks;
++        // @era:simdist-else none
+         //~ // 1.16.5-1.17.1 have no simulation distance; the row is hidden there.
+-        //~ // @era:simdist-else sim
+-        //~ //~ o.simulationDistance = chunks;
+-        //~ // @era:simdist-end
++        // @era:simdist-end
++        // @era:options-else instances
++        //~ setInt(o.simulationDistance(), chunks, 12);
+         // @era:options-end
+     }
+ 
+@@ -134,10 +134,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return 100;
+         }
+-        // @era:options-begin instances
+-        return (int) Math.round(o.entityDistanceScaling().get().doubleValue() * 100.0);
+-        // @era:options-else fields
+-        //~ return Math.round(o.entityDistanceScaling * 100f);
++        // @era:options-begin fields
++        return Math.round(o.entityDistanceScaling * 100f);
++        // @era:options-else instances
++        //~ return (int) Math.round(o.entityDistanceScaling().get().doubleValue() * 100.0);
+         // @era:options-end
+     }
+ 
+@@ -147,10 +147,10 @@ public final class VanillaOptions {
+             return;
+         }
+         final double value = Math.max(50, Math.min(500, percent)) / 100.0;
+-        // @era:options-begin instances
+-        o.entityDistanceScaling().set(Double.valueOf(value));
+-        // @era:options-else fields
+-        //~ o.entityDistanceScaling = (float) value;
++        // @era:options-begin fields
++        o.entityDistanceScaling = (float) value;
++        // @era:options-else instances
++        //~ o.entityDistanceScaling().set(Double.valueOf(value));
+         // @era:options-end
+     }
+ 
+@@ -161,10 +161,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return UNLIMITED_FPS;
+         }
+-        // @era:options-begin instances
+-        return o.framerateLimit().get().intValue();
+-        // @era:options-else fields
+-        //~ return o.framerateLimit;
++        // @era:options-begin fields
++        return o.framerateLimit;
++        // @era:options-else instances
++        //~ return o.framerateLimit().get().intValue();
+         // @era:options-end
+     }
+ 
+@@ -174,11 +174,11 @@ public final class VanillaOptions {
+             return;
+         }
+         final int value = Math.max(10, Math.min(UNLIMITED_FPS, fps));
+-        // @era:options-begin instances
+-        o.framerateLimit().set(Integer.valueOf(value));
+-        // @era:options-else fields
+-        //~ o.framerateLimit = value;
+-        //~ Minecraft.getInstance().getWindow().setFramerateLimit(value);
++        // @era:options-begin fields
++        o.framerateLimit = value;
++        Minecraft.getInstance().getWindow().setFramerateLimit(value);
++        // @era:options-else instances
++        //~ o.framerateLimit().set(Integer.valueOf(value));
+         // @era:options-end
+     }
+ 
+@@ -187,10 +187,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return false;
+         }
+-        // @era:options-begin instances
+-        return o.enableVsync().get().booleanValue();
+-        // @era:options-else fields
+-        //~ return o.enableVsync;
++        // @era:options-begin fields
++        return o.enableVsync;
++        // @era:options-else instances
++        //~ return o.enableVsync().get().booleanValue();
+         // @era:options-end
+     }
+ 
+@@ -199,11 +199,11 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        o.enableVsync().set(Boolean.valueOf(on));
+-        // @era:options-else fields
+-        //~ o.enableVsync = on;
+-        //~ Minecraft.getInstance().getWindow().updateVsync(on);
++        // @era:options-begin fields
++        o.enableVsync = on;
++        Minecraft.getInstance().getWindow().updateVsync(on);
++        // @era:options-else instances
++        //~ o.enableVsync().set(Boolean.valueOf(on));
+         // @era:options-end
+     }
+ 
+@@ -215,15 +215,15 @@ public final class VanillaOptions {
+         if (o == null) {
+             return 1;
+         }
+-        // @era:options-begin instances
+-        // @era:graphics-begin status
+-        return ordinalOf(o.graphicsMode());
+-        // @era:graphics-else preset
+-        //~ final int ordinal = ordinalOf(o.graphicsPreset());
+-        //~ return ordinal > 2 ? -1 : ordinal;
+-        // @era:graphics-end
+-        // @era:options-else fields
+-        //~ return o.graphicsMode.ordinal();
++        // @era:options-begin fields
++        return o.graphicsMode.ordinal();
++        // @era:options-else instances
++        //~ // @era:graphics-begin status
++        //~ return ordinalOf(o.graphicsMode());
++        //~ // @era:graphics-else preset
++        //~ //~ final int ordinal = ordinalOf(o.graphicsPreset());
++        //~ //~ return ordinal > 2 ? -1 : ordinal;
++        //~ // @era:graphics-end
+         // @era:options-end
+     }
+ 
+@@ -232,19 +232,19 @@ public final class VanillaOptions {
+         if (o == null || index < 0) {
+             return;
+         }
+-        // @era:options-begin instances
+-        // @era:graphics-begin status
+-        setOrdinal(o.graphicsMode(), index);
+-        // @era:graphics-else preset
+-        //~ final GraphicsPreset[] presets = GraphicsPreset.values();
+-        //~ o.applyGraphicsPreset(presets[Math.min(index, 2)]);
+-        // @era:graphics-end
+-        // @era:options-else fields
+-        //~ final GraphicsStatus next = GraphicsStatus.values()[Math.min(index, 2)];
+-        //~ if (o.graphicsMode != next) {
+-            //~ o.graphicsMode = next;
+-            //~ pendingAllChanged = true;
+-        //~ }
++        // @era:options-begin fields
++        final GraphicsStatus next = GraphicsStatus.values()[Math.min(index, 2)];
++        if (o.graphicsMode != next) {
++            o.graphicsMode = next;
++            pendingAllChanged = true;
++        }
++        // @era:options-else instances
++        //~ // @era:graphics-begin status
++        //~ setOrdinal(o.graphicsMode(), index);
++        //~ // @era:graphics-else preset
++        //~ //~ final GraphicsPreset[] presets = GraphicsPreset.values();
++        //~ //~ o.applyGraphicsPreset(presets[Math.min(index, 2)]);
++        //~ // @era:graphics-end
+         // @era:options-end
+     }
+ 
+@@ -254,10 +254,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return 2;
+         }
+-        // @era:options-begin instances
+-        return ordinalOf(o.cloudStatus());
+-        // @era:options-else fields
+-        //~ return o.renderClouds.ordinal();
++        // @era:options-begin fields
++        return o.renderClouds.ordinal();
++        // @era:options-else instances
++        //~ return ordinalOf(o.cloudStatus());
+         // @era:options-end
+     }
+ 
+@@ -266,10 +266,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        setOrdinal(o.cloudStatus(), index);
+-        // @era:options-else fields
+-        //~ o.renderClouds = CloudStatus.values()[Math.max(0, Math.min(2, index))];
++        // @era:options-begin fields
++        o.renderClouds = CloudStatus.values()[Math.max(0, Math.min(2, index))];
++        // @era:options-else instances
++        //~ setOrdinal(o.cloudStatus(), index);
+         // @era:options-end
+     }
+ 
+@@ -279,10 +279,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return 0;
+         }
+-        // @era:options-begin instances
+-        return ordinalOf(o.particles());
+-        // @era:options-else fields
+-        //~ return o.particles.ordinal();
++        // @era:options-begin fields
++        return o.particles.ordinal();
++        // @era:options-else instances
++        //~ return ordinalOf(o.particles());
+         // @era:options-end
+     }
+ 
+@@ -291,10 +291,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        setOrdinal(o.particles(), index);
+-        // @era:options-else fields
+-        //~ o.particles = ParticleStatus.values()[Math.max(0, Math.min(2, index))];
++        // @era:options-begin fields
++        o.particles = ParticleStatus.values()[Math.max(0, Math.min(2, index))];
++        // @era:options-else instances
++        //~ setOrdinal(o.particles(), index);
+         // @era:options-end
+     }
+ 
+@@ -303,10 +303,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return true;
+         }
+-        // @era:options-begin instances
+-        return ordinalOf(o.ambientOcclusion()) != 0;
+-        // @era:options-else fields
+-        //~ return o.ambientOcclusion != AmbientOcclusionStatus.OFF;
++        // @era:options-begin fields
++        return o.ambientOcclusion != AmbientOcclusionStatus.OFF;
++        // @era:options-else instances
++        //~ return ordinalOf(o.ambientOcclusion()) != 0;
+         // @era:options-end
+     }
+ 
+@@ -315,15 +315,15 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        // Boolean from 1.19.3; OFF/MIN/MAX enum before (MAX is what vanilla's "on" means).
+-        setOrdinal(o.ambientOcclusion(), on ? 2 : 0);
+-        // @era:options-else fields
+-        //~ final AmbientOcclusionStatus next = on ? AmbientOcclusionStatus.MAX : AmbientOcclusionStatus.OFF;
+-        //~ if (o.ambientOcclusion != next) {
+-            //~ o.ambientOcclusion = next;
+-            //~ pendingAllChanged = true;
+-        //~ }
++        // @era:options-begin fields
++        final AmbientOcclusionStatus next = on ? AmbientOcclusionStatus.MAX : AmbientOcclusionStatus.OFF;
++        if (o.ambientOcclusion != next) {
++            o.ambientOcclusion = next;
++            pendingAllChanged = true;
++        }
++        // @era:options-else instances
++        //~ // Boolean from 1.19.3; OFF/MIN/MAX enum before (MAX is what vanilla's "on" means).
++        //~ setOrdinal(o.ambientOcclusion(), on ? 2 : 0);
+         // @era:options-end
+     }
+ 
+@@ -333,10 +333,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return 2;
+         }
+-        // @era:options-begin instances
+-        return o.biomeBlendRadius().get().intValue();
+-        // @era:options-else fields
+-        //~ return o.biomeBlendRadius;
++        // @era:options-begin fields
++        return o.biomeBlendRadius;
++        // @era:options-else instances
++        //~ return o.biomeBlendRadius().get().intValue();
+         // @era:options-end
+     }
+ 
+@@ -346,13 +346,13 @@ public final class VanillaOptions {
+             return;
+         }
+         final int value = Math.max(0, Math.min(7, radius));
+-        // @era:options-begin instances
+-        o.biomeBlendRadius().set(Integer.valueOf(value));
+-        // @era:options-else fields
+-        //~ if (o.biomeBlendRadius != value) {
+-            //~ o.biomeBlendRadius = value;
+-            //~ pendingAllChanged = true;
+-        //~ }
++        // @era:options-begin fields
++        if (o.biomeBlendRadius != value) {
++            o.biomeBlendRadius = value;
++            pendingAllChanged = true;
++        }
++        // @era:options-else instances
++        //~ o.biomeBlendRadius().set(Integer.valueOf(value));
+         // @era:options-end
+     }
+ 
+@@ -361,10 +361,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return true;
+         }
+-        // @era:options-begin instances
+-        return o.entityShadows().get().booleanValue();
+-        // @era:options-else fields
+-        //~ return o.entityShadows;
++        // @era:options-begin fields
++        return o.entityShadows;
++        // @era:options-else instances
++        //~ return o.entityShadows().get().booleanValue();
+         // @era:options-end
+     }
+ 
+@@ -373,10 +373,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        o.entityShadows().set(Boolean.valueOf(on));
+-        // @era:options-else fields
+-        //~ o.entityShadows = on;
++        // @era:options-begin fields
++        o.entityShadows = on;
++        // @era:options-else instances
++        //~ o.entityShadows().set(Boolean.valueOf(on));
+         // @era:options-end
+     }
+ 
+@@ -385,10 +385,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return true;
+         }
+-        // @era:options-begin instances
+-        return o.bobView().get().booleanValue();
+-        // @era:options-else fields
+-        //~ return o.bobView;
++        // @era:options-begin fields
++        return o.bobView;
++        // @era:options-else instances
++        //~ return o.bobView().get().booleanValue();
+         // @era:options-end
+     }
+ 
+@@ -397,10 +397,10 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        o.bobView().set(Boolean.valueOf(on));
+-        // @era:options-else fields
+-        //~ o.bobView = on;
++        // @era:options-begin fields
++        o.bobView = on;
++        // @era:options-else instances
++        //~ o.bobView().set(Boolean.valueOf(on));
+         // @era:options-end
+     }
+ 
+@@ -412,17 +412,17 @@ public final class VanillaOptions {
+         if (o == null) {
+             return 50;
+         }
+-        // @era:options-begin instances
+-        final boolean was = saving;
+-        saving = true;
+-        try {
+-            return (int) Math.round(o.gamma().get().doubleValue() * 100.0);
+-        } finally {
+-            saving = was;
+-        }
+-        // @era:options-else fields
+-        //~ final double value = Double.isNaN(savedGamma) ? o.gamma : savedGamma;
+-        //~ return (int) Math.round(value * 100.0);
++        // @era:options-begin fields
++        final double value = Double.isNaN(savedGamma) ? o.gamma : savedGamma;
++        return (int) Math.round(value * 100.0);
++        // @era:options-else instances
++        //~ final boolean was = saving;
++        //~ saving = true;
++        //~ try {
++            //~ return (int) Math.round(o.gamma().get().doubleValue() * 100.0);
++        //~ } finally {
++            //~ saving = was;
++        //~ }
+         // @era:options-end
+     }
+ 
+@@ -432,14 +432,14 @@ public final class VanillaOptions {
+             return;
+         }
+         final double value = Math.max(0, Math.min(100, percent)) / 100.0;
+-        // @era:options-begin instances
+-        o.gamma().set(Double.valueOf(value));
+-        // @era:options-else fields
+-        //~ if (Double.isNaN(savedGamma)) {
+-            //~ o.gamma = value;
+-        //~ } else {
+-            //~ savedGamma = value;
+-        //~ }
++        // @era:options-begin fields
++        if (Double.isNaN(savedGamma)) {
++            o.gamma = value;
++        } else {
++            savedGamma = value;
++        }
++        // @era:options-else instances
++        //~ o.gamma().set(Double.valueOf(value));
+         // @era:options-end
+     }
+ 
+@@ -452,22 +452,22 @@ public final class VanillaOptions {
+         if (o == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        gammaInstance = o.gamma();
++        // @era:options-begin fields
++        if (Double.isNaN(value)) {
++            if (!Double.isNaN(savedGamma)) {
++                o.gamma = savedGamma;
++                savedGamma = Double.NaN;
++            }
++        } else {
++            if (Double.isNaN(savedGamma)) {
++                // A value above 1 can only be a previous session's override saved by a crash.
++                savedGamma = Math.min(1.0, o.gamma);
++            }
++            o.gamma = value;
++        }
+         gammaOverride = value;
+-        // @era:options-else fields
+-        //~ if (Double.isNaN(value)) {
+-            //~ if (!Double.isNaN(savedGamma)) {
+-                //~ o.gamma = savedGamma;
+-                //~ savedGamma = Double.NaN;
+-            //~ }
+-        //~ } else {
+-            //~ if (Double.isNaN(savedGamma)) {
+-                //~ // A value above 1 can only be a previous session's override saved by a crash.
+-                //~ savedGamma = Math.min(1.0, o.gamma);
+-            //~ }
+-            //~ o.gamma = value;
+-        //~ }
++        // @era:options-else instances
++        //~ gammaInstance = o.gamma();
+         //~ gammaOverride = value;
+         // @era:options-end
+     }
+@@ -490,12 +490,12 @@ public final class VanillaOptions {
+     /** Called by {@code OptionsMixin} around vanilla's {@code Options.save()}. */
+     public static void onSave(final boolean begin) {
+         saving = begin;
+-        // @era:options-begin instances
+-        // @era:options-else fields
+-        //~ final Options o = options();
+-        //~ if (o != null && !Double.isNaN(savedGamma)) {
+-            //~ o.gamma = begin ? savedGamma : gammaOverride;
+-        //~ }
++        // @era:options-begin fields
++        final Options o = options();
++        if (o != null && !Double.isNaN(savedGamma)) {
++            o.gamma = begin ? savedGamma : gammaOverride;
++        }
++        // @era:options-else instances
+         // @era:options-end
+     }
+ 
+@@ -509,12 +509,12 @@ public final class VanillaOptions {
+         if (mc == null || mc.options == null) {
+             return;
+         }
+-        // @era:options-begin instances
+-        // @era:options-else fields
+-        //~ if (pendingAllChanged && mc.levelRenderer != null) {
+-            //~ mc.levelRenderer.allChanged();
+-        //~ }
+-        //~ pendingAllChanged = false;
++        // @era:options-begin fields
++        if (pendingAllChanged && mc.levelRenderer != null) {
++            mc.levelRenderer.allChanged();
++        }
++        pendingAllChanged = false;
++        // @era:options-else instances
+         // @era:options-end
+         mc.options.save();
+     }
+@@ -532,43 +532,43 @@ public final class VanillaOptions {
+     }
+ 
+     // ------------------------------------------------------------------ helpers
+-    // @era:options-begin instances
+-
+-    @SuppressWarnings({"rawtypes", "unchecked"})
+-    private static void setOrdinal(final OptionInstance option, final int ordinal) {
+-        final Object current = option.get();
+-        if (current instanceof Boolean) {
+-            option.set(Boolean.valueOf(ordinal != 0));
+-        } else if (current instanceof Enum) {
+-            final Object[] all = ((Enum) current).getDeclaringClass().getEnumConstants();
+-            final Object next = all[Math.max(0, Math.min(all.length - 1, ordinal))];
+-            if (next != current) {
+-                option.set(next);
+-            }
+-        }
+-    }
+-
+-    private static int ordinalOf(final OptionInstance<?> option) {
+-        final Object current = option.get();
+-        if (current instanceof Boolean) {
+-            return ((Boolean) current).booleanValue() ? 1 : 0;
+-        }
+-        if (current instanceof Enum) {
+-            return ((Enum<?>) current).ordinal();
+-        }
+-        return 0;
+-    }
++    // @era:options-begin fields
++    // @era:options-else instances
++
++    //~ @SuppressWarnings({"rawtypes", "unchecked"})
++    //~ private static void setOrdinal(final OptionInstance option, final int ordinal) {
++        //~ final Object current = option.get();
++        //~ if (current instanceof Boolean) {
++            //~ option.set(Boolean.valueOf(ordinal != 0));
++        //~ } else if (current instanceof Enum) {
++            //~ final Object[] all = ((Enum) current).getDeclaringClass().getEnumConstants();
++            //~ final Object next = all[Math.max(0, Math.min(all.length - 1, ordinal))];
++            //~ if (next != current) {
++                //~ option.set(next);
++            //~ }
++        //~ }
++    //~ }
+ 
+-    /**
+-     * Integer options validate their range in {@code set} and silently keep the old value when
+-     * rejected (render distance tops out at 16 on low-memory or 32-bit JVMs), so retry clamped.
+-     */
+-    private static void setInt(final OptionInstance<Integer> option, final int value, final int fallbackMax) {
+-        option.set(Integer.valueOf(value));
+-        if (option.get().intValue() != value && value > fallbackMax) {
+-            option.set(Integer.valueOf(fallbackMax));
+-        }
+-    }
+-    // @era:options-else fields
++    //~ private static int ordinalOf(final OptionInstance<?> option) {
++        //~ final Object current = option.get();
++        //~ if (current instanceof Boolean) {
++            //~ return ((Boolean) current).booleanValue() ? 1 : 0;
++        //~ }
++        //~ if (current instanceof Enum) {
++            //~ return ((Enum<?>) current).ordinal();
++        //~ }
++        //~ return 0;
++    //~ }
++
++    //~ /**
++     //~ * Integer options validate their range in {@code set} and silently keep the old value when
++     //~ * rejected (render distance tops out at 16 on low-memory or 32-bit JVMs), so retry clamped.
++     //~ */
++    //~ private static void setInt(final OptionInstance<Integer> option, final int value, final int fallbackMax) {
++        //~ option.set(Integer.valueOf(value));
++        //~ if (option.get().intValue() != value && value > fallbackMax) {
++            //~ option.set(Integer.valueOf(fallbackMax));
++        //~ }
++    //~ }
+     // @era:options-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
-index 269963b..e64d418 100644
+index 0b2c6b1..531f6bc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
-@@ -5,7 +5,7 @@ import java.util.List;
- import com.aetherium.Aetherium;
- import com.aetherium.hud.AetheriumHudRenderer;
- import net.minecraft.client.gui.Gui;
--import net.minecraft.client.gui.GuiGraphics;
-+import com.mojang.blaze3d.vertex.PoseStack;
- import org.spongepowered.asm.mixin.Mixin;
- import org.spongepowered.asm.mixin.injection.At;
- import org.spongepowered.asm.mixin.injection.Inject;
-@@ -18,10 +18,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-  *
-  * <p>Target and handler shapes, read from real upstream mixins for each era:</p>
-  * <ul>
-- *   <li>1.21.1: {@code Gui#render(GuiGraphics, DeltaTracker)} —
-- *       IrisShaders/Iris @ 1.21.1, {@code MixinGui#iris$handleHudHidingScreens(GuiGraphics, DeltaTracker, ...)}.</li>
-- *   <li>1.20.6: {@code Gui#render(GuiGraphics, float)} —
-- *       Iris @ 1.20.6, same mixin, {@code (GuiGraphics, float, CallbackInfo)}.</li>
-+ *   <li>1.21.1: {@code Gui#render(PoseStack, DeltaTracker)} —
-+ *       IrisShaders/Iris @ 1.21.1, {@code MixinGui#iris$handleHudHidingScreens(PoseStack, DeltaTracker, ...)}.</li>
-+ *   <li>1.20.6: {@code Gui#render(PoseStack, float)} —
-+ *       Iris @ 1.20.6, same mixin, {@code (PoseStack, float, CallbackInfo)}.</li>
-  *   <li>1.19.4: {@code Gui#render(PoseStack, float, ...)} —
-  *       Iris @ 1.19.4, same mixin, {@code (PoseStack, float, CallbackInfo)}.</li>
-  * </ul>
-@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-  * injection uses the bare name and captures only the <em>prefix</em> it needs (the
-  * first parameter); Mixin binds a handler that declares a prefix of the target's
-  * arguments, so one handler is legal across every overload shape above. Pre-1.20.5
-- * rows rewrite {@code GuiGraphics} to {@code PoseStack}/{@code MatrixStack} in this
-+ * rows rewrite {@code PoseStack} to {@code PoseStack}/{@code MatrixStack} in this
-  * handler and in the HUD (see {@code tools/gen_deltas.py}); a wrong era fact is a
-  * skipped injection ({@code require = 0}) and the overlay then only shows under F3.</p>
-  *
-@@ -42,8 +42,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+@@ -15,23 +15,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ @Mixin(Gui.class)
  public abstract class GuiMixin {
  
-     @Inject(method = "render", at = @At("TAIL"), require = 0, expect = 0)
--    private void aetherium$renderOverlays(final GuiGraphics guiGraphics, final CallbackInfo ci) {
--        aetherium$draw(guiGraphics);
-+    private void aetherium$renderOverlays(final PoseStack poseStack, final CallbackInfo ci) {
-+        aetherium$draw(poseStack);
+-    // @era:hud-begin graphics-delta
++    // @era:hud-begin stack
+     @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics,
+-                               final net.minecraft.client.DeltaTracker delta, final CallbackInfo ci) {
+-        FrameHud.render(McCanvas.INSTANCE.begin(graphics));
++    private void aetherium$hud(final com.mojang.blaze3d.vertex.PoseStack pose, final float partialTick,
++                               final CallbackInfo ci) {
++        FrameHud.render(McCanvas.INSTANCE.begin(pose));
      }
+-    // @era:hud-else graphics-float
++    // @era:hud-else graphics-delta
+     //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics, final float partialTick,
+-                               //~ final CallbackInfo ci) {
++    //~ private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics,
++                               //~ final net.minecraft.client.DeltaTracker delta, final CallbackInfo ci) {
+         //~ FrameHud.render(McCanvas.INSTANCE.begin(graphics));
+     //~ }
+-    // @era:hud-else stack
++    // @era:hud-else graphics-float
+     //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$hud(final com.mojang.blaze3d.vertex.PoseStack pose, final float partialTick,
++    //~ private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics, final float partialTick,
+                                //~ final CallbackInfo ci) {
+-        //~ FrameHud.render(McCanvas.INSTANCE.begin(pose));
++        //~ FrameHud.render(McCanvas.INSTANCE.begin(graphics));
+     //~ }
+     // @era:hud-else extractor
+     //~ @Inject(method = "extractRenderState", at = @At("TAIL"), require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java
+index d5dee0f..c2121bf 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java
+@@ -1,33 +1,33 @@
+ package com.aetherium.mixin.core;
  
-     // There is deliberately no second, legacy-descriptor injection here. An earlier
-@@ -54,7 +54,7 @@ public abstract class GuiMixin {
-     // fact); keeping a fake second injection only added a guaranteed no-op and a
-     // misleading comment to every other row.
- 
--    private void aetherium$draw(final GuiGraphics guiGraphics) {
-+    private void aetherium$draw(final PoseStack poseStack) {
-         final Aetherium.State state = Aetherium.getState();
-         if (state != Aetherium.State.ACTIVE && state != Aetherium.State.SHADOW) {
-             return;
-@@ -64,10 +64,10 @@ public abstract class GuiMixin {
-             return;
-         }
-         if (isDebugScreenOpen(minecraft)) {
--            AetheriumHudRenderer.drawBackendTag(guiGraphics);
-+            AetheriumHudRenderer.drawBackendTag(poseStack);
-             return;
-         }
--        AetheriumHudRenderer.render(guiGraphics);
-+        AetheriumHudRenderer.render(poseStack);
-     }
- 
-     /**
-diff --git a/common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java b/common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java
-index 4d204fc..2fd8ecc 100644
---- a/common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java
-@@ -36,7 +36,7 @@ public abstract class LightTextureMixin {
- 
-     // Verified name on 1.21.1 AND 1.19.4: IrisShaders/Iris's own MixinLightTexture injects into
-     // `updateLightTexture` on both branches (at INVOKE of ClientLevel#getSkyDarken(F)F), so the
--    // name has been stable across the whole GuiGraphics transition at minimum. The earlier
-+    // name has been stable across the whole PoseStack transition at minimum. The earlier
-     // candidate pair {"updateTick", "tick"} matched no known version - those names were invented.
-     // `tickLightTexture` stays as a tolerant second candidate for the pre-1.17 rows whose exact
-     // name has not been read from a jar yet; require = 0 keeps a miss at "feature off, one log
-diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-index 13a28dd..a49e76b 100644
---- a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-@@ -8,7 +8,7 @@ import com.aetherium.config.AetheriumConfig;
- import com.aetherium.gui.AetheriumVideoOptionsScreen;
- import net.minecraft.client.gui.components.CycleButton;
- import net.minecraft.client.gui.screens.Screen;
--import net.minecraft.client.gui.screens.options.OptionsScreen;
-+import net.minecraft.client.gui.screens.OptionsScreen;
+-// @era:options-begin instances
+-import com.aetherium.client.VanillaOptions;
+-
++// @era:options-begin fields
  import org.spongepowered.asm.mixin.Mixin;
- import org.spongepowered.asm.mixin.injection.At;
- import org.spongepowered.asm.mixin.injection.Inject;
-@@ -68,11 +68,10 @@ public abstract class OptionsScreenMixin extends Screen {
-         if (minecraft == null || minecraft.options == null) {
-             return;
-         }
--        final net.minecraft.client.gui.components.Button button = net.minecraft.client.gui.components.Button
--                .builder(net.minecraft.network.chat.Component.translatable("aetherium.screen.fallback_button"),
--                        widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)))
--                .bounds(5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20)
--                .build();
-+        final net.minecraft.client.gui.components.Button button = new net.minecraft.client.gui.components.Button(
-+                5, minecraft.getWindow().getGuiScaledHeight() - 24, 110, 20,
-+                new net.minecraft.network.chat.TranslatableComponent("aetherium.screen.fallback_button"),
-+                widget -> minecraft.setScreen(AetheriumVideoOptionsScreen.create((Screen) (Object) this)));
-         // Screen#addRenderableWidget is protected on 1.21.1, and javac type-checks a mixin against
-         // its own source, not against the class it will be merged into - so the call the transform
-         // makes legal does not compile. A handle is the same answer ClientHooks#dirtySectionsAround
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ 
+-/**
+- * Fullbright: the gamma option reports the override while it is active.
+- * Overriding the read (not writing the value) bypasses vanilla's 0..1
+- * validation and never reaches options.txt. One identity compare per read.
+- */
+-@Mixin(net.minecraft.client.OptionInstance.class)
++/** Before 1.19 gamma is a plain field written directly by VanillaOptions; the plugin skips this mixin. */
++@Mixin(net.minecraft.client.Options.class)
+ public abstract class OptionInstanceMixin {
+-
+-    @Inject(method = "get", at = @At("HEAD"), cancellable = true, require = 0)
+-    private void aetherium$gamma(final CallbackInfoReturnable<Object> cir) {
+-        if (VanillaOptions.overridesGamma(this)) {
+-            cir.setReturnValue(VanillaOptions.gammaOverrideBoxed());
+-        }
+-    }
+ }
+-// @era:options-else fields
++// @era:options-else instances
++//~ import com.aetherium.client.VanillaOptions;
++
+ //~ import org.spongepowered.asm.mixin.Mixin;
++//~ import org.spongepowered.asm.mixin.injection.At;
++//~ import org.spongepowered.asm.mixin.injection.Inject;
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ 
+-//~ /** Before 1.19 gamma is a plain field written directly by VanillaOptions; the plugin skips this mixin. */
+-//~ @Mixin(net.minecraft.client.Options.class)
++//~ /**
++ //~ * Fullbright: the gamma option reports the override while it is active.
++ //~ * Overriding the read (not writing the value) bypasses vanilla's 0..1
++ //~ * validation and never reaches options.txt. One identity compare per read.
++ //~ */
++//~ @Mixin(net.minecraft.client.OptionInstance.class)
+ //~ public abstract class OptionInstanceMixin {
++
++    //~ @Inject(method = "get", at = @At("HEAD"), cancellable = true, require = 0)
++    //~ private void aetherium$gamma(final CallbackInfoReturnable<Object> cir) {
++        //~ if (VanillaOptions.overridesGamma(this)) {
++            //~ cir.setReturnValue(VanillaOptions.gammaOverrideBoxed());
++        //~ }
++    //~ }
+ //~ }
+ // @era:options-end
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 49084c2..340240b 100644
+index 7aa5704..57c6a49 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
    "minVersion": "0.8",
-   "package": "com.aetherium.mixin",
+   "package": "com.aetherium.mixin.core",
    "plugin": "com.aetherium.mixin.AetheriumMixinPlugin",
 -  "compatibilityLevel": "JAVA_21",
 +  "compatibilityLevel": "JAVA_17",
@@ -1273,7 +1124,7 @@ index 49084c2..340240b 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 2a01fa4..ee37d06 100644
+index 396e7c3..4e91ca9 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

@@ -77,17 +77,17 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     // @era:gui-else stack
     //~ @Override
     //~ public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
-    //~     if (this.view != null) {
-    //~         this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
-    //~     }
+        //~ if (this.view != null) {
+            //~ this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
+        //~ }
     //~ }
     // @era:gui-else extractor
     //~ @Override
     //~ public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
-    //~                                final float partialTick) {
-    //~     if (this.view != null) {
-    //~         this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
-    //~     }
+                                   //~ final float partialTick) {
+        //~ if (this.view != null) {
+            //~ this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
+        //~ }
     //~ }
     // @era:gui-end
 
@@ -100,7 +100,7 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     // @era:background-else extract
     //~ @Override
     //~ public void extractBackground(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
-    //~                               final float partialTick) {
+                                  //~ final float partialTick) {
     //~ }
     // @era:background-end
 
@@ -133,25 +133,25 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     // @era:input-else events
     //~ @Override
     //~ public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
-    //~     return this.view != null && this.view.mouseClicked(event.x(), event.y(), event.button())
-    //~             || super.mouseClicked(event, doubleClick);
+        //~ return this.view != null && this.view.mouseClicked(event.x(), event.y(), event.button())
+                //~ || super.mouseClicked(event, doubleClick);
     //~ }
 
     //~ @Override
     //~ public boolean mouseReleased(final MouseButtonEvent event) {
-    //~     return this.view != null && this.view.mouseReleased(event.x(), event.y(), event.button())
-    //~             || super.mouseReleased(event);
+        //~ return this.view != null && this.view.mouseReleased(event.x(), event.y(), event.button())
+                //~ || super.mouseReleased(event);
     //~ }
 
     //~ @Override
     //~ public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
-    //~     return this.view != null && this.view.mouseDragged(event.x(), event.y(), event.button())
-    //~             || super.mouseDragged(event, dragX, dragY);
+        //~ return this.view != null && this.view.mouseDragged(event.x(), event.y(), event.button())
+                //~ || super.mouseDragged(event, dragX, dragY);
     //~ }
 
     //~ @Override
     //~ public boolean keyPressed(final KeyEvent event) {
-    //~     return this.view != null && this.view.keyPressed(event.key()) || super.keyPressed(event);
+        //~ return this.view != null && this.view.keyPressed(event.key()) || super.keyPressed(event);
     //~ }
     // @era:input-end
 
@@ -164,8 +164,8 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     // @era:scroll-else three
     //~ @Override
     //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
-    //~     return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
-    //~             || super.mouseScrolled(mouseX, mouseY, amount);
+        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
+                //~ || super.mouseScrolled(mouseX, mouseY, amount);
     //~ }
     // @era:scroll-end
 

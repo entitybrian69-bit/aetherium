@@ -161,16 +161,16 @@ public final class DynamicLightTracker {
         }
         // @era:dirty-else sections
         //~ if (minecraft.level == null) {
-        //~     return;
+            //~ return;
         //~ }
         //~ for (final int[] box : regions) {
-        //~     for (int sx = box[0] >> 4; sx <= box[3] >> 4; sx++) {
-        //~         for (int sy = box[1] >> 4; sy <= box[4] >> 4; sy++) {
-        //~             for (int sz = box[2] >> 4; sz <= box[5] >> 4; sz++) {
-        //~                 minecraft.level.setSectionDirtyWithNeighbors(sx, sy, sz);
-        //~             }
-        //~         }
-        //~     }
+            //~ for (int sx = box[0] >> 4; sx <= box[3] >> 4; sx++) {
+                //~ for (int sy = box[1] >> 4; sy <= box[4] >> 4; sy++) {
+                    //~ for (int sz = box[2] >> 4; sz <= box[5] >> 4; sz++) {
+                        //~ minecraft.level.setSectionDirtyWithNeighbors(sx, sy, sz);
+                    //~ }
+                //~ }
+            //~ }
         //~ }
         // @era:dirty-end
     }

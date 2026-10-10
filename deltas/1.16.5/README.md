@@ -21,42 +21,30 @@ neoforge_version=unavailable (module disabled)
 
 ### Era transforms applied by the generated patch
 
-- `Button.builder->ctor`
-- `Component->text`
-- `CycleButton->AbstractWidget(1.16.5)`
-- `GuiGraphics->PoseStack`
-- `OptionsScreen-package`
-- `ResourceLocation.parse->ctor`
-- `addRenderableWidget->addButton`
-- `disableScissor->GL11`
-- `drawCenteredString`
-- `drawString`
-- `enableScissor->GL11.glScissor`
-- `entitiesForRendering->entities`
-- `fill`
-- `guiGraphics->poseStack`
-- `guiWidth->Window`
-- `isHoveredOrFocused->isHovered||isFocused`
-- `renderBackground->1-arg`
-- `renderDistance()->field`
-- `renderWidget->renderButton`
-- `setX->x`
-- `setY->y`
-- `simulationDistance->n/a`
-- `slf4j->log4j2`
-- `this.getX()->this.x`
-- `this.getY()->this.y`
-- `updateWidgetNarration->updateNarration`
+- `background=none`
+- `graphics=status`
+- `gui=stack`
+- `hud=stack`
+- `input=doubles`
+- `light-hook=color`
+- `logger=log4j`
+- `options=fields`
+- `reload=all-changed`
+- `screen-owner=minecraft`
+- `screen-pkg=flat`
+- `scroll=three`
+- `simdist=none`
+- `vignette=render`
 
-### Era facts and where they were read from
+### Where the per-version Java comes from
 
-- `stack_class` = **PoseStack** - PoseStack [VERIFIED: Iris @ 1.19.4; 1.16.5 is ALSO PoseStack - Mojang's own mappings never used MCP's MatrixStack name (apathy common-1.16.5 + MasaGadget under officialMojangMappings; the 1.16.5 leg rejected com.mojang.blaze3d.matrix)]
-- `component_era` = **text** - interface stays Component, factories become new TextComponent/new TranslatableComponent [VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2; the 1.17/1.18.2 legs rejected ITextComponent]
-- `narration` = **plain** - NarrationSupplier#updateNarration is the abstract method 1.16.5-1.19.2 [VERIFIED: the 1.17, 1.18.2 and 1.19.2 legs all demanded it; the narration system ships with 1.16.5's accessibility rework]
-- `widget_render` = **renderButton** - renderWidget from 1.19.4 [VERIFIED by the 1.19.4 ship leg rejecting renderButton; renderWidget verified on 1.21.1 via sodium's widget set]
-- `render_background_args` = **1** - 1-arg form [VERIFIED on 1.20.1 (Iris) and 1.19.4 (Iris)]
-- `widget_access` = **fields** - getX/setX/getY/setY exist from 1.19.3 on; 1.16.5-1.19.2 expose public x/y fields instead, and only the x/y accessors are rewritten (getWidth/setWidth/getHeight/setHeight exist across the whole range) [VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2/1.19.3; the 1.19.2 leg rejected this.getX()]
-- `hover_or_focus` = **False** - AbstractWidget#isHoveredOrFocused exists from 1.18 on; 1.16.5-1.17.1 get the `(isHovered() || isFocused())` rewrite [VERIFIED: javadoc @ 1.18.2 lists it, @ 1.17.1 does not, and the 1.17 leg rejected it]
+Every Java difference is an era block in the source (`// @era:<name>-begin ...`), selected
+by `tools/eras.py`; the variant names above say which shape this row compiles.
+`python3 tools/stubcheck.py 1.16.5` compiles exactly this selection against the
+Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.txt`).
+
+### Version facts from earlier porting research (historical; tools/eras.py is authoritative)
+
 - `options_access` = **fields_no_sim** - Options#renderDistance()/simulationDistance() OptionInstance getters are 1.19+; 1.17-1.18.2 read public int fields, and 1.16.5-1.17.x have no simulationDistance at all (the benchmark label degrades to `sim=n/a`) [VERIFIED: the 1.19/1.19.1/1.19.2 legs compiled the getters while 1.18.2 rejected them]
 - `button_builder` = **False** - Button.builder arrives with the 1.19.3 screen rework; 1.16.5-1.19.2 construct Button directly [VERIFIED: the 1.19.3 leg rejected the constructor form]
 - `cycle_button` = **none** - 1.16.5 has no CycleButton; the vanilla-controls counter counts AbstractWidget [the 1.16.5 leg rejected the CycleButton import]
@@ -77,18 +65,13 @@ neoforge_version=unavailable (module disabled)
 - `settings.gradle.kts`
 - `build.gradle.kts`
 - `common/src/main/resources/aetherium-common.mixins.json`
-- `common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java`
-- `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/LightTextureMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java`
-- `common/src/main/java/com/aetherium/gui/AetheriumVideoOptionsScreen.java`
-- `common/src/main/java/com/aetherium/gui/AetheriumTheme.java`
-- `common/src/main/java/com/aetherium/gui/AetheriumTabs.java`
-- `common/src/main/java/com/aetherium/gui/AetheriumAnimations.java`
-- `common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java`
-- `common/src/main/java/com/aetherium/hud/AetheriumHudRenderer.java`
-- `common/src/main/java/com/aetherium/hud/BenchmarkRecorder.java`
+- `common/src/main/java/com/aetherium/Capabilities.java`
+- `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/client/McCanvas.java`
+- `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 
 ## Verifying this row before shipping it

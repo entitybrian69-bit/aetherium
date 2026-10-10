@@ -261,14 +261,12 @@ jobs:
 
           * Minecraft @MC@, loader shells for Fabric and NeoForge, mod version `@MOD@`.
           * What CI establishes: it compiles against real @MC@ mappings, the unit tests pass,
-            checkstyle and the tree checks pass. What it does not: **no GPU was ever attached**,
-            so every GL call in these jars is unexercised.
+            checkstyle and the tree checks pass. What it does not: **no GPU was ever attached**.
+            Aetherium makes no OpenGL calls of its own; everything it does goes through vanilla.
           * @MARKS@ `[UNVERIFIED]` marks remain in the source; each one names its own failure mode
             (VERIFICATION.md), and the raw list is attached as `unverified.txt`.
-          * Install one jar into `mods/`. Fabric additionally needs Fabric API; NeoForge needs
+          * Install one jar into `mods/`. Fabric needs only Fabric Loader; NeoForge needs
             nothing extra.
-          * There is no full replacement renderer in here. `advanced.experimental_full_renderer`
-            logs an error and disables itself - that is the shipped behaviour, not a bug.
           * For other Minecraft versions there is no jar: apply `deltas/<version>/changes.patch`
             and build (see PORTING_MATRIX.md).
           EOF

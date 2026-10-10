@@ -4,34 +4,40 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.21.2/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.2/changes.patch
-diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index d753fd1..027b6d2 100644
---- a/common/src/main/java/com/aetherium/client/ClientHooks.java
-+++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -295,7 +295,7 @@ public final class ClientHooks {
-             for (int dy = -1; dy <= 1; dy++) {
-                 for (int dz = -radiusSections; dz <= radiusSections; dz++) {
-                     final int sectionY = baseY + dy;
--                    if (sectionY < level.getMinSection() || sectionY >= level.getMaxSection()) {
-+                    if (sectionY < level.getMinSectionY() || sectionY >= level.getMaxSectionY()) {
-                         continue;
-                     }
-                     final int x = baseX + dx;
-diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-index 7a9eddf..1b6d68b 100644
---- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-+++ b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-@@ -97,7 +97,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
-     }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
+index dd489bc..090bb2c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
+@@ -13,18 +13,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  * changes almost every version, so every candidate name is listed with
+  * require = 0 and a CallbackInfo-only handler (valid for any descriptor).
+  */
+-// @era:weather-begin level
+-@Mixin(net.minecraft.client.renderer.LevelRenderer.class)
+-// @era:weather-else effect
+-//~ @Mixin(net.minecraft.client.renderer.WeatherEffectRenderer.class)
++// @era:weather-begin effect
++@Mixin(net.minecraft.client.renderer.WeatherEffectRenderer.class)
++// @era:weather-else level
++//~ @Mixin(net.minecraft.client.renderer.LevelRenderer.class)
+ // @era:weather-end
+ public abstract class WeatherMixin {
  
-     /** Written by {@code Aetherium} before the mixins are applied, read here. */
--    private static volatile String announcedVersion = "";
-+    private static volatile String announcedVersion = "1.21.2";
- 
-     /**
-      * Mixin runs transform-time code before a mod's own entry point on some loaders, so
+-    // @era:weather-begin level
+-    @Inject(method = {"renderSnowAndRain", "tickRain"}, at = @At("HEAD"), cancellable = true, require = 0)
+-    // @era:weather-else effect
+-    //~ @Inject(method = {"render", "extractRenderState", "prepare", "renderOit", "tickRainParticles"},
+-            //~ at = @At("HEAD"), cancellable = true, require = 0)
++    // @era:weather-begin effect
++    @Inject(method = {"render", "extractRenderState", "prepare", "renderOit", "tickRainParticles"},
++            at = @At("HEAD"), cancellable = true, require = 0)
++    // @era:weather-else level
++    //~ @Inject(method = {"renderSnowAndRain", "tickRain"}, at = @At("HEAD"), cancellable = true, require = 0)
+     // @era:weather-end
+     private void aetherium$hideWeather(final CallbackInfo ci) {
+         if (ClientHooks.hideWeather()) {
 diff --git a/gradle.properties b/gradle.properties
-index 2a01fa4..c503ec4 100644
+index 396e7c3..8a6857f 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@ org.gradle.daemon=true

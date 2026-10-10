@@ -66,83 +66,83 @@ public final class McCanvas extends GuiCanvas {
     }
     // @era:gui-else stack
     //~ private PoseStack pose;
-    //~
+
     //~ /** Points the canvas at this frame's pose stack. */
     //~ public McCanvas begin(final PoseStack pose) {
-    //~     this.pose = pose;
-    //~     this.font = Minecraft.getInstance().font;
-    //~     beginFrame();
-    //~     return this;
+        //~ this.pose = pose;
+        //~ this.font = Minecraft.getInstance().font;
+        //~ beginFrame();
+        //~ return this;
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawFill(final int x1, final int y1, final int x2, final int y2, final int argb) {
-    //~     GuiComponent.fill(this.pose, x1, y1, x2, y2, argb);
+        //~ GuiComponent.fill(this.pose, x1, y1, x2, y2, argb);
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawText(final String text, final int x, final int y, final int argb) {
-    //~     this.font.draw(this.pose, text, (float) x, (float) y, argb);
+        //~ this.font.draw(this.pose, text, (float) x, (float) y, argb);
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawPushClip(final int x1, final int y1, final int x2, final int y2) {
-    //~     scissor(x1, y1, x2, y2);
+        //~ scissor(x1, y1, x2, y2);
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawPopClip(final boolean restore, final int x1, final int y1, final int x2, final int y2) {
-    //~     if (restore) {
-    //~         scissor(x1, y1, x2, y2);
-    //~     } else {
-    //~         RenderSystem.disableScissor();
-    //~     }
+        //~ if (restore) {
+            //~ scissor(x1, y1, x2, y2);
+        //~ } else {
+            //~ RenderSystem.disableScissor();
+        //~ }
     //~ }
-    //~
+
     //~ /** RenderSystem's scissor takes framebuffer pixels with a bottom-left origin. */
     //~ private static void scissor(final int x1, final int y1, final int x2, final int y2) {
-    //~     final com.mojang.blaze3d.platform.Window window = Minecraft.getInstance().getWindow();
-    //~     final double scale = window.getGuiScale();
-    //~     final int px = (int) Math.floor(x1 * scale);
-    //~     final int py = (int) Math.floor(window.getHeight() - y2 * scale);
-    //~     final int pw = Math.max(0, (int) Math.ceil((x2 - x1) * scale));
-    //~     final int ph = Math.max(0, (int) Math.ceil((y2 - y1) * scale));
-    //~     RenderSystem.enableScissor(px, Math.max(0, py), pw, ph);
+        //~ final com.mojang.blaze3d.platform.Window window = Minecraft.getInstance().getWindow();
+        //~ final double scale = window.getGuiScale();
+        //~ final int px = (int) Math.floor(x1 * scale);
+        //~ final int py = (int) Math.floor(window.getHeight() - y2 * scale);
+        //~ final int pw = Math.max(0, (int) Math.ceil((x2 - x1) * scale));
+        //~ final int ph = Math.max(0, (int) Math.ceil((y2 - y1) * scale));
+        //~ RenderSystem.enableScissor(px, Math.max(0, py), pw, ph);
     //~ }
     // @era:gui-else extractor
     //~ private GuiGraphicsExtractor graphics;
-    //~
+
     //~ /** Points the canvas at this frame's draw context. */
     //~ public McCanvas begin(final GuiGraphicsExtractor graphics) {
-    //~     this.graphics = graphics;
-    //~     this.font = Minecraft.getInstance().font;
-    //~     beginFrame();
-    //~     return this;
+        //~ this.graphics = graphics;
+        //~ this.font = Minecraft.getInstance().font;
+        //~ beginFrame();
+        //~ return this;
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawFill(final int x1, final int y1, final int x2, final int y2, final int argb) {
-    //~     this.graphics.fill(x1, y1, x2, y2, argb);
+        //~ this.graphics.fill(x1, y1, x2, y2, argb);
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawText(final String text, final int x, final int y, final int argb) {
-    //~     this.graphics.text(this.font, text, x, y, argb, false);
+        //~ this.graphics.text(this.font, text, x, y, argb, false);
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawPushClip(final int x1, final int y1, final int x2, final int y2) {
-    //~     this.graphics.enableScissor(x1, y1, x2, y2);
+        //~ this.graphics.enableScissor(x1, y1, x2, y2);
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawPopClip(final boolean restore, final int x1, final int y1, final int x2, final int y2) {
-    //~     this.graphics.disableScissor();
+        //~ this.graphics.disableScissor();
     //~ }
-    //~
+
     //~ @Override
     //~ protected void rawLayer() {
-    //~     this.graphics.nextStratum();
+        //~ this.graphics.nextStratum();
     //~ }
     // @era:gui-end
 

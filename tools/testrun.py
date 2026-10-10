@@ -9,7 +9,7 @@ reflective runner) and executed on the local JRE from tools/local_jdk.sh.
 The tests only exercise Minecraft-free code, so the stub Minecraft classes are never loaded
 at runtime. CI still runs the real JUnit through Gradle; this is the offline equivalent.
 
-Usage: python3 tools/testrun.py [--version 1.21.1] [TestClassSimpleName ...]
+Usage: python3 tools/testrun.py [--version 1.21.1] [--bench] [TestClassSimpleName ...]
 """
 import argparse
 import os
@@ -36,6 +36,7 @@ def java_files(root):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--version", default="1.21.1")
+    ap.add_argument("--bench", action="store_true", help="also run the opt-in CPU micro-benchmarks")
     ap.add_argument("only", nargs="*")
     args = ap.parse_args()
     version = args.version
@@ -71,7 +72,8 @@ def main():
     # Resources (e.g. lang files read by tests) come from the main resources dir.
     res = os.path.join(ROOT, "common", "src", "main", "resources")
     run_cp = os.pathsep.join([out, main_classes, res, stubcheck.lib_classes()])
-    r = subprocess.run([stubcheck.JAVA, "-cp", run_cp, "org.junit.platform.MiniRunner"] + classes, cwd=ROOT)
+    props = ["-Daetherium.bench=true"] if args.bench else []
+    r = subprocess.run([stubcheck.JAVA] + props + ["-cp", run_cp, "org.junit.platform.MiniRunner"] + classes, cwd=ROOT)
     return r.returncode
 
 

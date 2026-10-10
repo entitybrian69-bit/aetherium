@@ -13,18 +13,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * changes almost every version, so every candidate name is listed with
  * require = 0 and a CallbackInfo-only handler (valid for any descriptor).
  */
-// @era:weather-begin effect
-@Mixin(net.minecraft.client.renderer.WeatherEffectRenderer.class)
-// @era:weather-else level
-//~ @Mixin(net.minecraft.client.renderer.LevelRenderer.class)
+// @era:weather-begin level
+@Mixin(net.minecraft.client.renderer.LevelRenderer.class)
+// @era:weather-else effect
+//~ @Mixin(net.minecraft.client.renderer.WeatherEffectRenderer.class)
 // @era:weather-end
 public abstract class WeatherMixin {
 
-    // @era:weather-begin effect
-    @Inject(method = {"render", "extractRenderState", "prepare", "renderOit", "tickRainParticles"},
-            at = @At("HEAD"), cancellable = true, require = 0)
-    // @era:weather-else level
-    //~ @Inject(method = {"renderSnowAndRain", "tickRain"}, at = @At("HEAD"), cancellable = true, require = 0)
+    // @era:weather-begin level
+    @Inject(method = {"renderSnowAndRain", "tickRain"}, at = @At("HEAD"), cancellable = true, require = 0)
+    // @era:weather-else effect
+    //~ @Inject(method = {"render", "extractRenderState", "prepare", "renderOit", "tickRainParticles"},
+            //~ at = @At("HEAD"), cancellable = true, require = 0)
     // @era:weather-end
     private void aetherium$hideWeather(final CallbackInfo ci) {
         if (ClientHooks.hideWeather()) {

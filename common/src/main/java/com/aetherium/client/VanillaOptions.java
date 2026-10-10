@@ -87,11 +87,11 @@ public final class VanillaOptions {
         setInt(o.renderDistance(), chunks, 16);
         // @era:options-else fields
         //~ if (o.renderDistance != chunks) {
-        //~     o.renderDistance = chunks;
-        //~     final Minecraft mc = Minecraft.getInstance();
-        //~     if (mc.levelRenderer != null) {
-        //~         mc.levelRenderer.needsUpdate();
-        //~     }
+            //~ o.renderDistance = chunks;
+            //~ final Minecraft mc = Minecraft.getInstance();
+            //~ if (mc.levelRenderer != null) {
+                //~ mc.levelRenderer.needsUpdate();
+            //~ }
         //~ }
         // @era:options-end
     }
@@ -242,8 +242,8 @@ public final class VanillaOptions {
         // @era:options-else fields
         //~ final GraphicsStatus next = GraphicsStatus.values()[Math.min(index, 2)];
         //~ if (o.graphicsMode != next) {
-        //~     o.graphicsMode = next;
-        //~     pendingAllChanged = true;
+            //~ o.graphicsMode = next;
+            //~ pendingAllChanged = true;
         //~ }
         // @era:options-end
     }
@@ -321,8 +321,8 @@ public final class VanillaOptions {
         // @era:options-else fields
         //~ final AmbientOcclusionStatus next = on ? AmbientOcclusionStatus.MAX : AmbientOcclusionStatus.OFF;
         //~ if (o.ambientOcclusion != next) {
-        //~     o.ambientOcclusion = next;
-        //~     pendingAllChanged = true;
+            //~ o.ambientOcclusion = next;
+            //~ pendingAllChanged = true;
         //~ }
         // @era:options-end
     }
@@ -350,8 +350,8 @@ public final class VanillaOptions {
         o.biomeBlendRadius().set(Integer.valueOf(value));
         // @era:options-else fields
         //~ if (o.biomeBlendRadius != value) {
-        //~     o.biomeBlendRadius = value;
-        //~     pendingAllChanged = true;
+            //~ o.biomeBlendRadius = value;
+            //~ pendingAllChanged = true;
         //~ }
         // @era:options-end
     }
@@ -436,9 +436,9 @@ public final class VanillaOptions {
         o.gamma().set(Double.valueOf(value));
         // @era:options-else fields
         //~ if (Double.isNaN(savedGamma)) {
-        //~     o.gamma = value;
+            //~ o.gamma = value;
         //~ } else {
-        //~     savedGamma = value;
+            //~ savedGamma = value;
         //~ }
         // @era:options-end
     }
@@ -457,16 +457,16 @@ public final class VanillaOptions {
         gammaOverride = value;
         // @era:options-else fields
         //~ if (Double.isNaN(value)) {
-        //~     if (!Double.isNaN(savedGamma)) {
-        //~         o.gamma = savedGamma;
-        //~         savedGamma = Double.NaN;
-        //~     }
+            //~ if (!Double.isNaN(savedGamma)) {
+                //~ o.gamma = savedGamma;
+                //~ savedGamma = Double.NaN;
+            //~ }
         //~ } else {
-        //~     if (Double.isNaN(savedGamma)) {
-        //~         // A value above 1 can only be a previous session's override saved by a crash.
-        //~         savedGamma = Math.min(1.0, o.gamma);
-        //~     }
-        //~     o.gamma = value;
+            //~ if (Double.isNaN(savedGamma)) {
+                //~ // A value above 1 can only be a previous session's override saved by a crash.
+                //~ savedGamma = Math.min(1.0, o.gamma);
+            //~ }
+            //~ o.gamma = value;
         //~ }
         //~ gammaOverride = value;
         // @era:options-end
@@ -494,7 +494,7 @@ public final class VanillaOptions {
         // @era:options-else fields
         //~ final Options o = options();
         //~ if (o != null && !Double.isNaN(savedGamma)) {
-        //~     o.gamma = begin ? savedGamma : gammaOverride;
+            //~ o.gamma = begin ? savedGamma : gammaOverride;
         //~ }
         // @era:options-end
     }
@@ -512,7 +512,7 @@ public final class VanillaOptions {
         // @era:options-begin instances
         // @era:options-else fields
         //~ if (pendingAllChanged && mc.levelRenderer != null) {
-        //~     mc.levelRenderer.allChanged();
+            //~ mc.levelRenderer.allChanged();
         //~ }
         //~ pendingAllChanged = false;
         // @era:options-end

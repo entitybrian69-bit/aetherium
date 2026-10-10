@@ -4,58 +4,74 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.20.3/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.20.3/changes.patch
-diff --git a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
-index ed450a1..af8ef3b 100644
---- a/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
-+++ b/common/src/main/java/com/aetherium/gui/AetheriumTheme.java
-@@ -53,10 +53,10 @@ public final class AetheriumTheme {
-     public static final int CORNER_RADIUS = 3;
-     public static final int MILLISECONDS_PER_ANIMATION = 260;
- 
--    public static final ResourceLocation TEXTURE_PANEL = ResourceLocation.parse("aetherium:textures/gui/panel_purple.png");
--    public static final ResourceLocation TEXTURE_GLOW = ResourceLocation.parse("aetherium:textures/gui/glow_violet.png");
--    public static final ResourceLocation TEXTURE_SLIDER = ResourceLocation.parse("aetherium:textures/gui/slider_track.png");
--    public static final ResourceLocation TEXTURE_LOGO = ResourceLocation.parse("aetherium:textures/gui/aetherium_logo.png");
-+    public static final ResourceLocation TEXTURE_PANEL = new ResourceLocation("aetherium:textures/gui/panel_purple.png");
-+    public static final ResourceLocation TEXTURE_GLOW = new ResourceLocation("aetherium:textures/gui/glow_violet.png");
-+    public static final ResourceLocation TEXTURE_SLIDER = new ResourceLocation("aetherium:textures/gui/slider_track.png");
-+    public static final ResourceLocation TEXTURE_LOGO = new ResourceLocation("aetherium:textures/gui/aetherium_logo.png");
- 
-     /** Desktop layout is 1.0; touch mode widens hit targets and spacing. */
-     private final boolean touchMode;
-diff --git a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-index 7a9eddf..9452ade 100644
---- a/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-+++ b/common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java
-@@ -97,7 +97,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
+diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
+index 6e31c46..aa0a28b 100644
+--- a/common/src/main/java/com/aetherium/client/ClientHooks.java
++++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
+@@ -276,10 +276,10 @@ public final class ClientHooks {
+     /** Opens vanilla's own video screen on top of ours (escape hatch). */
+     public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
+         bypassVideoScreen = true;
+-        // @era:screen-pkg-begin options
+-        setScreen(mc, new net.minecraft.client.gui.screens.options.VideoSettingsScreen(parent, mc, mc.options));
+-        // @era:screen-pkg-else flat
+-        //~ setScreen(mc, new net.minecraft.client.gui.screens.VideoSettingsScreen(parent, mc.options));
++        // @era:screen-pkg-begin flat
++        setScreen(mc, new net.minecraft.client.gui.screens.VideoSettingsScreen(parent, mc.options));
++        // @era:screen-pkg-else options
++        //~ setScreen(mc, new net.minecraft.client.gui.screens.options.VideoSettingsScreen(parent, mc, mc.options));
+         // @era:screen-pkg-end
+         bypassVideoScreen = false;
+     }
+@@ -317,10 +317,10 @@ public final class ClientHooks {
      }
  
-     /** Written by {@code Aetherium} before the mixins are applied, read here. */
--    private static volatile String announcedVersion = "";
-+    private static volatile String announcedVersion = "1.20.3";
+     private static boolean isVideoSettings(final Screen screen) {
+-        // @era:screen-pkg-begin options
+-        return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
+-        // @era:screen-pkg-else flat
+-        //~ return screen instanceof net.minecraft.client.gui.screens.VideoSettingsScreen;
++        // @era:screen-pkg-begin flat
++        return screen instanceof net.minecraft.client.gui.screens.VideoSettingsScreen;
++        // @era:screen-pkg-else options
++        //~ return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
+         // @era:screen-pkg-end
+     }
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
+index 0b2c6b1..120379c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
+@@ -15,16 +15,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ @Mixin(Gui.class)
+ public abstract class GuiMixin {
  
-     /**
-      * Mixin runs transform-time code before a mod's own entry point on some loaders, so
-diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-index 13a28dd..3a67161 100644
---- a/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java
-@@ -8,7 +8,7 @@ import com.aetherium.config.AetheriumConfig;
- import com.aetherium.gui.AetheriumVideoOptionsScreen;
- import net.minecraft.client.gui.components.CycleButton;
- import net.minecraft.client.gui.screens.Screen;
--import net.minecraft.client.gui.screens.options.OptionsScreen;
-+import net.minecraft.client.gui.screens.OptionsScreen;
- import org.spongepowered.asm.mixin.Mixin;
- import org.spongepowered.asm.mixin.injection.At;
- import org.spongepowered.asm.mixin.injection.Inject;
+-    // @era:hud-begin graphics-delta
++    // @era:hud-begin graphics-float
+     @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics,
+-                               final net.minecraft.client.DeltaTracker delta, final CallbackInfo ci) {
++    private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics, final float partialTick,
++                               final CallbackInfo ci) {
+         FrameHud.render(McCanvas.INSTANCE.begin(graphics));
+     }
+-    // @era:hud-else graphics-float
++    // @era:hud-else graphics-delta
+     //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics, final float partialTick,
+-                               //~ final CallbackInfo ci) {
++    //~ private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics,
++                               //~ final net.minecraft.client.DeltaTracker delta, final CallbackInfo ci) {
+         //~ FrameHud.render(McCanvas.INSTANCE.begin(graphics));
+     //~ }
+     // @era:hud-else stack
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 49084c2..340240b 100644
+index 7aa5704..57c6a49 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
    "minVersion": "0.8",
-   "package": "com.aetherium.mixin",
+   "package": "com.aetherium.mixin.core",
    "plugin": "com.aetherium.mixin.AetheriumMixinPlugin",
 -  "compatibilityLevel": "JAVA_21",
 +  "compatibilityLevel": "JAVA_17",
@@ -63,7 +79,7 @@ index 49084c2..340240b 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 2a01fa4..d95b818 100644
+index 396e7c3..ddfad7c 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

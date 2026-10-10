@@ -101,7 +101,8 @@ tasks.processResources {
         "minecraft_version" to project.property("minecraft_version").toString(),
         "neoforge_version" to project.property("neoforge_version").toString(),
         "loader_version_range" to "[4,)",
-        "minecraft_version_range" to "[${project.property("minecraft_version")},${nextMinor(project.property("minecraft_version").toString())})",
+        // Exact: each jar carries the era blocks of the one version it was compiled against.
+        "minecraft_version_range" to "[${project.property("minecraft_version")}]",
         "mod_id" to project.property("mod_id").toString(),
         "mod_name" to project.property("mod_name").toString(),
         "mod_description" to project.property("mod_description").toString(),
@@ -113,16 +114,6 @@ tasks.processResources {
     filesMatching("META-INF/neoforge.mods.toml") {
         expand(props)
     }
-}
-
-/** "1.21.1" -> "1.22" ; "26.1.2" -> "26.2". Used for the depends range. */
-fun nextMinor(v: String): String {
-    val parts = v.split(".")
-    if (parts.size < 2) {
-        return v
-    }
-    val minor = parts[1].toIntOrNull() ?: return v
-    return "${parts[0]}.${minor + 1}"
 }
 
 tasks.withType<Jar> {

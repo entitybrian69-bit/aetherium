@@ -26,10 +26,10 @@ public abstract class EntityCullMixin {
     // @era:entity-cull-else six
     //~ @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$cull(final Entity entity, final Frustum frustum, final double camX, final double camY,
-    //~                             final double camZ, final float partialTick, final CallbackInfoReturnable<Boolean> cir) {
-    //~     if (ClientHooks.shouldCullEntity(entity, camX, camY, camZ)) {
-    //~         cir.setReturnValue(Boolean.FALSE);
-    //~     }
+                                //~ final double camZ, final float partialTick, final CallbackInfoReturnable<Boolean> cir) {
+        //~ if (ClientHooks.shouldCullEntity(entity, camX, camY, camZ)) {
+            //~ cir.setReturnValue(Boolean.FALSE);
+        //~ }
     //~ }
     // @era:entity-cull-end
 }

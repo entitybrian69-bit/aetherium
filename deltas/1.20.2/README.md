@@ -21,18 +21,20 @@ neoforge_version=20.2.86
 
 ### Era transforms applied by the generated patch
 
-- `OptionsScreen-package`
-- `ResourceLocation.parse->ctor`
+- `hud=graphics-float`
+- `screen-owner=minecraft`
+- `screen-pkg=flat`
+- `vignette=render`
 
-### Era facts and where they were read from
+### Where the per-version Java comes from
 
-- `stack_class` = **GuiGraphics** - GuiGraphics [VERIFIED: Iris @ 1.20.1 and 1.20.6 branches]
-- `component_era` = **component** - Component.literal is 1.19+ [VERIFIED on 1.19.4 sources]
-- `narration` = **widget** - AbstractWidget declares the abstract `updateWidgetNarration` from 1.19.3 on [VERIFIED: official-mapping javadoc @ 1.19.3 lists updateWidgetNarration; 1.19.4 and 1.20 legs rejected `updateNarration` as 'cannot override' while demanding updateWidgetNarration]
-- `widget_render` = **renderWidget** - renderWidget from 1.19.4 [VERIFIED by the 1.19.4 ship leg rejecting renderButton; renderWidget verified on 1.21.1 via sodium's widget set]
-- `render_background_args` = **4** - 4-arg form [VERIFIED on 1.20.2 (ship leg rejected the 1-arg call), 1.20.6 (Iris) and 1.21.1 (Iris)]
-- `widget_access` = **accessors** - getX/setX/getY/setY exist from 1.19.3 on; 1.16.5-1.19.2 expose public x/y fields instead, and only the x/y accessors are rewritten (getWidth/setWidth/getHeight/setHeight exist across the whole range) [VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2/1.19.3; the 1.19.2 leg rejected this.getX()]
-- `hover_or_focus` = **True** - AbstractWidget#isHoveredOrFocused exists from 1.18 on; 1.16.5-1.17.1 get the `(isHovered() || isFocused())` rewrite [VERIFIED: javadoc @ 1.18.2 lists it, @ 1.17.1 does not, and the 1.17 leg rejected it]
+Every Java difference is an era block in the source (`// @era:<name>-begin ...`), selected
+by `tools/eras.py`; the variant names above say which shape this row compiles.
+`python3 tools/stubcheck.py 1.20.2` compiles exactly this selection against the
+Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.2.txt`).
+
+### Version facts from earlier porting research (historical; tools/eras.py is authoritative)
+
 - `options_access` = **getters** - Options#renderDistance()/simulationDistance() OptionInstance getters are 1.19+; 1.17-1.18.2 read public int fields, and 1.16.5-1.17.x have no simulationDistance at all (the benchmark label degrades to `sim=n/a`) [VERIFIED: the 1.19/1.19.1/1.19.2 legs compiled the getters while 1.18.2 rejected them]
 - `button_builder` = **True** - Button.builder arrives with the 1.19.3 screen rework; 1.16.5-1.19.2 construct Button directly [VERIFIED: the 1.19.3 leg rejected the constructor form]
 - `cycle_button` = **CycleButton** - CycleButton under that exact mojmap name from 1.17 on [VERIFIED: official-mapping javadoc @ 1.17.1/1.18.2; the 1.17/1.18.2 legs rejected CycleButtonWidget]
@@ -51,9 +53,8 @@ neoforge_version=20.2.86
 
 - `gradle.properties`
 - `common/src/main/resources/aetherium-common.mixins.json`
-- `common/src/main/java/com/aetherium/mixin/AetheriumMixinPlugin.java`
-- `common/src/main/java/com/aetherium/mixin/core/OptionsScreenMixin.java`
-- `common/src/main/java/com/aetherium/gui/AetheriumTheme.java`
+- `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 
 ## Verifying this row before shipping it
 

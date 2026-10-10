@@ -3,7 +3,8 @@ name: ship
 # One run does the whole shipping job for every row of the porting matrix:
 #   materialize the ported tree (same file copy + patch that tools/port.sh --dry-run uses),
 #   build :common/:fabric/:neoforge against that version's real pins,
-#   publish a REAL (not draft) release v0.1.0+<mcversion> with the jars it built,
+#   publish a REAL (not draft) release v<mod_version>+<mcversion> with the jars it built
+#   (only when that version compiled AND passed its tests),
 #   then rewrite DOWNLOADS.md from the releases that actually exist and commit it.
 #
 # Why the release happens here and not in build.yml: build.yml proves one version
@@ -11,12 +12,18 @@ name: ship
 # Downloadable jars need one job per Minecraft version, because each needs a
 # different Loom/ModDev target, a different Java toolchain, and its own tag.
 #
-# Leg failure never blocks another leg (fail-fast: false) and a leg with no jar
-# never creates a release - an empty release is worse than a red check.
+# Leg failure never blocks another leg (fail-fast: false), and a red leg never creates
+# or updates a release: a jar whose own build or tests failed is not shipped at all.
 
 on:
   push:
-    branches: [arena/731a208a-aetherium]
+    branches: [arena/46f241da-aetherium]
+    # Probe/DOWNLOADS commits from CI and doc-only edits do not change a jar.
+    paths-ignore:
+      - '**.md'
+      - 'tools/probe/**'
+      - 'tools/probe_*.txt'
+      - '.github/workflows/probe.yml'
   workflow_dispatch:
     inputs:
       only:
@@ -84,6 +91,9 @@ jobs:
         include: ${{ fromJson(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
+      - name: read mod_version
+        shell: bash
+        run: echo "MOD_VERSION=$(sed -n 's/^mod_version=//p' gradle.properties)" >> "$GITHUB_ENV"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 9.4.1
@@ -138,10 +148,9 @@ jobs:
           gradle --no-daemon --console=plain --stacktrace --continue $tasks \
             2>&1 | tee "$RUNNER_TEMP/build.log"
           rc=${PIPESTATUS[0]}
-          # The exit code is recorded, not swallowed. `build` runs assemble before check, so a
-          # version whose unit tests fail still has jars; the publish step says so in the release
-          # notes instead of hiding it, and a version that does not COMPILE has no jars and is
-          # never published at all.
+          # The exit code is recorded and fails the leg. `build` runs assemble before check, so a
+          # version whose tests fail still has jars; they are uploaded as a run artifact for
+          # diagnosis, but the publish step only runs on success().
           printf '%s\n' "$rc" > "$RUNNER_TEMP/build.rc"
           exit "$rc"
       - name: collect the jars
@@ -159,55 +168,45 @@ jobs:
               case "$(basename "$jar")" in
                 *-sources.jar|*-javadoc.jar|*dev.jar) continue ;;
               esac
-              out="$GITHUB_WORKSPACE/dist/aetherium-$module-0.1.0+${{ matrix.version }}.jar"
+              out="$GITHUB_WORKSPACE/dist/aetherium-$module-$MOD_VERSION+${{ matrix.version }}.jar"
               cp "$jar" "$out"
               echo "- \`$(basename "$out")\` ($(stat -c%s "$out") bytes, built from $jar)" >> "$GITHUB_STEP_SUMMARY"
             done
           done
           ls -l "$GITHUB_WORKSPACE/dist" || true
       - name: publish the release
-        if: ${{ !cancelled() }}
+        if: ${{ success() }}
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           cd "$GITHUB_WORKSPACE"
-          tag="v0.1.0+${{ matrix.version }}"
+          tag="v$MOD_VERSION+${{ matrix.version }}"
           assets=$(find dist -maxdepth 1 -type f -name '*.jar' | sort | tr '\n' ' ')
           if [ -z "${assets// }" ]; then
             printf '::error::%s: no jar was produced, refusing to publish an empty release\n' "${{ matrix.version }}"
             exit 1
           fi
           built=$(printf '%s' "$assets" | tr ' ' '\n' | sed 's|.*/||' | paste -sd, - | sed 's/,/, /g')
-          rc=$(cat "$RUNNER_TEMP/build.rc" 2>/dev/null || echo 1)
-          rednote=""
-          if [ "$rc" != 0 ]; then
-            rednote="
-          **This version's \`gradle build\` did not finish green (exit $rc).** The jars above come from the
-          \`assemble\` half of the task; the failing half is named in the run's annotations. Treat them as
-          installable-but-unverified, not as a release candidate."
-          fi
           cat > notes.md <<EOF
           Minecraft **${{ matrix.version }}** - built by CI run \`$GITHUB_RUN_ID\` (commit \`$(git rev-parse --short HEAD)\`) from the same sources as 1.21.1 plus \`deltas/${{ matrix.version }}/changes.patch\` (matrix status: \`${{ matrix.status }}\`).
 
           Jars: $built
 
-          * \`aetherium-fabric-*\` goes in \`mods/\` and needs Fabric API.
+          * \`aetherium-fabric-*\` goes in \`mods/\` and needs only Fabric Loader (no Fabric API).
           * \`aetherium-neoforge-*\` needs nothing extra. $([ "${{ matrix.neoforge }}" = no ] && echo "There is no NeoForge/Forge jar for this version: the porting row pins no NeoForge, so the loader shell is disabled by the delta.")
-          $rednote
-
-          * No GPU was attached to any build: every GL call in these jars is compiled and unit-tested but never exercised on hardware. Read VERIFICATION.md section 9 before filing a rendering bug.
-          * \`advanced.experimental_full_renderer\` logs an error and disables itself. That is shipped behaviour, not a bug.
+          * Each jar requires exactly Minecraft ${{ matrix.version }}: its version-specific code was selected and compiled for that version only.
+          * Aetherium issues no OpenGL calls of its own and adds no shaders; it runs wherever this Minecraft version runs. It was built and unit-tested on CI, not launched on a GPU: read VERIFICATION.md before filing a rendering bug.
           EOF
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false \
-              --target "$GITHUB_SHA" --title "Aetherium 0.1.0 (Minecraft ${{ matrix.version }})" \
+              --target "$GITHUB_SHA" --title "Aetherium $MOD_VERSION (Minecraft ${{ matrix.version }})" \
               --notes-file notes.md
             gh release upload "$tag" --repo "$GITHUB_REPOSITORY" --clobber $assets
           else
             gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false \
-              --target "$GITHUB_SHA" --title "Aetherium 0.1.0 (Minecraft ${{ matrix.version }})" \
+              --target "$GITHUB_SHA" --title "Aetherium $MOD_VERSION (Minecraft ${{ matrix.version }})" \
               --notes-file notes.md $assets
           fi
           echo "https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"
@@ -319,6 +318,8 @@ jobs:
           python3 - <<'PY'
           import json, subprocess
           rows = json.load(open('tools/porting_pins.json'))['rows']
+          mod_version = next(l.split('=', 1)[1].strip() for l in open('gradle.properties')
+                             if l.startswith('mod_version='))
           owner_repo = subprocess.run(['gh', 'repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'],
                                       capture_output=True, text=True).stdout.strip()
           lines = [
@@ -336,7 +337,7 @@ jobs:
           shipped = 0
           for row in rows:
               ver = row['version']
-              tag = 'v0.1.0+' + ver
+              tag = 'v' + mod_version + '+' + ver
               out = subprocess.run(['gh', 'release', 'view', tag, '--json', 'assets,isDraft,url',
                                     '-q', '{assets: [.assets[].name], draft: .isDraft, url: .url}'],
                                    capture_output=True, text=True)

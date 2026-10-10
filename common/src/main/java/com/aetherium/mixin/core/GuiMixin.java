@@ -24,20 +24,20 @@ public abstract class GuiMixin {
     // @era:hud-else graphics-float
     //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
     //~ private void aetherium$hud(final net.minecraft.client.gui.GuiGraphics graphics, final float partialTick,
-    //~                            final CallbackInfo ci) {
-    //~     FrameHud.render(McCanvas.INSTANCE.begin(graphics));
+                               //~ final CallbackInfo ci) {
+        //~ FrameHud.render(McCanvas.INSTANCE.begin(graphics));
     //~ }
     // @era:hud-else stack
     //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
     //~ private void aetherium$hud(final com.mojang.blaze3d.vertex.PoseStack pose, final float partialTick,
-    //~                            final CallbackInfo ci) {
-    //~     FrameHud.render(McCanvas.INSTANCE.begin(pose));
+                               //~ final CallbackInfo ci) {
+        //~ FrameHud.render(McCanvas.INSTANCE.begin(pose));
     //~ }
     // @era:hud-else extractor
     //~ @Inject(method = "extractRenderState", at = @At("TAIL"), require = 0)
     //~ private void aetherium$hud(final net.minecraft.client.gui.GuiGraphicsExtractor graphics,
-    //~                            final net.minecraft.client.DeltaTracker delta, final CallbackInfo ci) {
-    //~     FrameHud.render(McCanvas.INSTANCE.begin(graphics));
+                               //~ final net.minecraft.client.DeltaTracker delta, final CallbackInfo ci) {
+        //~ FrameHud.render(McCanvas.INSTANCE.begin(graphics));
     //~ }
     // @era:hud-else none
     // @era:hud-end

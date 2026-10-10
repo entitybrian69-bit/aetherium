@@ -30,19 +30,19 @@ public abstract class LightLevelMixin {
     }
     // @era:light-hook-else brightness
     //~ @Inject(method = "getLightColor(Lnet/minecraft/client/renderer/LevelRenderer$BrightnessGetter;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
-    //~         at = @At("RETURN"), cancellable = true, require = 0)
+            //~ at = @At("RETURN"), cancellable = true, require = 0)
     //~ private static void aetherium$light(final LevelRenderer.BrightnessGetter getter,
-    //~                                     final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
-    //~                                     final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
-    //~     adjust(pos, cir);
+                                        //~ final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
+                                        //~ final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
+        //~ adjust(pos, cir);
     //~ }
     // @era:light-hook-else coords
     //~ @Inject(method = "getLightCoords(Lnet/minecraft/client/renderer/LevelRenderer$BrightnessGetter;Lnet/minecraft/world/level/BlockAndLightGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
-    //~         at = @At("RETURN"), cancellable = true, require = 0)
+            //~ at = @At("RETURN"), cancellable = true, require = 0)
     //~ private static void aetherium$light(final LevelRenderer.BrightnessGetter getter,
-    //~                                     final net.minecraft.world.level.BlockAndLightGetter level, final BlockState state,
-    //~                                     final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
-    //~     adjust(pos, cir);
+                                        //~ final net.minecraft.world.level.BlockAndLightGetter level, final BlockState state,
+                                        //~ final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
+        //~ adjust(pos, cir);
     //~ }
     // @era:light-hook-else none
     // @era:light-hook-end
