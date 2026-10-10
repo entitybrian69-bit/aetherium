@@ -7,6 +7,14 @@ not shipped - the table only ever lists what exists, never what should exist.
 
 | Minecraft | Loader | Jar |
 | --- | --- | --- |
+| 1.19 | Fabric | [aetherium-fabric-0.1.0+1.19.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.19/aetherium-fabric-0.1.0+1.19.jar) |
+| 1.19 | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |
+| 1.19.1 | Fabric | [aetherium-fabric-0.1.0+1.19.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.19.1/aetherium-fabric-0.1.0+1.19.1.jar) |
+| 1.19.1 | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |
+| 1.19.2 | Fabric | [aetherium-fabric-0.1.0+1.19.2.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.19.2/aetherium-fabric-0.1.0+1.19.2.jar) |
+| 1.19.2 | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |
+| 1.19.4 | Fabric | [aetherium-fabric-0.1.0+1.19.4.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.19.4/aetherium-fabric-0.1.0+1.19.4.jar) |
+| 1.19.4 | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |
 | 1.20 | Fabric | [aetherium-fabric-0.1.0+1.20.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.20/aetherium-fabric-0.1.0+1.20.jar) |
 | 1.20 | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |
 | 1.20.1 | Fabric | [aetherium-fabric-0.1.0+1.20.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.20.1/aetherium-fabric-0.1.0+1.20.1.jar) |
@@ -28,7 +36,7 @@ not shipped - the table only ever lists what exists, never what should exist.
 | 1.21.10 | Fabric | [aetherium-fabric-0.1.0+1.21.10.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.10/aetherium-fabric-0.1.0+1.21.10.jar) |
 | 1.21.11 | Fabric | [aetherium-fabric-0.1.0+1.21.11.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.11/aetherium-fabric-0.1.0+1.21.11.jar) |
 
-Shipped: **16/33** Minecraft versions.
+Shipped: **20/33** Minecraft versions.
 
 ## Not shipped
 
@@ -38,11 +46,7 @@ Shipped: **16/33** Minecraft versions.
 - **1.18** - no release yet
 - **1.18.1** - no release yet
 - **1.18.2** - no release yet
-- **1.19** - no release yet
-- **1.19.1** - no release yet
-- **1.19.2** - no release yet
 - **1.19.3** - no release yet
-- **1.19.4** - no release yet
 - **1.20.2** - no release yet
 - **1.20.3** - no release yet
 - **1.20.4** - no release yet
