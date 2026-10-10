@@ -115,6 +115,21 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+// The shipped code compiles at the row's Java level (8 for 1.16.5). Unit tests never ship and
+// use modern syntax (text blocks, var), so rows below 17 compile and run them on JDK 21 - the
+// JDK the ship workflow installs for Gradle itself. Main classes stay at the row's level.
+val rowJava = project.property("java_version").toString().toInt()
+if (rowJava < 17) {
+    val testToolchain = JavaLanguageVersion.of(21)
+    tasks.named<JavaCompile>("compileTestJava") {
+        javaCompiler = javaToolchains.compilerFor { languageVersion = testToolchain }
+        options.release = 21
+    }
+    tasks.named<Test>("test") {
+        javaLauncher = javaToolchains.launcherFor { languageVersion = testToolchain }
+    }
+}
+
 tasks.withType<Jar> {
     // Keep unit tests out of shipped jars.
     exclude("com/aetherium/test/**")
