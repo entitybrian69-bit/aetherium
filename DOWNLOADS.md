@@ -7,11 +7,28 @@ not shipped - the table only ever lists what exists, never what should exist.
 
 | Minecraft | Loader | Jar |
 | --- | --- | --- |
+| 1.20 | Fabric | [aetherium-fabric-0.1.0+1.20.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.20/aetherium-fabric-0.1.0+1.20.jar) |
+| 1.20 | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |
+| 1.20.1 | Fabric | [aetherium-fabric-0.1.0+1.20.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.20.1/aetherium-fabric-0.1.0+1.20.1.jar) |
+| 1.20.1 | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |
+| 1.20.5 | Fabric | [aetherium-fabric-0.1.0+1.20.5.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.20.5/aetherium-fabric-0.1.0+1.20.5.jar) |
+| 1.20.6 | Fabric | [aetherium-fabric-0.1.0+1.20.6.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.20.6/aetherium-fabric-0.1.0+1.20.6.jar) |
 | 1.21 | Fabric | [aetherium-fabric-0.1.0+1.21.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21/aetherium-fabric-0.1.0+1.21.jar) |
 | 1.21.1 | Fabric | [aetherium-fabric-0.1.0+1.21.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.1/aetherium-fabric-0.1.0+1.21.1.jar) |
 | 1.21.1 | NeoForge | [aetherium-neoforge-0.1.0+1.21.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.1/aetherium-neoforge-0.1.0+1.21.1.jar) |
+| 1.21.2 | Fabric | [aetherium-fabric-0.1.0+1.21.2.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.2/aetherium-fabric-0.1.0+1.21.2.jar) |
+| 1.21.3 | Fabric | [aetherium-fabric-0.1.0+1.21.3.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.3/aetherium-fabric-0.1.0+1.21.3.jar) |
+| 1.21.4 | Fabric | [aetherium-fabric-0.1.0+1.21.4.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.4/aetherium-fabric-0.1.0+1.21.4.jar) |
+| 1.21.5 | Fabric | [aetherium-fabric-0.1.0+1.21.5.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.5/aetherium-fabric-0.1.0+1.21.5.jar) |
+| 1.21.5 | NeoForge | [aetherium-neoforge-0.1.0+1.21.5.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.5/aetherium-neoforge-0.1.0+1.21.5.jar) |
+| 1.21.6 | Fabric | [aetherium-fabric-0.1.0+1.21.6.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.6/aetherium-fabric-0.1.0+1.21.6.jar) |
+| 1.21.7 | Fabric | [aetherium-fabric-0.1.0+1.21.7.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.7/aetherium-fabric-0.1.0+1.21.7.jar) |
+| 1.21.8 | Fabric | [aetherium-fabric-0.1.0+1.21.8.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.8/aetherium-fabric-0.1.0+1.21.8.jar) |
+| 1.21.9 | Fabric | [aetherium-fabric-0.1.0+1.21.9.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.9/aetherium-fabric-0.1.0+1.21.9.jar) |
+| 1.21.10 | Fabric | [aetherium-fabric-0.1.0+1.21.10.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.10/aetherium-fabric-0.1.0+1.21.10.jar) |
+| 1.21.11 | Fabric | [aetherium-fabric-0.1.0+1.21.11.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v0.1.0+1.21.11/aetherium-fabric-0.1.0+1.21.11.jar) |
 
-Shipped: **2/33** Minecraft versions.
+Shipped: **16/33** Minecraft versions.
 
 ## Not shipped
 
@@ -26,23 +43,9 @@ Shipped: **2/33** Minecraft versions.
 - **1.19.2** - no release yet
 - **1.19.3** - no release yet
 - **1.19.4** - no release yet
-- **1.20** - no release yet
-- **1.20.1** - no release yet
 - **1.20.2** - no release yet
 - **1.20.3** - no release yet
 - **1.20.4** - no release yet
-- **1.20.5** - no release yet
-- **1.20.6** - no release yet
-- **1.21.2** - no release yet
-- **1.21.3** - no release yet
-- **1.21.4** - no release yet
-- **1.21.5** - no release yet
-- **1.21.6** - no release yet
-- **1.21.7** - no release yet
-- **1.21.8** - no release yet
-- **1.21.9** - no release yet
-- **1.21.10** - no release yet
-- **1.21.11** - no release yet
 - **26.1** - no release yet
 - **26.2** - no release yet
 - **26.3** - no release yet
