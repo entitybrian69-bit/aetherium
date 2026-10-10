@@ -85,14 +85,14 @@ jobs:
           out="$GITHUB_WORKSPACE/probe-out"
           mkdir -p "$out"
           file="$out/${{ matrix.version }}.txt"
-          jar=$(find "$HOME/.gradle/caches/fabric-loom" "$RUNNER_TEMP/tree/.gradle" -name 'minecraft-merged*.jar' ! -name '*sources*' 2>/dev/null | head -1)
-          if [ -z "$jar" ]; then
-            jar=$(find "$HOME/.gradle/caches/fabric-loom" "$RUNNER_TEMP/tree/.gradle" -name 'minecraft-client*.jar' ! -name '*sources*' 2>/dev/null | head -1)
-          fi
-          if [ -z "$jar" ]; then
-            jar=$(find "$HOME/.gradle/caches" "$RUNNER_TEMP/tree/.gradle" -name 'minecraft*.jar' ! -name '*sources*' 2>/dev/null | xargs -r ls -S | head -1)
-          fi
+          jar=""
+          cands=$(find "$HOME/.gradle/caches" "$RUNNER_TEMP/tree/.gradle" -name 'minecraft*.jar' ! -name '*sources*' 2>/dev/null)
+          { echo "# candidates:"; echo "$cands" | sed 's/^/#   /'; } > "$RUNNER_TEMP/cands.txt"
+          for c in $(echo "$cands" | grep -E 'minecraftMaven|loom-cache' ) $(echo "$cands"); do
+            if unzip -l "$c" 2>/dev/null | grep -q ' net/minecraft/client/Minecraft.class$'; then jar="$c"; break; fi
+          done
           echo "# minecraft ${{ matrix.version }} jar: ${jar:-NONE}" > "$file"
+          cat "$RUNNER_TEMP/cands.txt" >> "$file"
           if [ -z "$jar" ]; then
             tail -60 "$RUNNER_TEMP/setup.log" >> "$file"
             exit 0
