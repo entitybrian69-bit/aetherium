@@ -9,7 +9,7 @@ name: probe
 on:
   push:
     branches: [arena/46f241da-aetherium]
-    paths: ['.github/workflows/probe.yml', 'tools/probe_classes.txt', 'tools/probe_grep.txt']
+    paths: ['.github/workflows/probe.yml', 'tools/probe_classes.txt', 'tools/probe_grep.txt', 'tools/probe_code.txt']
   workflow_dispatch:
 
 permissions:
@@ -103,6 +103,15 @@ jobs:
             echo "=== $cls" >> "$file"
             javap -p -cp "$jar:$cp_extra" "$cls" >> "$file" 2>&1 || true
           done < tools/probe_classes.txt
+          if [ -f tools/probe_code.txt ]; then
+            grep -v '^#' tools/probe_code.txt | while read -r cls rx; do
+              [ -z "$cls" ] && continue
+              echo "=== code $cls :: $rx" >> "$file"
+              javap -c -p -constants -cp "$jar:$cp_extra" "$cls" 2>/dev/null | awk -v rx="$rx" '
+                /^  [a-zA-Z].*[;{]$/ && $0 !~ /^  *[0-9]+:/ {m=$0}
+                $0 ~ rx {sub(/^ +/, "", $0); print m " :: " $0}' | head -300 >> "$file" || true
+            done
+          fi
           echo "=== package listing (client.gui.screens, client.input, client)" >> "$file"
           unzip -l "$jar" | awk '{print $4}' | grep -E '^net/minecraft/client/(gui/screens/[A-Za-z]+Screen|input/|[A-Za-z]+Status|[A-Za-z]+Preset)\.class$' >> "$file" || true
           if [ -f tools/probe_grep.txt ] && grep -qx "${{ matrix.version }}" <(sed -n '2,$p' tools/probe_grep.txt); then
