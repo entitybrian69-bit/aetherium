@@ -136,6 +136,7 @@ jars only as a run artifact.
 | 38058962827 | `7f893ce` | 32/33 | 1.16.5 main code now compiles at Java 8; its *tests* (text blocks) did not |
 | 38060927789 | `eb58e91` | **33/33** | every version compiles with its real toolchain and passes the JUnit suite; 33 releases, 50 jars (16 Fabric-only versions + 17 with Fabric and NeoForge) |
 | 38065183797 | `f2eb838` | **33/33** | 1.0.0: every version, including the four new mixins and the headless GUI tests, builds with its real toolchain and passes the JUnit suite; 33 `v1.0.0+<version>` releases, 50 jars |
+| 38078947462 | `1bee594` | **33/33** | 1.1.0: the frame-rate fixes, config v5 migration, description popup and the shader-mod removal build with every real toolchain and pass the JUnit suite (35/35 jobs); 33 `v1.1.0+<version>` releases, 50 jars |
 
 Fixes that came out of these runs:
 
