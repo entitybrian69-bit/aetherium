@@ -158,7 +158,6 @@ CURATED_EN = {
     "aetherium.tab.general": "General",
     "aetherium.tab.performance": "Performance",
     "aetherium.tab.quality": "Quality",
-    "aetherium.tab.shaders": "Shaders",
     "aetherium.tab.utilities": "Utilities",
     "aetherium.tab.advanced": "Advanced",
     "aetherium.tab.android": "Android",
@@ -169,7 +168,6 @@ CURATED_EN = {
     "aetherium.section.meshing": "Chunk meshing",
     "aetherium.section.shaders_compile": "Shader compilation",
     "aetherium.section.vanilla_equivalents": "Vanilla equivalents",
-    "aetherium.section.iris": "Iris / Oculus",
     "aetherium.section.gamma": "Gamma",
     "aetherium.section.gamma_curve": "Gamma curve",
     "aetherium.section.dynamic_lights": "Dynamic lights",
@@ -179,8 +177,6 @@ CURATED_EN = {
     "aetherium.section.experimental": "Experimental",
     "aetherium.button.write_conflict_report": "Write conflict report to log",
     "aetherium.button.clear_program_cache": "Clear program-binary cache",
-    "aetherium.button.open_shader_screen": "Open shader pack screen",
-    "aetherium.button.toggle_shaders": "Toggle shaders (via Iris)",
 }
 CURATED_PT = {
     "aetherium.screen.title": "Renderizador Aetherium",
@@ -189,7 +185,6 @@ CURATED_PT = {
     "aetherium.tab.general": "Geral",
     "aetherium.tab.performance": "Desempenho",
     "aetherium.tab.quality": "Qualidade",
-    "aetherium.tab.shaders": "Shaders",
     "aetherium.tab.utilities": "Utilitários",
     "aetherium.tab.advanced": "Avançado",
     "aetherium.tab.android": "Android",
@@ -200,7 +195,6 @@ CURATED_PT = {
     "aetherium.section.meshing": "Malha de chunks",
     "aetherium.section.shaders_compile": "Compilação de shaders",
     "aetherium.section.vanilla_equivalents": "Equivalente ao vanilla",
-    "aetherium.section.iris": "Iris / Oculus",
     "aetherium.section.gamma": "Gama",
     "aetherium.section.gamma_curve": "Curva de gama",
     "aetherium.section.dynamic_lights": "Luzes dinâmicas",
@@ -210,8 +204,6 @@ CURATED_PT = {
     "aetherium.section.experimental": "Experimental",
     "aetherium.button.write_conflict_report": "Gravar relatório de conflitos no log",
     "aetherium.button.clear_program_cache": "Limpar cache de programa binário",
-    "aetherium.button.open_shader_screen": "Abrir tela de pacotes de shader",
-    "aetherium.button.toggle_shaders": "Alternar shaders (via Iris)",
 }
 
 

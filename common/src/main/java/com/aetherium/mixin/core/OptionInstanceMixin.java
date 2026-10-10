@@ -1,26 +1,30 @@
 package com.aetherium.mixin.core;
 
 // @era:options-begin instances
-import com.aetherium.client.VanillaOptions;
-
+import com.aetherium.client.GammaSlot;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.Shadow;
 
 /**
- * Fullbright: the gamma option reports the override while it is active.
- * Overriding the read (not writing the value) bypasses vanilla's 0..1
- * validation and never reaches options.txt. One identity compare per read.
+ * Fullbright support with zero cost per option read: exposes the stored value through
+ * {@link GammaSlot} instead of injecting into {@code OptionInstance.get()}. The field is
+ * {@code T value} on every 1.19+ version (package-private up to 1.21.10, private from 1.21.11);
+ * its erasure is {@code Object}. No injector runs, so vanilla's {@code get()} bytecode is untouched.
  */
 @Mixin(net.minecraft.client.OptionInstance.class)
-public abstract class OptionInstanceMixin {
+public abstract class OptionInstanceMixin implements GammaSlot {
 
-    @Inject(method = "get", at = @At("HEAD"), cancellable = true, require = 0)
-    private void aetherium$gamma(final CallbackInfoReturnable<Object> cir) {
-        if (VanillaOptions.overridesGamma(this)) {
-            cir.setReturnValue(VanillaOptions.gammaOverrideBoxed());
-        }
+    @Shadow
+    private Object value;
+
+    @Override
+    public Object aetheriumRawValue() {
+        return this.value;
+    }
+
+    @Override
+    public void aetheriumSetRawValue(final Object replacement) {
+        this.value = replacement;
     }
 }
 // @era:options-else fields

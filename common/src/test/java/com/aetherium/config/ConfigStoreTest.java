@@ -173,6 +173,58 @@ final class ConfigStoreTest {
     }
 
     @Test
+    @DisplayName("v5 migration turns off the frame-rate regressions older files persisted")
+    void migratesFrameRateDefaults() throws IOException {
+        Files.write(this.file(), ("{\n"
+                + "  \"version\": 4,\n"
+                + "  \"aetherium\": {\n"
+                + "    \"android\": { \"thermal_guard\": true, \"thermal_ceiling_c\": 68, \"battery_saver\": true },\n"
+                + "    \"performance\": { \"adaptive_distance\": true, \"adaptive_target_fps\": 90 },\n"
+                + "    \"effects\": { \"dynamic_lights\": \"FAST\" },\n"
+                + "    \"shaders\": { \"iris_integration\": true, \"pause_dynamic_lights_with_shaders\": true }\n"
+                + "  }\n}\n").getBytes(StandardCharsets.UTF_8));
+        final AetheriumConfig config = AetheriumConfig.createDefaults();
+        try (ConfigStore store = new ConfigStore(this.file(), config)) {
+            store.load();
+            assertFalse(config.thermalGuard.get(), "the thermal guard capped every device at 30 FPS; v5 turns it off");
+            assertEquals(75, config.thermalCeilingC.get().intValue(), "the old default ceiling follows the new default");
+            assertFalse(config.adaptiveDistance.get(), "adaptive distance returns to off");
+            assertEquals(AetheriumConfig.LightMode.OFF, config.dynamicLights.get(), "dynamic lights return to off");
+            assertTrue(config.batterySaver.get(), "unrelated user choices survive");
+            assertEquals(90, config.adaptiveTargetFps.get().intValue(), "unrelated user choices survive");
+            for (final String key : store.getUnknownKeys().keySet()) {
+                assertFalse(key.startsWith("shaders."), "removed shader keys are dropped: " + key);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("a v5 file keeps an explicit thermal guard, custom ceiling and dynamic lights")
+    void currentVersionKeepsOptIns() throws IOException {
+        Files.write(this.file(), ("{\"version\": 5, \"aetherium\": {"
+                + "\"android\": {\"thermal_guard\": true, \"thermal_ceiling_c\": 68},"
+                + "\"effects\": {\"dynamic_lights\": \"FANCY\"}}}").getBytes(StandardCharsets.UTF_8));
+        final AetheriumConfig config = AetheriumConfig.createDefaults();
+        try (ConfigStore store = new ConfigStore(this.file(), config)) {
+            store.load();
+            assertTrue(config.thermalGuard.get());
+            assertEquals(68, config.thermalCeilingC.get().intValue());
+            assertEquals(AetheriumConfig.LightMode.FANCY, config.dynamicLights.get());
+        }
+    }
+
+    @Test
+    @DisplayName("the frame-rate features are off by default")
+    void frameRateFeaturesDefaultOff() {
+        final AetheriumConfig config = AetheriumConfig.createDefaults();
+        assertFalse(config.thermalGuard.get());
+        assertFalse(config.adaptiveDistance.get());
+        assertFalse(config.batterySaver.get());
+        assertEquals(AetheriumConfig.LightMode.OFF, config.dynamicLights.get());
+        assertEquals(null, config.byKey("shaders.iris_integration"), "the shader integration was removed");
+    }
+
+    @Test
     @DisplayName("saves are coalesced to at most one write per half second")
     void coalescesWrites() throws IOException {
         final AetheriumConfig config = AetheriumConfig.createDefaults();

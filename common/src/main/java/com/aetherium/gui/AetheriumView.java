@@ -68,6 +68,17 @@ public final class AetheriumView {
     private Setting dropdown;
     private Setting closingDropdown;
     private Setting hovered;
+    /** Description popup: the row it belongs to, how long that row has been hovered, its fade. */
+    private Setting tipFor;
+    private Setting tipShown;
+    /** Touch: the row just tapped; the finger position stays "hovering" it, so no popup until it changes. */
+    private Setting tipSuppressed;
+    private float tipHold;
+    private final Anim tipAnim = new Anim(0f, 16f);
+    private Setting tipLinesFor;
+    private String tipLinesText;
+    private int tipLinesWidth = -1;
+    private final List<String> tipLines = new ArrayList<String>();
     private String toastText = "";
     private long lastNanos;
     private float clock;
@@ -117,6 +128,10 @@ public final class AetheriumView {
     private static final float FLING_FRICTION = 5.0f;
     private static final float FLING_MIN = 40f;
     private static final long TICK_SOUND_GAP_NANOS = 45_000_000L;
+    /** Hover time before the description popup opens; moving between rows while it is open skips it. */
+    static final float TIP_DELAY = 0.35f;
+    private static final int TIP_PAD = 5;
+    private static final int TIP_LINE_H = 10;
 
     public AetheriumView(final List<Page> pages, final ScreenHost host, final int initialPage) {
         this.pages = new ArrayList<Page>(pages);
@@ -308,6 +323,7 @@ public final class AetheriumView {
         drawPanel(canvas, mouseX, mouseY, lift);
         drawFooter(canvas);
         drawDropdown(canvas, mouseX, mouseY);
+        drawTooltip(canvas);
         canvas.reset();
     }
 
@@ -380,6 +396,62 @@ public final class AetheriumView {
         if (this.closingDropdown != null && this.closingDropdown.open.get() <= 0.01f) {
             this.closingDropdown = null;
         }
+        tickTooltip(dt);
+    }
+
+    private void tickTooltip(final float dt) {
+        if (this.tipSuppressed != null && this.hovered != this.tipSuppressed) {
+            this.tipSuppressed = null;
+        }
+        final boolean allowed = this.hovered != null && this.hovered != this.tipSuppressed
+                && this.dragging == null && this.dropdown == null
+                && !this.scrollDragging && !this.thumbDragging && this.scrollVelocity == 0f
+                && !tooltipText(this.hovered).isEmpty();
+        if (!allowed) {
+            this.tipFor = null;
+            this.tipHold = 0f;
+        } else if (this.hovered != this.tipFor) {
+            // Sliding to the next row while a popup is open swaps it at once, like Sodium.
+            final boolean open = this.tipAnim.get() > 0.5f;
+            this.tipFor = this.hovered;
+            this.tipHold = open ? TIP_DELAY : 0f;
+        } else {
+            this.tipHold += dt;
+        }
+        final boolean show = this.tipFor != null && this.tipHold >= TIP_DELAY;
+        if (show) {
+            this.tipShown = this.tipFor;
+        }
+        this.tipAnim.setTarget(show ? 1f : 0f);
+        this.tipAnim.tick(dt);
+    }
+
+    /** The row under a point, or null outside the list. */
+    private Setting rowAt(final int mouseX, final int mouseY) {
+        if (mouseX < this.panelX1 || mouseX >= this.sbX1 - 4 || mouseY < this.rowsTop || mouseY >= this.rowsBottom) {
+            return null;
+        }
+        final List<Setting> rows = currentRows();
+        final int index = (mouseY - this.rowsTop + Math.round(this.scrollAnim.get())) / this.rowH;
+        return index >= 0 && index < rows.size() ? rows.get(index) : null;
+    }
+
+    private static String tooltipText(final Setting setting) {
+        if (setting == null) {
+            return "";
+        }
+        final String text = setting.isAvailable() ? setting.description : setting.unavailableReason();
+        return text == null ? "" : text.trim();
+    }
+
+    /** The setting whose description popup is drawn this frame, or null (tests). */
+    Setting tooltipForTest() {
+        return this.tipShown != null && this.tipAnim.get() > 0.02f ? this.tipShown : null;
+    }
+
+    /** Wrapped popup lines for the last drawn popup (tests). */
+    List<String> tooltipLinesForTest() {
+        return this.tipLines;
     }
 
     private void drawDots(final GuiCanvas canvas, final float dt, final float open) {
@@ -722,14 +794,9 @@ public final class AetheriumView {
             canvas.text(fit(canvas, this.toastText, descLimit - 10), descX + 10, textY, color);
             return;
         }
-        String description;
-        if (this.hovered != null) {
-            description = this.hovered.isAvailable() ? this.hovered.description : this.hovered.unavailableReason();
-        } else {
-            description = dirty ? "Unsaved changes - press Apply or Done." : "";
-        }
-        if (description != null && !description.isEmpty()) {
-            canvas.text(fit(canvas, description, descLimit), descX, textY, MUTED);
+        // The full description lives in the hover popup (drawTooltip); the footer only reports state.
+        if (dirty) {
+            canvas.text(fit(canvas, "Unsaved changes - press Apply or Done.", descLimit), descX, textY, MUTED);
         }
     }
 
@@ -740,6 +807,108 @@ public final class AetheriumView {
         final String rightFit = fit(canvas, right, rightW);
         canvas.text(rightFit, this.width - this.margin - canvas.textWidth(rightFit), this.footerY, MUTED);
         canvas.text(fit(canvas, left, this.width - 2 * this.margin - rightW - 12), this.margin, this.footerY, MUTED);
+    }
+
+    /**
+     * Sodium-style description popup in Aetherium's theme: a bordered card with a soft shadow and an
+     * accent bar, the full description word-wrapped, placed under the hovered row (above it when
+     * there is no room) and kept inside the screen. It fades and slides in.
+     */
+    private void drawTooltip(final GuiCanvas canvas) {
+        final Setting setting = this.tipShown;
+        final float a = Anim.easeOut(this.tipAnim.get());
+        if (setting == null || a <= 0.02f) {
+            return;
+        }
+        final int index = currentRows().indexOf(setting);
+        final String text = tooltipText(setting);
+        if (index < 0 || text.isEmpty()) {
+            return;
+        }
+        final int available = this.width - 2 * this.margin;
+        final int boxW = Math.min(available, clamp(this.panelX2 - this.panelX1 - 20, 120, 240));
+        final List<String> lines = wrapTooltip(canvas, setting, text, boxW - 2 * TIP_PAD - 4);
+        if (lines.isEmpty()) {
+            return;
+        }
+        final int boxH = lines.size() * TIP_LINE_H + 2 * TIP_PAD - 1;
+        final int top = rowTop(index);
+        int x1 = this.panelX1 + 10;
+        x1 = Math.max(this.margin, Math.min(x1, this.width - this.margin - boxW));
+        int y1 = top + this.rowH + 2;
+        if (y1 + boxH > this.height - this.margin) {
+            y1 = top - 2 - boxH;
+        }
+        y1 = Math.max(this.margin, Math.min(y1, this.height - this.margin - boxH));
+        y1 += Math.round((1f - a) * 4f);
+        final int x2 = x1 + boxW;
+        final int y2 = y1 + boxH;
+
+        canvas.layer();
+        final float before = canvas.getAlpha();
+        canvas.setAlpha(before * a);
+        canvas.fill(x1 + 1, y1 + 3, x2 + 2, y2 + 3, SURFACE_SHADOW);
+        canvas.fill(x1 + 2, y1 + 2, x2 + 1, y2 + 1, SURFACE_SHADOW);
+        roundRect(canvas, x1, y1, x2, y2, mix(SURFACE_BORDER, MUTED, 0.35f));
+        canvas.fill(x1 + 1, y1 + 1, x2 - 1, y2 - 1, SURFACE);
+        canvas.fill(x1 + 2, y1 + 3, x1 + 4, y2 - 3, setting.isAvailable() ? ACCENT : BADGE_OK);
+        final int textX = x1 + TIP_PAD + 3;
+        int textY = y1 + TIP_PAD;
+        for (int i = 0; i < lines.size(); i++) {
+            canvas.text(lines.get(i), textX, textY, INK_SOFT);
+            textY += TIP_LINE_H;
+        }
+        canvas.setAlpha(before);
+    }
+
+    /** Word wrap, cached per row/text/width so a steady popup costs no text measuring per frame. */
+    private List<String> wrapTooltip(final GuiCanvas canvas, final Setting setting, final String text, final int maxWidth) {
+        if (setting == this.tipLinesFor && maxWidth == this.tipLinesWidth && text.equals(this.tipLinesText)) {
+            return this.tipLines;
+        }
+        this.tipLinesFor = setting;
+        this.tipLinesText = text;
+        this.tipLinesWidth = maxWidth;
+        this.tipLines.clear();
+        wrap(canvas, text, maxWidth, this.tipLines);
+        return this.tipLines;
+    }
+
+    /** Greedy word wrap; a single word wider than the line is broken by characters. */
+    static void wrap(final GuiCanvas canvas, final String text, final int maxWidth, final List<String> out) {
+        if (maxWidth <= 0) {
+            return;
+        }
+        final String[] words = text.split("\\s+");
+        final StringBuilder line = new StringBuilder();
+        for (final String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            final String candidate = line.length() == 0 ? word : line + " " + word;
+            if (canvas.textWidth(candidate) <= maxWidth) {
+                line.setLength(0);
+                line.append(candidate);
+                continue;
+            }
+            if (line.length() > 0) {
+                out.add(line.toString());
+                line.setLength(0);
+            }
+            String rest = word;
+            while (canvas.textWidth(rest) > maxWidth && rest.length() > 1) {
+                int cut = rest.length() - 1;
+                while (cut > 1 && canvas.textWidth(rest.substring(0, cut)) > maxWidth) {
+                    cut--;
+                }
+                out.add(rest.substring(0, cut));
+                rest = rest.substring(cut);
+            }
+            line.append(rest);
+        }
+        if (line.length() > 0) {
+            out.add(line.toString());
+        }
     }
 
     private void drawDropdown(final GuiCanvas canvas, final int mouseX, final int mouseY) {
@@ -804,6 +973,9 @@ public final class AetheriumView {
     // ------------------------------------------------------------------ input
 
     public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        if (this.host.touchMode()) {
+            this.tipSuppressed = rowAt((int) mouseX, (int) mouseY);
+        }
         if (button != 0) {
             return false;
         }
@@ -1075,7 +1247,7 @@ public final class AetheriumView {
 
     /**
      * Re-reads every row from its source, dropping staged edits. Used when the
-     * screen is re-initialised after another screen (vanilla video settings, Iris)
+     * screen is re-initialised after another screen (vanilla video settings)
      * may have changed the live values.
      */
     public void reload() {
@@ -1189,11 +1361,19 @@ public final class AetheriumView {
         }
         final String ellipsis = "...";
         final int budget = maxWidth - canvas.textWidth(ellipsis);
-        int end = text.length();
-        while (end > 0 && canvas.textWidth(text.substring(0, end)) > budget) {
-            end--;
+        // Longest prefix that fits, by binary search: prefix width only grows with length, and this
+        // runs for the footer every frame, where a linear scan measured the string ~100 times.
+        int lo = 0;
+        int hi = text.length();
+        while (lo < hi) {
+            final int mid = (lo + hi + 1) >>> 1;
+            if (canvas.textWidth(text.substring(0, mid)) <= budget) {
+                lo = mid;
+            } else {
+                hi = mid - 1;
+            }
         }
-        return end <= 0 ? "" : text.substring(0, end) + ellipsis;
+        return lo <= 0 ? "" : text.substring(0, lo) + ellipsis;
     }
 
     private static boolean inside(final int x, final int y, final int x1, final int y1, final int x2, final int y2) {

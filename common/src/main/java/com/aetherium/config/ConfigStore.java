@@ -183,6 +183,26 @@ public final class ConfigStore implements AutoCloseable {
                 }
             }
         }
+        if (from < 5) {
+            // v5 (Aetherium 1.1.0) fixes frame-rate regressions that older files persisted:
+            // - the thermal guard was on by default and capped desktops and phones at 30 FPS;
+            // - adaptive distance reacted to its own chunk rebuilds and reloaded the world repeatedly;
+            // - dynamic lights (0.2.0's default) rebuilt chunk sections several times a second.
+            // Each returns to its default (off); the user can turn them back on.
+            flat.remove("android.thermal_guard");
+            if (Long.valueOf(68L).equals(flat.get("android.thermal_ceiling_c"))) {
+                flat.remove("android.thermal_ceiling_c");
+            }
+            flat.remove("performance.adaptive_distance");
+            flat.put("effects.dynamic_lights", "OFF");
+            // The shader-mod integration and its keys were removed.
+            final java.util.Iterator<String> keys = flat.keySet().iterator();
+            while (keys.hasNext()) {
+                if (keys.next().startsWith("shaders.")) {
+                    keys.remove();
+                }
+            }
+        }
     }
 
     private static void rename(final Map<String, Object> flat, final String from, final String to) {

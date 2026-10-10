@@ -52,6 +52,85 @@ final class PerfLogicTest {
         assertEquals(Paths.get("/cwd"), WorkerThreads.gameDirectory(null, "/cwd"));
     }
 
+    @Test
+    @DisplayName("adaptive distance: needs 10 s of low FPS to drop, 30 s of headroom to rise, 30 s between changes")
+    void adaptiveDistanceIsPatient() {
+        final AdaptiveDistance adaptive = new AdaptiveDistance();
+        // Four slow windows (8 s) are not enough; a single normal window resets the streak.
+        for (int i = 0; i < AdaptiveDistance.DOWN_WINDOWS - 1; i++) {
+            assertEquals(12, adaptive.evaluate(30, 60, 12, 12));
+        }
+        assertEquals(12, adaptive.evaluate(60, 60, 12, 12), "an on-target window resets the streak");
+        for (int i = 0; i < AdaptiveDistance.DOWN_WINDOWS - 1; i++) {
+            assertEquals(12, adaptive.evaluate(30, 60, 12, 12));
+        }
+        assertEquals(11, adaptive.evaluate(30, 60, 12, 12), "the fifth consecutive slow window drops one chunk");
+        // The chunk rebuild that follows is slow too; it must never count as evidence.
+        for (int i = 0; i < AdaptiveDistance.COOLDOWN_WINDOWS; i++) {
+            assertEquals(11, adaptive.evaluate(10, 60, 11, 12), "cooldown window " + i);
+        }
+        // Headroom must last UP_WINDOWS windows before a chunk comes back.
+        for (int i = 0; i < AdaptiveDistance.UP_WINDOWS - 1; i++) {
+            assertEquals(11, adaptive.evaluate(200, 60, 11, 12));
+        }
+        assertEquals(12, adaptive.evaluate(200, 60, 11, 12));
+        // Never above the user's choice, never below the floor, a lowered ceiling applies at once.
+        adaptive.reset();
+        for (int i = 0; i < 100; i++) {
+            assertEquals(12, adaptive.evaluate(500, 60, 12, 12));
+        }
+        assertEquals(8, adaptive.evaluate(60, 60, 12, 8));
+        adaptive.reset();
+        int distance = AdaptiveDistance.MIN_DISTANCE;
+        for (int i = 0; i < 100; i++) {
+            distance = adaptive.evaluate(5, 60, distance, 12);
+        }
+        assertEquals(AdaptiveDistance.MIN_DISTANCE, distance);
+        // Over 10 minutes of a constantly slow game it changes at most once per 40 s.
+        adaptive.reset();
+        distance = 32;
+        int changes = 0;
+        for (int i = 0; i < 300; i++) {
+            final int next = adaptive.evaluate(20, 60, distance, 32);
+            if (next != distance) {
+                changes++;
+            }
+            distance = next;
+        }
+        assertTrue(changes <= 300 / (AdaptiveDistance.DOWN_WINDOWS + AdaptiveDistance.COOLDOWN_WINDOWS) + 1,
+                "too many reloads: " + changes);
+    }
+
+    @Test
+    @DisplayName("light hooks: decided from the launch config; old schemas migrate to Off")
+    void lightHooksFromLaunchConfig() {
+        assertFalse(com.aetherium.config.EarlyConfig.dynamicLightsOn(null), "no file: defaults (Off)");
+        assertFalse(com.aetherium.config.EarlyConfig.dynamicLightsOn(com.aetherium.config.EarlyConfig.parse(
+                "{\"version\":4,\"aetherium\":{\"effects\":{\"dynamic_lights\":\"FAST\"}}}")),
+                "a v4 file is migrated to Off, so the hooks must not be applied");
+        assertTrue(com.aetherium.config.EarlyConfig.dynamicLightsOn(com.aetherium.config.EarlyConfig.parse(
+                "{\"version\":5,\"aetherium\":{\"effects\":{\"dynamic_lights\":\"FANCY\",\"dynamic_lights.held\":true}}}")));
+        assertFalse(com.aetherium.config.EarlyConfig.dynamicLightsOn(com.aetherium.config.EarlyConfig.parse(
+                "{\"version\":5,\"aetherium\":{\"effects\":{\"dynamic_lights\":\"OFF\"}}}")));
+        assertFalse(com.aetherium.config.EarlyConfig.dynamicLightsOn(com.aetherium.config.EarlyConfig.parse("junk {")));
+        assertFalse(com.aetherium.config.EarlyConfig.dynamicLightsOn(
+                com.aetherium.config.EarlyConfig.read(Paths.get("/definitely/missing/aetherium.json"))));
+    }
+
+    @Test
+    @DisplayName("upload budget: the small-queue check counts at most the limit")
+    void fewerThanStopsEarly() {
+        final Queue<Runnable> queue = new ArrayDeque<Runnable>();
+        assertTrue(UploadBudget.fewerThan(queue, 1));
+        for (int i = 0; i < 23; i++) {
+            queue.add(() -> { });
+        }
+        assertTrue(UploadBudget.fewerThan(queue, 24));
+        queue.add(() -> { });
+        assertFalse(UploadBudget.fewerThan(queue, 24));
+        assertFalse(UploadBudget.fewerThan(queue, 3));
+    }
+
     /** Fake clock: every task "takes" {@code step} nanoseconds. */
     private static final class StepClock implements UploadBudget.Clock {
         long now;

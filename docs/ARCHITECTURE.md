@@ -18,7 +18,6 @@ lighting/    (1)            DynamicLightEngine
 mixin/       (1) + (6)      AetheriumMixinPlugin + the six core mixins
 platform/    (2)            PlatformAdapter SPI + PlatformServices registry
 render/      (15)           backend/ (5), gl/ (6), mesh/ (2), hzb/ (1)
-shader/      (1)            IrisBridge, reflection-only
 util/        (4)            MathUtil, VersionRange, AetheriumLog, NamedThreadFactory
 ```
 
@@ -102,10 +101,8 @@ mapped arena with triple buffering (`GlPersistentArena`), indirect batching with
 `render/mesh/MeshCounters` is the vanilla-side accounting that lets the HUD print `built`
 against `dirty` so a two-renderer overlap is visible instead of anecdotal.
 
-`shader/IrisBridge` binds Iris' v0 API by reflection only — `IrisApiV0Impl.INSTANCE` and the
-methods it can see at runtime — because a compile-time dependency on a shader mod would make
-every version of Aetherium depend on every version of Iris. There is no `compileOnly` entry
-for Iris anywhere in the build for that reason.
+Aetherium has no shader-mod integration: a compile-time dependency on a shader mod would make
+every version of Aetherium depend on every version of that mod, so there is none.
 
 ## Configuration
 

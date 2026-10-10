@@ -22,11 +22,8 @@ import com.aetherium.util.AetheriumLog;
  *   <li><b>Delegate.</b> Turn off our own copy of a feature that the other mod
  *       already implements (its renderer, its dynamic lights, its particles), so
  *       the two never double-apply. This is what fixes 95% of real reports.</li>
- *   <li><b>Use their public switch.</b> Where a shader mod exposes an API to
- *       disable itself, Aetherium calls it — e.g.
- *       {@code IrisApiConfig.setShadersEnabledAndApply(false)}, which is verified
- *       to exist in Iris 1.21.1's v0 API. That is the other mod turning itself
- *       off, which is legitimate and reversible.</li>
+ *   <li><b>Stay out of the way.</b> A shader mod owns the shader pipeline; it is
+ *       reported for diagnostics only and Aetherium never calls into it.</li>
  *   <li><b>Refuse to start.</b> For combinations where neither option is safe
  *       (two chunk renderers both replacing {@code LevelRenderer}), Aetherium
  *       marks itself {@code INCOMPATIBLE}, writes {@code aetherium-conflicts.txt},
@@ -162,10 +159,10 @@ public final class ModConflictScanner {
                     "OptiFine is present as a coremod; disable it or run Aetherium's utilities only."),
             new KnownConflict("iris", "Iris", new String[]{}, Severity.INFO,
                     Ownership.SHADER_OWNER,
-                    "Iris is supported: Aetherium binds its v0 API and delegates the shader pipeline."),
+                    "Shader mod detected: it owns the shader pipeline and Aetherium does not touch it."),
             new KnownConflict("oculus", "Oculus", new String[]{}, Severity.INFO,
                     Ownership.SHADER_OWNER,
-                    "Oculus is supported through the same v0 API under net.coderbot.iris."),
+                    "Shader mod detected: it owns the shader pipeline and Aetherium does not touch it."),
             new KnownConflict("entityculling", "Entity Culling", new String[]{"entityculling-fabric"}, Severity.DELEGATE,
                     Ownership.AETHERIUM_RENDERER,
                     "Aetherium performs its own entity culling; that option is turned off to avoid double work."),
@@ -219,9 +216,8 @@ public final class ModConflictScanner {
                     && conflict.ownership() == Ownership.SHADER_OWNER) {
                 // Shader ownership is a different axis from geometry ownership. An INFO row for a
                 // shader pack owner has to claim it even though it is nowhere near the worst
-                // severity in the table, otherwise "Iris is present" and "Aetherium owns the
-                // shader pipeline" are reported together, which is the pair of statements that
-                // makes a user disable the integration that is working.
+                // severity in the table, otherwise "a shader mod is present" and "Aetherium owns
+                // the shader pipeline" would be reported together, which contradict each other.
                 this.ownership = Ownership.SHADER_OWNER;
             }
             switch (conflict.severity()) {

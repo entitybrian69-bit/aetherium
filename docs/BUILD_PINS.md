@@ -60,7 +60,7 @@ the porting workflow does not have to remember it.
 
 ## Other pinned choices
 
-- **No Fabric API runtime dependency, no Mod Menu.** `fabric.mod.json` uses `suggests { iris }`
+- **No Fabric API runtime dependency, no Mod Menu.** `fabric.mod.json` declares no optional mods
   and documents in a `_comment` why there is no `breaks` block (a `breaks` entry on Sodium would
   make the launcher refuse to start instead of showing Aetherium's own explanation, which is
   worse for the user and worse for the bug report).
@@ -70,9 +70,8 @@ the porting workflow does not have to remember it.
   from one source. `strict_mixins` is therefore enforced at runtime by `AetheriumMixinPlugin`.
 - **`mixinExtras` and `sponge-mixin` are `compileOnly` + annotation-processor** in `common`, and
   shadowed/remapped by the platform modules. Nothing in `common/` links a loader class.
-- **Iris/Oculus appear in no build file.** `shader/IrisBridge` binds v0 by reflection; adding the
-  dependency would couple every Aetherium version to every shader-mod version
-  ([IRIS_COMPAT.md](IRIS_COMPAT.md)).
+- **No shader mod appears in any build file.** Aetherium has no shader-mod integration; a
+  dependency would couple every Aetherium version to every shader-mod version.
 - **LWJGL is `compileOnly`.** The game provides the natives at runtime; bundling them is how a
   renderer mod ends up with two GLFW copies.
 - **`vulkan` bindings come from `org.lwjgl:lwjgl-vulkan` (compileOnly)**, pinned to the same
@@ -122,12 +121,9 @@ host's own directory index on 2026-10-06, so the names and sizes are theirs, not
 | NeoForge 21.1.228 | `https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.228/` — the same coordinates sodium's BuildConfig.kt pins; `…-moddev-config.json` is what ModDev reads | index, not one file: changelog/sources/installer/moddev-config are all there |
 | LWJGL 3.3.3 core + natives | `https://repo1.maven.org/maven2/org/lwjgl/lwjgl/3.3.3/lwjgl-3.3.3.jar`, then `lwjgl-3.3.3-natives-linux.jar` / `-macos-arm64` / `-windows` in the same directory | core 785,029 B; natives 114,627 / 48,620 / 165,442 B |
 | Sodium, the renderer this mod defers to | `https://cdn.modrinth.com/data/AANobbMI/versions/SMxNOGZ6/sodium-fabric-0.8.13%2Bmc1.21.1.jar` | `sodium-fabric-0.8.13+mc1.21.1.jar`, 1,574,609 B, sha1 `003c114c85ca88ef3362e018deb6aca0c682d6a1` |
-| Iris, the shader mod this mod reflects into | `https://cdn.modrinth.com/data/YL57xq9U/versions/bAo1Qhte/iris-fabric-1.8.14-beta.1%2Bmc1.21.1.jar` | `iris-fabric-1.8.14-beta.1+mc1.21.1.jar`, 2,791,343 B, sha1 `6776c0340845887477bfa463acc736ce7fcb6de5` |
 
-Two of those carry information the code depends on. The Sodium entry is the version whose tree
-`gradle.properties` pins were copied from, and the Iris listing for 1.21.1 returns exactly one
-build — a beta — whose declared dependency is the Sodium version above. That is the pairing
-`docs/IRIS_COMPAT.md` describes as the tested shape; anything else for 1.21.1 is on you.
+The Sodium entry carries information the code depends on: it is the version whose tree
+`gradle.properties` pins were copied from.
 
 Check hashes before you drop any of these into a Gradle cache, e.g.
 `sha1sum sodium-fabric-0.8.13+mc1.21.1.jar`. Then, to build the mod itself:

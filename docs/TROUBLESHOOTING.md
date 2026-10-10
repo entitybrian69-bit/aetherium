@@ -8,7 +8,7 @@ this repository; where the diagnosis needs the log, the exact string to grep for
 1. Open `logs/latest.log` and search `Aetherium`. Startup prints:
    `Aetherium 0.1.0 ready on <platform> for MC <version> — state=<STATE>`.
 2. In game, the top-right tag reads `[Aetherium/GL46_DSA]`, `[Aetherium/SHADOW]`, etc.
-3. The Advanced tab prints `Aetherium.describeRuntime()` (`state=… backend=… iris=…`) plus the
+3. The Advanced tab prints `Aetherium.describeRuntime()` (`state=… api=…`) plus the
    device and capability lines, and `device.describe()`.
 
 `state=ACTIVE` means the render path is hooked. `SHADOW` means Aetherium measures and applies
@@ -52,9 +52,8 @@ so those two need a game restart, and the GUI says that in their status line too
    mod-list problem, not a knob: remove the other renderer.
 2. `full 0` with a flicker after a render-distance change means the full-rebuild hook is not
    firing on your version — the `allChanged` target list needs a delta entry.
-3. Black chunks only while a shader pack is active: Aetherium's lightmap edits are deferring to
-   Iris (see [IRIS_COMPAT.md](IRIS_COMPAT.md)); test by setting
-   `utilities.pause_dynamic_lightmap_edits = false`. If the flicker moves, it is the pack.
+3. Black chunks only while a shader pack is active: set Dynamic lights to Off (Effects tab) and
+   restart. If the flicker stays, it is the pack.
 4. A `burst` figure that keeps climbing points at a redstone-driven chunk-update storm, not at
    Aetherium; the log line `important section rebuilds in one frame` names the coordinates.
 

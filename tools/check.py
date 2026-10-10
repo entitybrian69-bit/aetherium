@@ -59,7 +59,7 @@ RULE_FILES = {"tools/check.py", "tools/check_refs.py", "tools/gen_resources.py",
               "CONTRIBUTING.md", "README.md", "docs/TROUBLESHOOTING.md",
               # These two documents name the marker in order to explain it. Counting their
               # prose as unresolved questions would inflate the number the report carries.
-              "docs/GLOSSARY.md", "docs/IRIS_COMPAT.md",
+              "docs/GLOSSARY.md",
               # The audit names the markers it is auditing; counting them would inflate the
               # very number the report exists to state precisely.
               "VERIFICATION.md",

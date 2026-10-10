@@ -37,7 +37,7 @@ index 336f6b7..6190fa6 100644
  
      /** Vanilla has a separate simulation distance (1.18+). */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-index 625b9ae..e67369c 100644
+index e5e224a..a041b7e 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 +++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 @@ -9,10 +9,10 @@ import com.aetherium.util.AetheriumLog;
@@ -124,10 +124,10 @@ index 625b9ae..e67369c 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index c0cb0c6..a9189ef 100644
+index a8b3222..cd4a6dc 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -301,10 +301,10 @@ public final class ClientHooks {
+@@ -320,10 +320,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -142,7 +142,7 @@ index c0cb0c6..a9189ef 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -342,10 +342,10 @@ public final class ClientHooks {
+@@ -346,10 +346,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -328,7 +328,7 @@ index f0c97dc..823ad0d 100644
      }
  }
 diff --git a/common/src/main/java/com/aetherium/client/VanillaOptions.java b/common/src/main/java/com/aetherium/client/VanillaOptions.java
-index 735fcbe..6c600aa 100644
+index a561e63..f43c9cd 100644
 --- a/common/src/main/java/com/aetherium/client/VanillaOptions.java
 +++ b/common/src/main/java/com/aetherium/client/VanillaOptions.java
 @@ -2,13 +2,13 @@ package com.aetherium.client;
@@ -352,22 +352,28 @@ index 735fcbe..6c600aa 100644
  // @era:options-end
  // @era:graphics-begin status
  // @era:graphics-else preset
-@@ -38,10 +38,10 @@ public final class VanillaOptions {
-     static Object gammaInstance;
-     /** True while vanilla serialises options.txt, so the override is never persisted. */
-     static boolean saving;
+@@ -36,13 +36,13 @@ public final class VanillaOptions {
+     static double gammaOverride = Double.NaN;
+     /** The user's own brightness while the override is active; NaN when not overriding. */
+     private static double savedGamma = Double.NaN;
 -    // @era:options-begin instances
+-    /** The boxed override written into the gamma option; identity tells it apart from a user write. */
+-    private static Double writtenOverride;
+-    /** Whether {@link #onSave} swapped the user's value in and must swap the override back. */
+-    private static boolean restoredForSave;
 -    // @era:options-else fields
--    //~ private static double savedGamma = Double.NaN;
 -    //~ private static boolean pendingAllChanged;
 +    // @era:options-begin fields
-+    private static double savedGamma = Double.NaN;
 +    private static boolean pendingAllChanged;
 +    // @era:options-else instances
++    //~ /** The boxed override written into the gamma option; identity tells it apart from a user write. */
++    //~ private static Double writtenOverride;
++    //~ /** Whether {@link #onSave} swapped the user's value in and must swap the override back. */
++    //~ private static boolean restoredForSave;
      // @era:options-end
  
      private VanillaOptions() {
-@@ -55,14 +55,14 @@ public final class VanillaOptions {
+@@ -56,14 +56,14 @@ public final class VanillaOptions {
      // ------------------------------------------------------------------ distances
  
      public static boolean hasSimulationDistance() {
@@ -388,7 +394,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -71,10 +71,10 @@ public final class VanillaOptions {
+@@ -72,10 +72,10 @@ public final class VanillaOptions {
          if (o == null) {
              return 8;
          }
@@ -403,7 +409,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -83,16 +83,16 @@ public final class VanillaOptions {
+@@ -84,16 +84,16 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
@@ -430,7 +436,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -101,14 +101,14 @@ public final class VanillaOptions {
+@@ -102,14 +102,14 @@ public final class VanillaOptions {
          if (o == null) {
              return 8;
          }
@@ -452,7 +458,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -117,14 +117,14 @@ public final class VanillaOptions {
+@@ -118,14 +118,14 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
@@ -474,7 +480,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -134,10 +134,10 @@ public final class VanillaOptions {
+@@ -135,10 +135,10 @@ public final class VanillaOptions {
          if (o == null) {
              return 100;
          }
@@ -489,7 +495,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -147,10 +147,10 @@ public final class VanillaOptions {
+@@ -148,10 +148,10 @@ public final class VanillaOptions {
              return;
          }
          final double value = Math.max(50, Math.min(500, percent)) / 100.0;
@@ -504,7 +510,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -161,10 +161,10 @@ public final class VanillaOptions {
+@@ -162,10 +162,10 @@ public final class VanillaOptions {
          if (o == null) {
              return UNLIMITED_FPS;
          }
@@ -519,7 +525,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -174,11 +174,11 @@ public final class VanillaOptions {
+@@ -175,11 +175,11 @@ public final class VanillaOptions {
              return;
          }
          final int value = Math.max(10, Math.min(UNLIMITED_FPS, fps));
@@ -536,7 +542,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -187,10 +187,10 @@ public final class VanillaOptions {
+@@ -188,10 +188,10 @@ public final class VanillaOptions {
          if (o == null) {
              return false;
          }
@@ -551,7 +557,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -199,11 +199,11 @@ public final class VanillaOptions {
+@@ -200,11 +200,11 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
@@ -568,7 +574,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -215,15 +215,15 @@ public final class VanillaOptions {
+@@ -216,15 +216,15 @@ public final class VanillaOptions {
          if (o == null) {
              return 1;
          }
@@ -593,7 +599,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -232,19 +232,19 @@ public final class VanillaOptions {
+@@ -233,19 +233,19 @@ public final class VanillaOptions {
          if (o == null || index < 0) {
              return;
          }
@@ -626,7 +632,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -254,10 +254,10 @@ public final class VanillaOptions {
+@@ -255,10 +255,10 @@ public final class VanillaOptions {
          if (o == null) {
              return 2;
          }
@@ -641,7 +647,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -266,10 +266,10 @@ public final class VanillaOptions {
+@@ -267,10 +267,10 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
@@ -656,7 +662,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -279,10 +279,10 @@ public final class VanillaOptions {
+@@ -280,10 +280,10 @@ public final class VanillaOptions {
          if (o == null) {
              return 0;
          }
@@ -671,7 +677,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -291,10 +291,10 @@ public final class VanillaOptions {
+@@ -292,10 +292,10 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
@@ -686,7 +692,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -303,10 +303,10 @@ public final class VanillaOptions {
+@@ -304,10 +304,10 @@ public final class VanillaOptions {
          if (o == null) {
              return true;
          }
@@ -701,7 +707,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -315,15 +315,15 @@ public final class VanillaOptions {
+@@ -316,15 +316,15 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
@@ -726,7 +732,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -333,10 +333,10 @@ public final class VanillaOptions {
+@@ -334,10 +334,10 @@ public final class VanillaOptions {
          if (o == null) {
              return 2;
          }
@@ -741,7 +747,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -346,13 +346,13 @@ public final class VanillaOptions {
+@@ -347,13 +347,13 @@ public final class VanillaOptions {
              return;
          }
          final int value = Math.max(0, Math.min(7, radius));
@@ -762,7 +768,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -361,10 +361,10 @@ public final class VanillaOptions {
+@@ -362,10 +362,10 @@ public final class VanillaOptions {
          if (o == null) {
              return true;
          }
@@ -777,7 +783,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -373,10 +373,10 @@ public final class VanillaOptions {
+@@ -374,10 +374,10 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
@@ -792,7 +798,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -385,10 +385,10 @@ public final class VanillaOptions {
+@@ -386,10 +386,10 @@ public final class VanillaOptions {
          if (o == null) {
              return true;
          }
@@ -807,7 +813,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -397,10 +397,10 @@ public final class VanillaOptions {
+@@ -398,10 +398,10 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
@@ -822,116 +828,170 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
      }
  
-@@ -412,17 +412,17 @@ public final class VanillaOptions {
-         if (o == null) {
-             return 50;
+@@ -416,10 +416,10 @@ public final class VanillaOptions {
+         if (!Double.isNaN(savedGamma)) {
+             return (int) Math.round(savedGamma * 100.0);
          }
 -        // @era:options-begin instances
--        final boolean was = saving;
--        saving = true;
--        try {
--            return (int) Math.round(o.gamma().get().doubleValue() * 100.0);
--        } finally {
--            saving = was;
--        }
+-        return (int) Math.round(o.gamma().get().doubleValue() * 100.0);
 -        // @era:options-else fields
--        //~ final double value = Double.isNaN(savedGamma) ? o.gamma : savedGamma;
--        //~ return (int) Math.round(value * 100.0);
+-        //~ return (int) Math.round(o.gamma * 100.0);
 +        // @era:options-begin fields
-+        final double value = Double.isNaN(savedGamma) ? o.gamma : savedGamma;
-+        return (int) Math.round(value * 100.0);
++        return (int) Math.round(o.gamma * 100.0);
 +        // @era:options-else instances
-+        //~ final boolean was = saving;
-+        //~ saving = true;
-+        //~ try {
-+            //~ return (int) Math.round(o.gamma().get().doubleValue() * 100.0);
-+        //~ } finally {
-+            //~ saving = was;
-+        //~ }
++        //~ return (int) Math.round(o.gamma().get().doubleValue() * 100.0);
          // @era:options-end
      }
  
-@@ -432,14 +432,14 @@ public final class VanillaOptions {
+@@ -434,10 +434,10 @@ public final class VanillaOptions {
+             savedGamma = value;
              return;
          }
-         final double value = Math.max(0, Math.min(100, percent)) / 100.0;
 -        // @era:options-begin instances
 -        o.gamma().set(Double.valueOf(value));
 -        // @era:options-else fields
--        //~ if (Double.isNaN(savedGamma)) {
--            //~ o.gamma = value;
--        //~ } else {
--            //~ savedGamma = value;
--        //~ }
+-        //~ o.gamma = value;
 +        // @era:options-begin fields
-+        if (Double.isNaN(savedGamma)) {
-+            o.gamma = value;
-+        } else {
-+            savedGamma = value;
-+        }
++        o.gamma = value;
 +        // @era:options-else instances
 +        //~ o.gamma().set(Double.valueOf(value));
          // @era:options-end
      }
  
-@@ -452,22 +452,22 @@ public final class VanillaOptions {
+@@ -450,47 +450,47 @@ public final class VanillaOptions {
          if (o == null) {
              return;
          }
 -        // @era:options-begin instances
--        gammaInstance = o.gamma();
+-        final GammaSlot slot = gammaSlot(o);
+-        if (slot == null) {
+-            // OptionInstanceMixin did not apply: no fullbright rather than a wrong value.
+-            gammaOverride = Double.NaN;
+-            return;
+-        }
 +        // @era:options-begin fields
-+        if (Double.isNaN(value)) {
-+            if (!Double.isNaN(savedGamma)) {
+         if (Double.isNaN(value)) {
+             if (!Double.isNaN(savedGamma)) {
+-                // A value the user set through vanilla's own slider meanwhile is left alone.
+-                if (slot.aetheriumRawValue() == writtenOverride) {
+-                    slot.aetheriumSetRawValue(Double.valueOf(savedGamma));
+-                }
 +                o.gamma = savedGamma;
-+                savedGamma = Double.NaN;
-+            }
-+        } else {
-+            if (Double.isNaN(savedGamma)) {
+                 savedGamma = Double.NaN;
+-                writtenOverride = null;
+             }
+         } else {
+-            if (value == gammaOverride && slot.aetheriumRawValue() == writtenOverride) {
+-                return;
+-            }
+             if (Double.isNaN(savedGamma)) {
+-                final Object current = slot.aetheriumRawValue();
+-                // A value above 1 can only be a previous session's override; clamp to vanilla's range.
+-                savedGamma = current instanceof Double ? Math.max(0.0, Math.min(1.0, ((Double) current).doubleValue())) : 0.5;
 +                // A value above 1 can only be a previous session's override saved by a crash.
 +                savedGamma = Math.min(1.0, o.gamma);
-+            }
+             }
+-            writtenOverride = Double.valueOf(value);
+-            slot.aetheriumSetRawValue(writtenOverride);
 +            o.gamma = value;
-+        }
+         }
          gammaOverride = value;
 -        // @era:options-else fields
--        //~ if (Double.isNaN(value)) {
--            //~ if (!Double.isNaN(savedGamma)) {
++        // @era:options-else instances
++        //~ final GammaSlot slot = gammaSlot(o);
++        //~ if (slot == null) {
++            //~ // OptionInstanceMixin did not apply: no fullbright rather than a wrong value.
++            //~ gammaOverride = Double.NaN;
++            //~ return;
++        //~ }
+         //~ if (Double.isNaN(value)) {
+             //~ if (!Double.isNaN(savedGamma)) {
 -                //~ o.gamma = savedGamma;
--                //~ savedGamma = Double.NaN;
--            //~ }
--        //~ } else {
--            //~ if (Double.isNaN(savedGamma)) {
++                //~ // A value the user set through vanilla's own slider meanwhile is left alone.
++                //~ if (slot.aetheriumRawValue() == writtenOverride) {
++                    //~ slot.aetheriumSetRawValue(Double.valueOf(savedGamma));
++                //~ }
+                 //~ savedGamma = Double.NaN;
++                //~ writtenOverride = null;
+             //~ }
+         //~ } else {
++            //~ if (value == gammaOverride && slot.aetheriumRawValue() == writtenOverride) {
++                //~ return;
++            //~ }
+             //~ if (Double.isNaN(savedGamma)) {
 -                //~ // A value above 1 can only be a previous session's override saved by a crash.
 -                //~ savedGamma = Math.min(1.0, o.gamma);
--            //~ }
++                //~ final Object current = slot.aetheriumRawValue();
++                //~ // A value above 1 can only be a previous session's override; clamp to vanilla's range.
++                //~ savedGamma = current instanceof Double ? Math.max(0.0, Math.min(1.0, ((Double) current).doubleValue())) : 0.5;
+             //~ }
 -            //~ o.gamma = value;
--        //~ }
-+        // @era:options-else instances
-+        //~ gammaInstance = o.gamma();
++            //~ writtenOverride = Double.valueOf(value);
++            //~ slot.aetheriumSetRawValue(writtenOverride);
+         //~ }
          //~ gammaOverride = value;
          // @era:options-end
-     }
-@@ -490,12 +490,12 @@ public final class VanillaOptions {
-     /** Called by {@code OptionsMixin} around vanilla's {@code Options.save()}. */
-     public static void onSave(final boolean begin) {
-         saving = begin;
--        // @era:options-begin instances
--        // @era:options-else fields
--        //~ final Options o = options();
--        //~ if (o != null && !Double.isNaN(savedGamma)) {
--            //~ o.gamma = begin ? savedGamma : gammaOverride;
--        //~ }
-+        // @era:options-begin fields
-+        final Options o = options();
-+        if (o != null && !Double.isNaN(savedGamma)) {
-+            o.gamma = begin ? savedGamma : gammaOverride;
-+        }
-+        // @era:options-else instances
-         // @era:options-end
+@@ -500,37 +500,37 @@ public final class VanillaOptions {
+         return !Double.isNaN(gammaOverride);
      }
  
-@@ -509,12 +509,12 @@ public final class VanillaOptions {
+-    // @era:options-begin instances
+-    private static GammaSlot gammaSlot(final Options o) {
+-        final Object option = o.gamma();
+-        return option instanceof GammaSlot ? (GammaSlot) option : null;
+-    }
+-    // @era:options-else fields
++    // @era:options-begin fields
++    // @era:options-else instances
++    //~ private static GammaSlot gammaSlot(final Options o) {
++        //~ final Object option = o.gamma();
++        //~ return option instanceof GammaSlot ? (GammaSlot) option : null;
++    //~ }
+     // @era:options-end
+ 
+     // ------------------------------------------------------------------ persistence
+ 
+     /** Called by {@code OptionsMixin} around vanilla's {@code Options.save()}. */
+     public static void onSave(final boolean begin) {
+-        // @era:options-begin instances
++        // @era:options-begin fields
+         final Options o = options();
+-        final GammaSlot slot = o == null ? null : gammaSlot(o);
+-        if (slot == null) {
+-            return;
++        if (o != null && !Double.isNaN(savedGamma)) {
++            o.gamma = begin ? savedGamma : gammaOverride;
+         }
+-        if (begin) {
+-            restoredForSave = !Double.isNaN(savedGamma) && slot.aetheriumRawValue() == writtenOverride;
+-            if (restoredForSave) {
+-                slot.aetheriumSetRawValue(Double.valueOf(savedGamma));
+-            }
+-        } else if (restoredForSave) {
+-            restoredForSave = false;
+-            slot.aetheriumSetRawValue(writtenOverride);
+-        }
+-        // @era:options-else fields
++        // @era:options-else instances
+         //~ final Options o = options();
+-        //~ if (o != null && !Double.isNaN(savedGamma)) {
+-            //~ o.gamma = begin ? savedGamma : gammaOverride;
++        //~ final GammaSlot slot = o == null ? null : gammaSlot(o);
++        //~ if (slot == null) {
++            //~ return;
++        //~ }
++        //~ if (begin) {
++            //~ restoredForSave = !Double.isNaN(savedGamma) && slot.aetheriumRawValue() == writtenOverride;
++            //~ if (restoredForSave) {
++                //~ slot.aetheriumSetRawValue(Double.valueOf(savedGamma));
++            //~ }
++        //~ } else if (restoredForSave) {
++            //~ restoredForSave = false;
++            //~ slot.aetheriumSetRawValue(writtenOverride);
+         //~ }
+         // @era:options-end
+     }
+@@ -545,12 +545,12 @@ public final class VanillaOptions {
          if (mc == null || mc.options == null) {
              return;
          }
@@ -950,7 +1010,7 @@ index 735fcbe..6c600aa 100644
          // @era:options-end
          mc.options.save();
      }
-@@ -532,43 +532,43 @@ public final class VanillaOptions {
+@@ -568,43 +568,43 @@ public final class VanillaOptions {
      }
  
      // ------------------------------------------------------------------ helpers
@@ -1119,62 +1179,71 @@ index 0b2c6b1..531f6bc 100644
      // @era:hud-else extractor
      //~ @Inject(method = "extractRenderState", at = @At("TAIL"), require = 0)
 diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java
-index d5dee0f..c2121bf 100644
+index 0bb9134..70f6233 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java
-@@ -1,33 +1,33 @@
+@@ -1,37 +1,37 @@
  package com.aetherium.mixin.core;
  
 -// @era:options-begin instances
--import com.aetherium.client.VanillaOptions;
--
+-import com.aetherium.client.GammaSlot;
 +// @era:options-begin fields
  import org.spongepowered.asm.mixin.Mixin;
--import org.spongepowered.asm.mixin.injection.At;
--import org.spongepowered.asm.mixin.injection.Inject;
--import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+-import org.spongepowered.asm.mixin.Shadow;
  
 -/**
-- * Fullbright: the gamma option reports the override while it is active.
-- * Overriding the read (not writing the value) bypasses vanilla's 0..1
-- * validation and never reaches options.txt. One identity compare per read.
+- * Fullbright support with zero cost per option read: exposes the stored value through
+- * {@link GammaSlot} instead of injecting into {@code OptionInstance.get()}. The field is
+- * {@code T value} on every 1.19+ version (package-private up to 1.21.10, private from 1.21.11);
+- * its erasure is {@code Object}. No injector runs, so vanilla's {@code get()} bytecode is untouched.
 - */
 -@Mixin(net.minecraft.client.OptionInstance.class)
+-public abstract class OptionInstanceMixin implements GammaSlot {
 +/** Before 1.19 gamma is a plain field written directly by VanillaOptions; the plugin skips this mixin. */
 +@Mixin(net.minecraft.client.Options.class)
- public abstract class OptionInstanceMixin {
--
--    @Inject(method = "get", at = @At("HEAD"), cancellable = true, require = 0)
--    private void aetherium$gamma(final CallbackInfoReturnable<Object> cir) {
--        if (VanillaOptions.overridesGamma(this)) {
--            cir.setReturnValue(VanillaOptions.gammaOverrideBoxed());
--        }
--    }
- }
--// @era:options-else fields
++public abstract class OptionInstanceMixin {
++}
 +// @era:options-else instances
-+//~ import com.aetherium.client.VanillaOptions;
-+
- //~ import org.spongepowered.asm.mixin.Mixin;
-+//~ import org.spongepowered.asm.mixin.injection.At;
-+//~ import org.spongepowered.asm.mixin.injection.Inject;
-+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++//~ import com.aetherium.client.GammaSlot;
++//~ import org.spongepowered.asm.mixin.Mixin;
++//~ import org.spongepowered.asm.mixin.Shadow;
+ 
+-    @Shadow
+-    private Object value;
++//~ /**
++ //~ * Fullbright support with zero cost per option read: exposes the stored value through
++ //~ * {@link GammaSlot} instead of injecting into {@code OptionInstance.get()}. The field is
++ //~ * {@code T value} on every 1.19+ version (package-private up to 1.21.10, private from 1.21.11);
++ //~ * its erasure is {@code Object}. No injector runs, so vanilla's {@code get()} bytecode is untouched.
++ //~ */
++//~ @Mixin(net.minecraft.client.OptionInstance.class)
++//~ public abstract class OptionInstanceMixin implements GammaSlot {
+ 
+-    @Override
+-    public Object aetheriumRawValue() {
+-        return this.value;
+-    }
++    //~ @Shadow
++    //~ private Object value;
+ 
+-    @Override
+-    public void aetheriumSetRawValue(final Object replacement) {
+-        this.value = replacement;
+-    }
+-}
+-// @era:options-else fields
+-//~ import org.spongepowered.asm.mixin.Mixin;
++    //~ @Override
++    //~ public Object aetheriumRawValue() {
++        //~ return this.value;
++    //~ }
  
 -//~ /** Before 1.19 gamma is a plain field written directly by VanillaOptions; the plugin skips this mixin. */
 -//~ @Mixin(net.minecraft.client.Options.class)
-+//~ /**
-+ //~ * Fullbright: the gamma option reports the override while it is active.
-+ //~ * Overriding the read (not writing the value) bypasses vanilla's 0..1
-+ //~ * validation and never reaches options.txt. One identity compare per read.
-+ //~ */
-+//~ @Mixin(net.minecraft.client.OptionInstance.class)
- //~ public abstract class OptionInstanceMixin {
-+
-+    //~ @Inject(method = "get", at = @At("HEAD"), cancellable = true, require = 0)
-+    //~ private void aetherium$gamma(final CallbackInfoReturnable<Object> cir) {
-+        //~ if (VanillaOptions.overridesGamma(this)) {
-+            //~ cir.setReturnValue(VanillaOptions.gammaOverrideBoxed());
-+        //~ }
+-//~ public abstract class OptionInstanceMixin {
++    //~ @Override
++    //~ public void aetheriumSetRawValue(final Object replacement) {
++        //~ this.value = replacement;
 +    //~ }
  //~ }
  // @era:options-end
@@ -1192,7 +1261,7 @@ index dbdd789..d1d94a8 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index efdca7f..c6f7fa1 100644
+index c2ab181..7a6fddc 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

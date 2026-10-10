@@ -45,14 +45,6 @@ public interface PlatformAdapter {
     boolean isClient();
 
     /**
-     * Asks the loader to open the shader-pack screen if a shader mod exposes one.
-     * Only used by the GUI's Shaders tab; returns false when no handler exists.
-     */
-    default boolean openShaderPackScreen(final Object parentScreen) {
-        return false;
-    }
-
-    /**
      * Registers a frame-time observer. Fabric forwards to its client tick event,
      * NeoForge to {@code RenderLevelStageEvent}; the mixin path in common is the
      * fallback. Default no-op keeps common-side boot working on a bare JVM in

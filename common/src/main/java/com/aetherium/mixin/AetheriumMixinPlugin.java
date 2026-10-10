@@ -1,6 +1,7 @@
 package com.aetherium.mixin;
 
 import com.aetherium.Capabilities;
+import com.aetherium.config.EarlyConfig;
 import com.aetherium.perf.WorkerThreads;
 
 import java.util.Collections;
@@ -37,6 +38,8 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
 
     private static volatile boolean mixinActive = true;
     private static volatile String minecraftVersion = "unknown";
+    /** Decided in {@link #onLoad}: dynamic lights were on in the config this launch started with. */
+    private static volatile boolean lightHooksWanted;
 
     // ------------------------------------------------------------------ public API
 
@@ -65,6 +68,11 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         return APPLIED.contains(simpleName);
     }
 
+    /** Whether the dynamic-light hooks are in place this launch (false = lights need a restart). */
+    public static boolean lightHooksInstalled() {
+        return APPLIED.contains("LightLevelMixin");
+    }
+
     public static int appliedCount() {
         return APPLIED.size();
     }
@@ -76,7 +84,10 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     /** Whether the mixin with this simple name should be applied on this build. */
     static boolean enabledOnThisVersion(final String simpleName) {
         if ("LightLevelMixin".equals(simpleName) || "EntityLightMixin".equals(simpleName)) {
-            return Capabilities.DYNAMIC_LIGHTS;
+            // These hook vanilla's per-vertex light lookup, which runs millions of times while
+            // chunks are meshed. With dynamic lights off they are not applied at all, so that
+            // path stays vanilla bytecode; switching lights on from Off needs a restart.
+            return Capabilities.DYNAMIC_LIGHTS && lightHooksWanted;
         }
         if ("OptionInstanceMixin".equals(simpleName)) {
             return Capabilities.GAMMA_INSTANCE;
@@ -99,6 +110,12 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     public void onLoad(final String mixinPackage) {
         // Runs before Minecraft's Util class initializes, the only moment the pool size can be set.
         WorkerThreads.applyEarly(WorkerThreads.defaultConfigFile());
+        try {
+            lightHooksWanted = Capabilities.DYNAMIC_LIGHTS
+                    && EarlyConfig.dynamicLightsOn(EarlyConfig.read(WorkerThreads.defaultConfigFile()));
+        } catch (final RuntimeException | LinkageError error) {
+            lightHooksWanted = false;
+        }
     }
 
     @Override

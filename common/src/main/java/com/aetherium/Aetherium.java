@@ -12,7 +12,6 @@ import com.aetherium.hud.FrameStats;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.platform.PlatformAdapter;
 import com.aetherium.platform.PlatformServices;
-import com.aetherium.shader.IrisBridge;
 import com.aetherium.util.AetheriumLog;
 
 /**
@@ -73,18 +72,16 @@ public final class Aetherium {
         public final AetheriumConfig config;
         public final ConfigStore store;
         public final FrameStats frameStats;
-        public final IrisBridge iris;
         public final ModConflictScanner conflicts;
         public final AndroidEnvironment android;
         public final PlatformAdapter platform;
 
         Subsystems(final AetheriumConfig config, final ConfigStore store, final FrameStats frameStats,
-                   final IrisBridge iris, final ModConflictScanner conflicts, final AndroidEnvironment android,
+                   final ModConflictScanner conflicts, final AndroidEnvironment android,
                    final PlatformAdapter platform) {
             this.config = config;
             this.store = store;
             this.frameStats = frameStats;
-            this.iris = iris;
             this.conflicts = conflicts;
             this.android = android;
             this.platform = platform;
@@ -101,10 +98,6 @@ public final class Aetherium {
 
     public static FrameStats frameStats() {
         return require().frameStats;
-    }
-
-    public static IrisBridge iris() {
-        return require().iris;
     }
 
     public static ModConflictScanner conflicts() {
@@ -179,10 +172,7 @@ public final class Aetherium {
         }
 
         final AndroidEnvironment android = AndroidEnvironment.probe(config);
-        final IrisBridge iris = new IrisBridge(config);
-        iris.bind();
-
-        SUBSYSTEMS.set(new Subsystems(config, store, new FrameStats(), iris, conflicts, android, platform));
+        SUBSYSTEMS.set(new Subsystems(config, store, new FrameStats(), conflicts, android, platform));
         BenchmarkRecorder.start();
 
         config.debugLogging.addListener((Boolean value) -> LOGGER.setDevEnabled(value.booleanValue()));
@@ -234,11 +224,6 @@ public final class Aetherium {
         }
         STATE.set(State.CLOSED);
         RenderToggles.refresh(local.config, false);
-        try {
-            local.iris.shutdown();
-        } catch (final RuntimeException error) {
-            LOGGER.warn("Iris bridge did not shut down cleanly", error);
-        }
         BenchmarkRecorder.stop();
         local.store.close();
         SUBSYSTEMS.set(null);
@@ -247,7 +232,7 @@ public final class Aetherium {
     private static String versionFromManifest() {
         final Package pack = Aetherium.class.getPackage();
         final String declared = pack == null ? null : pack.getImplementationVersion();
-        return declared == null || declared.isEmpty() ? "1.0.0" : declared;
+        return declared == null || declared.isEmpty() ? "1.1.0" : declared;
     }
 
     public static String describeRuntime() {
@@ -255,7 +240,6 @@ public final class Aetherium {
         if (local == null) {
             return "Aetherium " + VERSION + " (uninitialized)";
         }
-        return "Aetherium " + VERSION + " state=" + STATE.get() + " api=" + RENDERING_API
-                + " iris=" + (local.iris.isPresent() ? local.iris.getVersion() : "absent");
+        return "Aetherium " + VERSION + " state=" + STATE.get() + " api=" + RENDERING_API;
     }
 }

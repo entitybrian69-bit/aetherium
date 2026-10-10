@@ -1,10 +1,10 @@
-# Aetherium 1.0.0: verification report
+# Aetherium 1.1.0: verification report
 
 What was checked, how it was checked, and what was **not** checked. The audit trail for the
 0.1.0 line (CI compile reports 1–6, the old renderer's defects) is in git history at
 `6c12d5b`; none of that code survives in 0.2.0.
 
-Date: 2026-10-10. Branch `arena/46f241da-aetherium`. The sandbox had no Maven access, no
+Date: 2026-10-11 (1.1.0; §9), 2026-10-10 (1.0.0). Branch `arena/46f241da-aetherium`. The sandbox had no Maven access, no
 Gradle and no GPU. Java was compiled with ECJ 3.45 on a downloaded JRE (`tools/local_jdk.sh`).
 
 ---
@@ -97,17 +97,18 @@ reference build applies no patch, so a block left on another version's variant w
 version's code into the 1.21.1 jar. This check was added after exactly that was found:
 `WeatherMixin` targeted `WeatherEffectRenderer` (1.21.2+) in the raw tree.
 
-## 5. `[UNVERIFIED]` marks (7 questions)
+## 5. `[UNVERIFIED]` marks (6 questions, 10 marks)
 
-1. `IrisApiV0#getSunPathRotation` return type on Iris 1.7/1.8. It is bound reflectively, so a
-   mismatch reads as 0.
-2. `FMLEnvironment#dist` on NeoForge 1.21.1. Read reflectively.
-3. NeoForge's version-helper class names. Read reflectively, with a fallback.
-4. What `FMLPaths.GAMEDIR/CONFIGDIR` resolve to at runtime. The resolved path is logged at startup.
-5. 1.16.5, 1.17.1 and 1.18.1 have no per-version Fabric API tag, so the base-version pin is used.
+1. `FMLEnvironment#dist` on NeoForge 1.21.1. Read reflectively.
+2. NeoForge's version-helper class names. Read reflectively, with a fallback.
+3. What `FMLPaths.GAMEDIR/CONFIGDIR` resolve to at runtime. The resolved path is logged at startup.
+4. 1.16.5, 1.17.1 and 1.18.1 have no per-version Fabric API tag, so the base-version pin is used.
    This is compile-only and Aetherium does not need Fabric API at runtime.
-6. Which porting boundary is guessed (`tools/gen_deltas.py` header).
-7. A historical note in `PORTING_MATRIX.md`.
+5. Which porting boundary is guessed (`tools/gen_deltas.py` header).
+6. A historical note in `PORTING_MATRIX.md`.
+
+1.1.0 removed the shader-mod bridge, and with it the seventh question (a reflectively bound
+shader-mod method).
 
 ## 6. Known gaps
 
@@ -203,3 +204,37 @@ upload queue is vanilla's own `toUpload`; nothing is dropped or reordered.
   initializes, which is the normal order on both loaders. If it loads later, vanilla's pool size
   stays in place. Nothing breaks, but the setting has no effect.
 
+## 9. 1.1.0: the frame-rate fixes and how each was checked
+
+Users reported a large FPS drop on 1.0.0, on desktop and on phones. Nothing could be measured in
+game (§3), so the causes were found by reading every hook that runs per frame, per tick, per entity
+or per vertex. Each one below is a cost that 1.0.0 paid with its default settings or its *Max FPS*
+preset.
+
+| # | Cause | Fix | Check |
+| --- | --- | --- | --- |
+| 1 | `android.thermal_guard` defaulted to **true**, and `updateThermal` did not check for Android. It capped the frame rate at 30 whenever the hottest `cpu/gpu/package/soc` zone read 68 °C or more, which Linux desktops and loaded phones reach. The zones were read on the render thread every 100 ticks. | Default false; only on Android; ceiling 75 °C; `android/ThermalMonitor` polls on a daemon thread and the render thread reads a `volatile` int. | `ConfigStoreTest.frameRateFeaturesDefaultOff`, `migratesFrameRateDefaults` |
+| 2 | `AdaptiveDistance` changed the distance after one slow 2 s window, with a 2-window cooldown. Each change runs vanilla's `allChanged` (all chunks rebuilt), and the rebuild then read as the next slow window. *Max FPS* turned it on. | Removed from all presets and off after migration. Now it needs 5 consecutive slow windows (< 85 % of target), 15 fast windows (> 140 %) to rise, and a 15-window cooldown during which nothing counts. | `PerfLogicTest.adaptiveDistanceIsPatient`: a constantly slow game changes at most once per 40 s |
+| 3 | `LightLevelMixin` / `EntityLightMixin`: a cancellable `@Inject` on `LevelRenderer.getLightColor` (called per vertex while meshing) allocated a `CallbackInfoReturnable` per call, even with dynamic lights off. | `AetheriumMixinPlugin.onLoad` reads `aetherium.json` (`config/EarlyConfig`). The two mixins are applied only if dynamic lights are on in a v5+ file. Otherwise the tracker stays idle and the Effects tab shows "Off (zero cost)" or "Restart to apply". | `PerfLogicTest.lightHooksFromLaunchConfig` |
+| 4 | `OptionInstanceMixin`: a cancellable `@Inject` at the HEAD of `OptionInstance.get()` (every option read, including ambient occlusion per block while meshing) allocated per call, only to support fullbright. | No injector. The mixin `@Shadow`s the `T value` field and implements `client/GammaSlot`. Fullbright writes the boxed override into the field and restores the user's value around `Options.save()`. The field exists, non-final, in all 27 instance-era probes (1.19–26.3; package-private up to 1.21.10, private from 1.21.11). ≤1.18.2 still writes `Options.gamma` directly. | `stubcheck --all`; probe grep in the 1.1.0 commit message |
+| 5 | `UploadBudget.drain` called `size()` on vanilla's `ConcurrentLinkedQueue` every frame, which walks the whole queue. | `fewerThan(queue, 24)` stops counting at 24. | `PerfLogicTest.fewerThanStopsEarly` |
+| 6 | Settings screen: the hovered option's description was cut to one footer line ("…far..."). The footer's `fit()` also measured the string once per removed character, every frame. | A Sodium-style popup (`AetheriumView.drawTooltip`): the full text word-wrapped (cached per row), placed under or above the row and clamped to the screen, fading in after 0.35 s. `fit()` now uses binary search. | `AetheriumViewTest.descriptionPopup` (no word dropped, every line fits, instant swap, closes on leave), `popupHidesWhileBusy`, `fitIsExact`; removing the draw call makes `descriptionPopup` fail |
+
+Config migration (schema 4 → 5): `android.thermal_guard`, `performance.adaptive_distance` and
+`effects.dynamic_lights` return to their (off) defaults once; a stored ceiling of exactly 68 °C
+becomes 75 °C; the removed `shaders.*` keys are dropped. Other values are kept. A v5 file keeps
+explicit opt-ins (`ConfigStoreTest.currentVersionKeepsOptIns`).
+
+Shader-mod branding removed: the shader page and its icon, `shader/IrisBridge`, the `shaders.*`
+options and lang keys, `suggests` in `fabric.mod.json`, `PlatformAdapter.openShaderPackScreen` and
+`docs/IRIS_COMPAT.md`. The conflict scanner still reports a shader mod as informational, with
+neutral advice.
+
+Gates run for 1.1.0: `stubcheck --all` 33/33 (Java 8 API lint on 1.16.5);
+`testrun.py --bench` 106 passed, 0 failed (99 unit + 7 benchmarks); `gen_resources --check`
+(34 options, 93 lang keys); `gen_deltas --all --verify` (32 patches apply cleanly); `check.py`
+clean; `check_refs.py` clean.
+
+Not established: the frame-rate change on any device. Fixes 1 and 2 remove a 30 FPS cap and
+repeated world reloads, which should be clearly visible where they applied. Fixes 3–5 remove
+per-call allocations and a queue walk, whose effect depends on how the JIT handled them.

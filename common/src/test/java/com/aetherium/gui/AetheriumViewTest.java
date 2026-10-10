@@ -314,4 +314,76 @@ final class AetheriumViewTest {
         assertEquals(0f, this.view.scrollVelocityForTest(), 0f);
         assertFalse(Float.isNaN(this.view.scrollPosition()));
     }
+
+    private int rowCenterY(final int index) {
+        return this.view.rowTopForTest(index) + this.view.rowHeightForTest() / 2;
+    }
+
+    @Test
+    @DisplayName("hovering a row opens a popup with the whole description, after a short delay")
+    void descriptionPopup() {
+        final String longText = "Chests, signs, banners, heads and other block entities farther than this many blocks"
+                + " are not drawn (64 = vanilla; beacon beams are exempt).";
+        final Page page = new Page("Test", "Test", "Rows", PixelArt.GEAR);
+        page.add(Setting.toggle("long", "Long", longText, () -> 0, v -> { }));
+        page.add(Setting.toggle("short", "Short", "Short text.", () -> 0, v -> { }));
+        this.view = new AetheriumView(Collections.singletonList(page), this.host, 0);
+        this.view.setTimeSource(() -> this.now);
+        this.view.resize(W, H);
+        frames(40, -1, -1);
+        final int x = 150;
+        final int y = rowCenterY(0);
+        frames(3, x, y);
+        assertEquals(null, this.view.tooltipForTest(), "no popup before the hover delay");
+        frames(40, x, y);
+        assertEquals(this.view.find("long"), this.view.tooltipForTest());
+        final List<String> lines = this.view.tooltipLinesForTest();
+        assertTrue(lines.size() >= 2, "a long description must wrap instead of being cut: " + lines);
+        assertEquals(longText, String.join(" ", lines), "every word of the description is shown, none dropped");
+        for (final String line : lines) {
+            assertTrue(line.length() * 6 <= 240, "every line fits the popup: " + line);
+        }
+        // Sliding to the next row while open swaps at once.
+        frames(1, x, rowCenterY(1));
+        frames(1, x, rowCenterY(1));
+        assertEquals(this.view.find("short"), this.view.tooltipForTest());
+        // Leaving the rows closes it.
+        frames(40, -1, -1);
+        assertEquals(null, this.view.tooltipForTest());
+    }
+
+    @Test
+    @DisplayName("the popup stays closed while scrolling and, on touch, for the row just tapped")
+    void popupHidesWhileBusy() {
+        final int x = 150;
+        final int y = rowCenterY(2);
+        frames(40, x, y);
+        assertTrue(this.view.tooltipForTest() != null);
+        this.view.mouseScrolled(x, y, -3);
+        build(true);
+        final int ty = rowCenterY(1);
+        this.view.mouseClicked(x, ty, 0);
+        this.view.mouseReleased(x, ty, 0);
+        frames(60, x, ty);
+        assertEquals(null, this.view.tooltipForTest(), "a tapped row must not be covered by its own popup");
+        frames(60, x, rowCenterY(3));
+        assertTrue(this.view.tooltipForTest() != null, "moving to another row shows its popup again");
+    }
+
+    @Test
+    @DisplayName("fit() keeps the longest prefix that fits and adds an ellipsis")
+    void fitIsExact() {
+        final Canvas c = new Canvas();
+        assertEquals("abcdefghij", AetheriumView.fit(c, "abcdefghij", 60));
+        assertEquals("abcdefg...", AetheriumView.fit(c, "abcdefghijk", 60));
+        assertEquals("", AetheriumView.fit(c, "abcdef", 10));
+        for (int w = 18; w < 200; w++) {
+            final String out = AetheriumView.fit(c, "The quick brown fox jumps over the lazy dog", w);
+            assertTrue(out.length() * 6 <= w, "fits at width " + w);
+            final String longer = out.endsWith("...") ? out.substring(0, out.length() - 3) : out;
+            if (out.endsWith("...")) {
+                assertTrue((longer.length() + 1 + 3) * 6 > w, "the prefix is the longest one that fits at " + w);
+            }
+        }
+    }
 }

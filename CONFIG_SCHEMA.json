@@ -86,16 +86,16 @@
             },
             "android.thermal_ceiling_c": {
               "type": "integer",
-              "default": 68,
+              "default": 75,
               "minimum": 40,
               "maximum": 95,
-              "description": "Package temperature at which the thermal guard engages.",
+              "description": "Hottest CPU/GPU temperature at which the thermal guard engages.",
               "x-java-field": "thermalCeilingC"
             },
             "android.thermal_guard": {
               "type": "boolean",
-              "default": true,
-              "description": "Cap the frame rate at 30 while the device is above the thermal ceiling.",
+              "default": false,
+              "description": "Android only, opt-in: cap the frame rate at 30 while the phone is above the thermal ceiling. The temperature is read on a background thread.",
               "x-java-field": "thermalGuard"
             },
             "android.touch_mode": {
@@ -113,7 +113,7 @@
             "effects.dynamic_lights": {
               "type": "string",
               "default": "OFF",
-              "description": "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick.",
+              "description": "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick. Off removes the light hooks entirely for full speed, so turning it on from Off takes effect after a restart.",
               "x-java-field": "dynamicLights"
             },
             "effects.dynamic_lights.entities": {
@@ -199,7 +199,7 @@
             "performance.adaptive_distance": {
               "type": "boolean",
               "default": false,
-              "description": "Lower the render distance while FPS stays under the target, raise it back when there is headroom.",
+              "description": "Lower the render distance by one chunk after FPS stays under the target for 10 seconds, raise it after 30 seconds of headroom. Every change reloads all chunks, so it waits 30 seconds between changes.",
               "x-java-field": "adaptiveDistance"
             },
             "performance.adaptive_target_fps": {
@@ -277,24 +277,6 @@
               "default": true,
               "description": "Render rain and snow. Off saves a lot of fill rate on mobile GPUs.",
               "x-java-field": "weather"
-            }
-          }
-        },
-        "shaders": {
-          "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "shaders.iris_integration": {
-              "type": "boolean",
-              "default": true,
-              "description": "Bind the Iris/Oculus v0 API by reflection when present.",
-              "x-java-field": "irisIntegration"
-            },
-            "shaders.pause_dynamic_lights_with_shaders": {
-              "type": "boolean",
-              "default": true,
-              "description": "Pause dynamic lights while a shader pack is active.",
-              "x-java-field": "pauseDynamicLights"
             }
           }
         }

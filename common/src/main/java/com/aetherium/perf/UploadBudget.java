@@ -50,8 +50,22 @@ public final class UploadBudget {
         return drain(queue, SYSTEM, BUDGET_NANOS);
     }
 
+    /**
+     * {@code queue.size() < limit} without the full walk: vanilla's queue is a
+     * {@code ConcurrentLinkedQueue}, whose {@code size()} visits every node.
+     */
+    static boolean fewerThan(final Queue<?> queue, final int limit) {
+        int seen = 0;
+        for (final java.util.Iterator<?> it = queue.iterator(); it.hasNext(); it.next()) {
+            if (++seen >= limit) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static int drain(final Queue<Runnable> queue, final Clock clock, final long budgetNanos) {
-        final boolean all = queue.size() < DRAIN_ALL_BELOW;
+        final boolean all = fewerThan(queue, DRAIN_ALL_BELOW);
         final long start = clock.nanoTime();
         int ran = 0;
         Runnable task;

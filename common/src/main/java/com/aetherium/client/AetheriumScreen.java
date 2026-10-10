@@ -39,7 +39,7 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
 
     private final Screen parent;
     private AetheriumView view;
-    /** A child screen (vanilla video settings, Iris) may change live values; re-read them on return. */
+    /** A child screen (vanilla video settings) may change live values; re-read them on return. */
     private boolean childOpened;
 
     public AetheriumScreen(final Screen parent) {
@@ -274,14 +274,6 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     }
 
     // ------------------------------------------------------------------ Actions
-
-    @Override
-    public void openShaderPacks() {
-        this.childOpened = true;
-        if (!ClientHooks.openShaderPacks(this.minecraft, this)) {
-            this.childOpened = false;
-        }
-    }
 
     @Override
     public void resetDefaults() {

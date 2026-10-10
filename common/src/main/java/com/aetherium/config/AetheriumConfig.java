@@ -19,7 +19,7 @@ import java.util.Objects;
  */
 public final class AetheriumConfig {
     /** Schema version; bumped by a migration when the key set changes shape. */
-    public static final int CURRENT_VERSION = 4;
+    public static final int CURRENT_VERSION = 5;
 
     // --------------------------------------------------------------- general
     public final ConfigValue<Boolean> enabled = ConfigValue.bool(
@@ -42,7 +42,7 @@ public final class AetheriumConfig {
     public final ConfigValue<Integer> particleDensity = ConfigValue.intRange(
             "performance.particle_density", 100, 0, 100, false, "Percentage of spawned particles that are kept.");
     public final ConfigValue<Boolean> adaptiveDistance = ConfigValue.bool(
-            "performance.adaptive_distance", false, "Lower the render distance while FPS stays under the target, raise it back when there is headroom.");
+            "performance.adaptive_distance", false, "Lower the render distance by one chunk after FPS stays under the target for 10 seconds, raise it after 30 seconds of headroom. Every change reloads all chunks, so it waits 30 seconds between changes.");
     public final ConfigValue<Integer> adaptiveTargetFps = ConfigValue.intRange(
             "performance.adaptive_target_fps", 60, 20, 240, false, "FPS the adaptive render distance tries to hold.");
     public final ConfigValue<Boolean> animatedTextures = ConfigValue.bool(
@@ -61,16 +61,12 @@ public final class AetheriumConfig {
     // ---------------------------------------------------------------- effects
     public final ConfigValue<LightMode> dynamicLights = ConfigValue.enumerated(
             "effects.dynamic_lights", LightMode.OFF, LightMode.class, false,
-            "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick.");
+            "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick. Off removes the light hooks entirely for full speed, so turning it on from Off takes effect after a restart.");
     public final ConfigValue<Boolean> dynamicLightsHeld = ConfigValue.bool("effects.dynamic_lights.held", true, "Torches and other luminous items held by players and mobs emit light.");
     public final ConfigValue<Boolean> dynamicLightsEntities = ConfigValue.bool("effects.dynamic_lights.entities", true, "Dropped luminous items, burning entities and blazes emit light.");
     public final ConfigValue<Boolean> fullbright = ConfigValue.bool("effects.fullbright", false, "Override the brightness so caves and nights are fully lit.");
     public final ConfigValue<Integer> fullbrightStrength = ConfigValue.intRange(
             "effects.fullbright.strength", 100, 10, 100, false, "Fullbright strength in percent.");
-
-    // ---------------------------------------------------------------- shaders
-    public final ConfigValue<Boolean> irisIntegration = ConfigValue.bool("shaders.iris_integration", true, "Bind the Iris/Oculus v0 API by reflection when present.");
-    public final ConfigValue<Boolean> pauseDynamicLights = ConfigValue.bool("shaders.pause_dynamic_lights_with_shaders", true, "Pause dynamic lights while a shader pack is active.");
 
     // ----------------------------------------------------------------- android
     public final ConfigValue<Boolean> androidSupport = ConfigValue.bool("android.enabled", true, "Enable launcher/renderer probing. No-op on desktop.");
@@ -81,8 +77,8 @@ public final class AetheriumConfig {
     public final ConfigValue<Integer> memoryBudgetMb = ConfigValue.intRange("android.memory_budget_mb", 1024, 256, 8192, false, "Heap budget reported for the device; auto-detected from cgroup limits.");
     public final ConfigValue<Boolean> batterySaver = ConfigValue.bool("android.battery_saver", false, "Cap the frame rate to save battery.");
     public final ConfigValue<Integer> batteryFpsCap = ConfigValue.intRange("android.battery_fps_cap", 30, 15, 60, false, "Frame-rate cap used by battery saver.");
-    public final ConfigValue<Boolean> thermalGuard = ConfigValue.bool("android.thermal_guard", true, "Cap the frame rate at 30 while the device is above the thermal ceiling.");
-    public final ConfigValue<Integer> thermalCeilingC = ConfigValue.intRange("android.thermal_ceiling_c", 68, 40, 95, false, "Package temperature at which the thermal guard engages.");
+    public final ConfigValue<Boolean> thermalGuard = ConfigValue.bool("android.thermal_guard", false, "Android only, opt-in: cap the frame rate at 30 while the phone is above the thermal ceiling. The temperature is read on a background thread.");
+    public final ConfigValue<Integer> thermalCeilingC = ConfigValue.intRange("android.thermal_ceiling_c", 75, 40, 95, false, "Hottest CPU/GPU temperature at which the thermal guard engages.");
     public final ConfigValue<Boolean> touchMode = ConfigValue.bool("android.touch_mode", false, "Taller rows and larger hit targets in the Aetherium screen.");
 
     // ---------------------------------------------------------------- advanced

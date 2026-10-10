@@ -106,10 +106,6 @@ defaults. The only way engine code asks a question about the loader.
 own Javadoc: a mixin body is two lines, so version-dependent decisions never live in bytecode
 patches.
 
-**Iris v0 API.** The shader mod's public interface (`IrisApiV0Impl.INSTANCE`,
-`isShaderPackInUse`, `openMainIrisScreenObj`, …). Aetherium reads it by reflection only —
-`shader/IrisBridge` — so no Iris jar is needed to build.
-
 **F3 / debug overlay.** The vanilla diagnostics screen; `GuiMixin` appends the
 `[Aetherium/GL46]` tag to its header line when `general.hud.backend_tag` is on.
 

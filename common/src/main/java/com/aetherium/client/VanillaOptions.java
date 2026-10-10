@@ -32,15 +32,16 @@ public final class VanillaOptions {
     /** Framerate value vanilla treats as "unlimited". */
     public static final int UNLIMITED_FPS = 260;
 
-    /** NaN = no override. Read by {@code OptionInstanceMixin} on every gamma read (1.19+). */
+    /** NaN = no override; otherwise the gamma the lightmap sees (fullbright). */
     static double gammaOverride = Double.NaN;
-    /** The gamma OptionInstance, cached so the mixin's identity check is one compare. */
-    static Object gammaInstance;
-    /** True while vanilla serialises options.txt, so the override is never persisted. */
-    static boolean saving;
+    /** The user's own brightness while the override is active; NaN when not overriding. */
+    private static double savedGamma = Double.NaN;
     // @era:options-begin instances
+    /** The boxed override written into the gamma option; identity tells it apart from a user write. */
+    private static Double writtenOverride;
+    /** Whether {@link #onSave} swapped the user's value in and must swap the override back. */
+    private static boolean restoredForSave;
     // @era:options-else fields
-    //~ private static double savedGamma = Double.NaN;
     //~ private static boolean pendingAllChanged;
     // @era:options-end
 
@@ -412,17 +413,13 @@ public final class VanillaOptions {
         if (o == null) {
             return 50;
         }
-        // @era:options-begin instances
-        final boolean was = saving;
-        saving = true;
-        try {
-            return (int) Math.round(o.gamma().get().doubleValue() * 100.0);
-        } finally {
-            saving = was;
+        if (!Double.isNaN(savedGamma)) {
+            return (int) Math.round(savedGamma * 100.0);
         }
+        // @era:options-begin instances
+        return (int) Math.round(o.gamma().get().doubleValue() * 100.0);
         // @era:options-else fields
-        //~ final double value = Double.isNaN(savedGamma) ? o.gamma : savedGamma;
-        //~ return (int) Math.round(value * 100.0);
+        //~ return (int) Math.round(o.gamma * 100.0);
         // @era:options-end
     }
 
@@ -432,14 +429,15 @@ public final class VanillaOptions {
             return;
         }
         final double value = Math.max(0, Math.min(100, percent)) / 100.0;
+        if (!Double.isNaN(savedGamma)) {
+            // Fullbright is on: this becomes the value restored when it turns off.
+            savedGamma = value;
+            return;
+        }
         // @era:options-begin instances
         o.gamma().set(Double.valueOf(value));
         // @era:options-else fields
-        //~ if (Double.isNaN(savedGamma)) {
-            //~ o.gamma = value;
-        //~ } else {
-            //~ savedGamma = value;
-        //~ }
+        //~ o.gamma = value;
         // @era:options-end
     }
 
@@ -453,7 +451,33 @@ public final class VanillaOptions {
             return;
         }
         // @era:options-begin instances
-        gammaInstance = o.gamma();
+        final GammaSlot slot = gammaSlot(o);
+        if (slot == null) {
+            // OptionInstanceMixin did not apply: no fullbright rather than a wrong value.
+            gammaOverride = Double.NaN;
+            return;
+        }
+        if (Double.isNaN(value)) {
+            if (!Double.isNaN(savedGamma)) {
+                // A value the user set through vanilla's own slider meanwhile is left alone.
+                if (slot.aetheriumRawValue() == writtenOverride) {
+                    slot.aetheriumSetRawValue(Double.valueOf(savedGamma));
+                }
+                savedGamma = Double.NaN;
+                writtenOverride = null;
+            }
+        } else {
+            if (value == gammaOverride && slot.aetheriumRawValue() == writtenOverride) {
+                return;
+            }
+            if (Double.isNaN(savedGamma)) {
+                final Object current = slot.aetheriumRawValue();
+                // A value above 1 can only be a previous session's override; clamp to vanilla's range.
+                savedGamma = current instanceof Double ? Math.max(0.0, Math.min(1.0, ((Double) current).doubleValue())) : 0.5;
+            }
+            writtenOverride = Double.valueOf(value);
+            slot.aetheriumSetRawValue(writtenOverride);
+        }
         gammaOverride = value;
         // @era:options-else fields
         //~ if (Double.isNaN(value)) {
@@ -476,21 +500,33 @@ public final class VanillaOptions {
         return !Double.isNaN(gammaOverride);
     }
 
-    /** Called by {@code OptionInstanceMixin}: should this read of an option return the override? */
-    public static boolean overridesGamma(final Object option) {
-        return !saving && option == gammaInstance && gammaInstance != null && !Double.isNaN(gammaOverride);
+    // @era:options-begin instances
+    private static GammaSlot gammaSlot(final Options o) {
+        final Object option = o.gamma();
+        return option instanceof GammaSlot ? (GammaSlot) option : null;
     }
-
-    public static Double gammaOverrideBoxed() {
-        return Double.valueOf(gammaOverride);
-    }
+    // @era:options-else fields
+    // @era:options-end
 
     // ------------------------------------------------------------------ persistence
 
     /** Called by {@code OptionsMixin} around vanilla's {@code Options.save()}. */
     public static void onSave(final boolean begin) {
-        saving = begin;
         // @era:options-begin instances
+        final Options o = options();
+        final GammaSlot slot = o == null ? null : gammaSlot(o);
+        if (slot == null) {
+            return;
+        }
+        if (begin) {
+            restoredForSave = !Double.isNaN(savedGamma) && slot.aetheriumRawValue() == writtenOverride;
+            if (restoredForSave) {
+                slot.aetheriumSetRawValue(Double.valueOf(savedGamma));
+            }
+        } else if (restoredForSave) {
+            restoredForSave = false;
+            slot.aetheriumSetRawValue(writtenOverride);
+        }
         // @era:options-else fields
         //~ final Options o = options();
         //~ if (o != null && !Double.isNaN(savedGamma)) {

@@ -12,11 +12,9 @@ import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.WorkerThreads;
 import com.aetherium.gui.Setting;
 import com.aetherium.mixin.AetheriumMixinPlugin;
-import com.aetherium.shader.IrisBridge;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
@@ -34,8 +32,6 @@ public final class AetheriumPages {
 
     /** What buttons on the pages need from the screen. */
     public interface Actions {
-        void openShaderPacks();
-
         void resetDefaults();
 
         void openVanillaVideo();
@@ -59,21 +55,21 @@ public final class AetheriumPages {
         "effects.dynamic_lights", "perf.entity_distance", "perf.adaptive",
         "perf.animated_textures", "perf.block_entity_distance", "perf.smooth_chunks",
     };
+    // Adaptive distance is off in every preset: each change rebuilds all chunks, so it is an
+    // explicit opt-in. Dynamic lights cost chunk rebuilds too and are only part of Quality.
     private static final int[][] PRESET_VALUES = {
-        {6, 5, 0, 0, 2, 0, 0, 0, 48, 30, 0, 0, 0, 75, 1, 0, 32, 1},
-        {10, 8, 1, 1, 1, 1, 2, 1, 64, 70, 1, 1, 1, 100, 0, 1, 48, 1},
-        {16, 12, 1, 2, 0, 1, 5, 1, 128, 100, 1, 1, 2, 150, 0, 1, 64, 1},
+        {6, 5, 0, 0, 2, 0, 0, 0, 48, 30, 0, 0, 0, 75, 0, 0, 32, 1},
+        {10, 8, 1, 1, 1, 1, 2, 1, 64, 70, 1, 1, 0, 100, 0, 1, 48, 1},
+        {16, 12, 1, 2, 0, 1, 5, 1, 128, 100, 1, 1, 1, 150, 0, 1, 64, 1},
     };
 
     private final AetheriumConfig config;
-    private final IrisBridge iris;
     private final AndroidEnvironment android;
     private final Actions actions;
     private AetheriumView view;
 
     public AetheriumPages(final Aetherium.Subsystems sub, final Actions actions) {
         this.config = sub.config;
-        this.iris = sub.iris;
         this.android = sub.android;
         this.actions = actions;
     }
@@ -90,7 +86,6 @@ public final class AetheriumPages {
         pages.add(performance());
         pages.add(backend());
         pages.add(effects());
-        pages.add(shaders());
         pages.add(androidPage());
         return pages;
     }
@@ -290,30 +285,17 @@ public final class AetheriumPages {
                 .availableWhen(() -> Capabilities.DYNAMIC_LIGHTS, NOT_ON_THIS_VERSION));
         page.add(bool("effects.entities", "Glowing entities", config.dynamicLightsEntities)
                 .availableWhen(() -> Capabilities.DYNAMIC_LIGHTS, NOT_ON_THIS_VERSION));
-        page.add(Setting.info("effects.sources", "Active light sources", "Updated live.",
-                () -> Integer.toString(ClientHooks.activeLightSources())));
+        page.add(Setting.info("effects.sources", "Active light sources",
+                "Updated live. With dynamic lights Off at launch the light hooks are not installed (zero cost), so turning them on takes effect after a restart.",
+                () -> {
+                    if (Capabilities.DYNAMIC_LIGHTS && !AetheriumMixinPlugin.lightHooksInstalled()) {
+                        return config.dynamicLights.get() == AetheriumConfig.LightMode.OFF ? "Off (zero cost)" : "Restart to apply";
+                    }
+                    return Integer.toString(ClientHooks.activeLightSources());
+                }));
         page.add(bool("effects.fullbright", "Fullbright", config.fullbright));
         page.add(intSlider("effects.fullbright_strength", "Fullbright strength", config.fullbrightStrength, 5,
                 v -> v + "%"));
-        return page;
-    }
-
-    // ------------------------------------------------------------------ Iris
-
-    private Page shaders() {
-        final Page page = new Page("Iris", "Iris Shaders", "Shader pack integration", PixelArt.IRIS);
-        final BooleanSupplier present = iris::isPresent;
-        page.add(Setting.info("iris.status", "Status", "Iris or Oculus, when installed.",
-                () -> iris.isPresent() ? iris.getBrand() + " " + iris.getVersion() : "Not installed"));
-        page.add(Setting.info("iris.pack", "Shader pack", "Whether a pack is rendering right now.",
-                () -> iris.isShaderPackInUse() ? "In use" : "None"));
-        page.add(flag("iris.enabled", "Shaders", "Turn the selected shader pack on or off.",
-                iris::areShadersEnabled, on -> iris.setShadersEnabled(on, "Aetherium settings"))
-                .availableWhen(present, "Iris is not installed"));
-        page.add(bool("iris.integration", "Iris integration", config.irisIntegration));
-        page.add(bool("iris.pause_lights", "Pause dynamic lights with shaders", config.pauseDynamicLights));
-        page.add(Setting.button("iris.packs", "Shader packs", "Opens the Iris shader pack screen.", "Open",
-                actions::openShaderPacks).availableWhen(present, "Iris is not installed"));
         return page;
     }
 
@@ -341,12 +323,14 @@ public final class AetheriumPages {
         page.add(bool("android.custom_env", "Read custom_env.txt", config.readCustomEnv));
         page.add(bool("android.battery", "Battery saver", config.batterySaver));
         page.add(intSlider("android.battery_cap", "Battery FPS cap", config.batteryFpsCap, 5, v -> v + " FPS"));
-        page.add(bool("android.thermal", "Thermal guard", config.thermalGuard));
+        page.add(bool("android.thermal", "Thermal guard", config.thermalGuard)
+                .availableWhen(android::isAndroid, "Android only"));
         page.add(intSlider("android.thermal_ceiling", "Thermal ceiling", config.thermalCeilingC, 1,
-                v -> v + "\u00b0C"));
+                v -> v + "\u00b0C")
+                .availableWhen(android::isAndroid, "Android only"));
         page.add(Setting.info("android.temperature", "Temperature", "Last reading of the device sensor.",
                 () -> {
-                    if (!android.isThermalSensorUsable()) {
+                    if (!android.isAndroid() || !android.isThermalSensorUsable()) {
                         return "No sensor";
                     }
                     return (android.getLastThermalMilliCelsius() / 1000) + "\u00b0C";

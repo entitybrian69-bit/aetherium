@@ -3,6 +3,7 @@ package com.aetherium.client;
 import com.aetherium.Aetherium;
 import com.aetherium.Capabilities;
 import com.aetherium.android.AndroidEnvironment;
+import com.aetherium.android.ThermalMonitor;
 import com.aetherium.config.AetheriumConfig;
 import com.aetherium.hud.BenchmarkRecorder;
 import com.aetherium.hud.FrameStats;
@@ -12,7 +13,6 @@ import com.aetherium.perf.AdaptiveDistance;
 import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.FrameLimiter;
 import com.aetherium.perf.RenderToggles;
-import com.aetherium.shader.IrisBridge;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -48,6 +48,7 @@ public final class ClientHooks {
     private static long lastFrameNanos;
 
     private static boolean thermalCapped;
+    private static ThermalMonitor thermal;
     private static boolean adaptiveWasOn;
     /** Render distance the user picked; adaptive distance never exceeds it and restores it when turned off. */
     private static int userRenderDistance = -1;
@@ -159,7 +160,6 @@ public final class ClientHooks {
             lastLevel = mc.level;
             tracker.reset();
             ADAPTIVE.reset();
-            sub.iris.onWorldChange();
         }
 
         final boolean active = Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive();
@@ -169,8 +169,9 @@ public final class ClientHooks {
         ticks++;
         final AetheriumConfig config = sub.config;
 
-        final boolean lightsAllowed = active && Capabilities.DYNAMIC_LIGHTS
-                && !(config.pauseDynamicLights.get().booleanValue() && sub.iris.isShaderPackInUse());
+        // Without the light hook (dynamic lights were Off at launch) the tracker would only cause
+        // pointless chunk rebuilds, so it stays idle until the next restart.
+        final boolean lightsAllowed = active && Capabilities.DYNAMIC_LIGHTS && AetheriumMixinPlugin.lightHooksInstalled();
         tracker.tick(mc, lightsAllowed);
 
         if (!active) {
@@ -194,11 +195,23 @@ public final class ClientHooks {
     }
 
     private static void updateThermal(final AndroidEnvironment android, final AetheriumConfig config) {
-        if (!config.thermalGuard.get().booleanValue() || !android.isThermalSensorUsable()) {
+        // Phones only: desktop CPUs sit above any sensible phone ceiling under normal load.
+        final boolean wanted = config.thermalGuard.get().booleanValue() && android.isAndroid()
+                && android.isThermalSensorUsable();
+        if (thermal == null) {
+            if (!wanted) {
+                thermalCapped = false;
+                return;
+            }
+            thermal = new ThermalMonitor(android);
+        }
+        thermal.setWanted(wanted);
+        if (!wanted) {
             thermalCapped = false;
             return;
         }
-        final int milli = android.readThermalMilliCelsius();
+        // Read on a background thread; the render thread only picks up the latest value.
+        final int milli = thermal.lastMilliCelsius();
         if (milli <= 0) {
             return;
         }
@@ -271,6 +284,12 @@ public final class ClientHooks {
         if (tracker != null && (!active || config.dynamicLights.get() == AetheriumConfig.LightMode.OFF)) {
             tracker.clear(Minecraft.getInstance());
         }
+        if (!config.thermalGuard.get().booleanValue()) {
+            thermalCapped = false;
+            if (thermal != null) {
+                thermal.setWanted(false);
+            }
+        }
         if (!active) {
             LIMITER.setCap(0);
         } else {
@@ -307,21 +326,6 @@ public final class ClientHooks {
         //~ setScreen(mc, new net.minecraft.client.gui.screens.VideoSettingsScreen(parent, mc.options));
         // @era:screen-pkg-end
         bypassVideoScreen = false;
-    }
-
-    /** Opens the Iris/Oculus shader pack screen when present. */
-    public static boolean openShaderPacks(final Minecraft mc, final Screen parent) {
-        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
-        if (sub == null) {
-            return false;
-        }
-        final IrisBridge iris = sub.iris;
-        final Object screen = iris.createShaderScreen(parent);
-        if (screen instanceof Screen) {
-            setScreen(mc, (Screen) screen);
-            return true;
-        }
-        return false;
     }
 
     /** The open screen; it moved from {@code Minecraft} to {@code Gui} in 26.2. */

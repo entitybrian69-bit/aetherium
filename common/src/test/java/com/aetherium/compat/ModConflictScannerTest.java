@@ -188,17 +188,17 @@ final class ModConflictScannerTest {
     }
 
     @Test
-    @DisplayName("Iris is a collaborator, not a conflict")
-    void irisIsInformational() {
+    @DisplayName("a shader mod is informational, not a conflict")
+    void shaderModIsInformational() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
         // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
         config.dynamicLights.set(AetheriumConfig.LightMode.FAST);
         final ModConflictScanner scanner = new ModConflictScanner(new FakePlatform("1.21.1", "iris"));
         scanner.scan(config);
         assertFalse(scanner.requiresIncompatible());
-        assertEquals(Severity.INFO, scanner.getWorstSeverity(), "Iris must not degrade the report: " + scanner.summarize());
+        assertEquals(Severity.INFO, scanner.getWorstSeverity(), "a shader mod must not degrade the report: " + scanner.summarize());
         assertEquals(Ownership.SHADER_OWNER, scanner.getOwnership());
-        assertTrue(config.irisIntegration.get(), "shader-pairing stays on with Iris present");
+        assertEquals(AetheriumConfig.LightMode.FAST, config.dynamicLights.get(), "an informational row changes no feature");
     }
 
     @Test

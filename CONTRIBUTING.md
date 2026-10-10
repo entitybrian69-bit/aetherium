@@ -46,7 +46,7 @@ does the offline checks without a Minecraft download.
   user can cause (backend resolved, conflict detected, hot swap). `dev` = per-frame
   diagnostics, gated by `advanced.debug_logging`, and must not allocate when disabled.
   Never swallow an exception silently; if a catch block is empty, the build fails.
-- **No fabricated APIs.** If you cannot verify a Minecraft, LWJGL, Fabric or Iris
+- **No fabricated APIs.** If you cannot verify a Minecraft, LWJGL, Fabric or NeoForge
   signature from a real source (the shipped game jar, upstream sources, the vendor
   spec), write `[UNVERIFIED: exact thing that is uncertain]` in the line above it and
   make the code tolerate the uncertainty (tolerant mixin, reflection with a fallback,
@@ -146,8 +146,7 @@ to run it in its javadoc.
 
 ## What I will not merge
 
-- A hard dependency on Iris/Oculus/Mod Menu (reflection or nothing - see
-  [docs/IRIS_COMPAT.md](docs/IRIS_COMPAT.md)).
+- A hard dependency on a shader mod or Mod Menu.
 - Anything that "unloads" another mod's mixins, disables a mod at runtime, or deletes
   a config file it does not own. Conflict handling stays "delegate and tell the user".
 - A claim of support for a version that has not been run, without `[UNVERIFIED]`.

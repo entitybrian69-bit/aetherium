@@ -64,9 +64,8 @@ dependencies {
     compileOnly("org.lwjgl:lwjgl-glfw:${project.property("lwjgl_version")}")
     compileOnly("org.lwjgl:lwjgl-vulkan:${project.property("lwjgl_version")}")
     compileOnly("org.lwjgl:lwjgl-stb:${project.property("lwjgl_version")}")
-    // Iris/Oculus are deliberately NOT declared here at all: com.aetherium.shader
-    // binds the Iris v0 API purely by reflection (docs/IRIS_COMPAT.md), so the
-    // jar has zero compile-time or runtime dependency on any shader mod.
+    // No shader mod is declared here: the jar has zero compile-time or runtime
+    // dependency on any shader mod.
 
     // The unit tests touch engine classes only - config, JSON, gamma, frame stats,
     // backend selection, conflict scanning - so no Minecraft or LWJGL type appears in a
