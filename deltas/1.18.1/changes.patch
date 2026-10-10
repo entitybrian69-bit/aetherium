@@ -504,7 +504,7 @@ index 62fcbd8..61bed0e 100644
      }
  }
 diff --git a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
-index 9aad1fb..f49309e 100644
+index 9aad1fb..b695143 100644
 --- a/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
 +++ b/common/src/main/java/com/aetherium/gui/widget/AetheriumWidgets.java
 @@ -16,10 +16,11 @@ import com.aetherium.hud.FrameStats;
@@ -542,7 +542,7 @@ index 9aad1fb..f49309e 100644
              super(x, y, width, height, message);
              this.theme = Objects.requireNonNull(theme, "theme");
          }
-@@ -109,19 +110,17 @@ public final class AetheriumWidgets {
+@@ -109,40 +110,20 @@ public final class AetheriumWidgets {
              }
          }
  
@@ -566,17 +566,28 @@ index 9aad1fb..f49309e 100644
              }
          }
  
-@@ -139,9 +138,6 @@ public final class AetheriumWidgets {
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
+-        /**
+-         * {@code AbstractWidget#defaultButtonNarrationText} is the one narration entry
+-         * point that exists unchanged from 1.17 to 26.x, so every widget here routes
+-         * through it. The value is folded into the message rather than appended to the
+-         * output, because {@code NarrationElementOutput.add(...)} takes a
+-         * {@code NarrationElement} and its overloads moved twice in the port range.
+-         */
+-        @Override
+-        /**
+-         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
+-         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+-         * override under the old name and the old access is two errors, not one (CI said exactly
+-         * that: "does not override abstract method" plus "attempting to assign weaker access").
+-         */
 -        public void updateWidgetNarration(final NarrationElementOutput output) {
 -            this.defaultButtonNarrationText(output);
 -        }
- 
+-
          /** Keeps the announced string in sync with the visible one. */
          /**
-@@ -153,7 +149,7 @@ public final class AetheriumWidgets {
+          * Keeps the announced string in sync with the visible value. Widgets that draw
+@@ -153,7 +134,7 @@ public final class AetheriumWidgets {
          protected void updateMessage(final String label, final String value) {
              final String wanted = value == null ? label : label + ": " + value;
              if (!wanted.equals(this.getMessage().getString())) {
@@ -585,7 +596,7 @@ index 9aad1fb..f49309e 100644
              }
          }
      }
-@@ -168,7 +164,7 @@ public final class AetheriumWidgets {
+@@ -168,7 +149,7 @@ public final class AetheriumWidgets {
  
          public ToggleWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
                              final ConfigValue<Boolean> option, final Supplier<String> suffix, final Runnable afterChange) {
@@ -594,7 +605,7 @@ index 9aad1fb..f49309e 100644
              this.option = Objects.requireNonNull(option, "option");
              this.suffix = suffix;
              this.afterChange = afterChange;
-@@ -188,44 +184,43 @@ public final class AetheriumWidgets {
+@@ -188,44 +169,43 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -648,7 +659,7 @@ index 9aad1fb..f49309e 100644
                          this.getY() + this.getHeight() + 1, AetheriumTheme.TEXT_DISABLED);
              }
          }
-@@ -248,7 +243,7 @@ public final class AetheriumWidgets {
+@@ -248,7 +228,7 @@ public final class AetheriumWidgets {
          public SliderWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
                              final String label, final double min, final double max, final DoubleSupplier getter,
                              final DoubleConsumer setter, final String format, final Consumer<Double> onCommit) {
@@ -657,7 +668,7 @@ index 9aad1fb..f49309e 100644
              this.label = Objects.requireNonNull(label, "label");
              this.min = min;
              this.max = max;
-@@ -309,33 +304,32 @@ public final class AetheriumWidgets {
+@@ -309,47 +289,35 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -699,10 +710,13 @@ index 9aad1fb..f49309e 100644
              }
          }
  
-@@ -346,10 +340,6 @@ public final class AetheriumWidgets {
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
+-        @Override
+-        /**
+-         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
+-         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+-         * override under the old name and the old access is two errors, not one (CI said exactly
+-         * that: "does not override abstract method" plus "attempting to assign weaker access").
+-         */
 -        public void updateWidgetNarration(final NarrationElementOutput output) {
 -            this.updateMessage(this.label, String.format(java.util.Locale.ROOT, this.format, this.value));
 -            this.defaultButtonNarrationText(output);
@@ -710,7 +724,7 @@ index 9aad1fb..f49309e 100644
      }
  
      /** Enum / boolean cycle control with a sliding value indicator. */
-@@ -364,7 +354,7 @@ public final class AetheriumWidgets {
+@@ -364,7 +332,7 @@ public final class AetheriumWidgets {
          public CycleWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
                             final String label, final String[] values, final Supplier<Integer> getIndex,
                             final IntConsumer setIndex, final Runnable afterChange) {
@@ -719,7 +733,7 @@ index 9aad1fb..f49309e 100644
              this.label = label;
              this.values = values == null || values.length == 0 ? new String[]{"off"} : values;
              this.getIndex = getIndex;
-@@ -392,27 +382,24 @@ public final class AetheriumWidgets {
+@@ -392,40 +360,24 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -749,23 +763,24 @@ index 9aad1fb..f49309e 100644
              // long cycle list (weather: off/fast/fancy/fancy+) readable at a glance.
              final int indicatorX = this.getX() + (int) ((this.getWidth() - 4) * this.slide.get());
 -            guiGraphics.fill(indicatorX, this.getY() + this.getHeight() - 2, indicatorX + 4, this.getY() + this.getHeight(), AetheriumTheme.ACCENT);
-+            net.minecraft.client.gui.GuiComponent.fill(poseStack, indicatorX, this.getY() + this.getHeight() - 2, indicatorX + 4, this.getY() + this.getHeight(), AetheriumTheme.ACCENT);
-         }
- 
-         @Override
-@@ -422,11 +409,6 @@ public final class AetheriumWidgets {
-          * override under the old name and the old access is two errors, not one (CI said exactly
-          * that: "does not override abstract method" plus "attempting to assign weaker access").
-          */
+-        }
+-
+-        @Override
+-        /**
+-         * 1.21.1 renamed this to {@code updateWidgetNarration} and made it the abstract member of
+-         * {@code AbstractWidget}; {@code NarrationSupplier#updateNarration} is still public, so an
+-         * override under the old name and the old access is two errors, not one (CI said exactly
+-         * that: "does not override abstract method" plus "attempting to assign weaker access").
+-         */
 -        public void updateWidgetNarration(final NarrationElementOutput output) {
 -            final int index = this.getIndex == null ? 0 : this.getIndex.get();
 -            this.updateMessage(this.label, index >= 0 && index < this.values.length ? this.values[index] : "unknown");
 -            this.defaultButtonNarrationText(output);
--        }
++            net.minecraft.client.gui.GuiComponent.fill(poseStack, indicatorX, this.getY() + this.getHeight() - 2, indicatorX + 4, this.getY() + this.getHeight(), AetheriumTheme.ACCENT);
+         }
  
          /** Mirrors {@link java.util.function.IntConsumer} without importing it into the public API. */
-         public interface IntConsumer {
-@@ -441,7 +423,7 @@ public final class AetheriumWidgets {
+@@ -441,7 +393,7 @@ public final class AetheriumWidgets {
          private final int accentColor;
  
          public ActionWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
@@ -774,7 +789,7 @@ index 9aad1fb..f49309e 100644
              super(theme, x, y, width, height, message);
              this.action = Objects.requireNonNull(action, "action");
              this.enabled = enabled;
-@@ -458,22 +440,20 @@ public final class AetheriumWidgets {
+@@ -458,22 +410,20 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -802,7 +817,7 @@ index 9aad1fb..f49309e 100644
          }
      }
  
-@@ -488,7 +468,7 @@ public final class AetheriumWidgets {
+@@ -488,7 +438,7 @@ public final class AetheriumWidgets {
  
          public PreviewWidget(final AetheriumTheme theme, final int x, final int y, final int width, final int height,
                               final Supplier<FrameStats> stats) {
@@ -811,7 +826,7 @@ index 9aad1fb..f49309e 100644
              this.stats = Objects.requireNonNull(stats, "stats");
          }
  
-@@ -503,7 +483,7 @@ public final class AetheriumWidgets {
+@@ -503,7 +453,7 @@ public final class AetheriumWidgets {
          }
  
          @Override
@@ -820,7 +835,7 @@ index 9aad1fb..f49309e 100644
              final FrameStats local = this.stats.get();
              if (local == null) {
                  return;
-@@ -513,21 +493,20 @@ public final class AetheriumWidgets {
+@@ -513,21 +463,20 @@ public final class AetheriumWidgets {
              this.fpsValue.tick(AetheriumAnimations.suggestedDeltaSeconds());
              this.p99Value.tick(AetheriumAnimations.suggestedDeltaSeconds());
  
@@ -847,7 +862,7 @@ index 9aad1fb..f49309e 100644
  
              final int count = local.copyRecentGraph(this.graph, this.graph.length);
              this.lines.clear();
-@@ -540,8 +519,7 @@ public final class AetheriumWidgets {
+@@ -540,8 +489,7 @@ public final class AetheriumWidgets {
                  for (int i = 0; i < count; i++) {
                      final int barHeight = Math.max(1, (int) (14.0 * Math.min(1.0, this.graph[i] / peak)));
                      final int barX = this.getX() + 4 + (int) ((this.getWidth() - 8) * i / (float) Math.max(1, count - 1));

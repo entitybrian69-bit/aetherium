@@ -281,15 +281,31 @@ def remove_method(text: str, signature_word: str) -> str:
             break
     if idx < 0:
         return text
-    # walk back over the javadoc that precedes it
+    # walk back over whatever directly precedes the declaration: annotations and/or a
+    # javadoc block, in EITHER order (this file has `@Override` above the javadoc in two
+    # places, which is why a single fixed-order walk left orphaned `@Override` javadoc
+    # fragments behind - and an orphaned annotation is a compile error, "illegal start of
+    # type"). Consume upward until neither an annotation line nor a comment block ends
+    # immediately above the cut.
     start = idx
-    while start > 0 and not lines[start - 1].strip().endswith("*/") and lines[start - 1].strip().startswith("*"):
-        start -= 1
-    if start > 0 and lines[start - 1].strip().startswith("/**"):
-        start -= 1
-    # walk back over annotations (@Override) directly above
-    while start > 0 and lines[start - 1].strip().startswith("@"):
-        start -= 1
+    progressed = True
+    while progressed and start > 0:
+        progressed = False
+        above = lines[start - 1].strip()
+        if above.startswith("@"):
+            start -= 1
+            progressed = True
+            continue
+        if above.endswith("*/"):
+            j = start - 1
+            while j > 0 and not lines[j].strip().startswith("/**"):
+                j -= 1
+            if lines[j].strip().startswith("/**"):
+                start = j
+                progressed = True
+        elif above.startswith("//"):
+            start -= 1
+            progressed = True
     # brace-match forward from the declaration
     body = "\n".join(lines[idx:])
     depth, k = 0, None

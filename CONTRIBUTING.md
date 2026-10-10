@@ -109,11 +109,17 @@ A delta rewrites `gradle.properties`. The loader plugin versions are **also** pi
 `project` exists and cannot read a property - so bump `loom` / `moddev` there too, or
 `tools/check.py` fails with the mismatch named. One ported tree, two files, one rule.
 
-Rules for a delta: it may change **tokens** (method names, descriptors, mixin ids,
-version ranges, mapping channel) and it may add a version-specific target name to a
-candidate list. It may **not** restructure a class, change an algorithm, or fix a bug -
-fix it in `common/` so all 33 rows get it. If a port needs a structural change,
-that is an architecture bug; open an issue with the version and the exact failure.
+Rules for a delta: it may change **pins** (versions, toolchain, plugin entries, the
+mixin `compatibilityLevel`, the NeoForge module include) and it may apply the **era
+transforms** — the mechanical API renames every row below a verified Minecraft boundary
+undergoes (stack class, text components, narration, widget method names,
+`renderBackground` arity, widget setters, `Button.builder`, entity iteration,
+`CycleButton`) — plus add a version-specific target name to a candidate list. Every
+era boundary is dated in `tools/porting_pins.json` and marked VERIFIED (with its
+upstream source) or UNVERIFIED in the generated `deltas/<version>/README.md`. A delta
+may **not** restructure a class, change an algorithm, or fix a bug - fix it in
+`common/` so all 33 rows get it. If a port needs a structural change, that is an
+architecture bug; open an issue with the version and the exact failure.
 
 ## Testing
 
