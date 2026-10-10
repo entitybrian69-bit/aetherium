@@ -827,10 +827,10 @@ index 49084c2..1f72c41 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/fabric/build.gradle.kts b/fabric/build.gradle.kts
-index f627546..761faac 100644
+index f627546..a5a71a0 100644
 --- a/fabric/build.gradle.kts
 +++ b/fabric/build.gradle.kts
-@@ -61,10 +61,10 @@ repositories {
+@@ -61,16 +61,16 @@ repositories {
  
  dependencies {
      minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
@@ -843,8 +843,16 @@ index f627546..761faac 100644
 +    // dependency; a mappings lookup is what produced "Failed to find official
 +    // mojang mappings for 26.x").
  
-     modImplementation("net.fabricmc:fabric-loader:${project.property("fabric_loader_version")}")
+-    modImplementation("net.fabricmc:fabric-loader:${project.property("fabric_loader_version")}")
++    implementation("net.fabricmc:fabric-loader:${project.property("fabric_loader_version")}")
      // Fabric API is compile-only and optional: every hook Aetherium needs is a
+     // Mixin (see aetherium-common.mixins.json), which is what lets the same jar run
+     // on a client with no Fabric API installed. No source file imports it.
+-    modCompileOnly("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_api_version")}")
++    compileOnly("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_api_version")}")
+ 
+     // Mixin plugin + extras are provided by the loader at runtime; we only need
+     // them to compile against, then we embed the API surface we actually use.
 @@ -111,10 +111,7 @@ tasks.processResources {
      }
  }

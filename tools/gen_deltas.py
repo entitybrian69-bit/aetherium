@@ -556,6 +556,16 @@ def era_transform(row: dict, key: str, text: str) -> tuple[str, list[str]]:
                 text = text.replace(old_mappings, new_mappings, 1)
                 applied.append("mappings-line-removed")
         if key == "fabric_build":
+            # The no-remap plugin has no remap configurations: mods are plain
+            # dependencies. sodium @ 26.2/stable uses implementation(...) for the
+            # loader and include(module) for jar-in-jar (include survives); the legs
+            # failed script compilation on the unresolved modImplementation/
+            # modCompileOnly accessors.
+            for old_cfg, new_cfg in (("modImplementation(", "implementation("),
+                                      ("modCompileOnly(", "compileOnly(")):
+                if old_cfg in text:
+                    text = text.replace(old_cfg, new_cfg, 1)
+                    applied.append(f"{old_cfg[:-1]}->{new_cfg[:-1]}")
             old_remap = (
                 "tasks.withType<net.fabricmc.loom.task.RemapJarTask> {\n"
                 "    addNestedDependencies = true\n"

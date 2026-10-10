@@ -29,6 +29,8 @@ neoforge_version=26.3.0.64-beta
 - `getMinSection->getMinSectionY`
 - `loom-plugin-id->no-remap`
 - `mappings-line-removed`
+- `modCompileOnly->compileOnly`
+- `modImplementation->implementation`
 - `mouse-handlers->MouseButtonEvent`
 - `remapJar-block-removed`
 - `renderBackground->super.extractRenderState`
