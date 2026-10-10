@@ -134,6 +134,7 @@ jars only as a run artifact.
 | 38057827393 | `44475f2` | 29/33 | 1.16.5: `Optional.isEmpty()` is Java 11 (ECJ's `-source 8` cannot see library levels); 1.20.2/1.20.3/1.20.5: those NeoForge builds publish no ModDevGradle bundle; DOWNLOADS push lost a race with a docs commit |
 | 38058962827 | `7f893ce` | 32/33 | 1.16.5 main code now compiles at Java 8; its *tests* (text blocks) did not |
 | 38060927789 | `eb58e91` | **33/33** | every version compiles with its real toolchain and passes the JUnit suite; 33 releases, 50 jars (16 Fabric-only versions + 17 with Fabric and NeoForge) |
+| 38065183797 | `f2eb838` | **33/33** | 1.0.0: every version, including the four new mixins and the headless GUI tests, builds with its real toolchain and passes the JUnit suite; 33 `v1.0.0+<version>` releases, 50 jars |
 
 Fixes that came out of these runs:
 
