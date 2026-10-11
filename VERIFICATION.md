@@ -377,3 +377,5 @@ has been seen.
 Gates run for 1.3.2: `stubcheck --all` 33/33; `testrun.py --bench` 127 passed (120 unit + 7
 benchmarks); `gen_resources --check`; `gen_deltas --all --verify` (32 patches); `check.py` clean (337
 files); `check_refs.py` clean.
+CI: `ship` run 38108163083 for commit 960afb8 passed all 35 jobs and published 33 releases
+`v1.3.2+<mc>`.
