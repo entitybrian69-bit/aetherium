@@ -6545,6 +6545,415 @@ public interface com.mojang.blaze3d.vertex.VertexConsumer {
   public default com.mojang.blaze3d.vertex.VertexConsumer setNormal(com.mojang.blaze3d.vertex.PoseStack$Pose, float, float, float);
   public default com.mojang.blaze3d.vertex.VertexConsumer setNormal(com.mojang.blaze3d.vertex.PoseStack$Pose, org.joml.Vector3f);
 }
+=== net.minecraft.client.KeyMapping$Category
+Compiled from "KeyMapping.java"
+public final class net.minecraft.client.KeyMapping$Category extends java.lang.Record {
+  private final net.minecraft.resources.ResourceLocation id;
+  static final java.util.List<net.minecraft.client.KeyMapping$Category> SORT_ORDER;
+  public static final net.minecraft.client.KeyMapping$Category MOVEMENT;
+  public static final net.minecraft.client.KeyMapping$Category MISC;
+  public static final net.minecraft.client.KeyMapping$Category MULTIPLAYER;
+  public static final net.minecraft.client.KeyMapping$Category GAMEPLAY;
+  public static final net.minecraft.client.KeyMapping$Category INVENTORY;
+  public static final net.minecraft.client.KeyMapping$Category CREATIVE;
+  public static final net.minecraft.client.KeyMapping$Category SPECTATOR;
+  public net.minecraft.client.KeyMapping$Category(net.minecraft.resources.ResourceLocation);
+  private static net.minecraft.client.KeyMapping$Category register(java.lang.String);
+  public static net.minecraft.client.KeyMapping$Category register(net.minecraft.resources.ResourceLocation);
+  public net.minecraft.network.chat.Component label();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public net.minecraft.resources.ResourceLocation id();
+  static {};
+}
+=== com.mojang.blaze3d.platform.FramerateLimitTracker
+Compiled from "FramerateLimitTracker.java"
+public class com.mojang.blaze3d.platform.FramerateLimitTracker {
+  private static final int OUT_OF_LEVEL_MENU_LIMIT;
+  private static final int ICONIFIED_WINDOW_LIMIT;
+  private static final int AFK_LIMIT;
+  private static final int LONG_AFK_LIMIT;
+  private static final long AFK_THRESHOLD_MS;
+  private static final long LONG_AFK_THRESHOLD_MS;
+  private final net.minecraft.client.Options options;
+  private final net.minecraft.client.Minecraft minecraft;
+  private int framerateLimit;
+  private long latestInputTime;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft);
+  public int getFramerateLimit();
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason();
+  public boolean isHeavilyThrottled();
+  public void setFramerateLimit(int);
+  public void onInputReceived();
+}
+=== net.minecraft.client.renderer.SkyRenderer
+Compiled from "SkyRenderer.java"
+public class net.minecraft.client.renderer.SkyRenderer implements java.lang.AutoCloseable {
+  private static final net.minecraft.resources.ResourceLocation SUN_LOCATION;
+  private static final net.minecraft.resources.ResourceLocation END_LIGHT_LOCATION;
+  private static final net.minecraft.resources.ResourceLocation MOON_LOCATION;
+  private static final net.minecraft.resources.ResourceLocation END_SKY_LOCATION;
+  private static final float SKY_DISC_RADIUS;
+  private static final int SKY_VERTICES;
+  private static final int STAR_COUNT;
+  private static final float SUN_SIZE;
+  private static final float SUN_HEIGHT;
+  private static final float MOON_SIZE;
+  private static final float MOON_HEIGHT;
+  private static final int SUNRISE_STEPS;
+  private static final int END_SKY_QUAD_COUNT;
+  private static final float END_FLASH_HEIGHT;
+  private static final float END_FLASH_SCALE;
+  private final com.mojang.blaze3d.buffers.GpuBuffer starBuffer;
+  private final com.mojang.blaze3d.systems.RenderSystem$AutoStorageIndexBuffer starIndices;
+  private final com.mojang.blaze3d.buffers.GpuBuffer topSkyBuffer;
+  private final com.mojang.blaze3d.buffers.GpuBuffer bottomSkyBuffer;
+  private final com.mojang.blaze3d.buffers.GpuBuffer endSkyBuffer;
+  private final com.mojang.blaze3d.buffers.GpuBuffer sunBuffer;
+  private final com.mojang.blaze3d.buffers.GpuBuffer moonBuffer;
+  private final com.mojang.blaze3d.buffers.GpuBuffer sunriseBuffer;
+  private final com.mojang.blaze3d.buffers.GpuBuffer endFlashBuffer;
+  private final com.mojang.blaze3d.systems.RenderSystem$AutoStorageIndexBuffer quadIndices;
+  private net.minecraft.client.renderer.texture.AbstractTexture sunTexture;
+  private net.minecraft.client.renderer.texture.AbstractTexture moonTexture;
+  private net.minecraft.client.renderer.texture.AbstractTexture endSkyTexture;
+  private net.minecraft.client.renderer.texture.AbstractTexture endFlashTexture;
+  private int starIndexCount;
+  public net.minecraft.client.renderer.SkyRenderer();
+  protected void initTextures();
+  private net.minecraft.client.renderer.texture.AbstractTexture getTexture(net.minecraft.resources.ResourceLocation);
+  private com.mojang.blaze3d.buffers.GpuBuffer buildSunriseFan();
+  private com.mojang.blaze3d.buffers.GpuBuffer buildSunQuad();
+  private com.mojang.blaze3d.buffers.GpuBuffer buildMoonPhases();
+  private com.mojang.blaze3d.buffers.GpuBuffer buildStars();
+  private void buildSkyDisc(com.mojang.blaze3d.vertex.VertexConsumer, float);
+  private static com.mojang.blaze3d.buffers.GpuBuffer buildEndSky();
+  private com.mojang.blaze3d.buffers.GpuBuffer buildEndFlashQuad();
+  public void renderSkyDisc(float, float, float);
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState);
+  private boolean shouldRenderDarkDisc(float, net.minecraft.client.multiplayer.ClientLevel);
+  public void renderDarkDisc();
+  public void renderSunMoonAndStars(com.mojang.blaze3d.vertex.PoseStack, float, int, float, float);
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack);
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack);
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack);
+  public void renderSunriseAndSunset(com.mojang.blaze3d.vertex.PoseStack, float, int);
+  public void renderEndSky();
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float);
+  public void close();
+  private static java.lang.String method_74762();
+  private static java.lang.String method_71316();
+  private static java.lang.String method_74763();
+  private static java.lang.String method_71317();
+  private static java.lang.String method_74764();
+  private static java.lang.String method_74765();
+  private static java.lang.String method_71318();
+  private static java.lang.String method_71319();
+  private static java.lang.String method_74766();
+  private static java.lang.String method_68499();
+  private static java.lang.String method_68500();
+  private static java.lang.String method_74767();
+  private static java.lang.String method_74768();
+  private static java.lang.String method_74769();
+  private static java.lang.String method_68708();
+  private static java.lang.String method_68709();
+  static {};
+}
+=== net.minecraft.client.renderer.CloudRenderer
+Compiled from "CloudRenderer.java"
+public class net.minecraft.client.renderer.CloudRenderer extends net.minecraft.server.packs.resources.SimplePreparableReloadListener<java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData>> implements java.lang.AutoCloseable {
+  private static final int FLAG_INSIDE_FACE;
+  private static final int FLAG_USE_TOP_COLOR;
+  private static final int MAX_RADIUS_CHUNKS;
+  private static final float CELL_SIZE_IN_BLOCKS;
+  private static final int UBO_SIZE;
+  private static final org.slf4j.Logger LOGGER;
+  private static final net.minecraft.resources.ResourceLocation TEXTURE_LOCATION;
+  private static final float BLOCKS_PER_SECOND;
+  private static final long EMPTY_CELL;
+  private static final int COLOR_OFFSET;
+  private static final int NORTH_OFFSET;
+  private static final int EAST_OFFSET;
+  private static final int SOUTH_OFFSET;
+  private static final int WEST_OFFSET;
+  private boolean needsRebuild;
+  private int prevCellX;
+  private int prevCellZ;
+  private net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos prevRelativeCameraPos;
+  private net.minecraft.client.CloudStatus prevType;
+  private net.minecraft.client.renderer.CloudRenderer$TextureData texture;
+  private int quadCount;
+  private final com.mojang.blaze3d.systems.RenderSystem$AutoStorageIndexBuffer indices;
+  private final net.minecraft.client.renderer.MappableRingBuffer ubo;
+  private net.minecraft.client.renderer.MappableRingBuffer utb;
+  public net.minecraft.client.renderer.CloudRenderer();
+  protected java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData> prepare(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller);
+  private static int getSizeForCloudDistance(int);
+  protected void apply(java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData>, net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller);
+  private static boolean isCellEmpty(int);
+  private static long packCellData(int, boolean, boolean, boolean, boolean);
+  private static boolean isNorthEmpty(long);
+  private static boolean isEastEmpty(long);
+  private static boolean isSouthEmpty(long);
+  private static boolean isWestEmpty(long);
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float);
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int);
+  private void tryBuildCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int, int, int, int, long[]);
+  private void buildFlatCell(java.nio.ByteBuffer, int, int);
+  private void encodeFace(java.nio.ByteBuffer, int, int, net.minecraft.core.Direction, int);
+  private void buildExtrudedCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, long);
+  public void markForRebuild();
+  public void endFrame();
+  public void close();
+  protected void apply(java.lang.Object, net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller);
+  protected java.lang.Object prepare(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller);
+  private static java.lang.String method_71302();
+  private static java.lang.String method_71303();
+  private static java.lang.String method_71304();
+  static {};
+}
+=== net.minecraft.client.renderer.fog.FogRenderer
+Compiled from "FogRenderer.java"
+public class net.minecraft.client.renderer.fog.FogRenderer implements java.lang.AutoCloseable {
+  public static final int FOG_UBO_SIZE;
+  private static final java.util.List<net.minecraft.client.renderer.fog.environment.FogEnvironment> FOG_ENVIRONMENTS;
+  private static boolean fogEnabled;
+  private final com.mojang.blaze3d.buffers.GpuBuffer emptyBuffer;
+  private final net.minecraft.client.renderer.MappableRingBuffer regularBuffer;
+  public net.minecraft.client.renderer.fog.FogRenderer();
+  public void close();
+  public void endFrame();
+  public com.mojang.blaze3d.buffers.GpuBufferSlice getBuffer(net.minecraft.client.renderer.fog.FogRenderer$FogMode);
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean);
+  public static boolean toggleFog();
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel);
+  private net.minecraft.world.level.material.FogType getFogType(net.minecraft.client.Camera, boolean);
+  private void updateBuffer(java.nio.ByteBuffer, int, org.joml.Vector4f, float, float, float, float, float, float);
+  private static java.lang.String method_71111();
+  private static java.lang.String method_71308();
+  static {};
+}
+=== net.minecraft.client.renderer.FogParameters
+Error: class not found: net.minecraft.client.renderer.FogParameters
+=== net.minecraft.client.player.LocalPlayer
+Compiled from "LocalPlayer.java"
+public class net.minecraft.client.player.LocalPlayer extends net.minecraft.client.player.AbstractClientPlayer {
+  public static final org.slf4j.Logger LOGGER;
+  private static final int POSITION_REMINDER_INTERVAL;
+  private static final int WATER_VISION_MAX_TIME;
+  private static final int WATER_VISION_QUICK_TIME;
+  private static final float WATER_VISION_QUICK_PERCENT;
+  private static final double SUFFOCATING_COLLISION_CHECK_SCALE;
+  private static final double MINOR_COLLISION_ANGLE_THRESHOLD_RADIAN;
+  public static final float USING_ITEM_SPEED_FACTOR;
+  public final net.minecraft.client.multiplayer.ClientPacketListener connection;
+  private final net.minecraft.stats.StatsCounter stats;
+  private final net.minecraft.client.ClientRecipeBook recipeBook;
+  private final net.minecraft.util.TickThrottler dropSpamThrottler;
+  private final java.util.List<net.minecraft.client.resources.sounds.AmbientSoundHandler> ambientSoundHandlers;
+  private int permissionLevel;
+  private double xLast;
+  private double yLast;
+  private double zLast;
+  private float yRotLast;
+  private float xRotLast;
+  private boolean lastOnGround;
+  private boolean lastHorizontalCollision;
+  private boolean crouching;
+  private boolean wasSprinting;
+  private int positionReminder;
+  private boolean flashOnSetHealth;
+  public net.minecraft.client.player.ClientInput input;
+  private net.minecraft.world.entity.player.Input lastSentInput;
+  protected final net.minecraft.client.Minecraft minecraft;
+  protected int sprintTriggerTime;
+  public int experienceDisplayStartTick;
+  public float yBob;
+  public float xBob;
+  public float yBobO;
+  public float xBobO;
+  private int jumpRidingTicks;
+  private float jumpRidingScale;
+  public float portalEffectIntensity;
+  public float oPortalEffectIntensity;
+  private boolean startedUsingItem;
+  private net.minecraft.world.InteractionHand usingItemHand;
+  private boolean handsBusy;
+  private boolean autoJumpEnabled;
+  private int autoJumpTime;
+  private boolean wasFallFlying;
+  private int waterVisionTime;
+  private boolean showDeathScreen;
+  private boolean doLimitedCrafting;
+  public net.minecraft.client.player.LocalPlayer(net.minecraft.client.Minecraft, net.minecraft.client.multiplayer.ClientLevel, net.minecraft.client.multiplayer.ClientPacketListener, net.minecraft.stats.StatsCounter, net.minecraft.client.ClientRecipeBook, net.minecraft.world.entity.player.Input, boolean);
+  public void heal(float);
+  public boolean startRiding(net.minecraft.world.entity.Entity, boolean, boolean);
+  public void removeVehicle();
+  public float getViewXRot(float);
+  public float getViewYRot(float);
+  public void tick();
+  public float getCurrentMood();
+  private void sendPosition();
+  private void sendIsSprintingIfNeeded();
+  public boolean drop(boolean);
+  public void swing(net.minecraft.world.InteractionHand);
+  public void respawn();
+  public void closeContainer();
+  public void clientSideCloseContainer();
+  public void hurtTo(float);
+  public void onUpdateAbilities();
+  public void setReducedDebugInfo(boolean);
+  public boolean isLocalPlayer();
+  public boolean isSuppressingSlidingDownLadder();
+  public boolean canSpawnSprintParticle();
+  protected void sendRidingJump();
+  public void sendOpenInventory();
+  public net.minecraft.stats.StatsCounter getStats();
+  public net.minecraft.client.ClientRecipeBook getRecipeBook();
+  public void removeRecipeHighlight(net.minecraft.world.item.crafting.display.RecipeDisplayId);
+  public int getPermissionLevel();
+  public void setPermissionLevel(int);
+  public void displayClientMessage(net.minecraft.network.chat.Component, boolean);
+  private void moveTowardsClosestSpace(double, double);
+  private boolean suffocatesAt(net.minecraft.core.BlockPos);
+  public void setExperienceValues(float, int, int);
+  public void handleEntityEvent(byte);
+  public void setShowDeathScreen(boolean);
+  public boolean shouldShowDeathScreen();
+  public void setDoLimitedCrafting(boolean);
+  public boolean getDoLimitedCrafting();
+  public void playSound(net.minecraft.sounds.SoundEvent, float, float);
+  public void playNotifySound(net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, float, float);
+  public void startUsingItem(net.minecraft.world.InteractionHand);
+  public boolean isUsingItem();
+  public void stopUsingItem();
+  public net.minecraft.world.InteractionHand getUsedItemHand();
+  public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?>);
+  public net.minecraft.world.entity.PlayerRideableJumping jumpableVehicle();
+  public float getJumpRidingScale();
+  public boolean isTextFilteringEnabled();
+  public void openTextEdit(net.minecraft.world.level.block.entity.SignBlockEntity, boolean);
+  public void openMinecartCommandBlock(net.minecraft.world.level.BaseCommandBlock);
+  public void openCommandBlock(net.minecraft.world.level.block.entity.CommandBlockEntity);
+  public void openStructureBlock(net.minecraft.world.level.block.entity.StructureBlockEntity);
+  public void openTestBlock(net.minecraft.world.level.block.entity.TestBlockEntity);
+  public void openTestInstanceBlock(net.minecraft.world.level.block.entity.TestInstanceBlockEntity);
+  public void openJigsawBlock(net.minecraft.world.level.block.entity.JigsawBlockEntity);
+  public void openDialog(net.minecraft.core.Holder<net.minecraft.server.dialog.Dialog>);
+  public void openItemGui(net.minecraft.world.item.ItemStack, net.minecraft.world.InteractionHand);
+  public void crit(net.minecraft.world.entity.Entity);
+  public void magicCrit(net.minecraft.world.entity.Entity);
+  public boolean isShiftKeyDown();
+  public boolean isCrouching();
+  public boolean isMovingSlowly();
+  public void applyInput();
+  private net.minecraft.world.phys.Vec2 modifyInput(net.minecraft.world.phys.Vec2);
+  private static net.minecraft.world.phys.Vec2 modifyInputSpeedForSquareMovement(net.minecraft.world.phys.Vec2);
+  private static float distanceToUnitSquare(net.minecraft.world.phys.Vec2);
+  protected boolean isControlledCamera();
+  public void resetPos();
+  public void aiStep();
+  private boolean shouldStopRunSprinting();
+  private boolean shouldStopSwimSprinting();
+  public net.minecraft.world.level.block.Portal$Transition getActivePortalLocalTransition();
+  protected void tickDeath();
+  private void handlePortalTransitionEffect(boolean);
+  public void rideTick();
+  public boolean isHandsBusy();
+  public void move(net.minecraft.world.entity.MoverType, net.minecraft.world.phys.Vec3);
+  public boolean isAutoJumpEnabled();
+  public boolean shouldRotateWithMinecart();
+  protected void updateAutoJump(float, float);
+  protected boolean isHorizontalCollisionMinor(net.minecraft.world.phys.Vec3);
+  private boolean canAutoJump();
+  private boolean isMoving();
+  private boolean isSprintingPossible(boolean);
+  private boolean canStartSprinting();
+  private boolean vehicleCanSprint(net.minecraft.world.entity.Entity);
+  private boolean hasEnoughFoodToSprint();
+  public float getWaterVision();
+  public void onGameModeChanged(net.minecraft.world.level.GameType);
+  public boolean isUnderWater();
+  protected boolean updateIsUnderwater();
+  public net.minecraft.world.phys.Vec3 getRopeHoldPosition(float);
+  public void updateTutorialInventoryAction(net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack, net.minecraft.world.inventory.ClickAction);
+  public float getVisualRotationYInDegrees();
+  public void handleCreativeModeItemDrop(net.minecraft.world.item.ItemStack);
+  public boolean canDropItems();
+  public net.minecraft.util.TickThrottler getDropSpamThrottler();
+  public net.minecraft.world.entity.player.Input getLastSentInput();
+  private static java.util.stream.Stream method_3139(net.minecraft.world.phys.shapes.VoxelShape);
+  static {};
+}
+=== net.minecraft.util.thread.BlockableEventLoop
+Compiled from "BlockableEventLoop.java"
+public abstract class net.minecraft.util.thread.BlockableEventLoop<R extends java.lang.Runnable> implements net.minecraft.util.profiling.metrics.ProfilerMeasured, net.minecraft.util.thread.TaskScheduler<R>, java.util.concurrent.Executor {
+  public static final long BLOCK_TIME_NANOS;
+  private final java.lang.String name;
+  private static final org.slf4j.Logger LOGGER;
+  private final java.util.Queue<R> pendingRunnables;
+  private int blockingCount;
+  protected net.minecraft.util.thread.BlockableEventLoop(java.lang.String);
+  protected abstract boolean shouldRun(R);
+  public boolean isSameThread();
+  protected abstract java.lang.Thread getRunningThread();
+  protected boolean scheduleExecutables();
+  public int getPendingTasksCount();
+  public java.lang.String name();
+  public <V> java.util.concurrent.CompletableFuture<V> submit(java.util.function.Supplier<V>);
+  private java.util.concurrent.CompletableFuture<java.lang.Void> submitAsync(java.lang.Runnable);
+  public java.util.concurrent.CompletableFuture<java.lang.Void> submit(java.lang.Runnable);
+  public void executeBlocking(java.lang.Runnable);
+  public void schedule(R);
+  public void execute(java.lang.Runnable);
+  public void executeIfPossible(java.lang.Runnable);
+  protected void dropAllTasks();
+  protected void runAllTasks();
+  protected boolean shouldRunAllTasks();
+  public boolean pollTask();
+  public void managedBlock(java.util.function.BooleanSupplier);
+  protected void waitForTasks();
+  protected void doRunTask(R);
+  public java.util.List<net.minecraft.util.profiling.metrics.MetricSampler> profiledMetrics();
+  public static boolean isNonRecoverable(java.lang.Throwable);
+  private static java.lang.Void method_5386(java.lang.Runnable);
+  static {};
+}
+=== net.minecraft.client.renderer.chunk.SectionCompiler
+Compiled from "SectionCompiler.java"
+public class net.minecraft.client.renderer.chunk.SectionCompiler {
+  private final net.minecraft.client.renderer.block.BlockRenderDispatcher blockRenderer;
+  private final net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher blockEntityRenderer;
+  public net.minecraft.client.renderer.chunk.SectionCompiler(net.minecraft.client.renderer.block.BlockRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher);
+  public net.minecraft.client.renderer.chunk.SectionCompiler$Results compile(net.minecraft.core.SectionPos, net.minecraft.client.renderer.chunk.RenderSectionRegion, com.mojang.blaze3d.vertex.VertexSorting, net.minecraft.client.renderer.SectionBufferBuilderPack);
+  private com.mojang.blaze3d.vertex.BufferBuilder getOrBeginLayer(java.util.Map<net.minecraft.client.renderer.chunk.ChunkSectionLayer, com.mojang.blaze3d.vertex.BufferBuilder>, net.minecraft.client.renderer.SectionBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkSectionLayer);
+  private <E extends net.minecraft.world.level.block.entity.BlockEntity> void handleBlockEntity(net.minecraft.client.renderer.chunk.SectionCompiler$Results, E);
+}
+=== net.minecraft.client.particle.ParticleGroup
+Compiled from "ParticleGroup.java"
+public abstract class net.minecraft.client.particle.ParticleGroup<P extends net.minecraft.client.particle.Particle> {
+  private static final int MAX_PARTICLES;
+  protected final net.minecraft.client.particle.ParticleEngine engine;
+  protected final java.util.Queue<P> particles;
+  public net.minecraft.client.particle.ParticleGroup(net.minecraft.client.particle.ParticleEngine);
+  public boolean isEmpty();
+  public void tickParticles();
+  private void tickParticle(net.minecraft.client.particle.Particle);
+  public void add(net.minecraft.client.particle.Particle);
+  public int size();
+  public abstract net.minecraft.client.renderer.state.ParticleGroupRenderState extractRenderState(net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float);
+  public java.util.Queue<P> getAll();
+  private void method_74286(net.minecraft.core.particles.ParticleLimit);
+}
+=== net.minecraft.client.particle.QuadParticleGroup
+Compiled from "QuadParticleGroup.java"
+public class net.minecraft.client.particle.QuadParticleGroup extends net.minecraft.client.particle.ParticleGroup<net.minecraft.client.particle.SingleQuadParticle> {
+  private final net.minecraft.client.particle.ParticleRenderType particleType;
+  final net.minecraft.client.renderer.state.QuadParticleRenderState particleTypeRenderState;
+  public net.minecraft.client.particle.QuadParticleGroup(net.minecraft.client.particle.ParticleEngine, net.minecraft.client.particle.ParticleRenderType);
+  public net.minecraft.client.renderer.state.ParticleGroupRenderState extractRenderState(net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float);
+}
 === code net.minecraft.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
   private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads"; :: private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads";
   private static final net.minecraft.TracingExecutor BACKGROUND_EXECUTOR; :: private static final net.minecraft.TracingExecutor BACKGROUND_EXECUTOR;
@@ -8307,38 +8716,1151 @@ public interface com.mojang.blaze3d.vertex.VertexConsumer {
   public net.minecraft.client.model.geom.ModelPart$Vertex[] vertices(); :: 1: getfield      #74                 // Field vertices:[Lnet/minecraft/client/model/geom/ModelPart$Vertex;
   public org.joml.Vector3fc normal(); :: 1: getfield      #76                 // Field normal:Lorg/joml/Vector3fc;
 === code net.minecraft.client.renderer.LevelRenderer :: invokestatic.*setupFog|invokespecial.*setupRender|invokevirtual.*ParticleEngine.render|invokespecial.*renderSky|invokevirtual.*renderChunkLayer|enableFog
-=== package listing (client.gui.screens, client.input, client)
-net/minecraft/client/AttackIndicatorStatus.class
+=== code net.minecraft.client.Camera :: calculateFov|Fov|fov|alignWithEntity
+  public net.minecraft.client.Camera$NearPlane getNearPlane(); :: 26: invokevirtual #410                // Method net/minecraft/client/Options.fov:()Lnet/minecraft/client/OptionInstance;
+=== code net.minecraft.client.KeyMapping$Category :: register|<init>|ResourceLocation|Identifier|MISC|label|key\.category
+  private final net.minecraft.resources.ResourceLocation id; :: private final net.minecraft.resources.ResourceLocation id;
+  public static final net.minecraft.client.KeyMapping$Category MISC; :: public static final net.minecraft.client.KeyMapping$Category MISC;
+  public net.minecraft.client.KeyMapping$Category(net.minecraft.resources.ResourceLocation); :: public net.minecraft.client.KeyMapping$Category(net.minecraft.resources.ResourceLocation);
+  public net.minecraft.client.KeyMapping$Category(net.minecraft.resources.ResourceLocation); :: 1: invokespecial #36                 // Method java/lang/Record."<init>":()V
+  public net.minecraft.client.KeyMapping$Category(net.minecraft.resources.ResourceLocation); :: 6: putfield      #38                 // Field id:Lnet/minecraft/resources/ResourceLocation;
+  private static net.minecraft.client.KeyMapping$Category register(java.lang.String); :: private static net.minecraft.client.KeyMapping$Category register(java.lang.String);
+  private static net.minecraft.client.KeyMapping$Category register(java.lang.String); :: 1: invokestatic  #48                 // Method net/minecraft/resources/ResourceLocation.withDefaultNamespace:(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;
+  private static net.minecraft.client.KeyMapping$Category register(java.lang.String); :: 4: invokestatic  #51                 // Method register:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/KeyMapping$Category;
+  public static net.minecraft.client.KeyMapping$Category register(net.minecraft.resources.ResourceLocation); :: public static net.minecraft.client.KeyMapping$Category register(net.minecraft.resources.ResourceLocation);
+  public static net.minecraft.client.KeyMapping$Category register(net.minecraft.resources.ResourceLocation); :: 5: invokespecial #54                 // Method "<init>":(Lnet/minecraft/resources/ResourceLocation;)V
+  public static net.minecraft.client.KeyMapping$Category register(net.minecraft.resources.ResourceLocation); :: 28: ldc           #72                 // String Category \'%s\' is already registered.
+  public static net.minecraft.client.KeyMapping$Category register(net.minecraft.resources.ResourceLocation); :: 41: invokespecial #83                 // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+  public net.minecraft.network.chat.Component label(); :: public net.minecraft.network.chat.Component label();
+  public net.minecraft.network.chat.Component label(); :: 1: getfield      #38                 // Field id:Lnet/minecraft/resources/ResourceLocation;
+  public net.minecraft.network.chat.Component label(); :: 4: ldc           #91                 // String key.category
+  public net.minecraft.network.chat.Component label(); :: 6: invokevirtual #95                 // Method net/minecraft/resources/ResourceLocation.toLanguageKey:(Ljava/lang/String;)Ljava/lang/String;
+  public net.minecraft.resources.ResourceLocation id(); :: public net.minecraft.resources.ResourceLocation id();
+  public net.minecraft.resources.ResourceLocation id(); :: 1: getfield      #38                 // Field id:Lnet/minecraft/resources/ResourceLocation;
+  static {}; :: 4: invokespecial #131                // Method java/util/ArrayList."<init>":()V
+  static {}; :: 12: invokestatic  #135                // Method register:(Ljava/lang/String;)Lnet/minecraft/client/KeyMapping$Category;
+  static {}; :: 20: invokestatic  #135                // Method register:(Ljava/lang/String;)Lnet/minecraft/client/KeyMapping$Category;
+  static {}; :: 23: putstatic     #141                // Field MISC:Lnet/minecraft/client/KeyMapping$Category;
+  static {}; :: 28: invokestatic  #135                // Method register:(Ljava/lang/String;)Lnet/minecraft/client/KeyMapping$Category;
+  static {}; :: 36: invokestatic  #135                // Method register:(Ljava/lang/String;)Lnet/minecraft/client/KeyMapping$Category;
+  static {}; :: 44: invokestatic  #135                // Method register:(Ljava/lang/String;)Lnet/minecraft/client/KeyMapping$Category;
+  static {}; :: 52: invokestatic  #135                // Method register:(Ljava/lang/String;)Lnet/minecraft/client/KeyMapping$Category;
+  static {}; :: 60: invokestatic  #135                // Method register:(Ljava/lang/String;)Lnet/minecraft/client/KeyMapping$Category;
+=== code net.minecraft.client.Minecraft :: FramerateLimit|limitDisplayFPS|framerateLimit|getFramerateLimit|sleep|waitFor|runTick
+  private final com.mojang.blaze3d.platform.FramerateLimitTracker framerateLimitTracker; :: private final com.mojang.blaze3d.platform.FramerateLimitTracker framerateLimitTracker;
+  public net.minecraft.client.Minecraft(net.minecraft.client.main.GameConfig); :: 2730: new           #1672               // class com/mojang/blaze3d/platform/FramerateLimitTracker
+  public net.minecraft.client.Minecraft(net.minecraft.client.main.GameConfig); :: 2739: invokespecial #1675               // Method com/mojang/blaze3d/platform/FramerateLimitTracker."<init>":(Lnet/minecraft/client/Options;Lnet/minecraft/client/Minecraft;)V
+  public net.minecraft.client.Minecraft(net.minecraft.client.main.GameConfig); :: 2742: putfield      #1677               // Field framerateLimitTracker:Lcom/mojang/blaze3d/platform/FramerateLimitTracker;
+  public net.minecraft.client.Minecraft(net.minecraft.client.main.GameConfig); :: 2760: getfield      #1677               // Field framerateLimitTracker:Lcom/mojang/blaze3d/platform/FramerateLimitTracker;
+  public net.minecraft.client.Minecraft(net.minecraft.client.main.GameConfig); :: 2768: invokedynamic #1697,  0           // InvokeDynamic #14:getAsBoolean:(Lcom/mojang/blaze3d/platform/FramerateLimitTracker;)Ljava/util/function/BooleanSupplier;
+  public void run(); :: 97: invokevirtual #2237               // Method runTick:(Z)V
+  private void runTick(boolean); :: private void runTick(boolean);
+  private void runTick(boolean); :: 485: getfield      #1677               // Field framerateLimitTracker:Lcom/mojang/blaze3d/platform/FramerateLimitTracker;
+  private void runTick(boolean); :: 488: invokevirtual #2907               // Method com/mojang/blaze3d/platform/FramerateLimitTracker.getFramerateLimit:()I
+  private void runTick(boolean); :: 503: invokestatic  #2910               // Method com/mojang/blaze3d/systems/RenderSystem.limitDisplayFPS:(I)V
+  public void doWorldLoad(net.minecraft.world.level.storage.LevelStorageSource$LevelStorageAccess, net.minecraft.server.packs.repository.PackRepository, net.minecraft.server.WorldStem, boolean); :: 228: ldc_w         #4066               // String waitForServer
+  public void doWorldLoad(net.minecraft.world.level.storage.LevelStorageSource$LevelStorageAccess, net.minecraft.server.packs.repository.PackRepository, net.minecraft.server.WorldStem, boolean); :: 295: invokevirtual #2237               // Method runTick:(Z)V
+  public void disconnect(net.minecraft.client.gui.screens.Screen, boolean); :: 123: ldc_w         #4066               // String waitForServer
+  public void disconnect(net.minecraft.client.gui.screens.Screen, boolean); :: 141: invokevirtual #2237               // Method runTick:(Z)V
+  public void setScreenAndShow(net.minecraft.client.gui.screens.Screen); :: 19: invokevirtual #2237               // Method runTick:(Z)V
+  public net.minecraft.network.chat.Component grabPanoramixScreenshot(java.io.File); :: 354: invokestatic  #4883               // Method java/lang/Thread.sleep:(J)V
+  public com.mojang.blaze3d.platform.FramerateLimitTracker getFramerateLimitTracker(); :: public com.mojang.blaze3d.platform.FramerateLimitTracker getFramerateLimitTracker();
+  public com.mojang.blaze3d.platform.FramerateLimitTracker getFramerateLimitTracker(); :: 1: getfield      #1677               // Field framerateLimitTracker:Lcom/mojang/blaze3d/platform/FramerateLimitTracker;
+=== code com.mojang.blaze3d.platform.FramerateLimitTracker :: invoke|getfield|putfield|ldc|return
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft); :: 1: invokespecial #38                 // Method java/lang/Object."<init>":()V
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft); :: 6: putfield      #40                 // Field options:Lnet/minecraft/client/Options;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft); :: 11: putfield      #42                 // Field minecraft:Lnet/minecraft/client/Minecraft;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft); :: 16: invokevirtual #47                 // Method net/minecraft/client/Options.framerateLimit:()Lnet/minecraft/client/OptionInstance;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft); :: 19: invokevirtual #53                 // Method net/minecraft/client/OptionInstance.get:()Ljava/lang/Object;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft); :: 25: invokevirtual #59                 // Method java/lang/Integer.intValue:()I
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft); :: 28: putfield      #61                 // Field framerateLimit:I
+  public com.mojang.blaze3d.platform.FramerateLimitTracker(net.minecraft.client.Options, net.minecraft.client.Minecraft); :: 31: return
+  public int getFramerateLimit(); :: 1: invokevirtual #68                 // Method getThrottleReason:()Lcom/mojang/blaze3d/platform/FramerateLimitTracker$FramerateThrottleReason;
+  public int getFramerateLimit(); :: 4: invokevirtual #71                 // Method com/mojang/blaze3d/platform/FramerateLimitTracker$FramerateThrottleReason.ordinal:()I
+  public int getFramerateLimit(); :: 46: invokespecial #76                 // Method java/lang/MatchException."<init>":(Ljava/lang/String;Ljava/lang/Throwable;)V
+  public int getFramerateLimit(); :: 51: getfield      #61                 // Field framerateLimit:I
+  public int getFramerateLimit(); :: 68: getfield      #61                 // Field framerateLimit:I
+  public int getFramerateLimit(); :: 73: invokestatic  #82                 // Method java/lang/Math.min:(II)I
+  public int getFramerateLimit(); :: 81: ireturn
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 1: getfield      #40                 // Field options:Lnet/minecraft/client/Options;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 4: invokevirtual #85                 // Method net/minecraft/client/Options.inactivityFpsLimit:()Lnet/minecraft/client/OptionInstance;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 7: invokevirtual #53                 // Method net/minecraft/client/OptionInstance.get:()Ljava/lang/Object;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 15: getfield      #42                 // Field minecraft:Lnet/minecraft/client/Minecraft;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 18: invokevirtual #93                 // Method net/minecraft/client/Minecraft.getWindow:()Lcom/mojang/blaze3d/platform/Window;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 21: invokevirtual #99                 // Method com/mojang/blaze3d/platform/Window.isIconified:()Z
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 30: areturn
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 38: invokestatic  #113                // Method net/minecraft/Util.getMillis:()J
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 42: getfield      #115                // Field latestInputTime:J
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 48: ldc2_w        #26                 // long 600000l
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 58: areturn
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 60: ldc2_w        #23                 // long 60000l
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 70: areturn
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 72: getfield      #42                 // Field minecraft:Lnet/minecraft/client/Minecraft;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 75: getfield      #125                // Field net/minecraft/client/Minecraft.level:Lnet/minecraft/client/multiplayer/ClientLevel;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 82: getfield      #42                 // Field minecraft:Lnet/minecraft/client/Minecraft;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 85: getfield      #129                // Field net/minecraft/client/Minecraft.screen:Lnet/minecraft/client/gui/screens/Screen;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 92: getfield      #42                 // Field minecraft:Lnet/minecraft/client/Minecraft;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 95: invokevirtual #133                // Method net/minecraft/client/Minecraft.getOverlay:()Lnet/minecraft/client/gui/screens/Overlay;
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 104: areturn
+  public com.mojang.blaze3d.platform.FramerateLimitTracker$FramerateThrottleReason getThrottleReason(); :: 108: areturn
+  public boolean isHeavilyThrottled(); :: 1: invokevirtual #68                 // Method getThrottleReason:()Lcom/mojang/blaze3d/platform/FramerateLimitTracker$FramerateThrottleReason;
+  public boolean isHeavilyThrottled(); :: 24: ireturn
+  public void setFramerateLimit(int); :: 2: putfield      #61                 // Field framerateLimit:I
+  public void setFramerateLimit(int); :: 5: return
+  public void onInputReceived(); :: 1: invokestatic  #113                // Method net/minecraft/Util.getMillis:()J
+  public void onInputReceived(); :: 4: putfield      #115                // Field latestInputTime:J
+  public void onInputReceived(); :: 7: return
+=== code net.minecraft.client.renderer.SkyRenderer :: render|draw|star|Star|sun|Sun|moon|Moon
+ :: public class net.minecraft.client.renderer.SkyRenderer implements java.lang.AutoCloseable {
+  private final com.mojang.blaze3d.buffers.GpuBuffer starBuffer; :: private final com.mojang.blaze3d.buffers.GpuBuffer starBuffer;
+  private final com.mojang.blaze3d.systems.RenderSystem$AutoStorageIndexBuffer starIndices; :: private final com.mojang.blaze3d.systems.RenderSystem$AutoStorageIndexBuffer starIndices;
+  private final com.mojang.blaze3d.buffers.GpuBuffer sunBuffer; :: private final com.mojang.blaze3d.buffers.GpuBuffer sunBuffer;
+  private final com.mojang.blaze3d.buffers.GpuBuffer moonBuffer; :: private final com.mojang.blaze3d.buffers.GpuBuffer moonBuffer;
+  private final com.mojang.blaze3d.buffers.GpuBuffer sunriseBuffer; :: private final com.mojang.blaze3d.buffers.GpuBuffer sunriseBuffer;
+  private net.minecraft.client.renderer.texture.AbstractTexture sunTexture; :: private net.minecraft.client.renderer.texture.AbstractTexture sunTexture;
+  private net.minecraft.client.renderer.texture.AbstractTexture moonTexture; :: private net.minecraft.client.renderer.texture.AbstractTexture moonTexture;
+  private net.minecraft.client.renderer.texture.AbstractTexture endSkyTexture; :: private net.minecraft.client.renderer.texture.AbstractTexture endSkyTexture;
+  private net.minecraft.client.renderer.texture.AbstractTexture endFlashTexture; :: private net.minecraft.client.renderer.texture.AbstractTexture endFlashTexture;
+  private int starIndexCount; :: private int starIndexCount;
+  public net.minecraft.client.renderer.SkyRenderer(); :: public net.minecraft.client.renderer.SkyRenderer();
+  public net.minecraft.client.renderer.SkyRenderer(); :: 11: putfield      #111                // Field starIndices:Lcom/mojang/blaze3d/systems/RenderSystem$AutoStorageIndexBuffer;
+  public net.minecraft.client.renderer.SkyRenderer(); :: 26: invokevirtual #117                // Method buildStars:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public net.minecraft.client.renderer.SkyRenderer(); :: 29: putfield      #119                // Field starBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public net.minecraft.client.renderer.SkyRenderer(); :: 49: invokevirtual #132                // Method buildSunQuad:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public net.minecraft.client.renderer.SkyRenderer(); :: 52: putfield      #134                // Field sunBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public net.minecraft.client.renderer.SkyRenderer(); :: 57: invokevirtual #137                // Method buildMoonPhases:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public net.minecraft.client.renderer.SkyRenderer(); :: 60: putfield      #139                // Field moonBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public net.minecraft.client.renderer.SkyRenderer(); :: 65: invokevirtual #142                // Method buildSunriseFan:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public net.minecraft.client.renderer.SkyRenderer(); :: 68: putfield      #144                // Field sunriseBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  protected void initTextures(); :: 5: invokevirtual #243                // Method getTexture:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  protected void initTextures(); :: 8: putfield      #245                // Field endSkyTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  protected void initTextures(); :: 16: invokevirtual #243                // Method getTexture:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  protected void initTextures(); :: 19: putfield      #249                // Field endFlashTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  protected void initTextures(); :: 27: invokevirtual #243                // Method getTexture:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  protected void initTextures(); :: 30: putfield      #253                // Field sunTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  protected void initTextures(); :: 38: invokevirtual #243                // Method getTexture:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  protected void initTextures(); :: 41: putfield      #257                // Field moonTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  private net.minecraft.client.renderer.texture.AbstractTexture getTexture(net.minecraft.resources.ResourceLocation); :: private net.minecraft.client.renderer.texture.AbstractTexture getTexture(net.minecraft.resources.ResourceLocation);
+  private net.minecraft.client.renderer.texture.AbstractTexture getTexture(net.minecraft.resources.ResourceLocation); :: 3: invokevirtual #268                // Method net/minecraft/client/Minecraft.getTextureManager:()Lnet/minecraft/client/renderer/texture/TextureManager;
+  private net.minecraft.client.renderer.texture.AbstractTexture getTexture(net.minecraft.resources.ResourceLocation); :: 9: invokevirtual #271                // Method net/minecraft/client/renderer/texture/TextureManager.getTexture:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  private net.minecraft.client.renderer.texture.AbstractTexture getTexture(net.minecraft.resources.ResourceLocation); :: 15: invokevirtual #277                // Method net/minecraft/client/renderer/texture/AbstractTexture.setUseMipmaps:(Z)V
+  private com.mojang.blaze3d.buffers.GpuBuffer buildSunriseFan(); :: private com.mojang.blaze3d.buffers.GpuBuffer buildSunriseFan();
+  private com.mojang.blaze3d.buffers.GpuBuffer buildSunQuad(); :: private com.mojang.blaze3d.buffers.GpuBuffer buildSunQuad();
+  private com.mojang.blaze3d.buffers.GpuBuffer buildMoonPhases(); :: private com.mojang.blaze3d.buffers.GpuBuffer buildMoonPhases();
+  private com.mojang.blaze3d.buffers.GpuBuffer buildStars(); :: private com.mojang.blaze3d.buffers.GpuBuffer buildStars();
+  private com.mojang.blaze3d.buffers.GpuBuffer buildStars(); :: 344: invokevirtual #423                // Method com/mojang/blaze3d/vertex/MeshData.drawState:()Lcom/mojang/blaze3d/vertex/MeshData$DrawState;
+  private com.mojang.blaze3d.buffers.GpuBuffer buildStars(); :: 350: putfield      #428                // Field starIndexCount:I
+  public void renderSkyDisc(float, float, float); :: public void renderSkyDisc(float, float, float);
+  public void renderSkyDisc(float, float, float); :: 0: invokestatic  #478                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  public void renderSkyDisc(float, float, float); :: 32: invokevirtual #494                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  public void renderSkyDisc(float, float, float); :: 91: getstatic     #539                // Field net/minecraft/client/renderer/RenderPipelines.SKY:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  public void renderSkyDisc(float, float, float); :: 133: invokeinterface #563,  3          // InterfaceMethod com/mojang/blaze3d/systems/RenderPass.draw:(II)V
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState);
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 1: invokevirtual #580                // Method net/minecraft/client/multiplayer/ClientLevel.effects:()Lnet/minecraft/client/renderer/DimensionSpecialEffects;
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 10: invokevirtual #584                // Method net/minecraft/client/renderer/DimensionSpecialEffects.skyType:()Lnet/minecraft/client/renderer/DimensionSpecialEffects$SkyType;
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 13: putfield      #589                // Field net/minecraft/client/renderer/state/SkyRenderState.skyType:Lnet/minecraft/client/renderer/DimensionSpecialEffects$SkyType;
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 18: getfield      #589                // Field net/minecraft/client/renderer/state/SkyRenderState.skyType:Lnet/minecraft/client/renderer/DimensionSpecialEffects$SkyType;
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 21: getstatic     #592                // Field net/minecraft/client/renderer/DimensionSpecialEffects$SkyType.NONE:Lnet/minecraft/client/renderer/DimensionSpecialEffects$SkyType;
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 30: getfield      #589                // Field net/minecraft/client/renderer/state/SkyRenderState.skyType:Lnet/minecraft/client/renderer/DimensionSpecialEffects$SkyType;
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 33: getstatic     #595                // Field net/minecraft/client/renderer/DimensionSpecialEffects$SkyType.END:Lnet/minecraft/client/renderer/DimensionSpecialEffects$SkyType;
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 40: invokevirtual #599                // Method net/minecraft/client/multiplayer/ClientLevel.endFlashState:()Lnet/minecraft/client/renderer/EndFlashState;
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 56: invokevirtual #604                // Method net/minecraft/client/renderer/EndFlashState.getIntensity:(F)F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 59: putfield      #607                // Field net/minecraft/client/renderer/state/SkyRenderState.endFlashIntensity:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 66: invokevirtual #610                // Method net/minecraft/client/renderer/EndFlashState.getXAngle:()F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 69: putfield      #613                // Field net/minecraft/client/renderer/state/SkyRenderState.endFlashXAngle:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 76: invokevirtual #616                // Method net/minecraft/client/renderer/EndFlashState.getYAngle:()F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 79: putfield      #619                // Field net/minecraft/client/renderer/state/SkyRenderState.endFlashYAngle:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 87: invokevirtual #624                // Method net/minecraft/client/multiplayer/ClientLevel.getSunAngle:(F)F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 90: putfield      #627                // Field net/minecraft/client/renderer/state/SkyRenderState.sunAngle:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 100: putfield      #633                // Field net/minecraft/client/renderer/state/SkyRenderState.timeOfDay:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 112: putfield      #639                // Field net/minecraft/client/renderer/state/SkyRenderState.rainBrightness:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 119: invokevirtual #642                // Method net/minecraft/client/multiplayer/ClientLevel.getStarBrightness:(F)F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 124: getfield      #639                // Field net/minecraft/client/renderer/state/SkyRenderState.rainBrightness:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 128: putfield      #645                // Field net/minecraft/client/renderer/state/SkyRenderState.starBrightness:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 137: getfield      #633                // Field net/minecraft/client/renderer/state/SkyRenderState.timeOfDay:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 140: invokevirtual #648                // Method net/minecraft/client/renderer/DimensionSpecialEffects.getSunriseOrSunsetColor:(F)I
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 143: putfield      #651                // Field net/minecraft/client/renderer/state/SkyRenderState.sunriseAndSunsetColor:I
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 149: invokevirtual #654                // Method net/minecraft/client/multiplayer/ClientLevel.getMoonPhase:()I
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 152: putfield      #657                // Field net/minecraft/client/renderer/state/SkyRenderState.moonPhase:I
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 163: putfield      #664                // Field net/minecraft/client/renderer/state/SkyRenderState.skyColor:I
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 174: putfield      #671                // Field net/minecraft/client/renderer/state/SkyRenderState.shouldRenderDarkDisc:Z
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 183: getfield      #633                // Field net/minecraft/client/renderer/state/SkyRenderState.timeOfDay:F
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 186: invokevirtual #675                // Method net/minecraft/client/renderer/DimensionSpecialEffects.isSunriseOrSunset:(F)Z
+  public void extractRenderState(net.minecraft.client.multiplayer.ClientLevel, float, net.minecraft.world.phys.Vec3, net.minecraft.client.renderer.state.SkyRenderState); :: 189: putfield      #677                // Field net/minecraft/client/renderer/state/SkyRenderState.isSunriseOrSunset:Z
+  public void renderDarkDisc(); :: public void renderDarkDisc();
+  public void renderDarkDisc(); :: 19: invokestatic  #478                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  public void renderDarkDisc(); :: 49: invokevirtual #494                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  public void renderDarkDisc(); :: 105: getstatic     #539                // Field net/minecraft/client/renderer/RenderPipelines.SKY:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  public void renderDarkDisc(); :: 146: invokeinterface #563,  3          // InterfaceMethod com/mojang/blaze3d/systems/RenderPass.draw:(II)V
+  public void renderSunMoonAndStars(com.mojang.blaze3d.vertex.PoseStack, float, int, float, float); :: public void renderSunMoonAndStars(com.mojang.blaze3d.vertex.PoseStack, float, int, float, float);
+  public void renderSunMoonAndStars(com.mojang.blaze3d.vertex.PoseStack, float, int, float, float); :: 40: invokevirtual #759                // Method renderSun:(FLcom/mojang/blaze3d/vertex/PoseStack;)V
+  public void renderSunMoonAndStars(com.mojang.blaze3d.vertex.PoseStack, float, int, float, float); :: 48: invokevirtual #763                // Method renderMoon:(IFLcom/mojang/blaze3d/vertex/PoseStack;)V
+  public void renderSunMoonAndStars(com.mojang.blaze3d.vertex.PoseStack, float, int, float, float); :: 62: invokevirtual #766                // Method renderStars:(FLcom/mojang/blaze3d/vertex/PoseStack;)V
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack);
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: 1: getfield      #253                // Field sunTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: 48: invokestatic  #478                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: 78: invokevirtual #494                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: 148: getstatic     #795                // Field net/minecraft/client/renderer/RenderPipelines.CELESTIAL:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: 179: getfield      #253                // Field sunTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: 182: invokevirtual #800                // Method net/minecraft/client/renderer/texture/AbstractTexture.getTextureView:()Lcom/mojang/blaze3d/textures/GpuTextureView;
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: 194: getfield      #134                // Field sunBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  private void renderSun(float, com.mojang.blaze3d.vertex.PoseStack); :: 225: invokeinterface #816,  5          // InterfaceMethod com/mojang/blaze3d/systems/RenderPass.drawIndexed:(IIII)V
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack);
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: 1: getfield      #257                // Field moonTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: 66: invokestatic  #478                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: 97: invokevirtual #494                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: 167: getstatic     #795                // Field net/minecraft/client/renderer/RenderPipelines.CELESTIAL:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: 198: getfield      #257                // Field moonTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: 201: invokevirtual #800                // Method net/minecraft/client/renderer/texture/AbstractTexture.getTextureView:()Lcom/mojang/blaze3d/textures/GpuTextureView;
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: 213: getfield      #139                // Field moonBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  private void renderMoon(int, float, com.mojang.blaze3d.vertex.PoseStack); :: 245: invokeinterface #816,  5          // InterfaceMethod com/mojang/blaze3d/systems/RenderPass.drawIndexed:(IIII)V
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack);
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 21: getstatic     #825                // Field net/minecraft/client/renderer/RenderPipelines.STARS:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 49: getfield      #111                // Field starIndices:Lcom/mojang/blaze3d/systems/RenderSystem$AutoStorageIndexBuffer;
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 53: getfield      #428                // Field starIndexCount:I
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 61: invokestatic  #478                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 91: invokevirtual #494                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 156: getfield      #119                // Field starBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 169: getfield      #111                // Field starIndices:Lcom/mojang/blaze3d/systems/RenderSystem$AutoStorageIndexBuffer;
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 185: getfield      #428                // Field starIndexCount:I
+  private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack); :: 189: invokeinterface #816,  5          // InterfaceMethod com/mojang/blaze3d/systems/RenderPass.drawIndexed:(IIII)V
+  public void renderSunriseAndSunset(com.mojang.blaze3d.vertex.PoseStack, float, int); :: public void renderSunriseAndSunset(com.mojang.blaze3d.vertex.PoseStack, float, int);
+  public void renderSunriseAndSunset(com.mojang.blaze3d.vertex.PoseStack, float, int); :: 123: invokestatic  #478                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  public void renderSunriseAndSunset(com.mojang.blaze3d.vertex.PoseStack, float, int); :: 158: invokevirtual #494                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  public void renderSunriseAndSunset(com.mojang.blaze3d.vertex.PoseStack, float, int); :: 217: getstatic     #860                // Field net/minecraft/client/renderer/RenderPipelines.SUNRISE_SUNSET:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  public void renderSunriseAndSunset(com.mojang.blaze3d.vertex.PoseStack, float, int); :: 246: getfield      #144                // Field sunriseBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public void renderSunriseAndSunset(com.mojang.blaze3d.vertex.PoseStack, float, int); :: 259: invokeinterface #563,  3          // InterfaceMethod com/mojang/blaze3d/systems/RenderPass.draw:(II)V
+  public void renderEndSky(); :: public void renderEndSky();
+  public void renderEndSky(); :: 1: getfield      #245                // Field endSkyTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  public void renderEndSky(); :: 43: invokestatic  #478                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  public void renderEndSky(); :: 75: invokevirtual #494                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  public void renderEndSky(); :: 111: getstatic     #869                // Field net/minecraft/client/renderer/RenderPipelines.END_SKY:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  public void renderEndSky(); :: 142: getfield      #245                // Field endSkyTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  public void renderEndSky(); :: 145: invokevirtual #800                // Method net/minecraft/client/renderer/texture/AbstractTexture.getTextureView:()Lcom/mojang/blaze3d/textures/GpuTextureView;
+  public void renderEndSky(); :: 184: invokeinterface #816,  5          // InterfaceMethod com/mojang/blaze3d/systems/RenderPass.drawIndexed:(IIII)V
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float); :: public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float);
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float); :: 1: getfield      #249                // Field endFlashTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float); :: 88: invokestatic  #478                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float); :: 119: invokevirtual #494                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float); :: 189: getstatic     #795                // Field net/minecraft/client/renderer/RenderPipelines.CELESTIAL:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float); :: 220: getfield      #249                // Field endFlashTexture:Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float); :: 223: invokevirtual #800                // Method net/minecraft/client/renderer/texture/AbstractTexture.getTextureView:()Lcom/mojang/blaze3d/textures/GpuTextureView;
+  public void renderEndFlash(com.mojang.blaze3d.vertex.PoseStack, float, float, float); :: 266: invokeinterface #816,  5          // InterfaceMethod com/mojang/blaze3d/systems/RenderPass.drawIndexed:(IIII)V
+  public void close(); :: 1: getfield      #134                // Field sunBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public void close(); :: 8: getfield      #139                // Field moonBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public void close(); :: 15: getfield      #119                // Field starBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public void close(); :: 43: getfield      #144                // Field sunriseBuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  private static java.lang.String method_74763(); :: 0: ldc_w         #884                // String Sunrise sunset
+  private static java.lang.String method_71317(); :: 0: ldc_w         #886                // String Stars
+  private static java.lang.String method_74764(); :: 0: ldc_w         #888                // String Sky moon
+  private static java.lang.String method_74765(); :: 0: ldc_w         #890                // String Sky sun
+  private static java.lang.String method_68500(); :: 0: ldc_w         #900                // String Stars vertex buffer
+  private static java.lang.String method_74767(); :: 0: ldc_w         #902                // String Moon phases
+  private static java.lang.String method_74768(); :: 0: ldc_w         #904                // String Sun quad
+  private static java.lang.String method_74769(); :: 0: ldc_w         #906                // String Sunrise/Sunset fan
+  static {}; :: 0: ldc_w         #913                // String textures/environment/sun.png
+  static {}; :: 18: ldc_w         #923                // String textures/environment/moon_phases.png
+=== code net.minecraft.client.renderer.LevelRenderer :: addSkyPass|addCloudsPass|SkyRenderer|CloudRenderer|getCloudHeight|cloudHeight|renderSky|renderClouds|starBuffer|renderSectionLayer|renderChunkLayer|compileSections|compileChunks|allChanged|setupRender|applyFrustum|ParticleEngine|FogRenderer
+  private final net.minecraft.client.renderer.SkyRenderer skyRenderer; :: private final net.minecraft.client.renderer.SkyRenderer skyRenderer;
+  private final net.minecraft.client.renderer.CloudRenderer cloudRenderer; :: private final net.minecraft.client.renderer.CloudRenderer cloudRenderer;
+  public net.minecraft.client.renderer.LevelRenderer(net.minecraft.client.Minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.state.LevelRenderState, net.minecraft.client.renderer.feature.FeatureRenderDispatcher); :: 5: new           #180                // class net/minecraft/client/renderer/SkyRenderer
+  public net.minecraft.client.renderer.LevelRenderer(net.minecraft.client.Minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.state.LevelRenderState, net.minecraft.client.renderer.feature.FeatureRenderDispatcher); :: 9: invokespecial #181                // Method net/minecraft/client/renderer/SkyRenderer."<init>":()V
+  public net.minecraft.client.renderer.LevelRenderer(net.minecraft.client.Minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.state.LevelRenderState, net.minecraft.client.renderer.feature.FeatureRenderDispatcher); :: 12: putfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  public net.minecraft.client.renderer.LevelRenderer(net.minecraft.client.Minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.state.LevelRenderState, net.minecraft.client.renderer.feature.FeatureRenderDispatcher); :: 16: new           #185                // class net/minecraft/client/renderer/CloudRenderer
+  public net.minecraft.client.renderer.LevelRenderer(net.minecraft.client.Minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.state.LevelRenderState, net.minecraft.client.renderer.feature.FeatureRenderDispatcher); :: 20: invokespecial #186                // Method net/minecraft/client/renderer/CloudRenderer."<init>":()V
+  public net.minecraft.client.renderer.LevelRenderer(net.minecraft.client.Minecraft, net.minecraft.client.renderer.entity.EntityRenderDispatcher, net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher, net.minecraft.client.renderer.RenderBuffers, net.minecraft.client.renderer.state.LevelRenderState, net.minecraft.client.renderer.feature.FeatureRenderDispatcher); :: 23: putfield      #188                // Field cloudRenderer:Lnet/minecraft/client/renderer/CloudRenderer;
+  public void close(); :: 15: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  public void close(); :: 18: invokevirtual #295                // Method net/minecraft/client/renderer/SkyRenderer.close:()V
+  public void close(); :: 22: getfield      #188                // Field cloudRenderer:Lnet/minecraft/client/renderer/CloudRenderer;
+  public void close(); :: 25: invokevirtual #296                // Method net/minecraft/client/renderer/CloudRenderer.close:()V
+  public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager); :: 5: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager); :: 8: invokevirtual #305                // Method net/minecraft/client/renderer/SkyRenderer.initTextures:()V
+  public void setLevel(net.minecraft.client.multiplayer.ClientLevel); :: 28: invokevirtual #414                // Method allChanged:()V
+  public void allChanged(); :: public void allChanged();
+  public void allChanged(); :: 74: getfield      #188                // Field cloudRenderer:Lnet/minecraft/client/renderer/CloudRenderer;
+  public void allChanged(); :: 77: invokevirtual #469                // Method net/minecraft/client/renderer/CloudRenderer.markForRebuild:()V
+  private void cullTerrain(net.minecraft.client.Camera, net.minecraft.client.renderer.culling.Frustum, boolean); :: 24: invokevirtual #414                // Method allChanged:()V
+  private void cullTerrain(net.minecraft.client.Camera, net.minecraft.client.renderer.culling.Frustum, boolean); :: 387: ldc_w         #724                // String applyFrustum
+  private void cullTerrain(net.minecraft.client.Camera, net.minecraft.client.renderer.culling.Frustum, boolean); :: 400: invokevirtual #731                // Method applyFrustum:(Lnet/minecraft/client/renderer/culling/Frustum;)V
+  private void applyFrustum(net.minecraft.client.renderer.culling.Frustum); :: private void applyFrustum(net.minecraft.client.renderer.culling.Frustum);
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 146: ldc_w         #855                // String compileSections
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 157: invokevirtual #857                // Method compileSections:(Lnet/minecraft/client/Camera;)V
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 302: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 320: invokevirtual #903                // Method net/minecraft/client/renderer/SkyRenderer.extractRenderState:(Lnet/minecraft/client/multiplayer/ClientLevel;FLnet/minecraft/world/phys/Vec3;Lnet/minecraft/client/renderer/state/SkyRenderState;)V
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 656: invokevirtual #1028               // Method addSkyPass:(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/Camera;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 731: getfield      #1048               // Field net/minecraft/client/Minecraft.particleEngine:Lnet/minecraft/client/particle/ParticleEngine;
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 757: invokevirtual #1058               // Method net/minecraft/client/particle/ParticleEngine.extract:(Lnet/minecraft/client/renderer/state/ParticlesRenderState;Lnet/minecraft/client/renderer/culling/Frustum;Lnet/minecraft/client/Camera;F)V
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 795: invokevirtual #1082               // Method net/minecraft/world/level/dimension/DimensionType.cloudHeight:()Ljava/util/Optional;
+  public void renderLevel(com.mojang.blaze3d.resource.GraphicsResourceAllocator, net.minecraft.client.DeltaTracker, boolean, net.minecraft.client.Camera, org.joml.Matrix4f, org.joml.Matrix4f, org.joml.Matrix4f, com.mojang.blaze3d.buffers.GpuBufferSlice, org.joml.Vector4f, boolean); :: 864: invokevirtual #1110               // Method addCloudsPass:(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;FIF)V
+  private void addCloudsPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, net.minecraft.client.CloudStatus, net.minecraft.world.phys.Vec3, float, int, float); :: private void addCloudsPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, net.minecraft.client.CloudStatus, net.minecraft.world.phys.Vec3, float, int, float);
+  public void endFrame(); :: 1: getfield      #188                // Field cloudRenderer:Lnet/minecraft/client/renderer/CloudRenderer;
+  public void endFrame(); :: 4: invokevirtual #1820               // Method net/minecraft/client/renderer/CloudRenderer.endFrame:()V
+  private void addSkyPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, net.minecraft.client.Camera, com.mojang.blaze3d.buffers.GpuBufferSlice); :: private void addSkyPass(com.mojang.blaze3d.framegraph.FrameGraphBuilder, net.minecraft.client.Camera, com.mojang.blaze3d.buffers.GpuBufferSlice);
+  private void compileSections(net.minecraft.client.Camera); :: private void compileSections(net.minecraft.client.Camera);
+  public void needsUpdate(); :: 8: getfield      #188                // Field cloudRenderer:Lnet/minecraft/client/renderer/CloudRenderer;
+  public void needsUpdate(); :: 11: invokevirtual #469                // Method net/minecraft/client/renderer/CloudRenderer.markForRebuild:()V
+  public net.minecraft.client.renderer.CloudRenderer getCloudRenderer(); :: public net.minecraft.client.renderer.CloudRenderer getCloudRenderer();
+  public net.minecraft.client.renderer.CloudRenderer getCloudRenderer(); :: 1: getfield      #188                // Field cloudRenderer:Lnet/minecraft/client/renderer/CloudRenderer;
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 15: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 18: invokevirtual #2192               // Method net/minecraft/client/renderer/SkyRenderer.renderEndSky:()V
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 41: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 57: invokevirtual #2206               // Method net/minecraft/client/renderer/SkyRenderer.renderEndFlash:(Lcom/mojang/blaze3d/vertex/PoseStack;FFF)V
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 97: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 106: invokevirtual #2222               // Method net/minecraft/client/renderer/SkyRenderer.renderSkyDisc:(FFF)V
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 117: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 129: invokevirtual #2235               // Method net/minecraft/client/renderer/SkyRenderer.renderSunriseAndSunset:(Lcom/mojang/blaze3d/vertex/PoseStack;FI)V
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 133: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 153: invokevirtual #2251               // Method net/minecraft/client/renderer/SkyRenderer.renderSunMoonAndStars:(Lcom/mojang/blaze3d/vertex/PoseStack;FIFF)V
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 164: getfield      #183                // Field skyRenderer:Lnet/minecraft/client/renderer/SkyRenderer;
+  private void method_62215(com.mojang.blaze3d.buffers.GpuBufferSlice, net.minecraft.client.renderer.state.SkyRenderState); :: 167: invokevirtual #2257               // Method net/minecraft/client/renderer/SkyRenderer.renderDarkDisc:()V
+  private void method_62205(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 1: getfield      #188                // Field cloudRenderer:Lnet/minecraft/client/renderer/CloudRenderer;
+  private void method_62205(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 11: invokevirtual #2297               // Method net/minecraft/client/renderer/CloudRenderer.render:(ILnet/minecraft/client/CloudStatus;FLnet/minecraft/world/phys/Vec3;F)V
+=== code net.minecraft.client.renderer.CloudRenderer :: render|getCloudHeight|cloudHeight|Height
+ :: public class net.minecraft.client.renderer.CloudRenderer extends net.minecraft.server.packs.resources.SimplePreparableReloadListener<java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData>> implements java.lang.AutoCloseable {
+  private net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos prevRelativeCameraPos; :: private net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos prevRelativeCameraPos;
+  private net.minecraft.client.renderer.CloudRenderer$TextureData texture; :: private net.minecraft.client.renderer.CloudRenderer$TextureData texture;
+  private final net.minecraft.client.renderer.MappableRingBuffer ubo; :: private final net.minecraft.client.renderer.MappableRingBuffer ubo;
+  private net.minecraft.client.renderer.MappableRingBuffer utb; :: private net.minecraft.client.renderer.MappableRingBuffer utb;
+  public net.minecraft.client.renderer.CloudRenderer(); :: public net.minecraft.client.renderer.CloudRenderer();
+  public net.minecraft.client.renderer.CloudRenderer(); :: 22: getstatic     #103                // Field net/minecraft/client/renderer/CloudRenderer$RelativeCameraPos.INSIDE_CLOUDS:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  public net.minecraft.client.renderer.CloudRenderer(); :: 25: putfield      #105                // Field prevRelativeCameraPos:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  public net.minecraft.client.renderer.CloudRenderer(); :: 44: new           #119                // class net/minecraft/client/renderer/MappableRingBuffer
+  public net.minecraft.client.renderer.CloudRenderer(); :: 59: invokespecial #143                // Method net/minecraft/client/renderer/MappableRingBuffer."<init>":(Ljava/util/function/Supplier;II)V
+  public net.minecraft.client.renderer.CloudRenderer(); :: 62: putfield      #145                // Field ubo:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  protected java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData> prepare(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller); :: protected java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData> prepare(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller);
+  protected java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData> prepare(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller); :: 25: invokevirtual #177                // Method com/mojang/blaze3d/platform/NativeImage.getHeight:()I
+  protected java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData> prepare(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller); :: 213: new           #14                 // class net/minecraft/client/renderer/CloudRenderer$TextureData
+  protected java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData> prepare(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller); :: 223: invokespecial #201                // Method net/minecraft/client/renderer/CloudRenderer$TextureData."<init>":([JII)V
+  protected void apply(java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData>, net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller); :: protected void apply(java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData>, net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller);
+  protected void apply(java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData>, net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller); :: 6: checkcast     #14                 // class net/minecraft/client/renderer/CloudRenderer$TextureData
+  protected void apply(java.util.Optional<net.minecraft.client.renderer.CloudRenderer$TextureData>, net.minecraft.server.packs.resources.ResourceManager, net.minecraft.util.profiling.ProfilerFiller); :: 9: putfield      #259                // Field texture:Lnet/minecraft/client/renderer/CloudRenderer$TextureData;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float);
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 1: getfield      #259                // Field texture:Lnet/minecraft/client/renderer/CloudRenderer$TextureData;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 56: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 63: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 66: invokevirtual #319                // Method net/minecraft/client/renderer/MappableRingBuffer.currentBuffer:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 78: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 85: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 88: invokevirtual #323                // Method net/minecraft/client/renderer/MappableRingBuffer.close:()V
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 92: new           #119                // class net/minecraft/client/renderer/MappableRingBuffer
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 106: invokespecial #143                // Method net/minecraft/client/renderer/MappableRingBuffer."<init>":(Ljava/util/function/Supplier;II)V
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 109: putfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 138: getstatic     #338                // Field net/minecraft/client/renderer/CloudRenderer$RelativeCameraPos.ABOVE_CLOUDS:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 153: getstatic     #343                // Field net/minecraft/client/renderer/CloudRenderer$RelativeCameraPos.BELOW_CLOUDS:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 161: getstatic     #103                // Field net/minecraft/client/renderer/CloudRenderer$RelativeCameraPos.INSIDE_CLOUDS:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 193: getfield      #259                // Field texture:Lnet/minecraft/client/renderer/CloudRenderer$TextureData;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 196: getfield      #355                // Field net/minecraft/client/renderer/CloudRenderer$TextureData.width:I
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 207: getfield      #259                // Field texture:Lnet/minecraft/client/renderer/CloudRenderer$TextureData;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 210: getfield      #360                // Field net/minecraft/client/renderer/CloudRenderer$TextureData.height:I
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 321: getstatic     #373                // Field net/minecraft/client/renderer/RenderPipelines.CLOUDS:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 327: getstatic     #376                // Field net/minecraft/client/renderer/RenderPipelines.FLAT_CLOUDS:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 360: getfield      #105                // Field prevRelativeCameraPos:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 394: putfield      #105                // Field prevRelativeCameraPos:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 403: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 406: invokevirtual #383                // Method net/minecraft/client/renderer/MappableRingBuffer.rotate:()V
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 418: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 421: invokevirtual #319                // Method net/minecraft/client/renderer/MappableRingBuffer.currentBuffer:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 451: invokevirtual #407                // Method buildMesh:(Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;Ljava/nio/ByteBuffer;IIZI)V
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 531: getfield      #145                // Field ubo:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 534: invokevirtual #319                // Method net/minecraft/client/renderer/MappableRingBuffer.currentBuffer:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 638: invokestatic  #441                // Method com/mojang/blaze3d/systems/RenderSystem.getDynamicUniforms:()Lnet/minecraft/client/renderer/DynamicUniforms;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 670: invokevirtual #462                // Method net/minecraft/client/renderer/DynamicUniforms.writeTransform:(Lorg/joml/Matrix4fc;Lorg/joml/Vector4fc;Lorg/joml/Vector3fc;Lorg/joml/Matrix4fc;F)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 686: getfield      #470                // Field net/minecraft/client/Minecraft.levelRenderer:Lnet/minecraft/client/renderer/LevelRenderer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 689: invokevirtual #475                // Method net/minecraft/client/renderer/LevelRenderer.getCloudsTarget:()Lcom/mojang/blaze3d/pipeline/RenderTarget;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 828: getfield      #145                // Field ubo:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 831: invokevirtual #319                // Method net/minecraft/client/renderer/MappableRingBuffer.currentBuffer:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 845: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void render(int, net.minecraft.client.CloudStatus, float, net.minecraft.world.phys.Vec3, float); :: 848: invokevirtual #319                // Method net/minecraft/client/renderer/MappableRingBuffer.currentBuffer:()Lcom/mojang/blaze3d/buffers/GpuBuffer;
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int);
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 1: getfield      #259                // Field texture:Lnet/minecraft/client/renderer/CloudRenderer$TextureData;
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 9: getfield      #259                // Field texture:Lnet/minecraft/client/renderer/CloudRenderer$TextureData;
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 12: getfield      #578                // Field net/minecraft/client/renderer/CloudRenderer$TextureData.cells:[J
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 18: getfield      #259                // Field texture:Lnet/minecraft/client/renderer/CloudRenderer$TextureData;
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 21: getfield      #355                // Field net/minecraft/client/renderer/CloudRenderer$TextureData.width:I
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 27: getfield      #259                // Field texture:Lnet/minecraft/client/renderer/CloudRenderer$TextureData;
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 30: getfield      #360                // Field net/minecraft/client/renderer/CloudRenderer$TextureData.height:I
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 130: invokevirtual #585                // Method tryBuildCell:(Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;Ljava/nio/ByteBuffer;IIZIIII[J)V
+  private void buildMesh(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int); :: 151: invokevirtual #585                // Method tryBuildCell:(Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;Ljava/nio/ByteBuffer;IIZIIII[J)V
+  private void tryBuildCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int, int, int, int, long[]); :: private void tryBuildCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int, int, int, int, long[]);
+  private void tryBuildCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, boolean, int, int, int, int, long[]); :: 58: invokevirtual #590                // Method buildExtrudedCell:(Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;Ljava/nio/ByteBuffer;IIJ)V
+  private void buildExtrudedCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, long); :: private void buildExtrudedCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, long);
+  private void buildExtrudedCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, long); :: 1: getstatic     #343                // Field net/minecraft/client/renderer/CloudRenderer$RelativeCameraPos.BELOW_CLOUDS:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  private void buildExtrudedCell(net.minecraft.client.renderer.CloudRenderer$RelativeCameraPos, java.nio.ByteBuffer, int, int, long); :: 20: getstatic     #338                // Field net/minecraft/client/renderer/CloudRenderer$RelativeCameraPos.ABOVE_CLOUDS:Lnet/minecraft/client/renderer/CloudRenderer$RelativeCameraPos;
+  public void endFrame(); :: 1: getfield      #145                // Field ubo:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void endFrame(); :: 4: invokevirtual #383                // Method net/minecraft/client/renderer/MappableRingBuffer.rotate:()V
+  public void close(); :: 1: getfield      #145                // Field ubo:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void close(); :: 4: invokevirtual #323                // Method net/minecraft/client/renderer/MappableRingBuffer.close:()V
+  public void close(); :: 8: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void close(); :: 15: getfield      #315                // Field utb:Lnet/minecraft/client/renderer/MappableRingBuffer;
+  public void close(); :: 18: invokevirtual #323                // Method net/minecraft/client/renderer/MappableRingBuffer.close:()V
+=== code net.minecraft.client.renderer.fog.FogRenderer :: setupFog|FogData|renderDistance|environmentalStart|environmentalEnd|computeFogColor|updateBuffer|isFoggy|FogEnvironment|getBuffer
+  private static final java.util.List<net.minecraft.client.renderer.fog.environment.FogEnvironment> FOG_ENVIRONMENTS; :: private static final java.util.List<net.minecraft.client.renderer.fog.environment.FogEnvironment> FOG_ENVIRONMENTS;
+  public net.minecraft.client.renderer.fog.FogRenderer(); :: 65: invokevirtual #100                // Method updateBuffer:(Ljava/nio/ByteBuffer;ILorg/joml/Vector4f;FFFFFF)V
+  public net.minecraft.client.renderer.fog.FogRenderer(); :: 127: invokevirtual #134                // Method getBuffer:(Lnet/minecraft/client/renderer/fog/FogRenderer$FogMode;)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;
+  public com.mojang.blaze3d.buffers.GpuBufferSlice getBuffer(net.minecraft.client.renderer.fog.FogRenderer$FogMode); :: public com.mojang.blaze3d.buffers.GpuBufferSlice getBuffer(net.minecraft.client.renderer.fog.FogRenderer$FogMode);
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean); :: private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean);
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean); :: 48: checkcast     #206                // class net/minecraft/client/renderer/fog/environment/FogEnvironment
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean); :: 59: invokevirtual #219                // Method net/minecraft/client/renderer/fog/environment/FogEnvironment.isApplicable:(Lnet/minecraft/world/level/material/FogType;Lnet/minecraft/world/entity/Entity;)Z
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean); :: 72: invokevirtual #222                // Method net/minecraft/client/renderer/fog/environment/FogEnvironment.providesColor:()Z
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean); :: 89: invokevirtual #225                // Method net/minecraft/client/renderer/fog/environment/FogEnvironment.modifiesDarkness:()Z
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean); :: 104: invokevirtual #228                // Method net/minecraft/client/renderer/fog/environment/FogEnvironment.onNotApplicable:()V
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean); :: 133: invokevirtual #239                // Method net/minecraft/client/renderer/fog/environment/FogEnvironment.getBaseColor:(Lnet/minecraft/client/multiplayer/ClientLevel;Lnet/minecraft/client/Camera;IF)I
+  private org.joml.Vector4f computeFogColor(net.minecraft.client.Camera, float, net.minecraft.client.multiplayer.ClientLevel, int, float, boolean); :: 193: invokevirtual #272                // Method net/minecraft/client/renderer/fog/environment/FogEnvironment.getModifiedDarkness:(Lnet/minecraft/world/entity/LivingEntity;FF)F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel);
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 20: invokevirtual #369                // Method computeFogColor:(Lnet/minecraft/client/Camera;FLnet/minecraft/client/multiplayer/ClientLevel;IFZ)Lorg/joml/Vector4f;
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 46: new           #371                // class net/minecraft/client/renderer/fog/FogData
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 50: invokespecial #372                // Method net/minecraft/client/renderer/fog/FogData."<init>":()V
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 82: checkcast     #206                // class net/minecraft/client/renderer/fog/environment/FogEnvironment
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 93: invokevirtual #219                // Method net/minecraft/client/renderer/fog/environment/FogEnvironment.isApplicable:(Lnet/minecraft/world/level/material/FogType;Lnet/minecraft/world/entity/Entity;)Z
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 115: invokevirtual #379                // Method net/minecraft/client/renderer/fog/environment/FogEnvironment.setupFog:(Lnet/minecraft/client/renderer/fog/FogData;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/client/multiplayer/ClientLevel;FLnet/minecraft/client/DeltaTracker;)V
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 148: putfield      #385                // Field net/minecraft/client/renderer/fog/FogData.renderDistanceStart:F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 155: putfield      #388                // Field net/minecraft/client/renderer/fog/FogData.renderDistanceEnd:F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 195: getfield      #404                // Field net/minecraft/client/renderer/fog/FogData.environmentalStart:F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 200: getfield      #407                // Field net/minecraft/client/renderer/fog/FogData.environmentalEnd:F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 205: getfield      #385                // Field net/minecraft/client/renderer/fog/FogData.renderDistanceStart:F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 210: getfield      #388                // Field net/minecraft/client/renderer/fog/FogData.renderDistanceEnd:F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 215: getfield      #410                // Field net/minecraft/client/renderer/fog/FogData.skyEnd:F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 220: getfield      #413                // Field net/minecraft/client/renderer/fog/FogData.cloudEnd:F
+  public org.joml.Vector4f setupFog(net.minecraft.client.Camera, int, boolean, net.minecraft.client.DeltaTracker, float, net.minecraft.client.multiplayer.ClientLevel); :: 223: invokevirtual #100                // Method updateBuffer:(Ljava/nio/ByteBuffer;ILorg/joml/Vector4f;FFFFFF)V
+  private void updateBuffer(java.nio.ByteBuffer, int, org.joml.Vector4f, float, float, float, float, float, float); :: private void updateBuffer(java.nio.ByteBuffer, int, org.joml.Vector4f, float, float, float, float, float, float);
+  static {}; :: 36: anewarray     #206                // class net/minecraft/client/renderer/fog/environment/FogEnvironment
+  static {}; :: 41: new           #467                // class net/minecraft/client/renderer/fog/environment/LavaFogEnvironment
+  static {}; :: 45: invokespecial #468                // Method net/minecraft/client/renderer/fog/environment/LavaFogEnvironment."<init>":()V
+  static {}; :: 51: new           #470                // class net/minecraft/client/renderer/fog/environment/PowderedSnowFogEnvironment
+  static {}; :: 55: invokespecial #471                // Method net/minecraft/client/renderer/fog/environment/PowderedSnowFogEnvironment."<init>":()V
+  static {}; :: 61: new           #473                // class net/minecraft/client/renderer/fog/environment/BlindnessFogEnvironment
+  static {}; :: 65: invokespecial #474                // Method net/minecraft/client/renderer/fog/environment/BlindnessFogEnvironment."<init>":()V
+  static {}; :: 71: new           #476                // class net/minecraft/client/renderer/fog/environment/DarknessFogEnvironment
+  static {}; :: 75: invokespecial #477                // Method net/minecraft/client/renderer/fog/environment/DarknessFogEnvironment."<init>":()V
+  static {}; :: 81: new           #479                // class net/minecraft/client/renderer/fog/environment/WaterFogEnvironment
+  static {}; :: 85: invokespecial #480                // Method net/minecraft/client/renderer/fog/environment/WaterFogEnvironment."<init>":()V
+  static {}; :: 91: new           #482                // class net/minecraft/client/renderer/fog/environment/DimensionOrBossFogEnvironment
+  static {}; :: 95: invokespecial #483                // Method net/minecraft/client/renderer/fog/environment/DimensionOrBossFogEnvironment."<init>":()V
+  static {}; :: 102: new           #485                // class net/minecraft/client/renderer/fog/environment/AtmosphericFogEnvironment
+  static {}; :: 106: invokespecial #486                // Method net/minecraft/client/renderer/fog/environment/AtmosphericFogEnvironment."<init>":()V
+=== code net.minecraft.client.multiplayer.ClientLevel :: addDestroyBlockEffect|addBreakingBlockEffect|crack|destroy|ParticleEngine|particle
+  public void doAnimateTick(int, int, int, int, net.minecraft.util.RandomSource, net.minecraft.world.level.block.Block, net.minecraft.core.BlockPos$MutableBlockPos); :: 144: invokevirtual #978                // Method net/minecraft/world/level/material/FluidState.getDripParticle:()Lnet/minecraft/core/particles/ParticleOptions;
+  public void doAnimateTick(int, int, int, int, net.minecraft.util.RandomSource, net.minecraft.world.level.block.Block, net.minecraft.core.BlockPos$MutableBlockPos); :: 201: invokevirtual #994                // Method trySpawnDripParticles:(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/particles/ParticleOptions;Z)V
+  public void doAnimateTick(int, int, int, int, net.minecraft.util.RandomSource, net.minecraft.world.level.block.Block, net.minecraft.core.BlockPos$MutableBlockPos); :: 215: new           #996                // class net/minecraft/core/particles/BlockParticleOption
+  public void doAnimateTick(int, int, int, int, net.minecraft.util.RandomSource, net.minecraft.world.level.block.Block, net.minecraft.core.BlockPos$MutableBlockPos); :: 219: getstatic     #1002               // Field net/minecraft/core/particles/ParticleTypes.BLOCK_MARKER:Lnet/minecraft/core/particles/ParticleType;
+  public void doAnimateTick(int, int, int, int, net.minecraft.util.RandomSource, net.minecraft.world.level.block.Block, net.minecraft.core.BlockPos$MutableBlockPos); :: 224: invokespecial #1005               // Method net/minecraft/core/particles/BlockParticleOption."<init>":(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;)V
+  public void doAnimateTick(int, int, int, int, net.minecraft.util.RandomSource, net.minecraft.world.level.block.Block, net.minecraft.core.BlockPos$MutableBlockPos); :: 251: invokevirtual #1011               // Method addParticle:(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V
+  private void trySpawnDripParticles(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.particles.ParticleOptions, boolean); :: private void trySpawnDripParticles(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.particles.ParticleOptions, boolean);
+  private void trySpawnDripParticles(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.particles.ParticleOptions, boolean); :: 78: invokevirtual #1075               // Method spawnFluidParticle:(DDDDDLnet/minecraft/core/particles/ParticleOptions;)V
+  private void trySpawnDripParticles(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.particles.ParticleOptions, boolean); :: 128: invokevirtual #1094               // Method spawnParticle:(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/particles/ParticleOptions;Lnet/minecraft/world/phys/shapes/VoxelShape;D)V
+  private void trySpawnDripParticles(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.particles.ParticleOptions, boolean); :: 200: invokevirtual #1094               // Method spawnParticle:(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/particles/ParticleOptions;Lnet/minecraft/world/phys/shapes/VoxelShape;D)V
+  private void spawnParticle(net.minecraft.core.BlockPos, net.minecraft.core.particles.ParticleOptions, net.minecraft.world.phys.shapes.VoxelShape, double); :: private void spawnParticle(net.minecraft.core.BlockPos, net.minecraft.core.particles.ParticleOptions, net.minecraft.world.phys.shapes.VoxelShape, double);
+  private void spawnParticle(net.minecraft.core.BlockPos, net.minecraft.core.particles.ParticleOptions, net.minecraft.world.phys.shapes.VoxelShape, double); :: 56: invokevirtual #1075               // Method spawnFluidParticle:(DDDDDLnet/minecraft/core/particles/ParticleOptions;)V
+  private void spawnFluidParticle(double, double, double, double, double, net.minecraft.core.particles.ParticleOptions); :: private void spawnFluidParticle(double, double, double, double, double, net.minecraft.core.particles.ParticleOptions);
+  private void spawnFluidParticle(double, double, double, double, double, net.minecraft.core.particles.ParticleOptions); :: 38: invokevirtual #1011               // Method addParticle:(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V
+  public void createFireworks(double, double, double, double, double, double, java.util.List<net.minecraft.world.item.component.FireworkExplosion>); :: 31: getstatic     #1227               // Field net/minecraft/core/particles/ParticleTypes.POOF:Lnet/minecraft/core/particles/SimpleParticleType;
+  public void createFireworks(double, double, double, double, double, double, java.util.List<net.minecraft.world.item.component.FireworkExplosion>); :: 67: invokevirtual #1011               // Method addParticle:(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V
+  public void createFireworks(double, double, double, double, double, double, java.util.List<net.minecraft.world.item.component.FireworkExplosion>); :: 83: getfield      #1236               // Field net/minecraft/client/Minecraft.particleEngine:Lnet/minecraft/client/particle/ParticleEngine;
+  public void createFireworks(double, double, double, double, double, double, java.util.List<net.minecraft.world.item.component.FireworkExplosion>); :: 86: new           #52                 // class net/minecraft/client/particle/FireworkParticles$Starter
+  public void createFireworks(double, double, double, double, double, double, java.util.List<net.minecraft.world.item.component.FireworkExplosion>); :: 105: getfield      #1236               // Field net/minecraft/client/Minecraft.particleEngine:Lnet/minecraft/client/particle/ParticleEngine;
+  public void createFireworks(double, double, double, double, double, double, java.util.List<net.minecraft.world.item.component.FireworkExplosion>); :: 110: invokespecial #1239               // Method net/minecraft/client/particle/FireworkParticles$Starter."<init>":(Lnet/minecraft/client/multiplayer/ClientLevel;DDDDDDLnet/minecraft/client/particle/ParticleEngine;Ljava/util/List;)V
+  public void createFireworks(double, double, double, double, double, double, java.util.List<net.minecraft.world.item.component.FireworkExplosion>); :: 113: invokevirtual #1244               // Method net/minecraft/client/particle/ParticleEngine.add:(Lnet/minecraft/client/particle/Particle;)V
+  public void destroyBlockProgress(int, net.minecraft.core.BlockPos, int); :: public void destroyBlockProgress(int, net.minecraft.core.BlockPos, int);
+  public void destroyBlockProgress(int, net.minecraft.core.BlockPos, int); :: 7: invokevirtual #1317               // Method net/minecraft/client/renderer/LevelRenderer.destroyBlockProgress:(ILnet/minecraft/core/BlockPos;I)V
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: public void addParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double);
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: 3: invokeinterface #1364,  1         // InterfaceMethod net/minecraft/core/particles/ParticleOptions.getType:()Lnet/minecraft/core/particles/ParticleType;
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: 8: invokevirtual #1369               // Method net/minecraft/core/particles/ParticleType.getOverrideLimiter:()Z
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: 23: invokevirtual #1373               // Method doAddParticle:(Lnet/minecraft/core/particles/ParticleOptions;ZZDDDDDD)V
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: public void addParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double);
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 3: invokeinterface #1364,  1         // InterfaceMethod net/minecraft/core/particles/ParticleOptions.getType:()Lnet/minecraft/core/particles/ParticleType;
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 8: invokevirtual #1369               // Method net/minecraft/core/particles/ParticleType.getOverrideLimiter:()Z
+  public void addParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 36: invokevirtual #1373               // Method doAddParticle:(Lnet/minecraft/core/particles/ParticleOptions;ZZDDDDDD)V
+  public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double);
+  public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: 15: invokevirtual #1373               // Method doAddParticle:(Lnet/minecraft/core/particles/ParticleOptions;ZZDDDDDD)V
+  public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, boolean, double, double, double, double, double, double); :: public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, boolean, double, double, double, double, double, double);
+  public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, boolean, double, double, double, double, double, double); :: 3: invokeinterface #1364,  1         // InterfaceMethod net/minecraft/core/particles/ParticleOptions.getType:()Lnet/minecraft/core/particles/ParticleType;
+  public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, boolean, double, double, double, double, double, double); :: 8: invokevirtual #1369               // Method net/minecraft/core/particles/ParticleType.getOverrideLimiter:()Z
+  public void addAlwaysVisibleParticle(net.minecraft.core.particles.ParticleOptions, boolean, double, double, double, double, double, double); :: 35: invokevirtual #1373               // Method doAddParticle:(Lnet/minecraft/core/particles/ParticleOptions;ZZDDDDDD)V
+  private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double);
+  private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 27: getfield      #1236               // Field net/minecraft/client/Minecraft.particleEngine:Lnet/minecraft/client/particle/ParticleEngine;
+  private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 43: invokevirtual #1384               // Method net/minecraft/client/particle/ParticleEngine.createParticle:(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)Lnet/minecraft/client/particle/Particle;
+  private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 83: getfield      #1236               // Field net/minecraft/client/Minecraft.particleEngine:Lnet/minecraft/client/particle/ParticleEngine;
+  private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 99: invokevirtual #1384               // Method net/minecraft/client/particle/ParticleEngine.createParticle:(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)Lnet/minecraft/client/particle/Particle;
+  private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 110: ldc_w         #1394               // String Exception while adding particle
+  private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 137: invokeinterface #1364,  1         // InterfaceMethod net/minecraft/core/particles/ParticleOptions.getType:()Lnet/minecraft/core/particles/ParticleType;
+  private void doAddParticle(net.minecraft.core.particles.ParticleOptions, boolean, boolean, double, double, double, double, double, double); :: 158: invokedynamic #1420,  0           // InvokeDynamic #9:call:(Lnet/minecraft/client/multiplayer/ClientLevel;Lnet/minecraft/core/particles/ParticleOptions;)Lnet/minecraft/CrashReportDetail;
+  private net.minecraft.server.level.ParticleStatus calculateParticleLevel(boolean); :: 7: invokevirtual #1443               // Method net/minecraft/client/Options.particles:()Lnet/minecraft/client/OptionInstance;
+  public void addDestroyBlockEffect(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState); :: public void addDestroyBlockEffect(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState);
+  public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction); :: public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction);
+  public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction); :: 317: getfield      #1236               // Field net/minecraft/client/Minecraft.particleEngine:Lnet/minecraft/client/particle/ParticleEngine;
+  public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction); :: 320: new           #1792               // class net/minecraft/client/particle/TerrainParticle
+  public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction); :: 336: invokespecial #1795               // Method net/minecraft/client/particle/TerrainParticle."<init>":(Lnet/minecraft/client/multiplayer/ClientLevel;DDDDDDLnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)V
+  public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction); :: 342: invokevirtual #1799               // Method net/minecraft/client/particle/TerrainParticle.setPower:(F)Lnet/minecraft/client/particle/Particle;
+  public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction); :: 348: invokevirtual #1803               // Method net/minecraft/client/particle/Particle.scale:(F)Lnet/minecraft/client/particle/Particle;
+  public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction); :: 351: invokevirtual #1244               // Method net/minecraft/client/particle/ParticleEngine.add:(Lnet/minecraft/client/particle/Particle;)V
+  public void explode(net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, net.minecraft.world.level.ExplosionDamageCalculator, double, double, double, float, boolean, net.minecraft.world.level.Level$ExplosionInteraction, net.minecraft.core.particles.ParticleOptions, net.minecraft.core.particles.ParticleOptions, net.minecraft.util.random.WeightedList<net.minecraft.core.particles.ExplosionParticleInfo>, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>); :: public void explode(net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, net.minecraft.world.level.ExplosionDamageCalculator, double, double, double, float, boolean, net.minecraft.world.level.Level$ExplosionInteraction, net.minecraft.core.particles.ParticleOptions, net.minecraft.core.particles.ParticleOptions, net.minecraft.util.random.WeightedList<net.minecraft.core.particles.ExplosionParticleInfo>, net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent>);
+  public void trackExplosionEffects(net.minecraft.world.phys.Vec3, float, int, net.minecraft.util.random.WeightedList<net.minecraft.core.particles.ExplosionParticleInfo>); :: public void trackExplosionEffects(net.minecraft.world.phys.Vec3, float, int, net.minecraft.util.random.WeightedList<net.minecraft.core.particles.ExplosionParticleInfo>);
+  private void method_74253(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, double, double, double, double, double, double); :: 179: getfield      #1236               // Field net/minecraft/client/Minecraft.particleEngine:Lnet/minecraft/client/particle/ParticleEngine;
+  private void method_74253(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, double, double, double, double, double, double); :: 182: new           #1792               // class net/minecraft/client/particle/TerrainParticle
+  private void method_74253(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, double, double, double, double, double, double); :: 231: invokespecial #1795               // Method net/minecraft/client/particle/TerrainParticle."<init>":(Lnet/minecraft/client/multiplayer/ClientLevel;DDDDDDLnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)V
+  private void method_74253(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, double, double, double, double, double, double); :: 234: invokevirtual #1244               // Method net/minecraft/client/particle/ParticleEngine.add:(Lnet/minecraft/client/particle/Particle;)V
+  private java.lang.String method_74917(net.minecraft.core.particles.ParticleOptions) throws java.lang.Exception; :: private java.lang.String method_74917(net.minecraft.core.particles.ParticleOptions) throws java.lang.Exception;
+  private java.lang.String method_74917(net.minecraft.core.particles.ParticleOptions) throws java.lang.Exception; :: 0: getstatic     #1902               // Field net/minecraft/core/particles/ParticleTypes.CODEC:Lcom/mojang/serialization/Codec;
+  private void method_24462(net.minecraft.core.BlockPos$MutableBlockPos, net.minecraft.world.level.biome.AmbientParticleSettings); :: 13: invokevirtual #1951               // Method net/minecraft/world/level/biome/AmbientParticleSettings.getOptions:()Lnet/minecraft/core/particles/ParticleOptions;
+  private void method_24462(net.minecraft.core.BlockPos$MutableBlockPos, net.minecraft.world.level.biome.AmbientParticleSettings); :: 64: invokevirtual #1011               // Method addParticle:(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V
+=== code net.minecraft.client.particle.ParticleEngine :: createParticle|crack|destroy|makeParticle|add|ParticleGroup|render
+  private final java.util.Map<net.minecraft.client.particle.ParticleRenderType, net.minecraft.client.particle.ParticleGroup<?>> particles; :: private final java.util.Map<net.minecraft.client.particle.ParticleRenderType, net.minecraft.client.particle.ParticleGroup<?>> particles;
+  public void createTrackingEmitter(net.minecraft.world.entity.Entity, net.minecraft.core.particles.ParticleOptions); :: 17: invokeinterface #93,  2           // InterfaceMethod java/util/Queue.add:(Ljava/lang/Object;)Z
+  public void createTrackingEmitter(net.minecraft.world.entity.Entity, net.minecraft.core.particles.ParticleOptions, int); :: 18: invokeinterface #93,  2           // InterfaceMethod java/util/Queue.add:(Ljava/lang/Object;)Z
+  public net.minecraft.client.particle.Particle createParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: public net.minecraft.client.particle.Particle createParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double);
+  public net.minecraft.client.particle.Particle createParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: 13: invokevirtual #112                // Method makeParticle:(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)Lnet/minecraft/client/particle/Particle;
+  public net.minecraft.client.particle.Particle createParticle(net.minecraft.core.particles.ParticleOptions, double, double, double, double, double, double); :: 26: invokevirtual #115                // Method add:(Lnet/minecraft/client/particle/Particle;)V
+  private <T extends net.minecraft.core.particles.ParticleOptions> net.minecraft.client.particle.Particle makeParticle(T, double, double, double, double, double, double); :: private <T extends net.minecraft.core.particles.ParticleOptions> net.minecraft.client.particle.Particle makeParticle(T, double, double, double, double, double, double);
+  private <T extends net.minecraft.core.particles.ParticleOptions> net.minecraft.client.particle.Particle makeParticle(T, double, double, double, double, double, double); :: 60: invokeinterface #154,  16         // InterfaceMethod net/minecraft/client/particle/ParticleProvider.createParticle:(Lnet/minecraft/core/particles/ParticleOptions;Lnet/minecraft/client/multiplayer/ClientLevel;DDDDDDLnet/minecraft/util/RandomSource;)Lnet/minecraft/client/particle/Particle;
+  public void add(net.minecraft.client.particle.Particle); :: public void add(net.minecraft.client.particle.Particle);
+  public void add(net.minecraft.client.particle.Particle); :: 31: invokeinterface #93,  2           // InterfaceMethod java/util/Queue.add:(Ljava/lang/Object;)Z
+  public void add(net.minecraft.client.particle.Particle); :: 57: invokeinterface #93,  2           // InterfaceMethod java/util/Queue.add:(Ljava/lang/Object;)Z
+  public void tick(); :: 72: invokeinterface #243,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+  public void tick(); :: 140: checkcast     #272                // class net/minecraft/client/particle/ParticleGroup
+  public void tick(); :: 144: invokevirtual #273                // Method net/minecraft/client/particle/ParticleGroup.add:(Lnet/minecraft/client/particle/Particle;)V
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType);
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: 7: new           #287                // class net/minecraft/client/particle/ItemPickupParticleGroup
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: 12: invokespecial #290                // Method net/minecraft/client/particle/ItemPickupParticleGroup."<init>":(Lnet/minecraft/client/particle/ParticleEngine;)V
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: 23: new           #295                // class net/minecraft/client/particle/ElderGuardianParticleGroup
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: 28: invokespecial #296                // Method net/minecraft/client/particle/ElderGuardianParticleGroup."<init>":(Lnet/minecraft/client/particle/ParticleEngine;)V
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: 39: new           #301                // class net/minecraft/client/particle/NoRenderParticleGroup
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: 44: invokespecial #302                // Method net/minecraft/client/particle/NoRenderParticleGroup."<init>":(Lnet/minecraft/client/particle/ParticleEngine;)V
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: 48: new           #304                // class net/minecraft/client/particle/QuadParticleGroup
+  private net.minecraft.client.particle.ParticleGroup<?> createParticleGroup(net.minecraft.client.particle.ParticleRenderType); :: 54: invokespecial #307                // Method net/minecraft/client/particle/QuadParticleGroup."<init>":(Lnet/minecraft/client/particle/ParticleEngine;Lnet/minecraft/client/particle/ParticleRenderType;)V
+  protected void updateCount(net.minecraft.core.particles.ParticleLimit, int); :: 6: invokevirtual #312                // Method it/unimi/dsi/fastutil/objects/Object2IntOpenHashMap.addTo:(Ljava/lang/Object;I)I
+  public void extract(net.minecraft.client.renderer.state.ParticlesRenderState, net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float); :: public void extract(net.minecraft.client.renderer.state.ParticlesRenderState, net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float);
+  public void extract(net.minecraft.client.renderer.state.ParticlesRenderState, net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float); :: 43: checkcast     #272                // class net/minecraft/client/particle/ParticleGroup
+  public void extract(net.minecraft.client.renderer.state.ParticlesRenderState, net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float); :: 55: invokevirtual #324                // Method net/minecraft/client/particle/ParticleGroup.isEmpty:()Z
+  public void extract(net.minecraft.client.renderer.state.ParticlesRenderState, net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float); :: 68: invokevirtual #328                // Method net/minecraft/client/particle/ParticleGroup.extractRenderState:(Lnet/minecraft/client/renderer/culling/Frustum;Lnet/minecraft/client/Camera;F)Lnet/minecraft/client/renderer/state/ParticleGroupRenderState;
+  public void extract(net.minecraft.client.renderer.state.ParticlesRenderState, net.minecraft.client.renderer.culling.Frustum, net.minecraft.client.Camera, float); :: 71: invokevirtual #333                // Method net/minecraft/client/renderer/state/ParticlesRenderState.add:(Lnet/minecraft/client/renderer/state/ParticleGroupRenderState;)V
+  private static void method_74282(net.minecraft.client.particle.ParticleRenderType, net.minecraft.client.particle.ParticleGroup); :: private static void method_74282(net.minecraft.client.particle.ParticleRenderType, net.minecraft.client.particle.ParticleGroup);
+  private static void method_74282(net.minecraft.client.particle.ParticleRenderType, net.minecraft.client.particle.ParticleGroup); :: 13: invokevirtual #414                // Method net/minecraft/client/particle/ParticleGroup.tickParticles:()V
+=== package listing (client.gui.screens, client.input, client, renderer, particle, model.geom, blaze3d)
+net/minecraft/client/particle/BubbleParticle$Provider.class
+net/minecraft/client/particle/EndRodParticle$Provider.class
+net/minecraft/client/particle/LargeSmokeParticle$Provider.class
+net/minecraft/client/particle/PlayerCloudParticle$SneezeProvider.class
+net/minecraft/client/particle/PlayerCloudParticle$Provider.class
+net/minecraft/client/particle/WaterDropParticle$Provider.class
+net/minecraft/client/renderer/SectionOcclusionGraph$GraphState.class
+net/minecraft/client/renderer/SectionOcclusionGraph$GraphEvents.class
+net/minecraft/client/renderer/SectionOcclusionGraph$SectionToNodeMap.class
+net/minecraft/client/renderer/SectionOcclusionGraph$GraphStorage.class
+net/minecraft/client/renderer/SectionOcclusionGraph$Node.class
+com/mojang/blaze3d/platform/DepthTestFunction.class
+net/minecraft/client/particle/BubbleColumnUpParticle$Provider.class
+net/minecraft/client/particle/ElderGuardianParticleGroup$ElderGuardianParticleRenderState.class
+net/minecraft/client/particle/ElderGuardianParticleGroup$State.class
+com/mojang/blaze3d/platform/SourceFactor.class
+net/minecraft/client/particle/ItemPickupParticleGroup$ParticleInstance.class
+net/minecraft/client/particle/ItemPickupParticleGroup$State.class
+net/minecraft/client/particle/ParticleResources$SpriteParticleRegistration.class
+net/minecraft/client/particle/ParticleResources$MutableSpriteSet.class
+net/minecraft/client/particle/WaterCurrentDownParticle$Provider.class
+net/minecraft/client/particle/SplashParticle$Provider.class
+net/minecraft/client/renderer/UniformValue$Type.class
+net/minecraft/client/renderer/UniformValue$IntUniform.class
+net/minecraft/client/renderer/UniformValue$FloatUniform.class
+com/mojang/blaze3d/systems/GpuDevice.class
+com/mojang/blaze3d/vertex/VertexFormatElement$Usage.class
+com/mojang/blaze3d/platform/Window$WindowInitFailed.class
+net/minecraft/client/particle/CampfireSmokeParticle$SignalProvider.class
+net/minecraft/client/particle/CampfireSmokeParticle$CosyProvider.class
+net/minecraft/client/particle/FallingDustParticle$Provider.class
+com/mojang/blaze3d/systems/TimerQuery$TimerQueryLazyLoader.class
+com/mojang/blaze3d/systems/TimerQuery$FrameProfile.class
+com/mojang/blaze3d/vertex/VertexFormatElement.class
+com/mojang/blaze3d/vertex/VertexMultiConsumer$Multiple.class
+com/mojang/blaze3d/vertex/VertexMultiConsumer$Double.class
+net/minecraft/client/particle/SuspendedParticle$CrimsonSporeProvider.class
+net/minecraft/client/particle/SuspendedParticle$SporeBlossomAirProvider.class
+net/minecraft/client/particle/SuspendedParticle$UnderwaterProvider.class
+net/minecraft/client/particle/SuspendedParticle$WarpedSporeProvider.class
+net/minecraft/client/particle/WhiteSmokeParticle$Provider.class
+net/minecraft/client/renderer/ItemInHandRenderer$HandRenderSelection.class
+net/minecraft/client/renderer/ShaderManager$ShaderSourceKey.class
+net/minecraft/client/renderer/ShaderManager$CompilationCache.class
+net/minecraft/client/renderer/ShaderManager$CompilationException.class
+net/minecraft/client/renderer/WeatherEffectRenderer$ColumnInstance.class
+net/minecraft/client/renderer/ShaderManager$Configs.class
+net/minecraft/client/particle/BubblePopParticle$Provider.class
+net/minecraft/client/particle/ExplodeParticle$Provider.class
+net/minecraft/client/particle/LavaParticle$Provider.class
+net/minecraft/client/particle/PortalParticle$Provider.class
+com/mojang/blaze3d/platform/ClientShutdownWatchdog.class
+com/mojang/blaze3d/platform/DebugMemoryUntracker.class
+com/mojang/blaze3d/platform/ClipboardManager.class
+com/mojang/blaze3d/platform/FramerateLimitTracker.class
+com/mojang/blaze3d/platform/DisplayData.class
+com/mojang/blaze3d/platform/IconSet.class
+com/mojang/blaze3d/platform/MacosUtil.class
+com/mojang/blaze3d/platform/InputConstants.class
+com/mojang/blaze3d/platform/Lighting.class
+com/mojang/blaze3d/platform/MonitorCreator.class
+com/mojang/blaze3d/platform/Monitor.class
+com/mojang/blaze3d/platform/ScreenManager.class
+com/mojang/blaze3d/platform/NativeImage.class
+net/minecraft/client/particle/SquidInkParticle$GlowInkProvider.class
+com/mojang/blaze3d/platform/WindowEventHandler.class
+net/minecraft/client/particle/SquidInkParticle$Provider.class
+com/mojang/blaze3d/platform/VideoMode.class
+com/mojang/blaze3d/platform/Window.class
+net/minecraft/client/particle/WhiteAshParticle$Provider.class
+com/mojang/blaze3d/systems/TimerQuery.class
+com/mojang/blaze3d/systems/ScissorState.class
+com/mojang/blaze3d/vertex/ByteBufferBuilder.class
+com/mojang/blaze3d/vertex/DefaultVertexFormat.class
+com/mojang/blaze3d/vertex/CompactVectorArray.class
+com/mojang/blaze3d/vertex/BufferBuilder.class
+com/mojang/blaze3d/vertex/MeshData.class
+com/mojang/blaze3d/vertex/SheetedDecalTextureGenerator.class
+com/mojang/blaze3d/vertex/PoseStack.class
+com/mojang/blaze3d/vertex/Tesselator.class
+com/mojang/blaze3d/vertex/VertexConsumer.class
+com/mojang/blaze3d/vertex/VertexMultiConsumer.class
+com/mojang/blaze3d/vertex/VertexSorting.class
+net/minecraft/client/renderer/GpuWarnlistManager$Preparations.class
+com/mojang/blaze3d/vertex/VertexFormat.class
+net/minecraft/client/CameraType.class
+net/minecraft/client/Camera.class
+net/minecraft/client/ClientRecipeBook.class
+net/minecraft/client/ClientBootstrap.class
+net/minecraft/client/CommandHistory.class
 net/minecraft/client/CloudStatus.class
+net/minecraft/client/DebugQueryHandler.class
+net/minecraft/client/AttackIndicatorStatus.class
+net/minecraft/client/GameNarrator.class
+net/minecraft/client/ComponentCollector.class
+net/minecraft/client/DeltaTracker.class
+net/minecraft/client/GuiMessage.class
 net/minecraft/client/GraphicsStatus.class
+net/minecraft/client/HotbarManager.class
+net/minecraft/client/GuiMessageTag.class
+net/minecraft/client/InputType.class
+net/minecraft/client/InactivityFpsLimit.class
+net/minecraft/client/KeyMapping.class
+net/minecraft/client/KeyboardHandler.class
+net/minecraft/client/renderer/ShaderDefines$Builder.class
+net/minecraft/client/Minecraft.class
 net/minecraft/client/NarratorStatus.class
-net/minecraft/client/gui/screens/AlertScreen.class
-net/minecraft/client/gui/screens/BackupConfirmScreen.class
+net/minecraft/client/OptionInstance.class
+net/minecraft/client/PeriodicNotificationManager.class
+net/minecraft/client/ResourceLoadStateTracker.class
+net/minecraft/client/PrioritizeChunkUpdates.class
+net/minecraft/client/MouseHandler.class
+net/minecraft/client/ScrollWheelHandler.class
+net/minecraft/client/ToggleKeyMapping.class
+net/minecraft/client/Screenshot.class
+net/minecraft/client/User.class
+net/minecraft/client/StringSplitter.class
+net/minecraft/client/Options.class
+com/mojang/blaze3d/platform/DestFactor.class
 net/minecraft/client/gui/screens/AccessibilityOnboardingScreen.class
-net/minecraft/client/gui/screens/ConnectScreen.class
-net/minecraft/client/gui/screens/ConfirmLinkScreen.class
+net/minecraft/client/gui/screens/BackupConfirmScreen.class
 net/minecraft/client/gui/screens/ChatScreen.class
 net/minecraft/client/gui/screens/ConfirmScreen.class
-net/minecraft/client/gui/screens/CreateFlatWorldScreen.class
+net/minecraft/client/gui/screens/ConnectScreen.class
+net/minecraft/client/gui/screens/AlertScreen.class
 net/minecraft/client/gui/screens/DatapackLoadFailureScreen.class
 net/minecraft/client/gui/screens/CreateBuffetWorldScreen.class
 net/minecraft/client/gui/screens/CreditsAndAttributionScreen.class
 net/minecraft/client/gui/screens/DemoIntroScreen.class
 net/minecraft/client/gui/screens/DisconnectedScreen.class
 net/minecraft/client/gui/screens/DeathScreen.class
-net/minecraft/client/gui/screens/DirectJoinServerScreen.class
+net/minecraft/client/gui/screens/ConfirmLinkScreen.class
 net/minecraft/client/gui/screens/ErrorScreen.class
-net/minecraft/client/gui/screens/GenericMessageScreen.class
 net/minecraft/client/gui/screens/GenericWaitingScreen.class
+net/minecraft/client/gui/screens/GenericMessageScreen.class
 net/minecraft/client/gui/screens/InBedChatScreen.class
-net/minecraft/client/gui/screens/LevelLoadingScreen.class
+net/minecraft/client/gui/screens/CreateFlatWorldScreen.class
+net/minecraft/client/gui/screens/DirectJoinServerScreen.class
 net/minecraft/client/gui/screens/ManageServerScreen.class
 net/minecraft/client/gui/screens/NoticeWithLinkScreen.class
 net/minecraft/client/gui/screens/OutOfMemoryScreen.class
-net/minecraft/client/gui/screens/RecoverWorldDataScreen.class
-net/minecraft/client/gui/screens/PresetFlatWorldScreen.class
 net/minecraft/client/gui/screens/PauseScreen.class
+net/minecraft/client/gui/screens/LevelLoadingScreen.class
 net/minecraft/client/gui/screens/ProgressScreen.class
-net/minecraft/client/gui/screens/ShareToLanScreen.class
+net/minecraft/client/gui/screens/PresetFlatWorldScreen.class
 net/minecraft/client/gui/screens/WinScreen.class
+net/minecraft/client/gui/screens/RecoverWorldDataScreen.class
+net/minecraft/client/gui/screens/ShareToLanScreen.class
 net/minecraft/client/gui/screens/TitleScreen.class
+com/mojang/blaze3d/platform/FramerateLimitTracker$FramerateThrottleReason.class
+net/minecraft/client/particle/DragonBreathParticle$Provider.class
+net/minecraft/client/particle/FireflyParticle$FireflyProvider.class
+net/minecraft/client/particle/NoteParticle$Provider.class
+net/minecraft/client/model/geom/EntityModelSet.class
+net/minecraft/client/model/geom/ModelLayerLocation.class
+net/minecraft/client/model/geom/ModelPart.class
+net/minecraft/client/model/geom/PartPose.class
+net/minecraft/client/model/geom/ModelLayers.class
+net/minecraft/client/model/geom/LayerDefinitions.class
+net/minecraft/client/model/geom/PartNames.class
+net/minecraft/client/particle/SculkChargeParticle$Provider.class
+net/minecraft/client/particle/AshParticle.class
+net/minecraft/client/particle/AttackSweepParticle.class
+net/minecraft/client/particle/BaseAshSmokeParticle.class
+net/minecraft/client/particle/BlockMarker.class
+net/minecraft/client/particle/BreakingItemParticle.class
+net/minecraft/client/particle/BubbleParticle.class
+net/minecraft/client/particle/BubbleColumnUpParticle.class
+net/minecraft/client/particle/CampfireSmokeParticle.class
+net/minecraft/client/particle/BubblePopParticle.class
+net/minecraft/client/particle/CritParticle.class
+net/minecraft/client/particle/DragonBreathParticle.class
+net/minecraft/client/particle/DustColorTransitionParticle.class
+net/minecraft/client/particle/DustParticleBase.class
+net/minecraft/client/particle/DustParticle.class
+net/minecraft/client/particle/DripParticle.class
+net/minecraft/client/particle/DustPlumeParticle.class
+net/minecraft/client/particle/ElderGuardianParticleGroup.class
+net/minecraft/client/particle/ElderGuardianParticle.class
+net/minecraft/client/particle/ExplodeParticle.class
+net/minecraft/client/particle/EndRodParticle.class
+net/minecraft/client/particle/FireworkParticles.class
+net/minecraft/client/particle/FallingDustParticle.class
+net/minecraft/client/particle/FallingLeavesParticle.class
+net/minecraft/client/particle/FireflyParticle.class
+net/minecraft/client/particle/FlyStraightTowardsParticle.class
+net/minecraft/client/particle/FlameParticle.class
+net/minecraft/client/particle/GlowParticle.class
+net/minecraft/client/particle/GustSeedParticle.class
+net/minecraft/client/particle/GustParticle.class
+net/minecraft/client/particle/HugeExplosionParticle.class
+net/minecraft/client/particle/FlyTowardsPositionParticle.class
+net/minecraft/client/particle/HeartParticle.class
+net/minecraft/client/particle/ItemPickupParticle.class
+net/minecraft/client/particle/LargeSmokeParticle.class
+net/minecraft/client/particle/HugeExplosionSeedParticle.class
+net/minecraft/client/renderer/LevelRenderer$BrightnessGetter.class
+net/minecraft/client/particle/ItemPickupParticleGroup.class
+net/minecraft/client/particle/LavaParticle.class
+net/minecraft/client/particle/NoteParticle.class
+net/minecraft/client/particle/NoRenderParticleGroup.class
+net/minecraft/client/particle/ParticleDescription.class
+net/minecraft/client/particle/ParticleProvider.class
+net/minecraft/client/particle/Particle.class
+net/minecraft/client/particle/ParticleGroup.class
+net/minecraft/client/renderer/PlayerSkinRenderCache$RenderInfo.class
+net/minecraft/client/particle/ParticleRenderType.class
+net/minecraft/client/particle/PortalParticle.class
+net/minecraft/client/particle/NoRenderParticle.class
+net/minecraft/client/particle/PlayerCloudParticle.class
+net/minecraft/client/particle/ReversePortalParticle.class
+net/minecraft/client/particle/ParticleEngine.class
+net/minecraft/client/particle/SculkChargeParticle.class
+net/minecraft/client/particle/QuadParticleGroup.class
+net/minecraft/client/particle/RisingParticle.class
+net/minecraft/client/particle/SculkChargePopParticle.class
+net/minecraft/client/particle/ShriekParticle.class
+net/minecraft/client/particle/ParticleResources.class
+net/minecraft/client/particle/SimpleAnimatedParticle.class
+net/minecraft/client/particle/SingleQuadParticle.class
+net/minecraft/client/particle/SnowflakeParticle.class
+net/minecraft/client/particle/SonicBoomParticle.class
+net/minecraft/client/particle/SmokeParticle.class
+net/minecraft/client/particle/SoulParticle.class
+net/minecraft/client/particle/SpriteSet.class
+net/minecraft/client/particle/SpitParticle.class
+net/minecraft/client/particle/SplashParticle.class
+net/minecraft/client/particle/SuspendedParticle.class
+net/minecraft/client/particle/SpellParticle.class
+net/minecraft/client/particle/SquidInkParticle.class
+net/minecraft/client/particle/SuspendedTownParticle.class
+net/minecraft/client/particle/TotemParticle.class
+net/minecraft/client/particle/TrailParticle.class
+net/minecraft/client/particle/TerrainParticle.class
+net/minecraft/client/particle/TrackingEmitter.class
+net/minecraft/client/particle/TrialSpawnerDetectionParticle.class
+net/minecraft/client/particle/VibrationSignalParticle.class
+net/minecraft/client/particle/WakeParticle.class
+net/minecraft/client/particle/WhiteAshParticle.class
+net/minecraft/client/particle/WhiteSmokeParticle.class
+net/minecraft/client/player/ClientInput.class
+net/minecraft/client/particle/WaterDropParticle.class
+net/minecraft/client/player/KeyboardInput.class
+net/minecraft/client/player/AbstractClientPlayer.class
+net/minecraft/client/player/RemotePlayer.class
+net/minecraft/client/player/LocalPlayerResolver.class
+net/minecraft/client/renderer/BiomeColors.class
+net/minecraft/client/renderer/CachedPerspectiveProjectionMatrixBuffer.class
+net/minecraft/client/renderer/CachedOrthoProjectionMatrixBuffer.class
+net/minecraft/client/renderer/CubeMap.class
+net/minecraft/client/player/LocalPlayer.class
+net/minecraft/client/renderer/DimensionSpecialEffects.class
+net/minecraft/client/renderer/CloudRenderer.class
+net/minecraft/client/renderer/DynamicUniformStorage.class
+net/minecraft/client/renderer/DynamicUniforms.class
+net/minecraft/client/renderer/EndFlashState.class
+net/minecraft/client/renderer/FaceInfo.class
+net/minecraft/client/particle/WaterCurrentDownParticle.class
+net/minecraft/client/renderer/GlobalSettingsUniform.class
+net/minecraft/client/renderer/ItemBlockRenderTypes.class
+net/minecraft/client/renderer/ItemInHandRenderer.class
+net/minecraft/client/renderer/GpuWarnlistManager.class
+net/minecraft/client/renderer/GameRenderer.class
+net/minecraft/client/renderer/LevelTargetBundle.class
+net/minecraft/client/renderer/LightTexture.class
+net/minecraft/client/renderer/MappableRingBuffer.class
+net/minecraft/client/renderer/MultiBufferSource.class
+net/minecraft/client/renderer/MapRenderer.class
+net/minecraft/client/renderer/MaterialMapper.class
+net/minecraft/client/renderer/Octree.class
+net/minecraft/client/renderer/OrderedSubmitNodeCollector.class
+net/minecraft/client/renderer/OutlineBufferSource.class
+net/minecraft/client/renderer/PerspectiveProjectionMatrixBuffer.class
+net/minecraft/client/renderer/PanoramaRenderer.class
+net/minecraft/client/renderer/LevelEventHandler.class
+com/mojang/blaze3d/platform/TextureUtil.class
+net/minecraft/client/renderer/PlayerSkinRenderCache.class
+net/minecraft/client/renderer/PostChainConfig.class
+net/minecraft/client/renderer/PostChain.class
+net/minecraft/client/renderer/RenderBuffers.class
+net/minecraft/client/renderer/RenderStateShard.class
+net/minecraft/client/renderer/RunningTrimmedMean.class
+net/minecraft/client/renderer/RenderPipelines.class
+net/minecraft/client/renderer/SectionBufferBuilderPack.class
+net/minecraft/client/renderer/PostPass.class
+net/minecraft/client/renderer/ScreenEffectRenderer.class
+net/minecraft/client/renderer/SectionBufferBuilderPool.class
+net/minecraft/client/renderer/RenderType.class
+net/minecraft/client/renderer/SectionOcclusionGraph.class
+net/minecraft/client/renderer/ShaderDefines.class
+net/minecraft/client/renderer/ShaderManager.class
+net/minecraft/client/renderer/SpecialBlockModelRenderer.class
+net/minecraft/client/renderer/ShapeRenderer.class
+net/minecraft/client/renderer/SubmitNodeCollection.class
+net/minecraft/client/renderer/SpriteCoordinateExpander.class
+net/minecraft/client/renderer/LevelRenderer.class
+net/minecraft/client/renderer/SubmitNodeCollector.class
+net/minecraft/client/renderer/SkyRenderer.class
+net/minecraft/client/renderer/UniformValue.class
+net/minecraft/client/renderer/VirtualScreen.class
+net/minecraft/client/renderer/SubmitNodeStorage.class
+net/minecraft/client/renderer/WorldBorderRenderer.class
+net/minecraft/client/renderer/Sheets.class
+net/minecraft/client/renderer/WeatherEffectRenderer.class
+net/minecraft/client/renderer/ViewArea.class
+com/mojang/blaze3d/systems/CommandEncoder.class
+net/minecraft/client/renderer/chunk/ChunkSectionLayer.class
+net/minecraft/client/renderer/chunk/ChunkSectionLayerGroup.class
+net/minecraft/client/renderer/chunk/ChunkSectionsToRender.class
+net/minecraft/client/renderer/chunk/CompileTaskDynamicQueue.class
+net/minecraft/client/renderer/chunk/RenderSectionRegion.class
+net/minecraft/client/renderer/chunk/CompiledSectionMesh.class
+net/minecraft/client/renderer/chunk/RenderRegionCache.class
+net/minecraft/client/renderer/chunk/SectionBuffers.class
+net/minecraft/client/renderer/chunk/SectionCompiler.class
+net/minecraft/client/renderer/chunk/SectionCopy.class
+net/minecraft/client/renderer/chunk/SectionMesh.class
+net/minecraft/client/renderer/chunk/VisGraph.class
+net/minecraft/client/renderer/chunk/TranslucencyPointOfView.class
+net/minecraft/client/renderer/chunk/VisibilitySet.class
+net/minecraft/client/renderer/chunk/SectionRenderDispatcher.class
+net/minecraft/client/particle/CritParticle$DamageIndicatorProvider.class
+net/minecraft/client/particle/CritParticle$Provider.class
+net/minecraft/client/particle/CritParticle$MagicProvider.class
+net/minecraft/client/particle/FallingLeavesParticle$PaleOakProvider.class
+net/minecraft/client/particle/FallingLeavesParticle$TintedLeavesProvider.class
+net/minecraft/client/particle/FallingLeavesParticle$CherryProvider.class
+net/minecraft/client/renderer/fog/FogData.class
+net/minecraft/client/renderer/fog/environment/AtmosphericFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/BlindnessFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/DimensionOrBossFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/AirBasedFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/DarknessFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/LavaFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/FogEnvironment.class
+net/minecraft/client/renderer/fog/environment/PowderedSnowFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/MobEffectFogEnvironment.class
+net/minecraft/client/renderer/fog/FogRenderer.class
+net/minecraft/client/renderer/fog/environment/WaterFogEnvironment.class
+net/minecraft/client/particle/ReversePortalParticle$ReversePortalProvider.class
+com/mojang/blaze3d/vertex/VertexSorting$DistanceFunction.class
+net/minecraft/client/particle/SuspendedTownParticle$ComposterFillProvider.class
+net/minecraft/client/particle/SuspendedTownParticle$DolphinSpeedProvider.class
+net/minecraft/client/particle/SuspendedTownParticle$HappyVillagerProvider.class
+net/minecraft/client/particle/SuspendedTownParticle$EggCrackProvider.class
+net/minecraft/client/particle/SuspendedTownParticle$Provider.class
+net/minecraft/client/renderer/state/BlockBreakingRenderState.class
+net/minecraft/client/renderer/state/BlockOutlineRenderState.class
+net/minecraft/client/renderer/state/ParticleGroupRenderState.class
+net/minecraft/client/renderer/state/LevelRenderState.class
+net/minecraft/client/renderer/state/CameraRenderState.class
+net/minecraft/client/renderer/state/MapRenderState.class
+net/minecraft/client/renderer/state/ParticlesRenderState.class
+net/minecraft/client/renderer/state/WeatherRenderState.class
+net/minecraft/client/renderer/state/SkyRenderState.class
+net/minecraft/client/renderer/state/WorldBorderRenderState.class
+net/minecraft/client/renderer/state/QuadParticleRenderState.class
+net/minecraft/client/renderer/state/MapRenderState$MapDecorationRenderState.class
+net/minecraft/client/renderer/chunk/SectionRenderDispatcher$SectionTaskResult.class
+net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection.class
+net/minecraft/client/renderer/fog/FogRenderer$FogMode.class
+com/mojang/blaze3d/platform/InputConstants$Key.class
+com/mojang/blaze3d/platform/InputConstants$Type.class
+net/minecraft/client/particle/DustColorTransitionParticle$Provider.class
+net/minecraft/client/particle/FlameParticle$Provider.class
+net/minecraft/client/particle/FlameParticle$SmallFlameProvider.class
+net/minecraft/client/particle/DustParticle$Provider.class
+net/minecraft/client/particle/FlyStraightTowardsParticle$OminousSpawnProvider.class
+net/minecraft/client/particle/ShriekParticle$Provider.class
+net/minecraft/client/renderer/PostChainConfig$Input.class
+net/minecraft/client/renderer/PostChainConfig$InternalTarget.class
+net/minecraft/client/renderer/PostChainConfig$TextureInput.class
+net/minecraft/client/renderer/PostChainConfig$Pass.class
+net/minecraft/client/renderer/PostChainConfig$TargetInput.class
+com/mojang/blaze3d/vertex/VertexFormat$Builder.class
+net/minecraft/client/ClientBrandRetriever.class
+net/minecraft/client/particle/DripParticle$LavaFallProvider.class
+net/minecraft/client/particle/DripParticle$HoneyLandProvider.class
+net/minecraft/client/particle/DripParticle$HoneyHangProvider.class
+net/minecraft/client/particle/DripParticle$HoneyFallProvider.class
+net/minecraft/client/particle/DripParticle$FallingParticle.class
+net/minecraft/client/particle/DripParticle$HoneyFallAndLandParticle.class
+net/minecraft/client/particle/DripParticle$FallAndLandParticle.class
+net/minecraft/client/particle/DripParticle$WaterFallProvider.class
+net/minecraft/client/particle/DripParticle$DripstoneWaterHangProvider.class
+net/minecraft/client/particle/DripParticle$SporeBlossomFallProvider.class
+net/minecraft/client/particle/DripParticle$ObsidianTearLandProvider.class
+net/minecraft/client/particle/DripParticle$ObsidianTearHangProvider.class
+net/minecraft/client/particle/DripParticle$ObsidianTearFallProvider.class
+net/minecraft/client/particle/DripParticle$NectarFallProvider.class
+net/minecraft/client/particle/DripParticle$LavaLandProvider.class
+net/minecraft/client/particle/DripParticle$LavaHangProvider.class
+net/minecraft/client/particle/DripParticle$WaterHangProvider.class
+net/minecraft/client/particle/DripParticle$DripstoneWaterFallProvider.class
+net/minecraft/client/particle/DripParticle$DripstoneLavaHangProvider.class
+net/minecraft/client/particle/DripParticle$DripLandParticle.class
+net/minecraft/client/particle/DripParticle$DripstoneLavaFallProvider.class
+net/minecraft/client/particle/DripParticle$DripHangParticle.class
+net/minecraft/client/particle/DripParticle$DripstoneFallAndLandParticle.class
+net/minecraft/client/particle/DripParticle$CoolingDripHangParticle.class
+net/minecraft/client/particle/FireworkParticles$FlashProvider.class
+net/minecraft/client/particle/FireworkParticles$OverlayParticle.class
+net/minecraft/client/particle/FireworkParticles$SparkParticle.class
+net/minecraft/client/particle/FireworkParticles$SparkProvider.class
+net/minecraft/client/particle/FireworkParticles$Starter.class
+com/mojang/blaze3d/systems/RenderSystem$GpuAsyncTask.class
+net/minecraft/client/particle/Particle$LifetimeAlpha.class
+com/mojang/blaze3d/systems/RenderSystem$AutoStorageIndexBuffer.class
+com/mojang/blaze3d/vertex/ByteBufferBuilder$Result.class
+net/minecraft/client/particle/SculkChargePopParticle$Provider.class
+net/minecraft/client/model/geom/ModelPart$Visitor.class
+net/minecraft/client/model/geom/ModelPart$Vertex.class
+net/minecraft/client/model/geom/ModelPart$Polygon.class
+net/minecraft/client/model/geom/ModelPart$Cube.class
+net/minecraft/client/renderer/PostChain$TargetBundle.class
+com/mojang/blaze3d/platform/PolygonMode.class
+net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$CompileTask.class
+net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$RebuildTask.class
+net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$ResortTransparencyTask.class
+net/minecraft/client/particle/DustPlumeParticle$Provider.class
+net/minecraft/client/particle/GlowParticle$ElectricSparkProvider.class
+net/minecraft/client/particle/GlowParticle$GlowSquidProvider.class
+net/minecraft/client/particle/GlowParticle$ScrapeProvider.class
+net/minecraft/client/particle/GlowParticle$WaxOffProvider.class
+net/minecraft/client/particle/GlowParticle$WaxOnProvider.class
+com/mojang/blaze3d/vertex/MeshData$DrawState.class
+com/mojang/blaze3d/vertex/MeshData$SortState.class
+net/minecraft/client/particle/SingleQuadParticle$FacingCameraMode.class
+net/minecraft/client/particle/SingleQuadParticle$Layer.class
+net/minecraft/client/particle/TerrainParticle$CrumblingProvider.class
+net/minecraft/client/particle/TerrainParticle$DustPillarProvider.class
+net/minecraft/client/particle/TerrainParticle$Provider.class
+net/minecraft/client/renderer/CloudRenderer$RelativeCameraPos.class
+net/minecraft/client/renderer/CloudRenderer$TextureData.class
+com/mojang/blaze3d/platform/Lighting$Entry.class
+net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard$Builder.class
+net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard$Entry.class
+net/minecraft/client/particle/FlyTowardsPositionParticle$EnchantProvider.class
+net/minecraft/client/particle/FlyTowardsPositionParticle$NautilusProvider.class
+net/minecraft/client/particle/FlyTowardsPositionParticle$VaultConnectionProvider.class
+net/minecraft/client/renderer/PostPass$Input.class
+net/minecraft/client/renderer/PostPass$TextureInput.class
+net/minecraft/client/renderer/PostPass$TargetInput.class
+net/minecraft/client/renderer/DimensionSpecialEffects$SkyType.class
+com/mojang/blaze3d/vertex/VertexFormatElement$Type.class
+net/minecraft/client/renderer/DimensionSpecialEffects$EndEffects.class
+net/minecraft/client/renderer/DimensionSpecialEffects$OverworldEffects.class
+net/minecraft/client/renderer/DimensionSpecialEffects$NetherEffects.class
+net/minecraft/client/renderer/SubmitNodeStorage$ShadowSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$NameTagSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$MovingBlockSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$ModelSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$TextSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$TranslucentModelSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$CustomGeometrySubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$FlameSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$BlockSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$LeashSubmit.class
+net/minecraft/client/renderer/MultiBufferSource$BufferSource.class
+net/minecraft/client/renderer/SubmitNodeStorage$HitboxSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$ModelPartSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$ItemSubmit.class
+net/minecraft/client/renderer/SubmitNodeStorage$BlockModelSubmit.class
+net/minecraft/client/particle/AshParticle$Provider.class
+com/mojang/blaze3d/platform/NativeImage$Format.class
+net/minecraft/client/particle/GustSeedParticle$Provider.class
+com/mojang/blaze3d/platform/NativeImage$WriteCallback.class
+net/minecraft/client/particle/SnowflakeParticle$Provider.class
+net/minecraft/client/renderer/RenderType$CompositeState$CompositeStateBuilder.class
+net/minecraft/client/renderer/SubmitNodeCollector$ParticleGroupRenderer.class
+net/minecraft/client/renderer/SubmitNodeCollector$CustomGeometryRenderer.class
+net/minecraft/client/renderer/state/QuadParticleRenderState$ParticleConsumer.class
+net/minecraft/client/renderer/state/QuadParticleRenderState$PreparedBuffers.class
+net/minecraft/client/renderer/state/QuadParticleRenderState$Storage.class
+net/minecraft/client/renderer/state/QuadParticleRenderState$PreparedLayer.class
+com/mojang/blaze3d/platform/LogicOp.class
+net/minecraft/client/particle/GustParticle$Provider.class
+net/minecraft/client/particle/GustParticle$SmallProvider.class
+net/minecraft/client/particle/SmokeParticle$Provider.class
+net/minecraft/client/particle/TotemParticle$Provider.class
+com/mojang/blaze3d/systems/RenderPass$UniformUploader.class
+com/mojang/blaze3d/systems/RenderPass$Draw.class
+net/minecraft/client/particle/SoulParticle$Provider.class
+net/minecraft/client/particle/SoulParticle$EmissiveProvider.class
+net/minecraft/client/particle/TrialSpawnerDetectionParticle$Provider.class
+net/minecraft/client/renderer/DynamicUniforms$Transform.class
+com/mojang/blaze3d/platform/GLX.class
+net/minecraft/client/renderer/RenderType$OutlineProperty.class
+net/minecraft/client/renderer/RenderType$CompositeState.class
+net/minecraft/client/renderer/RenderType$CompositeRenderType.class
+com/mojang/blaze3d/systems/RenderSystem$AutoStorageIndexBuffer$IndexGenerator.class
+com/mojang/blaze3d/systems/RenderPass.class
+net/minecraft/client/particle/HugeExplosionParticle$Provider.class
+net/minecraft/client/renderer/DynamicUniformStorage$DynamicUniform.class
+net/minecraft/client/renderer/Octree$Leaf.class
+net/minecraft/client/renderer/Octree$OctreeVisitor.class
+net/minecraft/client/renderer/Octree$Node.class
+net/minecraft/client/renderer/Octree$AxisSorting.class
+net/minecraft/client/renderer/Octree$Branch.class
+net/minecraft/client/renderer/RenderStateShard$BooleanStateShard.class
+net/minecraft/client/renderer/RenderStateShard$LayeringStateShard.class
+net/minecraft/client/renderer/RenderStateShard$LightmapStateShard.class
+net/minecraft/client/renderer/RenderStateShard$OutputStateShard.class
+net/minecraft/client/renderer/RenderStateShard$MultiTextureStateShard.class
+net/minecraft/client/renderer/RenderStateShard$LineStateShard.class
+net/minecraft/client/renderer/RenderStateShard$OffsetTexturingStateShard.class
+net/minecraft/client/renderer/RenderStateShard$TextureStateShard.class
+net/minecraft/client/renderer/RenderStateShard$OverlayStateShard.class
+net/minecraft/client/renderer/RenderStateShard$TexturingStateShard.class
+net/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard.class
+net/minecraft/client/renderer/state/WorldBorderRenderState$DistancePerDirection.class
+com/mojang/blaze3d/vertex/VertexFormat$Mode.class
+com/mojang/blaze3d/vertex/VertexFormat$IndexType.class
+net/minecraft/client/particle/AttackSweepParticle$Provider.class
+net/minecraft/client/particle/HeartParticle$AngryVillagerProvider.class
+net/minecraft/client/particle/HeartParticle$Provider.class
+net/minecraft/client/particle/SonicBoomParticle$Provider.class
+net/minecraft/client/particle/TrailParticle$Provider.class
+com/mojang/blaze3d/vertex/PoseStack$Pose.class
+net/minecraft/client/particle/SpitParticle$Provider.class
+net/minecraft/client/particle/WakeParticle$Provider.class
+net/minecraft/client/renderer/FaceInfo$Constants.class
+net/minecraft/client/renderer/FaceInfo$VertexInfo.class
+net/minecraft/client/renderer/chunk/SectionCompiler$Results.class
+net/minecraft/client/particle/BreakingItemParticle$SnowballProvider.class
+net/minecraft/client/particle/BreakingItemParticle$SlimeProvider.class
+net/minecraft/client/particle/BreakingItemParticle$Provider.class
+net/minecraft/client/particle/BreakingItemParticle$ItemParticleProvider.class
+net/minecraft/client/particle/BreakingItemParticle$CobwebProvider.class
+net/minecraft/client/particle/ElderGuardianParticle$Provider.class
+net/minecraft/client/particle/ParticleProvider$Sprite.class
+net/minecraft/client/particle/SpellParticle$WitchProvider.class
+net/minecraft/client/particle/SpellParticle$InstantProvider.class
+net/minecraft/client/particle/SpellParticle$MobEffectProvider.class
+net/minecraft/client/particle/SpellParticle$Provider.class
+net/minecraft/client/particle/VibrationSignalParticle$Provider.class
+net/minecraft/client/renderer/OutlineBufferSource$EntityOutlineGenerator.class
+net/minecraft/client/particle/BlockMarker$Provider.class
+com/mojang/blaze3d/systems/RenderSystem.class
+net/minecraft/client/particle/HugeExplosionSeedParticle$Provider.class
+=== grep ignette|BrightnessGetter|LightCoords|getLightColor|setSectionDirty|SnowAndRain|class .*Weather|FramerateLimit|getCloudHeight|class .*Fog|calculateFov|addDestroyBlockEffect|addBreakingBlockEffect|renderStars|renderSunMoonAndStars|class .*Sky|limitDisplayFPS|setRotation\(float, float\)
+public class net.minecraft.client.multiplayer.ClientLevel extends net.minecraft.world.level.Level implements net.minecraft.client.multiplayer.CacheSlot$Cleaner<net.minecraft.client.multiplayer.ClientLevel> { ::   public void setSectionDirtyWithNeighbors(int, int, int);
+public class net.minecraft.client.multiplayer.ClientLevel extends net.minecraft.world.level.Level implements net.minecraft.client.multiplayer.CacheSlot$Cleaner<net.minecraft.client.multiplayer.ClientLevel> { ::   public void addDestroyBlockEffect(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState);
+public class net.minecraft.client.multiplayer.ClientLevel extends net.minecraft.world.level.Level implements net.minecraft.client.multiplayer.CacheSlot$Cleaner<net.minecraft.client.multiplayer.ClientLevel> { ::   public void addBreakingBlockEffect(net.minecraft.core.BlockPos, net.minecraft.core.Direction);
+public class net.minecraft.client.Minecraft extends net.minecraft.util.thread.ReentrantBlockableEventLoop<java.lang.Runnable> implements com.mojang.blaze3d.platform.WindowEventHandler { ::   private final com.mojang.blaze3d.platform.FramerateLimitTracker framerateLimitTracker;
+public class net.minecraft.client.Minecraft extends net.minecraft.util.thread.ReentrantBlockableEventLoop<java.lang.Runnable> implements com.mojang.blaze3d.platform.WindowEventHandler { ::   public com.mojang.blaze3d.platform.FramerateLimitTracker getFramerateLimitTracker();
+public class net.minecraft.client.gui.screens.WinScreen extends net.minecraft.client.gui.screens.Screen { ::   private void renderVignette(net.minecraft.client.gui.GuiGraphics);
+public class net.minecraft.client.gui.Gui { ::   public float vignetteBrightness;
+public class net.minecraft.client.gui.Gui { ::   private void updateVignetteBrightness(net.minecraft.world.entity.Entity);
+public class net.minecraft.client.gui.Gui { ::   private void renderVignette(net.minecraft.client.gui.GuiGraphics, net.minecraft.world.entity.Entity);
+public class net.minecraft.client.renderer.WeatherEffectRenderer { :: public class net.minecraft.client.renderer.WeatherEffectRenderer {
+public class net.minecraft.client.renderer.entity.ItemFrameRenderer<T extends net.minecraft.world.entity.decoration.ItemFrame> extends net.minecraft.client.renderer.entity.EntityRenderer<T, net.minecraft.client.renderer.entity.state.ItemFrameRenderState> { ::   private int getLightCoords(boolean, int, int);
+public abstract class net.minecraft.client.renderer.entity.EntityRenderer<T extends net.minecraft.world.entity.Entity, S extends net.minecraft.client.renderer.entity.state.EntityRenderState> { ::   public final int getPackedLightCoords(T, float);
+public class net.minecraft.client.renderer.entity.EntityRenderDispatcher implements net.minecraft.server.packs.resources.ResourceManagerReloadListener { ::   public <E extends net.minecraft.world.entity.Entity> int getPackedLightCoords(E, float);
+public final class net.minecraft.client.renderer.DimensionSpecialEffects$SkyType extends java.lang.Enum<net.minecraft.client.renderer.DimensionSpecialEffects$SkyType> { :: public final class net.minecraft.client.renderer.DimensionSpecialEffects$SkyType extends java.lang.Enum<net.minecraft.client.renderer.DimensionSpecialEffects$SkyType> {
+public class net.minecraft.client.renderer.fog.FogData { :: public class net.minecraft.client.renderer.fog.FogData {
+public class net.minecraft.client.renderer.fog.environment.WaterFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment { :: public class net.minecraft.client.renderer.fog.environment.WaterFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment {
+public abstract class net.minecraft.client.renderer.fog.environment.FogEnvironment { :: public abstract class net.minecraft.client.renderer.fog.environment.FogEnvironment {
+public class net.minecraft.client.renderer.fog.environment.DimensionOrBossFogEnvironment extends net.minecraft.client.renderer.fog.environment.AirBasedFogEnvironment { :: public class net.minecraft.client.renderer.fog.environment.DimensionOrBossFogEnvironment extends net.minecraft.client.renderer.fog.environment.AirBasedFogEnvironment {
+public class net.minecraft.client.renderer.fog.environment.DarknessFogEnvironment extends net.minecraft.client.renderer.fog.environment.MobEffectFogEnvironment { :: public class net.minecraft.client.renderer.fog.environment.DarknessFogEnvironment extends net.minecraft.client.renderer.fog.environment.MobEffectFogEnvironment {
+public abstract class net.minecraft.client.renderer.fog.environment.AirBasedFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment { :: public abstract class net.minecraft.client.renderer.fog.environment.AirBasedFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment {
+public class net.minecraft.client.renderer.fog.environment.BlindnessFogEnvironment extends net.minecraft.client.renderer.fog.environment.MobEffectFogEnvironment { :: public class net.minecraft.client.renderer.fog.environment.BlindnessFogEnvironment extends net.minecraft.client.renderer.fog.environment.MobEffectFogEnvironment {
+public class net.minecraft.client.renderer.fog.environment.PowderedSnowFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment { :: public class net.minecraft.client.renderer.fog.environment.PowderedSnowFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment {
+public abstract class net.minecraft.client.renderer.fog.environment.MobEffectFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment { :: public abstract class net.minecraft.client.renderer.fog.environment.MobEffectFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment {
+public class net.minecraft.client.renderer.fog.environment.LavaFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment { :: public class net.minecraft.client.renderer.fog.environment.LavaFogEnvironment extends net.minecraft.client.renderer.fog.environment.FogEnvironment {
+public class net.minecraft.client.renderer.fog.environment.AtmosphericFogEnvironment extends net.minecraft.client.renderer.fog.environment.AirBasedFogEnvironment { :: public class net.minecraft.client.renderer.fog.environment.AtmosphericFogEnvironment extends net.minecraft.client.renderer.fog.environment.AirBasedFogEnvironment {
+public class net.minecraft.client.renderer.fog.FogRenderer implements java.lang.AutoCloseable { :: public class net.minecraft.client.renderer.fog.FogRenderer implements java.lang.AutoCloseable {
+public final class net.minecraft.client.renderer.fog.FogRenderer$FogMode extends java.lang.Enum<net.minecraft.client.renderer.fog.FogRenderer$FogMode> { :: public final class net.minecraft.client.renderer.fog.FogRenderer$FogMode extends java.lang.Enum<net.minecraft.client.renderer.fog.FogRenderer$FogMode> {
+public class net.minecraft.client.renderer.SkyRenderer implements java.lang.AutoCloseable { :: public class net.minecraft.client.renderer.SkyRenderer implements java.lang.AutoCloseable {
+public class net.minecraft.client.renderer.SkyRenderer implements java.lang.AutoCloseable { ::   public void renderSunMoonAndStars(com.mojang.blaze3d.vertex.PoseStack, float, int, float, float);
+public class net.minecraft.client.renderer.SkyRenderer implements java.lang.AutoCloseable { ::   private void renderStars(float, com.mojang.blaze3d.vertex.PoseStack);
+public class net.minecraft.client.renderer.state.WeatherRenderState { :: public class net.minecraft.client.renderer.state.WeatherRenderState {
+public class net.minecraft.client.renderer.state.SkyRenderState { :: public class net.minecraft.client.renderer.state.SkyRenderState {
+public final class net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance extends java.lang.Record { :: public final class net.minecraft.client.renderer.WeatherEffectRenderer$ColumnInstance extends java.lang.Record {
+public interface net.minecraft.client.renderer.LevelRenderer$BrightnessGetter { :: public interface net.minecraft.client.renderer.LevelRenderer$BrightnessGetter {
+public interface net.minecraft.client.renderer.LevelRenderer$BrightnessGetter { ::   public static final net.minecraft.client.renderer.LevelRenderer$BrightnessGetter DEFAULT;
+class net.minecraft.client.renderer.block.ModelBlockRenderer$Cache { ::   private final net.minecraft.client.renderer.LevelRenderer$BrightnessGetter cachedBrightnessGetter;
+class net.minecraft.client.renderer.block.ModelBlockRenderer$Cache { ::   public int getLightColor(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockAndTintGetter, net.minecraft.core.BlockPos);
+public class net.minecraft.client.renderer.block.LiquidBlockRenderer { ::   private int getLightColor(net.minecraft.world.level.BlockAndTintGetter, net.minecraft.core.BlockPos);
+public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   public void setSectionDirtyWithNeighbors(int, int, int);
+public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   public void setSectionDirty(int, int, int);
+public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   private void setSectionDirty(int, int, int, boolean);
+public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   public static int getLightColor(net.minecraft.world.level.BlockAndTintGetter, net.minecraft.core.BlockPos);
+public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   public static int getLightColor(net.minecraft.client.renderer.LevelRenderer$BrightnessGetter, net.minecraft.world.level.BlockAndTintGetter, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.BlockPos);
+public class net.minecraft.client.particle.FlyTowardsPositionParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.FireflyParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.SculkChargeParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.GlowParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.HugeExplosionParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public abstract class net.minecraft.client.particle.SimpleAnimatedParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.TrailParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.SculkChargePopParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.DripParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.GustParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.VibrationSignalParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.LavaParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.TerrainParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.AttackSweepParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.TrialSpawnerDetectionParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.ShriekParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.SoulParticle extends net.minecraft.client.particle.RisingParticle { ::   public int getLightColor(float);
+public abstract class net.minecraft.client.particle.Particle { ::   protected int getLightColor(float);
+public class net.minecraft.client.particle.PortalParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.FlyStraightTowardsParticle extends net.minecraft.client.particle.SingleQuadParticle { ::   public int getLightColor(float);
+public class net.minecraft.client.particle.FlameParticle extends net.minecraft.client.particle.RisingParticle { ::   public int getLightColor(float);
+public final class net.minecraft.world.level.lighting.SkyLightEngine extends net.minecraft.world.level.lighting.LightEngine<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap, net.minecraft.world.level.lighting.SkyLightSectionStorage> { :: public final class net.minecraft.world.level.lighting.SkyLightEngine extends net.minecraft.world.level.lighting.LightEngine<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap, net.minecraft.world.level.lighting.SkyLightSectionStorage> {
+public class net.minecraft.world.level.lighting.ChunkSkyLightSources { :: public class net.minecraft.world.level.lighting.ChunkSkyLightSources {
+public class net.minecraft.world.level.lighting.SkyLightSectionStorage extends net.minecraft.world.level.lighting.LayerLightSectionStorage<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap> { :: public class net.minecraft.world.level.lighting.SkyLightSectionStorage extends net.minecraft.world.level.lighting.LayerLightSectionStorage<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap> {
+public final class net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap extends net.minecraft.world.level.lighting.DataLayerStorageMap<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap> { :: public final class net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap extends net.minecraft.world.level.lighting.DataLayerStorageMap<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap> {
+public abstract class net.minecraft.world.level.Level implements net.minecraft.world.level.LevelAccessor,java.lang.AutoCloseable { ::   public void addDestroyBlockEffect(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState);
+public final class net.minecraft.world.level.material.FogType extends java.lang.Enum<net.minecraft.world.level.material.FogType> { :: public final class net.minecraft.world.level.material.FogType extends java.lang.Enum<net.minecraft.world.level.material.FogType> {
+public class net.minecraft.world.level.storage.loot.predicates.WeatherCheck$Builder implements net.minecraft.world.level.storage.loot.predicates.LootItemCondition$Builder { :: public class net.minecraft.world.level.storage.loot.predicates.WeatherCheck$Builder implements net.minecraft.world.level.storage.loot.predicates.LootItemCondition$Builder {
+public final class net.minecraft.world.level.storage.loot.predicates.WeatherCheck extends java.lang.Record implements net.minecraft.world.level.storage.loot.predicates.LootItemCondition { :: public final class net.minecraft.world.level.storage.loot.predicates.WeatherCheck extends java.lang.Record implements net.minecraft.world.level.storage.loot.predicates.LootItemCondition {
+public class net.minecraft.world.level.block.WeatheringCopperDoorBlock extends net.minecraft.world.level.block.DoorBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperDoorBlock extends net.minecraft.world.level.block.DoorBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperGolemStatueBlock extends net.minecraft.world.level.block.CopperGolemStatueBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperGolemStatueBlock extends net.minecraft.world.level.block.CopperGolemStatueBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperBulbBlock extends net.minecraft.world.level.block.CopperBulbBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperBulbBlock extends net.minecraft.world.level.block.CopperBulbBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public final class net.minecraft.world.level.block.WeatheringCopperBlocks extends java.lang.Record { :: public final class net.minecraft.world.level.block.WeatheringCopperBlocks extends java.lang.Record {
+public class net.minecraft.world.level.block.WeatheringCopperStairBlock extends net.minecraft.world.level.block.StairBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperStairBlock extends net.minecraft.world.level.block.StairBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperGrateBlock extends net.minecraft.world.level.block.WaterloggedTransparentBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperGrateBlock extends net.minecraft.world.level.block.WaterloggedTransparentBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperSlabBlock extends net.minecraft.world.level.block.SlabBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperSlabBlock extends net.minecraft.world.level.block.SlabBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperTrapDoorBlock extends net.minecraft.world.level.block.TrapDoorBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperTrapDoorBlock extends net.minecraft.world.level.block.TrapDoorBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperChainBlock extends net.minecraft.world.level.block.ChainBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperChainBlock extends net.minecraft.world.level.block.ChainBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public final class net.minecraft.world.level.block.WeatheringCopper$WeatherState extends java.lang.Enum<net.minecraft.world.level.block.WeatheringCopper$WeatherState> implements net.minecraft.util.StringRepresentable { :: public final class net.minecraft.world.level.block.WeatheringCopper$WeatherState extends java.lang.Enum<net.minecraft.world.level.block.WeatheringCopper$WeatherState> implements net.minecraft.util.StringRepresentable {
+public class net.minecraft.world.level.block.WeatheringLanternBlock extends net.minecraft.world.level.block.LanternBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringLanternBlock extends net.minecraft.world.level.block.LanternBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperChestBlock extends net.minecraft.world.level.block.CopperChestBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperChestBlock extends net.minecraft.world.level.block.CopperChestBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperFullBlock extends net.minecraft.world.level.block.Block implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperFullBlock extends net.minecraft.world.level.block.Block implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringCopperBarsBlock extends net.minecraft.world.level.block.IronBarsBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperBarsBlock extends net.minecraft.world.level.block.IronBarsBlock implements net.minecraft.world.level.block.WeatheringCopper {
+public class net.minecraft.world.level.block.WeatheringLightningRodBlock extends net.minecraft.world.level.block.LightningRodBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringLightningRodBlock extends net.minecraft.world.level.block.LightningRodBlock implements net.minecraft.world.level.block.WeatheringCopper {
