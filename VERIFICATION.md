@@ -478,3 +478,5 @@ Zume is OSL-3.0, so no code was copied.
 
 Gates run for 1.4.0: `stubcheck --all` 33/33; `testrun.py --bench` 140 passed (133 unit + 7
 benchmarks); `gen_deltas --all --verify` (32 patches); `gen_resources --check`; `check.py` clean.
+CI: `ship` run 38118710605 for commit 8620435 passed (plan, 1.16.5 java 8, downloads) and published
+`v1.4.0+1.16.5` (`aetherium-fabric-1.4.0+1.16.5.jar`, 900309 bytes).
