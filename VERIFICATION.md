@@ -605,3 +605,5 @@ code and the trace, and the crash report does not show when in the session the c
 
 Gates run for 1.5.4: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_deltas --all --verify`
 (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.
+CI: `ship` run 38132394475 for commit eeeee9e passed and published `v1.5.4+1.16.5`
+(`aetherium-fabric-1.5.4+1.16.5.jar`, 948176 bytes).
