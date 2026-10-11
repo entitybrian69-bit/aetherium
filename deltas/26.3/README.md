@@ -40,6 +40,7 @@ neoforge_version=26.3.0.64-beta
 - `near-build=none`
 - `occlusion-box=renderer-tick`
 - `options=instances`
+- `qol16=none`
 - `reload=invalidate`
 - `remapJar-block-removed`
 - `screen-owner=gui`

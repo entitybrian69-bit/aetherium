@@ -20,7 +20,14 @@ public final class UploadBudget {
     /** Time budget per frame for uploads beyond the minimum. */
     public static final long BUDGET_NANOS = 3_000_000L;
 
+    /** Adaptive budget bounds: {@link #adapt} picks a share of the average frame time within them. */
+    public static final long MIN_BUDGET_NANOS = 1_500_000L;
+    public static final long MAX_BUDGET_NANOS = 4_000_000L;
+    /** Share of the average frame time spent on uploads beyond the minimum. */
+    static final double FRAME_SHARE = 0.12;
+
     private static volatile boolean enabled = true;
+    private static volatile long budgetNanos = BUDGET_NANOS;
 
     private UploadBudget() {
     }
@@ -45,9 +52,24 @@ public final class UploadBudget {
         }
     };
 
+    /** Budget for a given average frame time: about 12 % of it, 1.5-4 ms. */
+    public static long budgetFor(final double averageFrameNanos) {
+        final long share = (long) (averageFrameNanos * FRAME_SHARE);
+        return Math.max(MIN_BUDGET_NANOS, Math.min(MAX_BUDGET_NANOS, share));
+    }
+
+    /** Once per frame with the running average frame time. */
+    public static void adapt(final double averageFrameNanos) {
+        budgetNanos = budgetFor(averageFrameNanos);
+    }
+
+    public static long currentBudgetNanos() {
+        return budgetNanos;
+    }
+
     /** Runs queued uploads within this frame's budget; the rest stay queued for the next frame. */
     public static int drain(final Queue<Runnable> queue) {
-        return drain(queue, SYSTEM, BUDGET_NANOS);
+        return drain(queue, SYSTEM, budgetNanos);
     }
 
     /**

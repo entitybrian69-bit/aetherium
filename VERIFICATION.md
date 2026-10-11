@@ -480,3 +480,39 @@ Gates run for 1.4.0: `stubcheck --all` 33/33; `testrun.py --bench` 140 passed (1
 benchmarks); `gen_deltas --all --verify` (32 patches); `gen_resources --check`; `check.py` clean.
 CI: `ship` run 38118710605 for commit 8620435 passed (plan, 1.16.5 java 8, downloads) and published
 `v1.4.0+1.16.5` (`aetherium-fabric-1.4.0+1.16.5.jar`, 900309 bytes).
+
+## 17. 1.5.0: smooth chunk streaming, fog, sky, particles, freelook (1.16.5)
+
+Mixin targets, read from `tools/probe/1.16.5.txt` (probe runs 38123490488, 38124500503,
+38125199118):
+
+| Hook | Bytecode it relies on |
+| --- | --- |
+| `PacketBudgetMixin` | `Minecraft.runTick(Z)V` calls `runAllTasks()V` once (offset 128); `BlockableEventLoop.pollTask()Z` (protected, reached through `BlockableEventLoopInvoker`) |
+| `StreamingLevelMixin` | `LevelRenderer.setupRender` calls `RenderChunk.isDirty()Z` once; `compileChunksUntil(J)V` calls `ChunkRenderDispatcher.uploadAllPendingUploads()Z` (9); `allChanged()V` constructs `ChunkRenderDispatcher(Level, LevelRenderer, Executor, boolean, ChunkBufferBuilderPack)` only when the field is null (33, 40) |
+| `RenderChunkDirtyMixin` | `RenderChunk.setDirty(Z)V`, `setNotDirty()V`, `isDirtyFromPlayer()Z` |
+| `ChunkPrepareMixin` | `ChunkRenderDispatcher.uploadChunkLayer(BufferBuilder, VertexBuffer)` (returns the upload future, queued from the worker), `dispose()V` |
+| `FogControlMixin` | `FogRenderer.setupFog(Camera, FogMode, float, boolean)V`; `FogMode.FOG_TERRAIN`; `Camera.getFluidInCamera()FluidState`; `FluidState.is(Tag<Fluid>)Z`; `FluidTags.WATER/LAVA : Tag$Named<Fluid>`; `MobEffects.BLINDNESS` |
+| `SkyMixin` | `LevelRenderer.renderSky(PoseStack, float)V`: `VertexBuffer.draw(Matrix4f, I)V` at 146 (sky), 968 (stars, ordinal 1), 1085 (dark); `BufferUploader.end(BufferBuilder)V` at 450 (sunrise), 689 (sun), 903 (moon). `renderClouds` calls `DimensionSpecialEffects.getCloudHeight()F` |
+| `ParticleTypeMixin` | `ParticleEngine.createParticle(ParticleOptions, DDDDDD)Particle`, `destroy(BlockPos, BlockState)V`, `crack(BlockPos, Direction)V`; `ParticleOptions.getType()`; `Registry.PARTICLE_TYPE` |
+| `FreelookMouseMixin` | `MouseHandler.turnPlayer()V` calls `LocalPlayer.turn(DD)V` once (242) |
+| `FreelookCameraMixin` | `Camera.setup(BlockGetter, Entity, boolean, boolean, float)V` calls `setRotation(FF)V` at 39 (ordinal 0, the entity's view; 125 is the third-person front flip, 190 sleeping) |
+
+**Established:** these targets exist with these descriptors in the 1.16.5 jar CI probed; every
+version compiles (`stubcheck --all` 33/33). Outside 1.16.5 the `qol16` era is an empty `none`
+variant and the plugin skips the ten new mixins. **Not established:** behaviour in game (no GPU
+here). The size of the stutter reduction depends on the device and the server; the stutter log
+(Backend tab) records what a slow frame did.
+
+| Change | Check |
+| --- | --- |
+| Packet budget: minimum tasks, growth under backlog, reset when drained | `StreamingTest` |
+| Rebuild coalescing: player edits and near built sections never wait; quiet and max delay | `StreamingTest` |
+| Direct buffer pool: power-of-two sizes, reuse, idle cap, native byte order | `StreamingTest` |
+| Prepared uploads keyed by builder; adaptive upload budget; stutter spike rule | `StreamingTest` |
+| Mesh and worker thread counts on phones and desktops | `StreamingTest.threadSizing` |
+| Fog arithmetic, particle categories, freelook state machine and pitch clamp | `QolLogicTest` |
+
+Gates run for 1.5.0: `stubcheck --all` 33/33; `testrun.py --bench` 152 passed (145 unit + 7
+benchmarks); `gen_deltas --all --verify` (32 patches); `gen_resources --check`; `check.py` clean;
+`check_refs.py` clean; `java_api_lint 8` clean.

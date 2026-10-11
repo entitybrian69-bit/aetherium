@@ -283,7 +283,7 @@ public final class ChunkRenderer {
     public static final int MODE_COMPATIBLE = 2;
 
     // Pipeline switch tracking (render thread).
-    private static int uploadMode = MODE_OFF;
+    private static volatile int uploadMode = MODE_OFF;
     private static boolean compactUploaded;
     private static boolean shaderFailed;
     private static String shaderFailure = "";

@@ -179,12 +179,43 @@ public final class AetheriumPages {
         page.add(bool("quality.weather", "Weather", config.weather).presetMember());
         page.add(bool("quality.vignette", "Vignette", config.vignette).presetMember()
                 .availableWhen(() -> Capabilities.VIGNETTE_TOGGLE, NOT_ON_THIS_VERSION));
+        addScenery(page);
         page.add(flag("quality.bob_view", "View bobbing", "Camera sway while walking.",
                 VanillaOptions::getBobView, VanillaOptions::setBobView));
         page.add(Setting.slider("quality.brightness", "Brightness", "Vanilla brightness (gamma).",
                 0, 100, 1, v -> v == 0 ? "Moody" : v == 100 ? "Bright" : v + "%",
                 VanillaOptions::getBrightnessPercent, VanillaOptions::setBrightnessPercent));
         return page;
+    }
+
+    /** Fog controls, sky toggles and per-type particle toggles (1.16.5 first). */
+    private void addScenery(final Page page) {
+        page.add(sceneryRow(bool("quality.distance_fog", "Distance fog", config.distanceFog)));
+        page.add(sceneryRow(intSlider("quality.fog_start", "Fog start", config.fogStart, 5,
+                v -> v == 75 ? "75% (vanilla)" : v + "%")));
+        page.add(sceneryRow(intSlider("quality.water_fog", "Water fog", config.waterFog, 5,
+                v -> v == 0 ? "Clear" : v == 100 ? "Vanilla" : v + "%")));
+        page.add(sceneryRow(bool("quality.clear_lava", "Clear lava", config.clearLava)));
+        page.add(sceneryRow(bool("quality.sky", "Sky", config.sky)));
+        page.add(sceneryRow(bool("quality.sun_moon", "Sun and moon", config.sunMoon)));
+        page.add(sceneryRow(bool("quality.stars", "Stars", config.stars)));
+        page.add(sceneryRow(intSlider("quality.cloud_height", "Cloud height", config.cloudHeight, 8,
+                v -> v == 0 ? "Default" : v + " blocks")));
+        page.add(sceneryRow(bool("quality.particles_explosions", "Explosion particles", config.particlesExplosions)));
+        page.add(sceneryRow(bool("quality.particles_weather", "Rain splashes", config.particlesWeather)));
+        page.add(sceneryRow(bool("quality.particles_smoke", "Smoke particles", config.particlesSmoke)));
+        page.add(sceneryRow(bool("quality.particles_potions", "Potion particles", config.particlesPotions)));
+        page.add(sceneryRow(bool("quality.particles_combat", "Hit particles", config.particlesCombat)));
+        page.add(sceneryRow(bool("quality.particles_fire", "Flame particles", config.particlesFire)));
+        page.add(sceneryRow(bool("quality.particles_drips", "Drips and bubbles", config.particlesDrips)));
+        page.add(sceneryRow(bool("quality.particles_portals", "Portal particles", config.particlesPortals)));
+        page.add(sceneryRow(bool("quality.particles_ambient", "Ambient particles", config.particlesAmbient)));
+        page.add(sceneryRow(bool("quality.particles_totem", "Totem particles", config.particlesTotem)));
+        page.add(sceneryRow(bool("quality.particles_block_break", "Block breaking particles", config.particlesBlockBreak)));
+    }
+
+    private static Setting sceneryRow(final Setting setting) {
+        return setting.availableWhen(() -> Capabilities.SCENERY_CONTROLS, "Minecraft 1.16.5 only for now");
     }
 
     // -------------------------------------------------------------- Performance
@@ -234,6 +265,10 @@ public final class AetheriumPages {
                         v -> v >= BlockEntityCull.VANILLA ? "Vanilla (64)" : v + " blocks")
                 .presetMember()
                 .availableWhen(() -> Capabilities.BLOCK_ENTITY_CULL, NOT_ON_THIS_VERSION));
+        page.add(bool("perf.smooth_streaming", "Smooth terrain streaming", config.smoothStreaming)
+                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+        page.add(bool("perf.coalesce_rebuilds", "Merge chunk rebuilds", config.coalesceRebuilds)
+                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
         page.add(intSlider("perf.worker_threads", "Worker threads", config.workerThreads, 1,
                 v -> v == 0 ? "Auto" + autoThreadsSuffix() : v + (v == 1 ? " thread" : " threads")));
         return page;
@@ -271,6 +306,8 @@ public final class AetheriumPages {
         page.add(Setting.info("backend.chunk_renderer_state", "Chunk renderer",
                 "Which path draws solid and cutout terrain right now.", ChunkRenderer::statusText));
         page.add(bool("backend.debug", "Debug logging", config.debugLogging));
+        page.add(bool("backend.stutter_log", "Stutter log", config.stutterLog)
+                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
         page.add(bool("backend.delegate", "Hand off to conflicting mods", config.conflictAutoDelegate));
         return page;
     }
@@ -285,7 +322,7 @@ public final class AetheriumPages {
     // ------------------------------------------------------------------ Effects
 
     private Page effects() {
-        final Page page = new Page("Effects", "Effects", "Dynamic lights, brightness and zoom", PixelArt.SUN);
+        final Page page = new Page("Effects", "Effects", "Dynamic lights, brightness, zoom and freelook", PixelArt.SUN);
         page.add(Setting.choice("effects.dynamic_lights", Setting.Kind.SEGMENTED, "Dynamic lights",
                         config.dynamicLights.getComment(), LIGHTS,
                         () -> config.dynamicLights.get().ordinal(),
@@ -312,6 +349,13 @@ public final class AetheriumPages {
         page.add(intSlider("effects.fullbright_strength", "Fullbright strength", config.fullbrightStrength, 5,
                 v -> v + "%"));
         addZoom(page);
+        page.add(Setting.info("effects.freelook_key", "Freelook key",
+                "Hold Freelook (Left Alt by default) to look around without turning your player; release to snap back. Rebind it in Options > Controls, category Aetherium.",
+                () -> Capabilities.FREELOOK ? QolHooks.describeKey() : NOT_ON_THIS_VERSION));
+        page.add(bool("effects.freelook_toggle", "Freelook toggles", config.freelookToggle)
+                .availableWhen(() -> Capabilities.FREELOOK, "Minecraft 1.16.5 only for now"));
+        page.add(bool("effects.freelook_third_person", "Freelook in third person", config.freelookThirdPerson)
+                .availableWhen(() -> Capabilities.FREELOOK, "Minecraft 1.16.5 only for now"));
         return page;
     }
 

@@ -49,6 +49,12 @@
               "default": true,
               "description": "How the Aetherium pipeline draws. On: Aetherium's own shader with compact vertices (fastest). Off: compatible mode, which keeps vanilla's vertex format and vanilla's own draw calls and only skips the faces pointing away from you, for graphics drivers and GL translators the shader crashes on. Switched off automatically if shader mode crashed the game.",
               "x-java-field": "pipelineShader"
+            },
+            "advanced.stutter_log": {
+              "type": "boolean",
+              "default": true,
+              "description": "Write every frame that takes far longer than usual to logs/aetherium-stutter.log, with what happened in that frame (packets, chunk uploads, builds, garbage collection). Written on a background thread; at most 1 MB.",
+              "x-java-field": "stutterLog"
             }
           }
         },
@@ -139,6 +145,18 @@
               "default": true,
               "description": "Torches and other luminous items held by players and mobs emit light.",
               "x-java-field": "dynamicLightsHeld"
+            },
+            "effects.freelook.third_person": {
+              "type": "boolean",
+              "default": true,
+              "description": "Switch to the third-person camera while freelooking from first person, so you can see around your player. Off keeps the first-person view.",
+              "x-java-field": "freelookThirdPerson"
+            },
+            "effects.freelook.toggle": {
+              "type": "boolean",
+              "default": false,
+              "description": "Press Freelook once to look around and again to stop, instead of holding it.",
+              "x-java-field": "freelookToggle"
             },
             "effects.fullbright": {
               "type": "boolean",
@@ -308,6 +326,12 @@
               "description": "Chests, signs, banners, heads and other block entities farther than this many blocks are not drawn (64 = vanilla; beacon beams are exempt).",
               "x-java-field": "blockEntityDistance"
             },
+            "performance.coalesce_rebuilds": {
+              "type": "boolean",
+              "default": true,
+              "description": "While terrain loads, every chunk section is marked for rebuilding again each time a neighbouring chunk or its light arrives. Wait until a far or new section has been quiet for a moment, then build it once instead of up to ten times. Sections you edit, and built sections within 28 blocks, are never delayed.",
+              "x-java-field": "coalesceRebuilds"
+            },
             "performance.entity_cull_distance": {
               "type": "integer",
               "default": 64,
@@ -342,6 +366,12 @@
               "description": "Spread finished chunk meshes over several frames instead of uploading them all in one frame, which removes the stutter while chunks load or generate.",
               "x-java-field": "smoothChunkLoading"
             },
+            "performance.smooth_streaming": {
+              "type": "boolean",
+              "default": true,
+              "description": "Spread the work of arriving chunks over several frames: incoming chunk, light and entity packets get a time budget per frame instead of all being processed in one frame, and chunk meshes are converted for the GPU on the worker threads. Removes the big frame drops when walking or flying into unloaded terrain.",
+              "x-java-field": "smoothStreaming"
+            },
             "performance.threaded_chunk_builder": {
               "type": "boolean",
               "default": true,
@@ -353,7 +383,7 @@
               "default": 0,
               "minimum": 0,
               "maximum": 16,
-              "description": "Threads for world generation and chunk building. 0 = automatic (vanilla on desktop; on Android all cores but three, at least 2, so the render and server threads are not starved). Applies after a restart.",
+              "description": "Threads for world generation. 0 = automatic (vanilla on desktop; on Android half the cores minus one, between 2 and 4, so the render and server threads are not starved). Chunk meshes are built on Aetherium's own threads. Applies after a restart.",
               "x-java-field": "workerThreads"
             }
           }
@@ -362,6 +392,126 @@
           "type": "object",
           "additionalProperties": true,
           "properties": {
+            "quality.fog.clear_lava": {
+              "type": "boolean",
+              "default": false,
+              "description": "See a few blocks further while inside lava.",
+              "x-java-field": "clearLava"
+            },
+            "quality.fog.distance": {
+              "type": "boolean",
+              "default": true,
+              "description": "Fog that hides the edge of the render distance. Off shows terrain all the way to the edge (also removes the thick Nether fog). Fog under water, in lava and from blindness is unaffected.",
+              "x-java-field": "distanceFog"
+            },
+            "quality.fog.start": {
+              "type": "integer",
+              "default": 75,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Where the distance fog begins, in percent of the render distance. 75 = vanilla; higher keeps more of the world clear.",
+              "x-java-field": "fogStart"
+            },
+            "quality.fog.water": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Density of the fog under water, in percent. 100 = vanilla, 0 = clear water.",
+              "x-java-field": "waterFog"
+            },
+            "quality.particles.ambient": {
+              "type": "boolean",
+              "default": true,
+              "description": "Floating ambient particles: Nether ash and spores, mycelium and the underwater haze.",
+              "x-java-field": "particlesAmbient"
+            },
+            "quality.particles.block_break": {
+              "type": "boolean",
+              "default": true,
+              "description": "Fragments when blocks are broken, and the chips while mining one.",
+              "x-java-field": "particlesBlockBreak"
+            },
+            "quality.particles.combat": {
+              "type": "boolean",
+              "default": true,
+              "description": "Critical and enchanted hit stars, sweep attacks and damage hearts.",
+              "x-java-field": "particlesCombat"
+            },
+            "quality.particles.drips": {
+              "type": "boolean",
+              "default": true,
+              "description": "Dripping water, lava, honey and tears; bubbles and underwater particles.",
+              "x-java-field": "particlesDrips"
+            },
+            "quality.particles.explosions": {
+              "type": "boolean",
+              "default": true,
+              "description": "Explosion, firework and flash particles.",
+              "x-java-field": "particlesExplosions"
+            },
+            "quality.particles.fire": {
+              "type": "boolean",
+              "default": true,
+              "description": "Torch and fire flames, soul flames and lava pops.",
+              "x-java-field": "particlesFire"
+            },
+            "quality.particles.portals": {
+              "type": "boolean",
+              "default": true,
+              "description": "Nether portal, ender pearl and ender chest particles.",
+              "x-java-field": "particlesPortals"
+            },
+            "quality.particles.potions": {
+              "type": "boolean",
+              "default": true,
+              "description": "Potion swirls and splash effects, beacon and conduit effects.",
+              "x-java-field": "particlesPotions"
+            },
+            "quality.particles.smoke": {
+              "type": "boolean",
+              "default": true,
+              "description": "Smoke, campfire smoke, clouds and poof particles.",
+              "x-java-field": "particlesSmoke"
+            },
+            "quality.particles.totem": {
+              "type": "boolean",
+              "default": true,
+              "description": "The burst from a Totem of Undying.",
+              "x-java-field": "particlesTotem"
+            },
+            "quality.particles.weather": {
+              "type": "boolean",
+              "default": true,
+              "description": "Raindrop splashes on the ground and in water.",
+              "x-java-field": "particlesWeather"
+            },
+            "quality.sky.cloud_height": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 320,
+              "description": "Height of the cloud layer in blocks. 0 = the dimension's own height (128 in the Overworld).",
+              "x-java-field": "cloudHeight"
+            },
+            "quality.sky.sky": {
+              "type": "boolean",
+              "default": true,
+              "description": "Draw the sky dome, sunrise colours, sun, moon and stars. Off leaves a flat sky colour (cheapest).",
+              "x-java-field": "sky"
+            },
+            "quality.sky.stars": {
+              "type": "boolean",
+              "default": true,
+              "description": "Draw the stars at night.",
+              "x-java-field": "stars"
+            },
+            "quality.sky.sun_moon": {
+              "type": "boolean",
+              "default": true,
+              "description": "Draw the sun, the moon and the sunrise and sunset glow.",
+              "x-java-field": "sunMoon"
+            },
             "quality.vignette": {
               "type": "boolean",
               "default": true,

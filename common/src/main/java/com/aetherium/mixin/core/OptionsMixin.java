@@ -22,7 +22,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * Keeps the fullbright override out of options.txt (vanilla saves the user's real brightness),
  * and on versions with zoom adds the three zoom keys to the key list right before options.txt is
- * read, so their saved bindings load like vanilla's own and they appear in Options &gt; Controls.
+ * read (plus the Freelook key where freelook exists), so their saved bindings load like vanilla's own
+ * and they appear in Options &gt; Controls.
  */
 @Mixin(Options.class)
 public abstract class OptionsMixin {
@@ -36,6 +37,10 @@ public abstract class OptionsMixin {
     //~ @Inject(method = "load()V", at = @At("HEAD"), require = 0)
     //~ private void aetherium$zoomKeys(final CallbackInfo ci) {
         //~ this.keyMappings = ZoomKeys.append(this.keyMappings);
+        //~ // @era:qol16-begin v16
+        //~ this.keyMappings = com.aetherium.client.QolHooks.appendKeys(this.keyMappings);
+        //~ // @era:qol16-else none
+        //~ // @era:qol16-end
     //~ }
     // @era:zoom-end
 

@@ -39,6 +39,7 @@ neoforge_version=26.2.0.89
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`
+- `qol16=none`
 - `reload=invalidate`
 - `remapJar-block-removed`
 - `screen-owner=gui`

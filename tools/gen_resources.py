@@ -181,6 +181,8 @@ CURATED_EN = {
     "key.aetherium.zoom": "Zoom",
     "key.aetherium.zoom_in": "Zoom In",
     "key.aetherium.zoom_out": "Zoom Out",
+    "key.aetherium.freelook": "Freelook",
+    "aetherium.option.quality.sky.sun_moon": "Sun and moon",
 }
 CURATED_PT = {
     "aetherium.screen.title": "Renderizador Aetherium",
@@ -212,6 +214,8 @@ CURATED_PT = {
     "key.aetherium.zoom": "Zoom",
     "key.aetherium.zoom_in": "Aproximar zoom",
     "key.aetherium.zoom_out": "Afastar zoom",
+    "key.aetherium.freelook": "Olhar livre",
+    "aetherium.option.quality.sky.sun_moon": "Sol e lua",
 }
 
 

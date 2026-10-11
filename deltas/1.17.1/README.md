@@ -33,6 +33,7 @@ neoforge_version=unavailable (module disabled)
 - `logger=log4j`
 - `near-build=none`
 - `options=fields`
+- `qol16=none`
 - `reload=all-changed`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`

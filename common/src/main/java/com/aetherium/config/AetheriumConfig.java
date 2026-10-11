@@ -55,12 +55,54 @@ public final class AetheriumConfig {
             "performance.smooth_chunk_loading", true, "Spread finished chunk meshes over several frames instead of uploading them all in one frame, which removes the stutter while chunks load or generate.");
     public final ConfigValue<Boolean> threadedChunkBuilder = ConfigValue.bool(
             "performance.threaded_chunk_builder", true, "Rebuild changed chunks near you on the worker threads instead of freezing the frame (vanilla 1.16.5 rebuilds everything within 28 blocks on the render thread). Blocks you place or break still update instantly. Also spreads client light updates over frames. The biggest fix for stutter while chunks load and while walking with dynamic lights.");
+    public final ConfigValue<Boolean> smoothStreaming = ConfigValue.bool(
+            "performance.smooth_streaming", true, "Spread the work of arriving chunks over several frames: incoming chunk, light and entity packets get a time budget per frame instead of all being processed in one frame, and chunk meshes are converted for the GPU on the worker threads. Removes the big frame drops when walking or flying into unloaded terrain.");
+    public final ConfigValue<Boolean> coalesceRebuilds = ConfigValue.bool(
+            "performance.coalesce_rebuilds", true, "While terrain loads, every chunk section is marked for rebuilding again each time a neighbouring chunk or its light arrives. Wait until a far or new section has been quiet for a moment, then build it once instead of up to ten times. Sections you edit, and built sections within 28 blocks, are never delayed.");
     public final ConfigValue<Integer> workerThreads = ConfigValue.intRange(
-            "performance.worker_threads", 0, 0, 16, false, "Threads for world generation and chunk building. 0 = automatic (vanilla on desktop; on Android all cores but three, at least 2, so the render and server threads are not starved). Applies after a restart.");
+            "performance.worker_threads", 0, 0, 16, false, "Threads for world generation. 0 = automatic (vanilla on desktop; on Android half the cores minus one, between 2 and 4, so the render and server threads are not starved). Chunk meshes are built on Aetherium's own threads. Applies after a restart.");
 
     // ---------------------------------------------------------------- quality
     public final ConfigValue<Boolean> weather = ConfigValue.bool("quality.weather", true, "Render rain and snow. Off saves a lot of fill rate on mobile GPUs.");
     public final ConfigValue<Boolean> vignette = ConfigValue.bool("quality.vignette", true, "Draw the darkened screen edges.");
+
+    public final ConfigValue<Boolean> distanceFog = ConfigValue.bool(
+            "quality.fog.distance", true, "Fog that hides the edge of the render distance. Off shows terrain all the way to the edge (also removes the thick Nether fog). Fog under water, in lava and from blindness is unaffected.");
+    public final ConfigValue<Integer> fogStart = ConfigValue.intRange(
+            "quality.fog.start", 75, 0, 100, false, "Where the distance fog begins, in percent of the render distance. 75 = vanilla; higher keeps more of the world clear.");
+    public final ConfigValue<Integer> waterFog = ConfigValue.intRange(
+            "quality.fog.water", 100, 0, 100, false, "Density of the fog under water, in percent. 100 = vanilla, 0 = clear water.");
+    public final ConfigValue<Boolean> clearLava = ConfigValue.bool(
+            "quality.fog.clear_lava", false, "See a few blocks further while inside lava.");
+    public final ConfigValue<Boolean> sky = ConfigValue.bool(
+            "quality.sky.sky", true, "Draw the sky dome, sunrise colours, sun, moon and stars. Off leaves a flat sky colour (cheapest).");
+    public final ConfigValue<Boolean> sunMoon = ConfigValue.bool(
+            "quality.sky.sun_moon", true, "Draw the sun, the moon and the sunrise and sunset glow.");
+    public final ConfigValue<Boolean> stars = ConfigValue.bool("quality.sky.stars", true, "Draw the stars at night.");
+    public final ConfigValue<Integer> cloudHeight = ConfigValue.intRange(
+            "quality.sky.cloud_height", 0, 0, 320, false, "Height of the cloud layer in blocks. 0 = the dimension's own height (128 in the Overworld).");
+    public final ConfigValue<Boolean> particlesExplosions = ConfigValue.bool(
+            "quality.particles.explosions", true, "Explosion, firework and flash particles.");
+    public final ConfigValue<Boolean> particlesWeather = ConfigValue.bool(
+            "quality.particles.weather", true, "Raindrop splashes on the ground and in water.");
+    public final ConfigValue<Boolean> particlesSmoke = ConfigValue.bool(
+            "quality.particles.smoke", true, "Smoke, campfire smoke, clouds and poof particles.");
+    public final ConfigValue<Boolean> particlesPotions = ConfigValue.bool(
+            "quality.particles.potions", true, "Potion swirls and splash effects, beacon and conduit effects.");
+    public final ConfigValue<Boolean> particlesCombat = ConfigValue.bool(
+            "quality.particles.combat", true, "Critical and enchanted hit stars, sweep attacks and damage hearts.");
+    public final ConfigValue<Boolean> particlesFire = ConfigValue.bool(
+            "quality.particles.fire", true, "Torch and fire flames, soul flames and lava pops.");
+    public final ConfigValue<Boolean> particlesDrips = ConfigValue.bool(
+            "quality.particles.drips", true, "Dripping water, lava, honey and tears; bubbles and underwater particles.");
+    public final ConfigValue<Boolean> particlesPortals = ConfigValue.bool(
+            "quality.particles.portals", true, "Nether portal, ender pearl and ender chest particles.");
+    public final ConfigValue<Boolean> particlesAmbient = ConfigValue.bool(
+            "quality.particles.ambient", true, "Floating ambient particles: Nether ash and spores, mycelium and the underwater haze.");
+    public final ConfigValue<Boolean> particlesTotem = ConfigValue.bool(
+            "quality.particles.totem", true, "The burst from a Totem of Undying.");
+    public final ConfigValue<Boolean> particlesBlockBreak = ConfigValue.bool(
+            "quality.particles.block_break", true, "Fragments when blocks are broken, and the chips while mining one.");
 
     // ---------------------------------------------------------------- effects
     public final ConfigValue<LightMode> dynamicLights = ConfigValue.enumerated(
@@ -91,6 +133,10 @@ public final class AetheriumConfig {
             "effects.zoom.third_person_distance", 15, 0, 32, false, "Third person: the zoom keys move the camera between 0.5 blocks and this distance instead of zooming. 0 = zoom the field of view in third person too.");
     public final ConfigValue<Boolean> zoomThirdPersonToggle = ConfigValue.bool(
             "effects.zoom.third_person_toggle", true, "Third person: the Zoom key toggles the camera distance instead of being held.");
+    public final ConfigValue<Boolean> freelookToggle = ConfigValue.bool(
+            "effects.freelook.toggle", false, "Press Freelook once to look around and again to stop, instead of holding it.");
+    public final ConfigValue<Boolean> freelookThirdPerson = ConfigValue.bool(
+            "effects.freelook.third_person", true, "Switch to the third-person camera while freelooking from first person, so you can see around your player. Off keeps the first-person view.");
 
     // ----------------------------------------------------------------- android
     public final ConfigValue<Boolean> androidSupport = ConfigValue.bool("android.enabled", true, "Enable launcher/renderer probing. No-op on desktop.");
@@ -107,6 +153,8 @@ public final class AetheriumConfig {
 
     // ---------------------------------------------------------------- advanced
     public final ConfigValue<Boolean> debugLogging = ConfigValue.bool("advanced.debug_logging", false, "Enable dev-level logging (hot-path cost: near zero when off).");
+    public final ConfigValue<Boolean> stutterLog = ConfigValue.bool(
+            "advanced.stutter_log", true, "Write every frame that takes far longer than usual to logs/aetherium-stutter.log, with what happened in that frame (packets, chunk uploads, builds, garbage collection). Written on a background thread; at most 1 MB.");
     public final ConfigValue<Boolean> experimentalChunkRenderer = ConfigValue.bool(
             "advanced.experimental_chunk_renderer", false, "Experimental, Minecraft 1.16.5 only: Aetherium's own terrain pipeline. Solid and cutout chunks are stored in a compact vertex format (a quarter smaller than vanilla's), grouped by face direction so faces pointing away from you are never sent to the GPU, and drawn with Aetherium's own shader. Translucent blocks stay vanilla. Switching it rebuilds the loaded chunks once; it turns itself off and falls back to vanilla if anything fails.");
     public final ConfigValue<Boolean> pipelineShader = ConfigValue.bool(

@@ -11,10 +11,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 // @era:chunk-upload-begin srd
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:chunk-upload-else crd
-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:chunk-upload-else crdbool
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+// @era:chunk-upload-else crd
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:chunk-upload-else none
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:chunk-upload-end
@@ -27,9 +27,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 // @era:chunk-upload-begin srd
 @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
-// @era:chunk-upload-else crd
-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
 // @era:chunk-upload-else crdbool
+//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
+// @era:chunk-upload-else crd
 //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
 // @era:chunk-upload-else none
 //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
@@ -48,19 +48,21 @@ public abstract class ChunkUploadMixin {
             ci.cancel();
         }
     }
+    // @era:chunk-upload-else crdbool
+    //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+    //~ private void aetherium$pacedUploads(final CallbackInfoReturnable<Boolean> cir) {
+        //~ if (UploadBudget.enabled()) {
+            //~ final int uploaded = UploadBudget.drain(this.toUpload);
+            //~ com.aetherium.perf.StutterRecorder.uploads += uploaded;
+            //~ cir.setReturnValue(Boolean.valueOf(uploaded > 0));
+        //~ }
+    //~ }
     // @era:chunk-upload-else crd
     //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
         //~ if (UploadBudget.enabled()) {
             //~ UploadBudget.drain(this.toUpload);
             //~ ci.cancel();
-        //~ }
-    //~ }
-    // @era:chunk-upload-else crdbool
-    //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
-    //~ private void aetherium$pacedUploads(final CallbackInfoReturnable<Boolean> cir) {
-        //~ if (UploadBudget.enabled()) {
-            //~ cir.setReturnValue(Boolean.valueOf(UploadBudget.drain(this.toUpload) > 0));
         //~ }
     //~ }
     // @era:chunk-upload-else none

@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index bef0593..467a0c8 100644
+index 5ccfae7..c942ae6 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -62,7 +62,7 @@ index bef0593..467a0c8 100644
      // @era:bg-threads-end
  
      /**
-@@ -77,34 +77,34 @@ public final class Capabilities {
+@@ -77,58 +77,58 @@ public final class Capabilities {
      public static final boolean ENTITY_OCCLUSION = true;
  
      /** The visible list holds {@code LevelRenderer$RenderChunkInfo} (1.16.5-1.20.1) rather than sections. */
@@ -111,6 +111,42 @@ index bef0593..467a0c8 100644
 +    // @era:near-build-else none
 +    //~ public static final boolean THREADED_NEAR_BUILDS = false;
      // @era:near-build-end
+ 
+     /**
+      * Terrain streaming: a per-frame budget for queued packet tasks, coalesced rebuilds of
+      * sections dirtied repeatedly while chunks load, and dedicated chunk-mesh threads (1.16.5 first).
+      */
+-    // @era:qol16-begin none
+-    public static final boolean STREAMING = false;
+-    // @era:qol16-else v16
+-    //~ public static final boolean STREAMING = true;
++    // @era:qol16-begin v16
++    public static final boolean STREAMING = true;
++    // @era:qol16-else none
++    //~ public static final boolean STREAMING = false;
+     // @era:qol16-end
+ 
+     /** Fog controls, sky toggles and per-type particle toggles (1.16.5 first). */
+-    // @era:qol16-begin none
+-    public static final boolean SCENERY_CONTROLS = false;
+-    // @era:qol16-else v16
+-    //~ public static final boolean SCENERY_CONTROLS = true;
++    // @era:qol16-begin v16
++    public static final boolean SCENERY_CONTROLS = true;
++    // @era:qol16-else none
++    //~ public static final boolean SCENERY_CONTROLS = false;
+     // @era:qol16-end
+ 
+     /** Freelook: look around without turning the player (1.16.5 first). */
+-    // @era:qol16-begin none
+-    public static final boolean FREELOOK = false;
+-    // @era:qol16-else v16
+-    //~ public static final boolean FREELOOK = true;
++    // @era:qol16-begin v16
++    public static final boolean FREELOOK = true;
++    // @era:qol16-else none
++    //~ public static final boolean FREELOOK = false;
+     // @era:qol16-end
  
      /** Weather can be hidden on every supported version. */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
@@ -201,10 +237,10 @@ index e5e224a..a041b7e 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 7a6f2ab..2ef09e8 100644
+index 639a9eb..9388df7 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -383,10 +383,10 @@ public final class ClientHooks {
+@@ -387,10 +387,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -219,7 +255,7 @@ index 7a6f2ab..2ef09e8 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -409,10 +409,10 @@ public final class ClientHooks {
+@@ -413,10 +413,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -385,6 +421,595 @@ index afb236d..ffe04fe 100644
      //~ }
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
+diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
+index 9238030..bf710ca 100644
+--- a/common/src/main/java/com/aetherium/client/QolHooks.java
++++ b/common/src/main/java/com/aetherium/client/QolHooks.java
+@@ -15,33 +15,33 @@ import com.aetherium.qol.Freelook;
+ import com.aetherium.qol.ParticleFilter;
+ import com.aetherium.qol.Scenery;
+ 
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.mixin.core.BlockableEventLoopInvoker;
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
+-
+-//~ import java.util.IdentityHashMap;
+-//~ import java.util.Map;
+-//~ import java.util.concurrent.Executor;
+-
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.CameraType;
+-//~ import net.minecraft.client.KeyMapping;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.core.Registry;
+-//~ import net.minecraft.core.particles.ParticleOptions;
+-//~ import net.minecraft.core.particles.ParticleType;
+-//~ import net.minecraft.resources.ResourceLocation;
+-//~ import net.minecraft.tags.FluidTags;
+-//~ import net.minecraft.tags.Tag;
+-//~ import net.minecraft.world.effect.MobEffects;
+-//~ import net.minecraft.world.entity.Entity;
+-//~ import net.minecraft.world.entity.LivingEntity;
+-//~ import net.minecraft.world.level.material.Fluid;
+-//~ import net.minecraft.world.level.material.FluidState;
+-//~ import net.minecraft.world.phys.Vec3;
++// @era:qol16-begin v16
++import com.aetherium.mixin.core.BlockableEventLoopInvoker;
++import com.mojang.blaze3d.systems.RenderSystem;
++
++import java.util.IdentityHashMap;
++import java.util.Map;
++import java.util.concurrent.Executor;
++
++import net.minecraft.client.Camera;
++import net.minecraft.client.CameraType;
++import net.minecraft.client.KeyMapping;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Registry;
++import net.minecraft.core.particles.ParticleOptions;
++import net.minecraft.core.particles.ParticleType;
++import net.minecraft.resources.ResourceLocation;
++import net.minecraft.tags.FluidTags;
++import net.minecraft.tags.Tag;
++import net.minecraft.world.effect.MobEffects;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.LivingEntity;
++import net.minecraft.world.level.material.Fluid;
++import net.minecraft.world.level.material.FluidState;
++import net.minecraft.world.phys.Vec3;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -59,14 +59,14 @@ public final class QolHooks {
+     private static boolean freelookToggle;
+     private static boolean freelookThirdPerson = true;
+ 
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ private static final int KEY_LEFT_ALT = 342;
+-    //~ private static final Map<ParticleType<?>, Integer> CATEGORY = new IdentityHashMap<ParticleType<?>, Integer>();
+-    //~ private static KeyMapping freelook;
+-    //~ /** Camera type to restore when freelook ends, or null when freelook did not change it. */
+-    //~ private static CameraType restoreCamera;
+-    //~ private static CameraType forcedCamera;
++    // @era:qol16-begin v16
++    private static final int KEY_LEFT_ALT = 342;
++    private static final Map<ParticleType<?>, Integer> CATEGORY = new IdentityHashMap<ParticleType<?>, Integer>();
++    private static KeyMapping freelook;
++    /** Camera type to restore when freelook ends, or null when freelook did not change it. */
++    private static CameraType restoreCamera;
++    private static CameraType forcedCamera;
++    // @era:qol16-else none
+     // @era:qol16-end
+ 
+     private QolHooks() {
+@@ -105,15 +105,15 @@ public final class QolHooks {
+ 
+         freelookToggle = config.freelookToggle.get().booleanValue();
+         freelookThirdPerson = config.freelookThirdPerson.get().booleanValue();
+-        // @era:qol16-begin none
+-        // @era:qol16-else v16
+-        //~ final Minecraft mc = Minecraft.getInstance();
+-        //~ if (mc != null && mc.gameDirectory != null) {
+-            //~ StutterRecorder.configure(Capabilities.STREAMING && config.stutterLog.get().booleanValue(), mc.gameDirectory);
+-        //~ }
+-        //~ if (!active && FREELOOK.active()) {
+-            //~ stopFreelook(mc);
+-        //~ }
++        // @era:qol16-begin v16
++        final Minecraft mc = Minecraft.getInstance();
++        if (mc != null && mc.gameDirectory != null) {
++            StutterRecorder.configure(Capabilities.STREAMING && config.stutterLog.get().booleanValue(), mc.gameDirectory);
++        }
++        if (!active && FREELOOK.active()) {
++            stopFreelook(mc);
++        }
++        // @era:qol16-else none
+         // @era:qol16-end
+     }
+ 
+@@ -126,254 +126,254 @@ public final class QolHooks {
+     public static void onLevelChange() {
+         PreparedUploads.clear();
+         DirectPool.trim();
+-        // @era:qol16-begin none
+-        // @era:qol16-else v16
+-        //~ if (FREELOOK.active()) {
+-            //~ stopFreelook(Minecraft.getInstance());
+-        //~ }
++        // @era:qol16-begin v16
++        if (FREELOOK.active()) {
++            stopFreelook(Minecraft.getInstance());
++        }
++        // @era:qol16-else none
+         // @era:qol16-end
+     }
+ 
+-    // @era:qol16-begin none
+-    public static void frame(final net.minecraft.client.Minecraft mc) {
++    // @era:qol16-begin v16
++    // ------------------------------------------------------------------ per frame
++
++    /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
++    public static void frame(final Minecraft mc) {
++        StutterRecorder.frame(System.nanoTime(), null);
++        UploadBudget.adapt(StutterRecorder.averageFrameNanos());
++        if (freelook == null || mc == null) {
++            return;
++        }
++        if (mc.level == null || mc.player == null) {
++            if (FREELOOK.active()) {
++                stopFreelook(mc);
++            }
++            return;
++        }
++        final boolean down = mc.screen == null && freelook.isDown() && Aetherium.isActive();
++        final int change = FREELOOK.update(down, freelookToggle);
++        if (change == Freelook.STARTED) {
++            FREELOOK.begin(mc.player.yRot, mc.player.xRot);
++            restoreCamera = null;
++            forcedCamera = null;
++            if (freelookThirdPerson && mc.options.getCameraType().isFirstPerson()) {
++                restoreCamera = mc.options.getCameraType();
++                forcedCamera = CameraType.THIRD_PERSON_BACK;
++                setCamera(mc, forcedCamera);
++            }
++        } else if (change == Freelook.STOPPED) {
++            restore(mc);
++        }
+     }
+ 
+-    public static String describeKey() {
+-        return "Not available on this version";
++    private static void stopFreelook(final Minecraft mc) {
++        FREELOOK.stop();
++        restore(mc);
+     }
+-    // @era:qol16-else v16
+-    //~ // ------------------------------------------------------------------ per frame
+-
+-    //~ /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
+-    //~ public static void frame(final Minecraft mc) {
+-        //~ StutterRecorder.frame(System.nanoTime(), null);
+-        //~ UploadBudget.adapt(StutterRecorder.averageFrameNanos());
+-        //~ if (freelook == null || mc == null) {
+-            //~ return;
+-        //~ }
+-        //~ if (mc.level == null || mc.player == null) {
+-            //~ if (FREELOOK.active()) {
+-                //~ stopFreelook(mc);
+-            //~ }
+-            //~ return;
+-        //~ }
+-        //~ final boolean down = mc.screen == null && freelook.isDown() && Aetherium.isActive();
+-        //~ final int change = FREELOOK.update(down, freelookToggle);
+-        //~ if (change == Freelook.STARTED) {
+-            //~ FREELOOK.begin(mc.player.yRot, mc.player.xRot);
+-            //~ restoreCamera = null;
+-            //~ forcedCamera = null;
+-            //~ if (freelookThirdPerson && mc.options.getCameraType().isFirstPerson()) {
+-                //~ restoreCamera = mc.options.getCameraType();
+-                //~ forcedCamera = CameraType.THIRD_PERSON_BACK;
+-                //~ setCamera(mc, forcedCamera);
+-            //~ }
+-        //~ } else if (change == Freelook.STOPPED) {
+-            //~ restore(mc);
+-        //~ }
+-    //~ }
+ 
+-    //~ private static void stopFreelook(final Minecraft mc) {
+-        //~ FREELOOK.stop();
+-        //~ restore(mc);
+-    //~ }
++    private static void restore(final Minecraft mc) {
++        // Only undo our own switch: if the player pressed F5 meanwhile, their choice stays.
++        if (mc != null && restoreCamera != null && mc.options.getCameraType() == forcedCamera) {
++            setCamera(mc, restoreCamera);
++        }
++        restoreCamera = null;
++        forcedCamera = null;
++    }
+ 
+-    //~ private static void restore(final Minecraft mc) {
+-        //~ // Only undo our own switch: if the player pressed F5 meanwhile, their choice stays.
+-        //~ if (mc != null && restoreCamera != null && mc.options.getCameraType() == forcedCamera) {
+-            //~ setCamera(mc, restoreCamera);
+-        //~ }
+-        //~ restoreCamera = null;
+-        //~ forcedCamera = null;
+-    //~ }
++    private static void setCamera(final Minecraft mc, final CameraType type) {
++        final boolean wasFirst = mc.options.getCameraType().isFirstPerson();
++        mc.options.setCameraType(type);
++        if (wasFirst != type.isFirstPerson()) {
++            mc.gameRenderer.checkEntityPostEffect(type.isFirstPerson() ? mc.getCameraEntity() : null);
++        }
++    }
+ 
+-    //~ private static void setCamera(final Minecraft mc, final CameraType type) {
+-        //~ final boolean wasFirst = mc.options.getCameraType().isFirstPerson();
+-        //~ mc.options.setCameraType(type);
+-        //~ if (wasFirst != type.isFirstPerson()) {
+-            //~ mc.gameRenderer.checkEntityPostEffect(type.isFirstPerson() ? mc.getCameraEntity() : null);
+-        //~ }
+-    //~ }
++    // ------------------------------------------------------------------ freelook hooks
+ 
+-    //~ // ------------------------------------------------------------------ freelook hooks
++    /** MouseHandler.turnPlayer: true when the mouse turned the free camera instead of the player. */
++    public static boolean freelookTurn(final double dx, final double dy) {
++        if (!FREELOOK.active()) {
++            return false;
++        }
++        FREELOOK.turn(dx, dy);
++        return true;
++    }
+ 
+-    //~ /** MouseHandler.turnPlayer: true when the mouse turned the free camera instead of the player. */
+-    //~ public static boolean freelookTurn(final double dx, final double dy) {
+-        //~ if (!FREELOOK.active()) {
+-            //~ return false;
+-        //~ }
+-        //~ FREELOOK.turn(dx, dy);
+-        //~ return true;
+-    //~ }
++    public static float cameraYaw(final float original) {
++        return FREELOOK.active() ? FREELOOK.yaw() : original;
++    }
+ 
+-    //~ public static float cameraYaw(final float original) {
+-        //~ return FREELOOK.active() ? FREELOOK.yaw() : original;
+-    //~ }
++    public static float cameraPitch(final float original) {
++        return FREELOOK.active() ? FREELOOK.pitch() : original;
++    }
+ 
+-    //~ public static float cameraPitch(final float original) {
+-        //~ return FREELOOK.active() ? FREELOOK.pitch() : original;
+-    //~ }
++    public static boolean freelookActive() {
++        return FREELOOK.active();
++    }
+ 
+-    //~ public static boolean freelookActive() {
+-        //~ return FREELOOK.active();
+-    //~ }
++    /** Options.load HEAD: the key list with the Freelook key appended (once). */
++    public static KeyMapping[] appendKeys(final KeyMapping[] existing) {
++        if (freelook == null) {
++            freelook = new KeyMapping("key.aetherium.freelook", KEY_LEFT_ALT, ZoomKeys.category());
++        }
++        if (existing == null) {
++            return new KeyMapping[] {freelook};
++        }
++        for (final KeyMapping key : existing) {
++            if (key == freelook) {
++                return existing;
++            }
++        }
++        final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 1);
++        out[existing.length] = freelook;
++        return out;
++    }
+ 
+-    //~ /** Options.load HEAD: the key list with the Freelook key appended (once). */
+-    //~ public static KeyMapping[] appendKeys(final KeyMapping[] existing) {
+-        //~ if (freelook == null) {
+-            //~ freelook = new KeyMapping("key.aetherium.freelook", KEY_LEFT_ALT, ZoomKeys.category());
+-        //~ }
+-        //~ if (existing == null) {
+-            //~ return new KeyMapping[] {freelook};
+-        //~ }
+-        //~ for (final KeyMapping key : existing) {
+-            //~ if (key == freelook) {
+-                //~ return existing;
+-            //~ }
+-        //~ }
+-        //~ final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 1);
+-        //~ out[existing.length] = freelook;
+-        //~ return out;
+-    //~ }
++    /** "Left Alt" for the settings screen. */
++    public static String describeKey() {
++        return freelook == null ? "Not registered" : freelook.getTranslatedKeyMessage().getString();
++    }
+ 
+-    //~ /** "Left Alt" for the settings screen. */
+-    //~ public static String describeKey() {
+-        //~ return freelook == null ? "Not registered" : freelook.getTranslatedKeyMessage().getString();
+-    //~ }
++    // ------------------------------------------------------------------ streaming hooks
+ 
+-    //~ // ------------------------------------------------------------------ streaming hooks
++    /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
++    public static Executor meshExecutor(final Executor vanilla) {
++        if (!meshThreads) {
++            return vanilla;
++        }
++        final Executor own = ChunkBuildExecutor.get(Runtime.getRuntime().availableProcessors(),
++                Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
++        return own != null ? own : vanilla;
++    }
+ 
+-    //~ /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
+-    //~ public static Executor meshExecutor(final Executor vanilla) {
+-        //~ if (!meshThreads) {
+-            //~ return vanilla;
+-        //~ }
+-        //~ final Executor own = ChunkBuildExecutor.get(Runtime.getRuntime().availableProcessors(),
+-                //~ Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
+-        //~ return own != null ? own : vanilla;
+-    //~ }
++    /**
++     * Minecraft.runTick, instead of {@code runAllTasks()}: runs queued packet tasks within the
++     * frame budget. False when the budget is off (or no world is loaded) and vanilla should run.
++     */
++    public static boolean drainTasks(final Minecraft mc) {
++        if (!PacketBudget.enabled() || mc.level == null || !((Object) mc instanceof BlockableEventLoopInvoker)) {
++            return false;
++        }
++        taskLoop = (BlockableEventLoopInvoker) (Object) mc;
++        StutterRecorder.packetTasks += PacketBudget.drain(POLLER, PacketBudget.SYSTEM);
++        StutterRecorder.packetBacklog = PacketBudget.pressure();
++        return true;
++    }
+ 
+-    //~ /**
+-     //~ * Minecraft.runTick, instead of {@code runAllTasks()}: runs queued packet tasks within the
+-     //~ * frame budget. False when the budget is off (or no world is loaded) and vanilla should run.
+-     //~ */
+-    //~ public static boolean drainTasks(final Minecraft mc) {
+-        //~ if (!PacketBudget.enabled() || mc.level == null || !((Object) mc instanceof BlockableEventLoopInvoker)) {
+-            //~ return false;
+-        //~ }
+-        //~ taskLoop = (BlockableEventLoopInvoker) (Object) mc;
+-        //~ StutterRecorder.packetTasks += PacketBudget.drain(POLLER, PacketBudget.SYSTEM);
+-        //~ StutterRecorder.packetBacklog = PacketBudget.pressure();
+-        //~ return true;
+-    //~ }
++    private static BlockableEventLoopInvoker taskLoop;
++    private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
++        @Override
++        public boolean pollTask() {
++            return taskLoop.aetherium$pollTask();
++        }
++    };
++
++    private static double rebuildCamX;
++    private static double rebuildCamY;
++    private static double rebuildCamZ;
++
++    /** LevelRenderer.setupRender HEAD. */
++    public static void setRebuildCamera(final Camera camera) {
++        final Vec3 pos = camera.getPosition();
++        rebuildCamX = pos.x;
++        rebuildCamY = pos.y;
++        rebuildCamZ = pos.z;
++    }
+ 
+-    //~ private static BlockableEventLoopInvoker taskLoop;
+-    //~ private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
+-        //~ @Override
+-        //~ public boolean pollTask() {
+-            //~ return taskLoop.aetherium$pollTask();
+-        //~ }
+-    //~ };
+-
+-    //~ private static double rebuildCamX;
+-    //~ private static double rebuildCamY;
+-    //~ private static double rebuildCamZ;
+-
+-    //~ /** LevelRenderer.setupRender HEAD. */
+-    //~ public static void setRebuildCamera(final Camera camera) {
+-        //~ final Vec3 pos = camera.getPosition();
+-        //~ rebuildCamX = pos.x;
+-        //~ rebuildCamY = pos.y;
+-        //~ rebuildCamZ = pos.z;
+-    //~ }
++    /** setupRender's dirty check, for a section that is dirty: true to leave it for a later frame. */
++    public static boolean deferRebuild(final ChunkRenderDispatcher.RenderChunk chunk) {
++        if (!RebuildCoalescer.enabled() || !((Object) chunk instanceof RenderChunkDirtyAccess)) {
++            return false;
++        }
++        final RenderChunkDirtyAccess times = (RenderChunkDirtyAccess) (Object) chunk;
++        final BlockPos origin = chunk.getOrigin();
++        final double dx = origin.getX() + 8.0 - rebuildCamX;
++        final double dy = origin.getY() + 8.0 - rebuildCamY;
++        final double dz = origin.getZ() + 8.0 - rebuildCamZ;
++        final boolean compiled = chunk.getCompiledChunk() != ChunkRenderDispatcher.CompiledChunk.UNCOMPILED;
++        return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
++                chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
++    }
+ 
+-    //~ /** setupRender's dirty check, for a section that is dirty: true to leave it for a later frame. */
+-    //~ public static boolean deferRebuild(final ChunkRenderDispatcher.RenderChunk chunk) {
+-        //~ if (!RebuildCoalescer.enabled() || !((Object) chunk instanceof RenderChunkDirtyAccess)) {
+-            //~ return false;
+-        //~ }
+-        //~ final RenderChunkDirtyAccess times = (RenderChunkDirtyAccess) (Object) chunk;
+-        //~ final BlockPos origin = chunk.getOrigin();
+-        //~ final double dx = origin.getX() + 8.0 - rebuildCamX;
+-        //~ final double dy = origin.getY() + 8.0 - rebuildCamY;
+-        //~ final double dz = origin.getZ() + 8.0 - rebuildCamZ;
+-        //~ final boolean compiled = chunk.getCompiledChunk() != ChunkRenderDispatcher.CompiledChunk.UNCOMPILED;
+-        //~ return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
+-                //~ chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
+-    //~ }
++    /** Minimum time between visible-section searches caused only by finished uploads. */
++    static final long VISIBILITY_INTERVAL_NANOS = 50_000_000L;
++    private static long lastVisibilityUpdate;
++    private static boolean visibilityPending;
++
++    /**
++     * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
++     * Sections already in the visible list draw their new mesh at once either way; the search only
++     * discovers sections behind them, so it is limited to 20 per second while uploads stream in.
++     */
++    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
++        if (!PacketBudget.enabled()) {
++            return uploaded;
++        }
++        final long now = System.nanoTime();
++        if (uploaded) {
++            visibilityPending = true;
++        }
++        if (visibilityPending && now - lastVisibilityUpdate >= VISIBILITY_INTERVAL_NANOS) {
++            visibilityPending = false;
++            lastVisibilityUpdate = now;
++            return true;
++        }
++        return false;
++    }
+ 
+-    //~ /** Minimum time between visible-section searches caused only by finished uploads. */
+-    //~ static final long VISIBILITY_INTERVAL_NANOS = 50_000_000L;
+-    //~ private static long lastVisibilityUpdate;
+-    //~ private static boolean visibilityPending;
+-
+-    //~ /**
+-     //~ * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
+-     //~ * Sections already in the visible list draw their new mesh at once either way; the search only
+-     //~ * discovers sections behind them, so it is limited to 20 per second while uploads stream in.
+-     //~ */
+-    //~ public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
+-        //~ if (!PacketBudget.enabled()) {
+-            //~ return uploaded;
+-        //~ }
+-        //~ final long now = System.nanoTime();
+-        //~ if (uploaded) {
+-            //~ visibilityPending = true;
+-        //~ }
+-        //~ if (visibilityPending && now - lastVisibilityUpdate >= VISIBILITY_INTERVAL_NANOS) {
+-            //~ visibilityPending = false;
+-            //~ lastVisibilityUpdate = now;
+-            //~ return true;
+-        //~ }
+-        //~ return false;
+-    //~ }
++    // ------------------------------------------------------------------ fog and sky
+ 
+-    //~ // ------------------------------------------------------------------ fog and sky
++    /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
++    @SuppressWarnings("unchecked")
++    private static Tag<Fluid> fluidTag(final Object named) {
++        return (Tag<Fluid>) named;
++    }
+ 
+-    //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
+-    //~ @SuppressWarnings("unchecked")
+-    //~ private static Tag<Fluid> fluidTag(final Object named) {
+-        //~ return (Tag<Fluid>) named;
+-    //~ }
++    /** FogRenderer.setupFog TAIL, terrain fog only. */
++    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
++        if (Scenery.fogVanilla()) {
++            return;
++        }
++        final Entity entity = camera.getEntity();
++        if (entity instanceof LivingEntity && ((LivingEntity) entity).hasEffect(MobEffects.BLINDNESS)) {
++            return;
++        }
++        final FluidState fluid = camera.getFluidInCamera();
++        final int medium = fluid.is(fluidTag(FluidTags.WATER)) ? Scenery.WATER
++                : fluid.is(fluidTag(FluidTags.LAVA)) ? Scenery.LAVA : Scenery.AIR;
++        if (!Scenery.adjustFog(medium, thick, farPlane, FogTracker.start(), FogTracker.end(), FogTracker.density(), FOG)) {
++            return;
++        }
++        if (medium == Scenery.WATER) {
++            RenderSystem.fogDensity(FOG[Scenery.DENSITY]);
++        } else {
++            RenderSystem.fogStart(FOG[Scenery.START]);
++            RenderSystem.fogEnd(FOG[Scenery.END]);
++        }
++    }
+ 
+-    //~ /** FogRenderer.setupFog TAIL, terrain fog only. */
+-    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
+-        //~ if (Scenery.fogVanilla()) {
+-            //~ return;
+-        //~ }
+-        //~ final Entity entity = camera.getEntity();
+-        //~ if (entity instanceof LivingEntity && ((LivingEntity) entity).hasEffect(MobEffects.BLINDNESS)) {
+-            //~ return;
+-        //~ }
+-        //~ final FluidState fluid = camera.getFluidInCamera();
+-        //~ final int medium = fluid.is(fluidTag(FluidTags.WATER)) ? Scenery.WATER
+-                //~ : fluid.is(fluidTag(FluidTags.LAVA)) ? Scenery.LAVA : Scenery.AIR;
+-        //~ if (!Scenery.adjustFog(medium, thick, farPlane, FogTracker.start(), FogTracker.end(), FogTracker.density(), FOG)) {
+-            //~ return;
+-        //~ }
+-        //~ if (medium == Scenery.WATER) {
+-            //~ RenderSystem.fogDensity(FOG[Scenery.DENSITY]);
+-        //~ } else {
+-            //~ RenderSystem.fogStart(FOG[Scenery.START]);
+-            //~ RenderSystem.fogEnd(FOG[Scenery.END]);
+-        //~ }
++    // ------------------------------------------------------------------ particles
++
++    /** ParticleEngine.createParticle HEAD: true to drop this particle. */
++    public static boolean dropParticle(final ParticleOptions options) {
++        if (!ParticleFilter.anyDisabled() || options == null) {
++            return false;
++        }
++        final ParticleType<?> type = options.getType();
++        Integer category = CATEGORY.get(type);
++        if (category == null) {
++            final ResourceLocation id = Registry.PARTICLE_TYPE.getKey(type);
++            category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
++            CATEGORY.put(type, category);
++        }
++        return !ParticleFilter.allowed(category.intValue());
++    }
++    // @era:qol16-else none
++    //~ public static void frame(final net.minecraft.client.Minecraft mc) {
+     //~ }
+ 
+-    //~ // ------------------------------------------------------------------ particles
+-
+-    //~ /** ParticleEngine.createParticle HEAD: true to drop this particle. */
+-    //~ public static boolean dropParticle(final ParticleOptions options) {
+-        //~ if (!ParticleFilter.anyDisabled() || options == null) {
+-            //~ return false;
+-        //~ }
+-        //~ final ParticleType<?> type = options.getType();
+-        //~ Integer category = CATEGORY.get(type);
+-        //~ if (category == null) {
+-            //~ final ResourceLocation id = Registry.PARTICLE_TYPE.getKey(type);
+-            //~ category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
+-            //~ CATEGORY.put(type, category);
+-        //~ }
+-        //~ return !ParticleFilter.allowed(category.intValue());
++    //~ public static String describeKey() {
++        //~ return "Not available on this version";
+     //~ }
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/client/UiSounds.java b/common/src/main/java/com/aetherium/client/UiSounds.java
 index f0c97dc..823ad0d 100644
 --- a/common/src/main/java/com/aetherium/client/UiSounds.java
@@ -1173,7 +1798,7 @@ index a561e63..e5c6f9f 100644
      // @era:options-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/ZoomKeys.java b/common/src/main/java/com/aetherium/client/ZoomKeys.java
-index e57b96a..5de6446 100644
+index 8c21101..324d5e5 100644
 --- a/common/src/main/java/com/aetherium/client/ZoomKeys.java
 +++ b/common/src/main/java/com/aetherium/client/ZoomKeys.java
 @@ -3,14 +3,14 @@ package com.aetherium.client;
@@ -1214,7 +1839,7 @@ index e57b96a..5de6446 100644
      // @era:zoom-end
  
      private ZoomKeys() {
-@@ -82,97 +82,97 @@ public final class ZoomKeys {
+@@ -82,102 +82,102 @@ public final class ZoomKeys {
          return CONTROLLER.smoothCamera(original);
      }
  
@@ -1304,24 +1929,9 @@ index e57b96a..5de6446 100644
 -        //~ }
 -        //~ CONTROLLER.frame(nowMs(), held, zoomIn.isDown(), zoomOut.isDown(), view);
 -    //~ }
-+    /**
-+     * The Controls screen sorts categories through a fixed table and throws on unknown names,
-+     * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
-+     */
-+    private static String registerCategory() {
-+        try {
-+            final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
-+            if (!order.containsKey(CATEGORY)) {
-+                int last = 0;
-+                for (final Integer value : order.values()) {
-+                    last = Math.max(last, value.intValue());
-+                }
-+                order.put(CATEGORY, Integer.valueOf(last + 1));
-+            }
-+            return CATEGORY;
-+        } catch (final Throwable error) {
-+            return FALLBACK_CATEGORY;
-+        }
++    /** The Aetherium key category (registered on first use), shared with the Freelook key. */
++    static String category() {
++        return registerCategory();
 +    }
  
 -    //~ /** Options.load HEAD: returns the key list with the three zoom keys appended (once). */
@@ -1345,6 +1955,30 @@ index e57b96a..5de6446 100644
 -        //~ out[existing.length + 1] = zoomIn;
 -        //~ out[existing.length + 2] = zoomOut;
 -        //~ return out;
+-    //~ }
++    /**
++     * The Controls screen sorts categories through a fixed table and throws on unknown names,
++     * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
++     */
++    private static String registerCategory() {
++        try {
++            final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
++            if (!order.containsKey(CATEGORY)) {
++                int last = 0;
++                for (final Integer value : order.values()) {
++                    last = Math.max(last, value.intValue());
++                }
++                order.put(CATEGORY, Integer.valueOf(last + 1));
++            }
++            return CATEGORY;
++        } catch (final Throwable error) {
++            return FALLBACK_CATEGORY;
++        }
++    }
+ 
+-    //~ /** The Aetherium key category (registered on first use), shared with the Freelook key. */
+-    //~ static String category() {
+-        //~ return registerCategory();
 +    /** "Z / = / -" for the settings screen. */
 +    public static String describe() {
 +        if (zoom == null) {
@@ -1389,6 +2023,105 @@ index e57b96a..5de6446 100644
 +        //~ return "Not available on this version";
      //~ }
      // @era:zoom-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java b/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java
+index 84ade47..3b93da7 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java
++++ b/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java
+@@ -1,9 +1,9 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:qol16-begin v16
++import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.util.thread.BlockableEventLoop")
+ public interface BlockableEventLoopInvoker {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Invoker("pollTask")
+-    //~ boolean aetherium$pollTask();
++    // @era:qol16-begin v16
++    @Invoker("pollTask")
++    boolean aetherium$pollTask();
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
+index 8e5689c..039f6de 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
+@@ -1,18 +1,18 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.QolHooks;
+-//~ import com.aetherium.client.VertexBufferAccess;
+-//~ import com.aetherium.perf.PreparedUploads;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.VertexBuffer;
+-//~ import java.util.concurrent.CompletableFuture;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:qol16-begin v16
++import com.aetherium.client.QolHooks;
++import com.aetherium.client.VertexBufferAccess;
++import com.aetherium.perf.PreparedUploads;
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.VertexBuffer;
++import java.util.concurrent.CompletableFuture;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -23,19 +23,19 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
+ public abstract class ChunkPrepareMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Inject(method = "uploadChunkLayer", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$prepare(final BufferBuilder builder, final VertexBuffer buffer,
+-                                   //~ final CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+-        //~ if (QolHooks.prepareUploads() && (Object) buffer instanceof VertexBufferAccess) {
+-            //~ ((VertexBufferAccess) (Object) buffer).aetheriumPrepare(builder);
+-        //~ }
+-    //~ }
++    // @era:qol16-begin v16
++    @Inject(method = "uploadChunkLayer", at = @At("HEAD"), require = 0)
++    private void aetherium$prepare(final BufferBuilder builder, final VertexBuffer buffer,
++                                   final CallbackInfoReturnable<CompletableFuture<Void>> cir) {
++        if (QolHooks.prepareUploads() && (Object) buffer instanceof VertexBufferAccess) {
++            ((VertexBufferAccess) (Object) buffer).aetheriumPrepare(builder);
++        }
++    }
+ 
+-    //~ @Inject(method = "dispose", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$dispose(final CallbackInfo ci) {
+-        //~ PreparedUploads.clear();
+-    //~ }
++    @Inject(method = "dispose", at = @At("HEAD"), require = 0)
++    private void aetherium$dispose(final CallbackInfo ci) {
++        PreparedUploads.clear();
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 index 93ae6d3..5c2b16f 100644
@@ -1766,44 +2499,40 @@ index 93ae6d3..5c2b16f 100644
      // @era:chunk-renderer-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
-index b663eb2..26dfea5 100644
+index 34fef4f..72a3e05 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
-@@ -9,12 +9,12 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.Mixin;
  import org.spongepowered.asm.mixin.Shadow;
  import org.spongepowered.asm.mixin.injection.At;
  import org.spongepowered.asm.mixin.injection.Inject;
 -// @era:chunk-upload-begin srd
 -import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:chunk-upload-else crdbool
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 +// @era:chunk-upload-begin crdbool
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 +// @era:chunk-upload-else srd
 +//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  // @era:chunk-upload-else crd
  //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
--// @era:chunk-upload-else crdbool
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  // @era:chunk-upload-else none
- //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
- // @era:chunk-upload-end
-@@ -25,12 +25,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -25,10 +25,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
   * burst over the following frames. The queue is vanilla's own {@code toUpload}; nothing is dropped
   * or reordered. 26.x moved uploads into the GPU device layer and has no queue to pace.
   */
 -// @era:chunk-upload-begin srd
 -@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
+-// @era:chunk-upload-else crdbool
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
 +// @era:chunk-upload-begin crdbool
 +@Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
 +// @era:chunk-upload-else srd
 +//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
  // @era:chunk-upload-else crd
  //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
--// @era:chunk-upload-else crdbool
--//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
  // @era:chunk-upload-else none
- //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
- // @era:chunk-upload-end
-@@ -40,15 +40,14 @@ public abstract class ChunkUploadMixin {
+@@ -40,21 +40,21 @@ public abstract class ChunkUploadMixin {
      @Final
      private Queue<Runnable> toUpload;
  
@@ -1815,30 +2544,76 @@ index b663eb2..26dfea5 100644
          if (UploadBudget.enabled()) {
 -            UploadBudget.drain(this.toUpload);
 -            ci.cancel();
-+            cir.setReturnValue(Boolean.valueOf(UploadBudget.drain(this.toUpload) > 0));
++            final int uploaded = UploadBudget.drain(this.toUpload);
++            com.aetherium.perf.StutterRecorder.uploads += uploaded;
++            cir.setReturnValue(Boolean.valueOf(uploaded > 0));
          }
      }
--    // @era:chunk-upload-else crd
-+    // @era:chunk-upload-else srd
-     //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
-     //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
-         //~ if (UploadBudget.enabled()) {
-@@ -56,11 +55,12 @@ public abstract class ChunkUploadMixin {
-             //~ ci.cancel();
-         //~ }
-     //~ }
 -    // @era:chunk-upload-else crdbool
-+    // @era:chunk-upload-else crd
++    // @era:chunk-upload-else srd
      //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
 -    //~ private void aetherium$pacedUploads(final CallbackInfoReturnable<Boolean> cir) {
 +    //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
          //~ if (UploadBudget.enabled()) {
--            //~ cir.setReturnValue(Boolean.valueOf(UploadBudget.drain(this.toUpload) > 0));
+-            //~ final int uploaded = UploadBudget.drain(this.toUpload);
+-            //~ com.aetherium.perf.StutterRecorder.uploads += uploaded;
+-            //~ cir.setReturnValue(Boolean.valueOf(uploaded > 0));
 +            //~ UploadBudget.drain(this.toUpload);
 +            //~ ci.cancel();
          //~ }
      //~ }
-     // @era:chunk-upload-else none
+     // @era:chunk-upload-else crd
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
+index 7607824..ffa245c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
+@@ -1,14 +1,14 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.QolHooks;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.renderer.FogRenderer;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.client.QolHooks;
++import net.minecraft.client.Camera;
++import net.minecraft.client.renderer.FogRenderer;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -18,14 +18,14 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.FogRenderer")
+ public abstract class FogControlMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Inject(method = "setupFog", at = @At("TAIL"), require = 0)
+-    //~ private static void aetherium$fogControls(final Camera camera, final FogRenderer.FogMode mode, final float farPlane,
+-                                              //~ final boolean thick, final CallbackInfo ci) {
+-        //~ if (mode == FogRenderer.FogMode.FOG_TERRAIN) {
+-            //~ QolHooks.adjustFog(camera, farPlane, thick);
+-        //~ }
+-    //~ }
++    // @era:qol16-begin v16
++    @Inject(method = "setupFog", at = @At("TAIL"), require = 0)
++    private static void aetherium$fogControls(final Camera camera, final FogRenderer.FogMode mode, final float farPlane,
++                                              final boolean thick, final CallbackInfo ci) {
++        if (mode == FogRenderer.FogMode.FOG_TERRAIN) {
++            QolHooks.adjustFog(camera, farPlane, thick);
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java
 index 7680693..4dfdea6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java
@@ -1938,6 +2713,109 @@ index 7680693..4dfdea6 100644
 +    }
 +    // @era:chunk-renderer-else none
      // @era:chunk-renderer-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
+index 1e5f51b..6ce0643 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
+@@ -1,11 +1,11 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.QolHooks;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyArg;
++// @era:qol16-begin v16
++import com.aetherium.client.QolHooks;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.ModifyArg;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -15,18 +15,18 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.Camera")
+ public abstract class FreelookCameraMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+-            //~ ordinal = 0), index = 0, require = 0)
+-    //~ private float aetherium$freelookYaw(final float yaw) {
+-        //~ return QolHooks.cameraYaw(yaw);
+-    //~ }
++    // @era:qol16-begin v16
++    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
++            ordinal = 0), index = 0, require = 0)
++    private float aetherium$freelookYaw(final float yaw) {
++        return QolHooks.cameraYaw(yaw);
++    }
+ 
+-    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+-            //~ ordinal = 0), index = 1, require = 0)
+-    //~ private float aetherium$freelookPitch(final float pitch) {
+-        //~ return QolHooks.cameraPitch(pitch);
+-    //~ }
++    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
++            ordinal = 0), index = 1, require = 0)
++    private float aetherium$freelookPitch(final float pitch) {
++        return QolHooks.cameraPitch(pitch);
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java
+index 314d474..fb995d0 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.QolHooks;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import net.minecraft.client.player.LocalPlayer;
+-//~ import org.spongepowered.asm.mixin.injection.At;
++// @era:qol16-begin v16
++import com.aetherium.client.QolHooks;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import net.minecraft.client.player.LocalPlayer;
++import org.spongepowered.asm.mixin.injection.At;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -16,15 +16,15 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.MouseHandler")
+ public abstract class FreelookMouseMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @WrapOperation(method = "turnPlayer", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/player/LocalPlayer;turn(DD)V"), require = 0)
+-    //~ private void aetherium$freelookTurn(final LocalPlayer player, final double dx, final double dy,
+-                                        //~ final Operation<Void> original) {
+-        //~ if (!QolHooks.freelookTurn(dx, dy)) {
+-            //~ original.call(player, dx, dy);
+-        //~ }
+-    //~ }
++    // @era:qol16-begin v16
++    @WrapOperation(method = "turnPlayer", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/player/LocalPlayer;turn(DD)V"), require = 0)
++    private void aetherium$freelookTurn(final LocalPlayer player, final double dx, final double dy,
++                                        final Operation<Void> original) {
++        if (!QolHooks.freelookTurn(dx, dy)) {
++            original.call(player, dx, dy);
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..531f6bc 100644
@@ -2177,7 +3055,7 @@ index 0bb9134..70f6233 100644
  //~ }
  // @era:options-end
 diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java
-index 5c9ecdd..1771e9b 100644
+index 0223b53..495bedc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java
 @@ -8,15 +8,15 @@ import org.spongepowered.asm.mixin.Mixin;
@@ -2203,7 +3081,7 @@ index 5c9ecdd..1771e9b 100644
  // @era:zoom-end
  
  /**
-@@ -26,17 +26,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -27,21 +27,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
   */
  @Mixin(Options.class)
  public abstract class OptionsMixin {
@@ -2217,6 +3095,10 @@ index 5c9ecdd..1771e9b 100644
 -    //~ @Inject(method = "load()V", at = @At("HEAD"), require = 0)
 -    //~ private void aetherium$zoomKeys(final CallbackInfo ci) {
 -        //~ this.keyMappings = ZoomKeys.append(this.keyMappings);
+-        //~ // @era:qol16-begin v16
+-        //~ this.keyMappings = com.aetherium.client.QolHooks.appendKeys(this.keyMappings);
+-        //~ // @era:qol16-else none
+-        //~ // @era:qol16-end
 -    //~ }
 +    // @era:zoom-begin v16
 +    @Shadow
@@ -2227,11 +3109,151 @@ index 5c9ecdd..1771e9b 100644
 +    @Inject(method = "load()V", at = @At("HEAD"), require = 0)
 +    private void aetherium$zoomKeys(final CallbackInfo ci) {
 +        this.keyMappings = ZoomKeys.append(this.keyMappings);
++        // @era:qol16-begin v16
++        this.keyMappings = com.aetherium.client.QolHooks.appendKeys(this.keyMappings);
++        // @era:qol16-else none
++        // @era:qol16-end
 +    }
 +    // @era:zoom-else none
      // @era:zoom-end
  
      @Inject(method = "save", at = @At("HEAD"), require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java b/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java
+index 39c44b7..155bc42 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java
+@@ -1,12 +1,12 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.QolHooks;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import org.spongepowered.asm.mixin.injection.At;
++// @era:qol16-begin v16
++import com.aetherium.client.QolHooks;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import org.spongepowered.asm.mixin.injection.At;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -17,14 +17,14 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.Minecraft")
+ public abstract class PacketBudgetMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @WrapOperation(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;runAllTasks()V"),
+-            //~ require = 0)
+-    //~ private void aetherium$budgetTasks(final net.minecraft.client.Minecraft self, final Operation<Void> original) {
+-        //~ if (!QolHooks.drainTasks(self)) {
+-            //~ original.call(self);
+-        //~ }
+-    //~ }
++    // @era:qol16-begin v16
++    @WrapOperation(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;runAllTasks()V"),
++            require = 0)
++    private void aetherium$budgetTasks(final net.minecraft.client.Minecraft self, final Operation<Void> original) {
++        if (!QolHooks.drainTasks(self)) {
++            original.call(self);
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java b/common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java
+index 51342cf..19bc655 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java
+@@ -1,19 +1,19 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.QolHooks;
+-//~ import com.aetherium.qol.ParticleFilter;
+-//~ import net.minecraft.client.particle.Particle;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.core.Direction;
+-//~ import net.minecraft.core.particles.ParticleOptions;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:qol16-begin v16
++import com.aetherium.client.QolHooks;
++import com.aetherium.qol.ParticleFilter;
++import net.minecraft.client.particle.Particle;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Direction;
++import net.minecraft.core.particles.ParticleOptions;
++import net.minecraft.world.level.block.state.BlockState;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -23,29 +23,29 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.particle.ParticleEngine")
+ public abstract class ParticleTypeMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Inject(method = "createParticle", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$particleType(final ParticleOptions options, final double x, final double y, final double z,
+-                                        //~ final double dx, final double dy, final double dz,
+-                                        //~ final CallbackInfoReturnable<Particle> cir) {
+-        //~ if (QolHooks.dropParticle(options)) {
+-            //~ cir.setReturnValue(null);
+-        //~ }
+-    //~ }
++    // @era:qol16-begin v16
++    @Inject(method = "createParticle", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$particleType(final ParticleOptions options, final double x, final double y, final double z,
++                                        final double dx, final double dy, final double dz,
++                                        final CallbackInfoReturnable<Particle> cir) {
++        if (QolHooks.dropParticle(options)) {
++            cir.setReturnValue(null);
++        }
++    }
+ 
+-    //~ @Inject(method = "destroy", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$blockBreak(final BlockPos pos, final BlockState state, final CallbackInfo ci) {
+-        //~ if (!ParticleFilter.blockBreaking()) {
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
++    @Inject(method = "destroy", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$blockBreak(final BlockPos pos, final BlockState state, final CallbackInfo ci) {
++        if (!ParticleFilter.blockBreaking()) {
++            ci.cancel();
++        }
++    }
+ 
+-    //~ @Inject(method = "crack", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$blockCrack(final BlockPos pos, final Direction side, final CallbackInfo ci) {
+-        //~ if (!ParticleFilter.blockBreaking()) {
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
++    @Inject(method = "crack", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$blockCrack(final BlockPos pos, final Direction side, final CallbackInfo ci) {
++        if (!ParticleFilter.blockBreaking()) {
++            ci.cancel();
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
 index e9806cb..3bafb42 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
@@ -2286,6 +3308,109 @@ index e9806cb..3bafb42 100644
 +    }
 +    // @era:chunk-renderer-else none
      // @era:chunk-renderer-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java
+index 52c78b4..94ea243 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java
+@@ -3,13 +3,13 @@ package com.aetherium.mixin.core;
+ import com.aetherium.client.RenderChunkDirtyAccess;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -19,48 +19,48 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
+ public abstract class RenderChunkDirtyMixin implements RenderChunkDirtyAccess {
+-    // @era:qol16-begin none
++    // @era:qol16-begin v16
++    @Shadow
++    private boolean dirty;
++
++    @Unique
++    private long aetherium$firstDirty;
++
++    @Unique
++    private long aetherium$lastDirty;
++
++    @Inject(method = "setDirty", at = @At("HEAD"), require = 0)
++    private void aetherium$stampDirty(final boolean playerChanged, final CallbackInfo ci) {
++        final long now = System.nanoTime();
++        if (!this.dirty || this.aetherium$firstDirty == 0L) {
++            this.aetherium$firstDirty = now;
++        }
++        this.aetherium$lastDirty = now;
++    }
++
++    @Inject(method = "setNotDirty", at = @At("HEAD"), require = 0)
++    private void aetherium$clearDirty(final CallbackInfo ci) {
++        this.aetherium$firstDirty = 0L;
++    }
++
+     @Override
+     public long aetheriumFirstDirty() {
+-        return 0L;
++        return this.aetherium$firstDirty;
+     }
+ 
+     @Override
+     public long aetheriumLastDirty() {
+-        return 0L;
++        return this.aetherium$lastDirty;
+     }
+-    // @era:qol16-else v16
+-    //~ @Shadow
+-    //~ private boolean dirty;
+-
+-    //~ @Unique
+-    //~ private long aetherium$firstDirty;
+-
+-    //~ @Unique
+-    //~ private long aetherium$lastDirty;
+-
+-    //~ @Inject(method = "setDirty", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$stampDirty(final boolean playerChanged, final CallbackInfo ci) {
+-        //~ final long now = System.nanoTime();
+-        //~ if (!this.dirty || this.aetherium$firstDirty == 0L) {
+-            //~ this.aetherium$firstDirty = now;
+-        //~ }
+-        //~ this.aetherium$lastDirty = now;
+-    //~ }
+-
+-    //~ @Inject(method = "setNotDirty", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$clearDirty(final CallbackInfo ci) {
+-        //~ this.aetherium$firstDirty = 0L;
+-    //~ }
+-
++    // @era:qol16-else none
+     //~ @Override
+     //~ public long aetheriumFirstDirty() {
+-        //~ return this.aetherium$firstDirty;
++        //~ return 0L;
+     //~ }
+ 
+     //~ @Override
+     //~ public long aetheriumLastDirty() {
+-        //~ return this.aetherium$lastDirty;
++        //~ return 0L;
+     //~ }
+     // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
 index 0c9cdbc..592d8eb 100644
@@ -2344,17 +3469,219 @@ index 0c9cdbc..592d8eb 100644
      //~ }
      // @era:section-vis-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
+index e4e6e6d..4b07860 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
+@@ -1,19 +1,19 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.qol.Scenery;
+-//~ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.VertexBuffer;
+-//~ import com.mojang.math.Matrix4f;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.qol.Scenery;
++import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.VertexBuffer;
++import com.mojang.math.Matrix4f;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -25,37 +25,37 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class SkyMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Inject(method = "renderSky", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$sky(final PoseStack pose, final float partialTick, final CallbackInfo ci) {
+-        //~ if (!Scenery.sky) {
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
++    // @era:qol16-begin v16
++    @Inject(method = "renderSky", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$sky(final PoseStack pose, final float partialTick, final CallbackInfo ci) {
++        if (!Scenery.sky) {
++            ci.cancel();
++        }
++    }
+ 
+-    //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;)V"), require = 0)
+-    //~ private void aetherium$sunMoon(final BufferBuilder builder, final Operation<Void> original) {
+-        //~ if (Scenery.sunMoon) {
+-            //~ original.call(builder);
+-        //~ } else {
+-            //~ builder.popNextBuffer();
+-        //~ }
+-    //~ }
++    @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
++            target = "Lcom/mojang/blaze3d/vertex/BufferUploader;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;)V"), require = 0)
++    private void aetherium$sunMoon(final BufferBuilder builder, final Operation<Void> original) {
++        if (Scenery.sunMoon) {
++            original.call(builder);
++        } else {
++            builder.popNextBuffer();
++        }
++    }
+ 
+-    //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;draw(Lcom/mojang/math/Matrix4f;I)V", ordinal = 1), require = 0)
+-    //~ private void aetherium$stars(final VertexBuffer buffer, final Matrix4f matrix, final int mode, final Operation<Void> original) {
+-        //~ if (Scenery.stars) {
+-            //~ original.call(buffer, matrix, mode);
+-        //~ }
+-    //~ }
++    @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
++            target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;draw(Lcom/mojang/math/Matrix4f;I)V", ordinal = 1), require = 0)
++    private void aetherium$stars(final VertexBuffer buffer, final Matrix4f matrix, final int mode, final Operation<Void> original) {
++        if (Scenery.stars) {
++            original.call(buffer, matrix, mode);
++        }
++    }
+ 
+-    //~ @ModifyExpressionValue(method = "renderClouds", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/DimensionSpecialEffects;getCloudHeight()F"), require = 0)
+-    //~ private float aetherium$cloudHeight(final float original) {
+-        //~ return Scenery.cloudHeight(original);
+-    //~ }
++    @ModifyExpressionValue(method = "renderClouds", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/DimensionSpecialEffects;getCloudHeight()F"), require = 0)
++    private float aetherium$cloudHeight(final float original) {
++        return Scenery.cloudHeight(original);
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java
+index d5e4570..ddd83c8 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java
+@@ -1,20 +1,20 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.QolHooks;
+-//~ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import java.util.concurrent.Executor;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.client.renderer.culling.Frustum;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyArg;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.client.QolHooks;
++import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import java.util.concurrent.Executor;
++import net.minecraft.client.Camera;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.client.renderer.culling.Frustum;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.ModifyArg;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -32,32 +32,32 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class StreamingLevelMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V"),
+-            //~ index = 2, require = 0)
+-    //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
+-        //~ return QolHooks.meshExecutor(vanilla);
+-    //~ }
++    // @era:qol16-begin v16
++    @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V"),
++            index = 2, require = 0)
++    private Executor aetherium$meshExecutor(final Executor vanilla) {
++        return QolHooks.meshExecutor(vanilla);
++    }
+ 
+-    //~ @Inject(method = "setupRender", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$camera(final Camera camera, final Frustum frustum, final boolean hasCapturedFrustum,
+-                                  //~ final int frame, final boolean spectator, final CallbackInfo ci) {
+-        //~ QolHooks.setRebuildCamera(camera);
+-    //~ }
++    @Inject(method = "setupRender", at = @At("HEAD"), require = 0)
++    private void aetherium$camera(final Camera camera, final Frustum frustum, final boolean hasCapturedFrustum,
++                                  final int frame, final boolean spectator, final CallbackInfo ci) {
++        QolHooks.setRebuildCamera(camera);
++    }
+ 
+-    //~ @WrapOperation(method = "setupRender", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;isDirty()Z"), require = 0)
+-    //~ private boolean aetherium$coalesce(final ChunkRenderDispatcher.RenderChunk chunk, final Operation<Boolean> original) {
+-        //~ // Direct call instead of original.call: no argument array per section per frame.
+-        //~ return chunk.isDirty() && !QolHooks.deferRebuild(chunk);
+-    //~ }
++    @WrapOperation(method = "setupRender", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;isDirty()Z"), require = 0)
++    private boolean aetherium$coalesce(final ChunkRenderDispatcher.RenderChunk chunk, final Operation<Boolean> original) {
++        // Direct call instead of original.call: no argument array per section per frame.
++        return chunk.isDirty() && !QolHooks.deferRebuild(chunk);
++    }
+ 
+-    //~ @ModifyExpressionValue(method = "compileChunksUntil", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;uploadAllPendingUploads()Z"), require = 0)
+-    //~ private boolean aetherium$throttleVisibility(final boolean uploaded) {
+-        //~ return QolHooks.visibilityUpdateAfterUploads(uploaded);
+-    //~ }
++    @ModifyExpressionValue(method = "compileChunksUntil", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;uploadAllPendingUploads()Z"), require = 0)
++    private boolean aetherium$throttleVisibility(final boolean uploaded) {
++        return QolHooks.visibilityUpdateAfterUploads(uploaded);
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-index e02598d..4f21302 100644
+index 28ad7d0..f8d0f9d 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-@@ -3,18 +3,18 @@ package com.aetherium.mixin.core;
+@@ -3,20 +3,20 @@ package com.aetherium.mixin.core;
  import com.aetherium.client.VertexBufferAccess;
  import com.aetherium.render.CompactTerrain;
  
 -// @era:chunk-renderer-begin none
 -// @era:chunk-renderer-else gl16
 -//~ import com.aetherium.client.ChunkRenderer;
+-//~ import com.aetherium.perf.PreparedUploads;
+-//~ import com.aetherium.perf.StutterRecorder;
 -//~ import com.mojang.blaze3d.vertex.BufferBuilder;
 -//~ import com.mojang.blaze3d.vertex.VertexFormat;
 -//~ import java.nio.ByteBuffer;
@@ -2366,6 +3693,8 @@ index e02598d..4f21302 100644
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:chunk-renderer-begin gl16
 +import com.aetherium.client.ChunkRenderer;
++import com.aetherium.perf.PreparedUploads;
++import com.aetherium.perf.StutterRecorder;
 +import com.mojang.blaze3d.vertex.BufferBuilder;
 +import com.mojang.blaze3d.vertex.VertexFormat;
 +import java.nio.ByteBuffer;
@@ -2379,7 +3708,7 @@ index e02598d..4f21302 100644
  // @era:chunk-renderer-end
  import org.spongepowered.asm.mixin.Mixin;
  import org.spongepowered.asm.mixin.Shadow;
-@@ -36,136 +36,136 @@ import org.spongepowered.asm.mixin.Shadow;
+@@ -38,200 +38,200 @@ import org.spongepowered.asm.mixin.Shadow;
  @Mixin(targets = "com.mojang.blaze3d.vertex.VertexBuffer")
  public abstract class VertexBufferMixin implements VertexBufferAccess {
  
@@ -2439,6 +3768,26 @@ index e02598d..4f21302 100644
 -        return null;
 +        return this.aetherium$format == 2 ? this.aetherium$layout : null;
      }
+ 
++    /**
++     * Replaces vanilla's {@code upload_} for tagged buffers while the pipeline is on. Same steps as
++     * vanilla (pop the builder's next buffer; if the GL buffer is alive, set the vertex count and
++     * store the data), with the data re-encoded when it fits.
++     */
+     @Override
+-    public void aetheriumPrepare(final Object builder) {
++    public void aetheriumPrepare(final Object source) {
++        if (!this.aetherium$terrain) {
++            return;
++        }
++        final int mode = ChunkRenderer.uploadMode();
++        if (mode == ChunkRenderer.MODE_OFF) {
++            return;
++        }
++        final BufferBuilder builder = (BufferBuilder) source;
++        final ByteBuffer data = builder.popNextBuffer().getSecond();
++        PreparedUploads.put(builder, PreparedUploads.prepare(data, mode == ChunkRenderer.MODE_SHADER));
+     }
 -    // @era:chunk-renderer-else gl16
 -    //~ @Shadow
 -    //~ private int id;
@@ -2449,7 +3798,7 @@ index e02598d..4f21302 100644
 -    //~ @Shadow
 -    //~ @Final
 -    //~ private VertexFormat format;
--
+ 
 -    //~ @Unique
 -    //~ private boolean aetherium$terrain;
 -
@@ -2459,18 +3808,58 @@ index e02598d..4f21302 100644
 -
 -    //~ @Unique
 -    //~ private CompactTerrain.Layout aetherium$layout;
++    /** Uploads a mesh the worker already converted: only the GL calls remain for the render thread. */
++    @Unique
++    private void aetherium$uploadPrepared(final PreparedUploads.Prepared prepared, final int mode) {
++        if (prepared.error != null) {
++            ChunkRenderer.fail(prepared.error);
++        }
++        int format = prepared.format;
++        // The pipeline was switched off after this mesh was converted: vanilla cannot draw the
++        // converted bytes, so the buffer is left empty (switching rebuilds every section anyway).
++        final boolean unusable = mode == ChunkRenderer.MODE_OFF && format != 0;
++        if (this.id != -1) {
++            if (unusable) {
++                this.vertexCount = 0;
++            } else {
++                this.vertexCount = format == 1 ? prepared.quads * CompactTerrain.VERTICES_PER_QUAD
++                        : prepared.data.remaining() / this.format.getVertexSize();
++                GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
++                GL15.glBufferData(0x8892, prepared.data, 0x88E4); // GL_STATIC_DRAW, as vanilla
++                GL15.glBindBuffer(0x8892, 0);
++            }
++        }
++        if (unusable) {
++            format = 0;
++        }
++        if (format != 0) {
++            if (this.aetherium$layout == null) {
++                this.aetherium$layout = new CompactTerrain.Layout();
++            }
++            this.aetherium$layout.copyFrom(prepared.layout);
++        }
++        this.aetherium$format = format;
++        if (format == 1) {
++            ChunkRenderer.noteCompactUpload(prepared.quads);
++        }
++        StutterRecorder.preparedUploads++;
++        PreparedUploads.done(prepared);
++    }
  
-+    /**
-+     * Replaces vanilla's {@code upload_} for tagged buffers while the pipeline is on. Same steps as
-+     * vanilla (pop the builder's next buffer; if the GL buffer is alive, set the vertex count and
-+     * store the data), with the data re-encoded when it fits.
-+     */
 +    @Inject(method = "upload_", at = @At("HEAD"), cancellable = true, require = 0)
 +    private void aetherium$upload(final BufferBuilder builder, final CallbackInfo ci) {
 +        if (!this.aetherium$terrain) {
 +            return;
 +        }
 +        final int mode = ChunkRenderer.uploadMode();
++        // A worker already took this mesh out of the builder: always consume its record,
++        // whatever the current mode, or the builder would be popped a second time.
++        final PreparedUploads.Prepared prepared = PreparedUploads.take(builder);
++        if (prepared != null) {
++            ci.cancel();
++            this.aetherium$uploadPrepared(prepared, mode);
++            return;
++        }
 +        if (mode == ChunkRenderer.MODE_OFF) {
 +            this.aetherium$format = 0;
 +            return;
@@ -2544,19 +3933,80 @@ index e02598d..4f21302 100644
      //~ @Override
      //~ public CompactTerrain.Layout aetheriumSortedLayout() {
 -        //~ return this.aetherium$format == 2 ? this.aetherium$layout : null;
--    //~ }
--
++        //~ return null;
+     //~ }
+ 
 -    //~ /**
 -     //~ * Replaces vanilla's {@code upload_} for tagged buffers while the pipeline is on. Same steps as
 -     //~ * vanilla (pop the builder's next buffer; if the GL buffer is alive, set the vertex count and
 -     //~ * store the data), with the data re-encoded when it fits.
 -     //~ */
+     //~ @Override
+-    //~ public void aetheriumPrepare(final Object source) {
+-        //~ if (!this.aetherium$terrain) {
+-            //~ return;
+-        //~ }
+-        //~ final int mode = ChunkRenderer.uploadMode();
+-        //~ if (mode == ChunkRenderer.MODE_OFF) {
+-            //~ return;
+-        //~ }
+-        //~ final BufferBuilder builder = (BufferBuilder) source;
+-        //~ final ByteBuffer data = builder.popNextBuffer().getSecond();
+-        //~ PreparedUploads.put(builder, PreparedUploads.prepare(data, mode == ChunkRenderer.MODE_SHADER));
+-    //~ }
+-
+-    //~ /** Uploads a mesh the worker already converted: only the GL calls remain for the render thread. */
+-    //~ @Unique
+-    //~ private void aetherium$uploadPrepared(final PreparedUploads.Prepared prepared, final int mode) {
+-        //~ if (prepared.error != null) {
+-            //~ ChunkRenderer.fail(prepared.error);
+-        //~ }
+-        //~ int format = prepared.format;
+-        //~ // The pipeline was switched off after this mesh was converted: vanilla cannot draw the
+-        //~ // converted bytes, so the buffer is left empty (switching rebuilds every section anyway).
+-        //~ final boolean unusable = mode == ChunkRenderer.MODE_OFF && format != 0;
+-        //~ if (this.id != -1) {
+-            //~ if (unusable) {
+-                //~ this.vertexCount = 0;
+-            //~ } else {
+-                //~ this.vertexCount = format == 1 ? prepared.quads * CompactTerrain.VERTICES_PER_QUAD
+-                        //~ : prepared.data.remaining() / this.format.getVertexSize();
+-                //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
+-                //~ GL15.glBufferData(0x8892, prepared.data, 0x88E4); // GL_STATIC_DRAW, as vanilla
+-                //~ GL15.glBindBuffer(0x8892, 0);
+-            //~ }
+-        //~ }
+-        //~ if (unusable) {
+-            //~ format = 0;
+-        //~ }
+-        //~ if (format != 0) {
+-            //~ if (this.aetherium$layout == null) {
+-                //~ this.aetherium$layout = new CompactTerrain.Layout();
+-            //~ }
+-            //~ this.aetherium$layout.copyFrom(prepared.layout);
+-        //~ }
+-        //~ this.aetherium$format = format;
+-        //~ if (format == 1) {
+-            //~ ChunkRenderer.noteCompactUpload(prepared.quads);
+-        //~ }
+-        //~ StutterRecorder.preparedUploads++;
+-        //~ PreparedUploads.done(prepared);
+-    //~ }
+-
 -    //~ @Inject(method = "upload_", at = @At("HEAD"), cancellable = true, require = 0)
 -    //~ private void aetherium$upload(final BufferBuilder builder, final CallbackInfo ci) {
 -        //~ if (!this.aetherium$terrain) {
 -            //~ return;
 -        //~ }
 -        //~ final int mode = ChunkRenderer.uploadMode();
+-        //~ // A worker already took this mesh out of the builder: always consume its record,
+-        //~ // whatever the current mode, or the builder would be popped a second time.
+-        //~ final PreparedUploads.Prepared prepared = PreparedUploads.take(builder);
+-        //~ if (prepared != null) {
+-            //~ ci.cancel();
+-            //~ this.aetherium$uploadPrepared(prepared, mode);
+-            //~ return;
+-        //~ }
 -        //~ if (mode == ChunkRenderer.MODE_OFF) {
 -            //~ this.aetherium$format = 0;
 -            //~ return;
@@ -2596,7 +4046,7 @@ index e02598d..4f21302 100644
 -        //~ if (format == 1) {
 -            //~ ChunkRenderer.noteCompactUpload(this.aetherium$layout.quads());
 -        //~ }
-+        //~ return null;
++    //~ public void aetheriumPrepare(final Object builder) {
      //~ }
      // @era:chunk-renderer-end
  }
@@ -2875,7 +4325,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 404d21b..17b72d1 100644
+index cfa7c77..042eb9a 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -2888,7 +4338,7 @@ index 404d21b..17b72d1 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 26b33d3..8634d40 100644
+index 1433cd3..0fdf283 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

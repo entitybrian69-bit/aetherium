@@ -26,4 +26,13 @@ public interface VertexBufferAccess {
      * mode, {@link CompactTerrain#sortQuads}), otherwise null.
      */
     CompactTerrain.Layout aetheriumSortedLayout();
+
+    /**
+     * Worker thread, right before vanilla queues this buffer's upload: converts the builder's
+     * finished mesh for the Aetherium pipeline and parks it for the render thread
+     * ({@code PreparedUploads}). Does nothing for untagged buffers or while the pipeline is off.
+     *
+     * @param builder the {@code BufferBuilder} holding the finished mesh
+     */
+    void aetheriumPrepare(Object builder);
 }

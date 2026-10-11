@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index bef0593..1d0e786 100644
+index 5ccfae7..60df37e 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -16,24 +16,24 @@ package com.aetherium;
@@ -243,10 +243,10 @@ index e5e224a..903075d 100644
      // @era:input-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 7a6f2ab..574ba54 100644
+index 639a9eb..908c9ab 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -393,18 +393,18 @@ public final class ClientHooks {
+@@ -397,18 +397,18 @@ public final class ClientHooks {
  
      /** The open screen; it moved from {@code Minecraft} to {@code Gui} in 26.2. */
      public static Screen currentScreen(final Minecraft mc) {
@@ -618,7 +618,7 @@ index db3bdf9..74545d7 100644
              //~ cir.setReturnValue(null);
          //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
-index b663eb2..9cf99e1 100644
+index 34fef4f..c8fdcbc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
 @@ -9,14 +9,14 @@ import org.spongepowered.asm.mixin.Mixin;
@@ -630,10 +630,10 @@ index b663eb2..9cf99e1 100644
  import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:chunk-upload-else srd
 +//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
- // @era:chunk-upload-else crd
- //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  // @era:chunk-upload-else crdbool
  //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ // @era:chunk-upload-else crd
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 -// @era:chunk-upload-else none
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  // @era:chunk-upload-end
@@ -648,9 +648,9 @@ index b663eb2..9cf99e1 100644
  @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
 +// @era:chunk-upload-else srd
 +//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
- // @era:chunk-upload-else crd
- //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
  // @era:chunk-upload-else crdbool
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
+ // @era:chunk-upload-else crd
  //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
 -// @era:chunk-upload-else none
 -//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
@@ -678,11 +678,11 @@ index b663eb2..9cf99e1 100644
 +            //~ ci.cancel();
 +        //~ }
 +    //~ }
-     // @era:chunk-upload-else crd
+     // @era:chunk-upload-else crdbool
      //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
-     //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
-@@ -63,9 +67,5 @@ public abstract class ChunkUploadMixin {
-             //~ cir.setReturnValue(Boolean.valueOf(UploadBudget.drain(this.toUpload) > 0));
+     //~ private void aetherium$pacedUploads(final CallbackInfoReturnable<Boolean> cir) {
+@@ -65,9 +69,5 @@ public abstract class ChunkUploadMixin {
+             //~ ci.cancel();
          //~ }
      //~ }
 -    // @era:chunk-upload-else none
@@ -911,7 +911,7 @@ index dd489bc..090bb2c 100644
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 404d21b..713a99b 100644
+index cfa7c77..6322b75 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -978,7 +978,7 @@ index a2a8bd6..151bd9f 100644
  neoforge-moddev = { id = "net.neoforged.moddev", version.ref = "moddev" }
  gitversion = { id = "com.palantir.git-version", version.ref = "gitversion" }
 diff --git a/gradle.properties b/gradle.properties
-index 26b33d3..7f2e7a8 100644
+index 1433cd3..7c46935 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

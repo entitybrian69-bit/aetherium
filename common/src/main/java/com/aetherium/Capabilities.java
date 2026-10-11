@@ -107,6 +107,30 @@ public final class Capabilities {
     //~ public static final boolean THREADED_NEAR_BUILDS = true;
     // @era:near-build-end
 
+    /**
+     * Terrain streaming: a per-frame budget for queued packet tasks, coalesced rebuilds of
+     * sections dirtied repeatedly while chunks load, and dedicated chunk-mesh threads (1.16.5 first).
+     */
+    // @era:qol16-begin none
+    public static final boolean STREAMING = false;
+    // @era:qol16-else v16
+    //~ public static final boolean STREAMING = true;
+    // @era:qol16-end
+
+    /** Fog controls, sky toggles and per-type particle toggles (1.16.5 first). */
+    // @era:qol16-begin none
+    public static final boolean SCENERY_CONTROLS = false;
+    // @era:qol16-else v16
+    //~ public static final boolean SCENERY_CONTROLS = true;
+    // @era:qol16-end
+
+    /** Freelook: look around without turning the player (1.16.5 first). */
+    // @era:qol16-begin none
+    public static final boolean FREELOOK = false;
+    // @era:qol16-else v16
+    //~ public static final boolean FREELOOK = true;
+    // @era:qol16-end
+
     /** Weather can be hidden on every supported version. */
     public static final boolean WEATHER = true;
 

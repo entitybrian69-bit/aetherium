@@ -146,6 +146,11 @@ public final class ZoomKeys {
         //~ return out;
     //~ }
 
+    //~ /** The Aetherium key category (registered on first use), shared with the Freelook key. */
+    //~ static String category() {
+        //~ return registerCategory();
+    //~ }
+
     //~ /**
      //~ * The Controls screen sorts categories through a fixed table and throws on unknown names,
      //~ * so the Aetherium category is added to it; if that is impossible the keys go under Misc.

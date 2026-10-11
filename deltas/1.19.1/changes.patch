@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index bef0593..ab0af81 100644
+index 5ccfae7..1cb931e 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -77,10 +77,10 @@ public final class Capabilities {
@@ -124,10 +124,10 @@ index e5e224a..a041b7e 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 7a6f2ab..2ef09e8 100644
+index 639a9eb..9388df7 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -383,10 +383,10 @@ public final class ClientHooks {
+@@ -387,10 +387,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -142,7 +142,7 @@ index 7a6f2ab..2ef09e8 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -409,10 +409,10 @@ public final class ClientHooks {
+@@ -413,10 +413,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -328,36 +328,42 @@ index f0c97dc..823ad0d 100644
      }
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
-index b663eb2..ec26149 100644
+index 34fef4f..ad76ca8 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java
-@@ -9,9 +9,9 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -9,12 +9,12 @@ import org.spongepowered.asm.mixin.Mixin;
  import org.spongepowered.asm.mixin.Shadow;
  import org.spongepowered.asm.mixin.injection.At;
  import org.spongepowered.asm.mixin.injection.Inject;
 -// @era:chunk-upload-begin srd
 +// @era:chunk-upload-begin crd
  import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
--// @era:chunk-upload-else crd
 +// @era:chunk-upload-else srd
- //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  // @era:chunk-upload-else crdbool
  //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-@@ -25,10 +25,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:chunk-upload-else crd
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:chunk-upload-else none
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:chunk-upload-end
+@@ -25,12 +25,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
   * burst over the following frames. The queue is vanilla's own {@code toUpload}; nothing is dropped
   * or reordered. 26.x moved uploads into the GPU device layer and has no queue to pace.
   */
 -// @era:chunk-upload-begin srd
 -@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
--// @era:chunk-upload-else crd
--//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
 +// @era:chunk-upload-begin crd
 +@Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
 +// @era:chunk-upload-else srd
 +//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
  // @era:chunk-upload-else crdbool
  //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
+-// @era:chunk-upload-else crd
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
  // @era:chunk-upload-else none
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher")
+ // @era:chunk-upload-end
 @@ -40,7 +40,7 @@ public abstract class ChunkUploadMixin {
      @Final
      private Queue<Runnable> toUpload;
@@ -367,15 +373,36 @@ index b663eb2..ec26149 100644
      @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
      private void aetherium$pacedUploads(final CallbackInfo ci) {
          if (UploadBudget.enabled()) {
-@@ -48,7 +48,7 @@ public abstract class ChunkUploadMixin {
+@@ -48,6 +48,14 @@ public abstract class ChunkUploadMixin {
              ci.cancel();
          }
      }
--    // @era:chunk-upload-else crd
 +    // @era:chunk-upload-else srd
++    //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
++    //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
++        //~ if (UploadBudget.enabled()) {
++            //~ UploadBudget.drain(this.toUpload);
++            //~ ci.cancel();
++        //~ }
++    //~ }
+     // @era:chunk-upload-else crdbool
+     //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+     //~ private void aetherium$pacedUploads(final CallbackInfoReturnable<Boolean> cir) {
+@@ -57,14 +65,6 @@ public abstract class ChunkUploadMixin {
+             //~ cir.setReturnValue(Boolean.valueOf(uploaded > 0));
+         //~ }
+     //~ }
+-    // @era:chunk-upload-else crd
+-    //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
+-        //~ if (UploadBudget.enabled()) {
+-            //~ UploadBudget.drain(this.toUpload);
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
+     // @era:chunk-upload-else none
      //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
      //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
-         //~ if (UploadBudget.enabled()) {
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..531f6bc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -586,7 +613,7 @@ index f4b7685..3186fc3 100644
              //~ final BlockPos origin = ((ChunkInfoOrigin) list.get(i)).aetheriumOrigin();
              //~ out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 404d21b..9753602 100644
+index cfa7c77..0c0af72 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -599,7 +626,7 @@ index 404d21b..9753602 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 26b33d3..a1d8f3b 100644
+index 1433cd3..de6992b 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

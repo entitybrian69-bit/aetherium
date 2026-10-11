@@ -37,11 +37,24 @@ public final class WorkerThreads {
      * @return the pool size to request, or 0 to leave vanilla's choice alone
      */
     public static int decide(final int configured, final int cores, final boolean android) {
+        return decide(configured, cores, android, false);
+    }
+
+    /**
+     * @param ownMeshThreads chunk meshes are built on {@link ChunkBuildExecutor}'s own threads, so
+     *                       the shared pool only carries world generation and can be smaller
+     */
+    public static int decide(final int configured, final int cores, final boolean android, final boolean ownMeshThreads) {
         if (configured > 0) {
             return Math.min(configured, 255);
         }
         if (!android || cores <= 2) {
             return 0;
+        }
+        if (ownMeshThreads) {
+            // World generation only: half the cores minus one, 2..4, so together with the mesh
+            // threads the render and server threads still get a big core each.
+            return Math.max(2, Math.min(4, cores / 2 - 1));
         }
         // Leave the render thread, the server thread and one core for the launcher/GPU driver.
         return Math.max(2, Math.min(cores - 1, cores - 3));
@@ -60,7 +73,8 @@ public final class WorkerThreads {
             }
             final boolean android = AndroidLauncher.detect(System::getenv, System.getProperty("user.home"),
                     System.getProperty("sun.java.command")).isAndroid();
-            final int threads = decide(readConfigured(configFile), Runtime.getRuntime().availableProcessors(), android);
+            final int threads = decide(readConfigured(configFile), Runtime.getRuntime().availableProcessors(), android,
+                    com.aetherium.Capabilities.STREAMING);
             if (threads > 0) {
                 System.setProperty(PROPERTY, Integer.toString(threads));
                 applied = threads;

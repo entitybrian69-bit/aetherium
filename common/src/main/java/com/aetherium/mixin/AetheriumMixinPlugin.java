@@ -116,6 +116,21 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("NearBuildMixin".equals(simpleName)) {
             return Capabilities.THREADED_NEAR_BUILDS;
         }
+        if ("PacketBudgetMixin".equals(simpleName) || "BlockableEventLoopInvoker".equals(simpleName)
+                || "StreamingLevelMixin".equals(simpleName) || "RenderChunkDirtyMixin".equals(simpleName)) {
+            return Capabilities.STREAMING;
+        }
+        if ("ChunkPrepareMixin".equals(simpleName)) {
+            // Converts meshes for the Aetherium pipeline, so it needs the pipeline's buffer hooks.
+            return Capabilities.STREAMING && Capabilities.EXPERIMENTAL_CHUNK_RENDERER;
+        }
+        if ("FogControlMixin".equals(simpleName) || "SkyMixin".equals(simpleName)
+                || "ParticleTypeMixin".equals(simpleName)) {
+            return Capabilities.SCENERY_CONTROLS;
+        }
+        if ("FreelookMouseMixin".equals(simpleName) || "FreelookCameraMixin".equals(simpleName)) {
+            return Capabilities.FREELOOK;
+        }
         if ("GuiMixin".equals(simpleName)) {
             return Capabilities.HUD_OVERLAY || Capabilities.VIGNETTE_TOGGLE;
         }

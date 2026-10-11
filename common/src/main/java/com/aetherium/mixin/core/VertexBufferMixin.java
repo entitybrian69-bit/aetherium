@@ -6,6 +6,8 @@ import com.aetherium.render.CompactTerrain;
 // @era:chunk-renderer-begin none
 // @era:chunk-renderer-else gl16
 //~ import com.aetherium.client.ChunkRenderer;
+//~ import com.aetherium.perf.PreparedUploads;
+//~ import com.aetherium.perf.StutterRecorder;
 //~ import com.mojang.blaze3d.vertex.BufferBuilder;
 //~ import com.mojang.blaze3d.vertex.VertexFormat;
 //~ import java.nio.ByteBuffer;
@@ -65,6 +67,10 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
     public CompactTerrain.Layout aetheriumSortedLayout() {
         return null;
     }
+
+    @Override
+    public void aetheriumPrepare(final Object builder) {
+    }
     // @era:chunk-renderer-else gl16
     //~ @Shadow
     //~ private int id;
@@ -121,12 +127,72 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
      //~ * vanilla (pop the builder's next buffer; if the GL buffer is alive, set the vertex count and
      //~ * store the data), with the data re-encoded when it fits.
      //~ */
+    //~ @Override
+    //~ public void aetheriumPrepare(final Object source) {
+        //~ if (!this.aetherium$terrain) {
+            //~ return;
+        //~ }
+        //~ final int mode = ChunkRenderer.uploadMode();
+        //~ if (mode == ChunkRenderer.MODE_OFF) {
+            //~ return;
+        //~ }
+        //~ final BufferBuilder builder = (BufferBuilder) source;
+        //~ final ByteBuffer data = builder.popNextBuffer().getSecond();
+        //~ PreparedUploads.put(builder, PreparedUploads.prepare(data, mode == ChunkRenderer.MODE_SHADER));
+    //~ }
+
+    //~ /** Uploads a mesh the worker already converted: only the GL calls remain for the render thread. */
+    //~ @Unique
+    //~ private void aetherium$uploadPrepared(final PreparedUploads.Prepared prepared, final int mode) {
+        //~ if (prepared.error != null) {
+            //~ ChunkRenderer.fail(prepared.error);
+        //~ }
+        //~ int format = prepared.format;
+        //~ // The pipeline was switched off after this mesh was converted: vanilla cannot draw the
+        //~ // converted bytes, so the buffer is left empty (switching rebuilds every section anyway).
+        //~ final boolean unusable = mode == ChunkRenderer.MODE_OFF && format != 0;
+        //~ if (this.id != -1) {
+            //~ if (unusable) {
+                //~ this.vertexCount = 0;
+            //~ } else {
+                //~ this.vertexCount = format == 1 ? prepared.quads * CompactTerrain.VERTICES_PER_QUAD
+                        //~ : prepared.data.remaining() / this.format.getVertexSize();
+                //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
+                //~ GL15.glBufferData(0x8892, prepared.data, 0x88E4); // GL_STATIC_DRAW, as vanilla
+                //~ GL15.glBindBuffer(0x8892, 0);
+            //~ }
+        //~ }
+        //~ if (unusable) {
+            //~ format = 0;
+        //~ }
+        //~ if (format != 0) {
+            //~ if (this.aetherium$layout == null) {
+                //~ this.aetherium$layout = new CompactTerrain.Layout();
+            //~ }
+            //~ this.aetherium$layout.copyFrom(prepared.layout);
+        //~ }
+        //~ this.aetherium$format = format;
+        //~ if (format == 1) {
+            //~ ChunkRenderer.noteCompactUpload(prepared.quads);
+        //~ }
+        //~ StutterRecorder.preparedUploads++;
+        //~ PreparedUploads.done(prepared);
+    //~ }
+
     //~ @Inject(method = "upload_", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$upload(final BufferBuilder builder, final CallbackInfo ci) {
         //~ if (!this.aetherium$terrain) {
             //~ return;
         //~ }
         //~ final int mode = ChunkRenderer.uploadMode();
+        //~ // A worker already took this mesh out of the builder: always consume its record,
+        //~ // whatever the current mode, or the builder would be popped a second time.
+        //~ final PreparedUploads.Prepared prepared = PreparedUploads.take(builder);
+        //~ if (prepared != null) {
+            //~ ci.cancel();
+            //~ this.aetherium$uploadPrepared(prepared, mode);
+            //~ return;
+        //~ }
         //~ if (mode == ChunkRenderer.MODE_OFF) {
             //~ this.aetherium$format = 0;
             //~ return;

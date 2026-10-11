@@ -68,6 +68,8 @@ ERAS = {
     "zoom": [("v16", "..1.16.5"), ("none", "1.17..")],
     # Threaded "build near" chunk rebuilds and the per-frame client light budget (NearBuildMixin).
     "near-build": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # 1.5.0 (1.16.5 first): streaming optimizations, fog/sky/particle controls, freelook.
+    "qol16": [("v16", "..1.16.5"), ("none", "1.17..")],
     "be-render": [("render", "..1.21.8"), ("extract", "1.21.9..26.1"), ("extract-flag", "26.2..")],
     "bg-threads": [("clamp", "..1.17.1"), ("property", "1.18..")],
     "sound-click": [("event", "..1.19.2"), ("holder", "1.19.3..")],

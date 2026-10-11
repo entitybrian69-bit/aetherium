@@ -5,6 +5,9 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
+Version **1.5.0** (1.16.5 first) attacks the stutter and frame-rate drop when you walk into
+unloaded chunks, and adds **fog controls**, **sky toggles**, **per-type particle switches** and
+**freelook** (see [1.5.0: smooth chunk streaming, fog, sky, particles, freelook](#150-smooth-chunk-streaming-fog-sky-particles-freelook-1165)).
 Version **1.4.0** (1.16.5 first) adds a **Zume-style zoom** with rebindable Zoom / Zoom In / Zoom Out
 keys, makes **dynamic lights** switch on live (they used to need a restart, which looked like they
 did not work), and removes the biggest stutter of 1.16.5: chunks near you were rebuilt on the render
@@ -29,6 +32,57 @@ added smooth chunk loading, an animated-texture switch, a block-entity distance,
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
 either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
 OpenGL calls of its own unless you turn on the experimental 1.16.5 Aetherium pipeline.
+
+## 1.5.0: smooth chunk streaming, fog, sky, particles, freelook (1.16.5)
+
+Built for 1.16.5 only for now (`.github/ship-only`); the other versions follow.
+
+**Walking into unloaded chunks.** Five separate costs hit the same frames when new terrain
+arrives. Each one now has its own fix:
+
+- **Packets get a time budget** (Performance > *Smooth streaming*, on). Vanilla runs every queued
+  packet at the start of a frame. A burst of chunk packets takes 50 to 150 ms on a phone, all inside
+  one frame. Now at least 8 packets run per frame, then more until 4 ms are used. While the queue
+  keeps outlasting the budget, the budget grows by 2 ms per frame, up to 14 ms, so the backlog can
+  never grow without bound. It drops back to 4 ms once the queue is empty, so a packet waits a few
+  frames at most.
+- **One rebuild per section instead of several** (Performance > *Coalesce rebuilds*, on). When a
+  chunk arrives, vanilla marks its sections and all neighbouring sections dirty. The neighbours'
+  own chunk and light packets then mark them again, so edge sections were meshed and uploaded
+  several times within a second. A section now waits until it has been quiet for 120 ms (never
+  more than 600 ms), then builds once. Two kinds are never delayed: your own block edits, and
+  already-built sections within 28 blocks of you.
+- **Mesh threads of their own.** In 1.16.5 the chunk mesher shares Minecraft's background pool with
+  world generation, lighting and saving, so meshes queued behind generation and arrived in bursts.
+  It now has a small dedicated pool: 2 threads on phones (3 with 8+ cores), cores/3 (2 to 6) on
+  desktop. The change applies from the next world you join.
+- **Uploads prepared off the render thread** (Aetherium pipeline). The pipeline used to re-encode
+  every arriving mesh on the render thread before uploading it. The worker thread that built the
+  mesh now encodes it into a pooled direct buffer, and the render thread only calls
+  `glBufferData`. Pooling also stops the garbage-collector pauses from one buffer per upload.
+- **Less per-frame overhead while streaming.** The chunk upload budget follows your frame time
+  (12 % of it, 1.5 to 4 ms). The visible-section search that vanilla reruns after every frame with
+  an upload now runs at most 20 times a second while uploads stream in. Camera movement still
+  updates it immediately.
+- **Stutter log** (Backend > *Stutter log*, off). This writes every frame that takes at least
+  45 ms and 2.5 × the average to `logs/aetherium-stutter.log`. Each line records what that frame
+  did: packets run, backlog pressure, uploads, prepared uploads, light updates and builds finished.
+  Send it if a hitch remains.
+
+**New options** (fog, sky and particles on the Quality tab; freelook on the Effects tab):
+
+- **Fog:** *Distance fog* on/off; *Fog start* (percent of render distance, 75 = vanilla);
+  *Water fog* (percent, 100 = vanilla, 0 = clear water); *Clear lava*. Blindness always keeps its
+  vanilla fog.
+- **Sky:** *Sky* (off = flat sky colour, the cheapest), *Sun and moon*, *Stars*, *Cloud height*
+  (0 = the dimension's default, 128 in the Overworld).
+- **Particles**, each type on its own: explosions, weather (rain splashes), smoke, potions, combat
+  (crits, damage, sweep), fire and lava, drips, portals, ambient (spores, ash, underwater), totem,
+  and block breaking. Turned-off particles are never created, so they cost nothing.
+- **Freelook:** hold **Left Alt** (rebind in Options > Controls > Aetherium) to look around
+  without turning your player. Movement keeps its direction, and the view snaps back when you let
+  go. Options: *Toggle* (press once, press again to stop) and *Third person* (on: switches to the
+  third-person camera while freelooking from first person).
 
 ## 1.4.0: zoom, live dynamic lights, no render-thread chunk builds (1.16.5)
 
@@ -257,7 +311,7 @@ a feature is off.
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.4.0+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
+Releases are published per Minecraft version as `v1.5.0+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -294,7 +348,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.4.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.5.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.

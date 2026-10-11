@@ -38,6 +38,7 @@ neoforge_version=26.1.2.115
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`
+- `qol16=none`
 - `reload=all-changed`
 - `remapJar-block-removed`
 - `scroll=four`
