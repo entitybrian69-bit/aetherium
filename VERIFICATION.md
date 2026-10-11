@@ -630,3 +630,5 @@ is elsewhere.
 
 Gates run for 1.5.5: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_deltas --all --verify`
 (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.
+CI: `ship` run 38133270845 for commit 00b03bf passed and published `v1.5.5+1.16.5`
+(`aetherium-fabric-1.5.5+1.16.5.jar`, 947052 bytes).
