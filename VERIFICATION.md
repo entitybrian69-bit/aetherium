@@ -744,3 +744,5 @@ Gates run for 1.7.0: `stubcheck --all` 33/33; `testrun.py` 162 passed (`SodiumSt
 depth, billboard, sprites, model vertices, cubes, visibility search, fog cull);
 `gen_deltas --all --verify` (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8`
 clean on the 1.16.5 sources.
+CI: `ship` run 38141966344 for commit e51884e passed and published `v1.7.0+1.16.5`
+(`aetherium-fabric-1.7.0+1.16.5.jar`, 999515 bytes).
