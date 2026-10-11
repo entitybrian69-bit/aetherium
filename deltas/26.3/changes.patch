@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 1854743..19d6119 100644
+index 3118b81..d010806 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -16,24 +16,24 @@ package com.aetherium;
@@ -79,8 +79,8 @@ index 1854743..19d6119 100644
      // @era:chunk-upload-end
  
      /** Atlas texture animation can be paused ({@code TextureAtlas.tick} exists on every version). */
-@@ -132,10 +132,10 @@ public final class Capabilities {
-     // @era:qol16-end
+@@ -128,10 +128,10 @@ public final class Capabilities {
+     public static final boolean FREELOOK = true;
  
      /** Even frame pacing replaces {@code RenderSystem.limitDisplayFPS} (1.16.5-1.21.11). */
 -    // @era:pacing-begin rs
@@ -258,10 +258,10 @@ index e5e224a..903075d 100644
      // @era:input-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 639a9eb..908c9ab 100644
+index 50a1e9b..67d4599 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -397,18 +397,18 @@ public final class ClientHooks {
+@@ -398,18 +398,18 @@ public final class ClientHooks {
  
      /** The open screen; it moved from {@code Minecraft} to {@code Gui} in 26.2. */
      public static Screen currentScreen(final Minecraft mc) {
@@ -532,6 +532,70 @@ index a561e63..e9738c5 100644
              // @era:reload-end
          }
      }
+diff --git a/common/src/main/java/com/aetherium/client/ZoomKeys.java b/common/src/main/java/com/aetherium/client/ZoomKeys.java
+index 77f5477..5799669 100644
+--- a/common/src/main/java/com/aetherium/client/ZoomKeys.java
++++ b/common/src/main/java/com/aetherium/client/ZoomKeys.java
+@@ -139,33 +139,33 @@ public final class ZoomKeys {
+         return out;
+     }
+ 
+-    // @era:keys-begin string
+-    /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+-    static KeyMapping newKey(final String name, final int code) {
+-        return new KeyMapping(name, code, registerCategory());
+-    }
++    // @era:keys-begin category
++    KEYS_CATEGORY_PLACEHOLDER
++    // @era:keys-else string
++    //~ /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
++    //~ static KeyMapping newKey(final String name, final int code) {
++        //~ return new KeyMapping(name, code, registerCategory());
++    //~ }
+ 
+-    /**
+-     * The Controls screen sorts categories through a fixed table and throws on unknown names,
+-     * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
+-     */
+-    private static String registerCategory() {
+-        try {
+-            final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
+-            if (!order.containsKey(CATEGORY)) {
+-                int last = 0;
+-                for (final Integer value : order.values()) {
+-                    last = Math.max(last, value.intValue());
+-                }
+-                order.put(CATEGORY, Integer.valueOf(last + 1));
+-            }
+-            return CATEGORY;
+-        } catch (final Throwable error) {
+-            return FALLBACK_CATEGORY;
+-        }
+-    }
+-    // @era:keys-else category
+-    //~ KEYS_CATEGORY_PLACEHOLDER
++    //~ /**
++     //~ * The Controls screen sorts categories through a fixed table and throws on unknown names,
++     //~ * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
++     //~ */
++    //~ private static String registerCategory() {
++        //~ try {
++            //~ final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
++            //~ if (!order.containsKey(CATEGORY)) {
++                //~ int last = 0;
++                //~ for (final Integer value : order.values()) {
++                    //~ last = Math.max(last, value.intValue());
++                //~ }
++                //~ order.put(CATEGORY, Integer.valueOf(last + 1));
++            //~ }
++            //~ return CATEGORY;
++        //~ } catch (final Throwable error) {
++            //~ return FALLBACK_CATEGORY;
++        //~ }
++    //~ }
+     // @era:keys-end
+ 
+     /** "Z / = / -" for the settings screen. */
 diff --git a/common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java b/common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java
 index 18f3db9..22b6079 100644
 --- a/common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java
@@ -842,6 +906,96 @@ index 1c40237..b668cbd 100644
 +    //~ }
      // @era:pacing-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
+index cc1f564..6ea537d 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
+@@ -16,19 +16,31 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
+  */
+ @Mixin(targets = "net.minecraft.client.Camera")
+ public abstract class FreelookCameraMixin {
+-    // @era:freelook-begin v16
+-    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+-            ordinal = 0), index = 0, require = 0)
++    // @era:freelook-begin align
++    @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 0), index = 0, require = 0)
+     private float aetherium$freelookYaw(final float yaw) {
+         return FreelookHooks.cameraYaw(yaw);
+     }
+ 
+-    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+-            ordinal = 0), index = 1, require = 0)
++    @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 0), index = 1, require = 0)
+     private float aetherium$freelookPitch(final float pitch) {
+         return FreelookHooks.cameraPitch(pitch);
+     }
+-    // @era:freelook-else minecart
++
++    @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 1), index = 0, require = 0)
++    private float aetherium$freelookYaw2(final float yaw) {
++        return FreelookHooks.cameraYaw(yaw);
++    }
++
++    @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 1), index = 1, require = 0)
++    private float aetherium$freelookPitch2(final float pitch) {
++        return FreelookHooks.cameraPitch(pitch);
++    }
++    // @era:freelook-else v16
+     //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+             //~ ordinal = 0), index = 0, require = 0)
+     //~ private float aetherium$freelookYaw(final float yaw) {
+@@ -40,39 +52,27 @@ public abstract class FreelookCameraMixin {
+     //~ private float aetherium$freelookPitch(final float pitch) {
+         //~ return FreelookHooks.cameraPitch(pitch);
+     //~ }
+-
+-    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+-            //~ ordinal = 1), index = 0, require = 0)
+-    //~ private float aetherium$freelookYaw2(final float yaw) {
+-        //~ return FreelookHooks.cameraYaw(yaw);
+-    //~ }
+-
++    // @era:freelook-else minecart
+     //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+-            //~ ordinal = 1), index = 1, require = 0)
+-    //~ private float aetherium$freelookPitch2(final float pitch) {
+-        //~ return FreelookHooks.cameraPitch(pitch);
+-    //~ }
+-    // @era:freelook-else align
+-    //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 0), index = 0, require = 0)
++            //~ ordinal = 0), index = 0, require = 0)
+     //~ private float aetherium$freelookYaw(final float yaw) {
+         //~ return FreelookHooks.cameraYaw(yaw);
+     //~ }
+ 
+-    //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 0), index = 1, require = 0)
++    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
++            //~ ordinal = 0), index = 1, require = 0)
+     //~ private float aetherium$freelookPitch(final float pitch) {
+         //~ return FreelookHooks.cameraPitch(pitch);
+     //~ }
+ 
+-    //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 1), index = 0, require = 0)
++    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
++            //~ ordinal = 1), index = 0, require = 0)
+     //~ private float aetherium$freelookYaw2(final float yaw) {
+         //~ return FreelookHooks.cameraYaw(yaw);
+     //~ }
+ 
+-    //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 1), index = 1, require = 0)
++    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
++            //~ ordinal = 1), index = 1, require = 0)
+     //~ private float aetherium$freelookPitch2(final float pitch) {
+         //~ return FreelookHooks.cameraPitch(pitch);
+     //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..815c08b 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -886,6 +1040,50 @@ index 0b2c6b1..815c08b 100644
      // @era:vignette-end
      private void aetherium$vignette(final CallbackInfo ci) {
          if (ClientHooks.hideVignette()) {
+diff --git a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
+index 80c7f2e..fb7209f 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
+@@ -1,28 +1,28 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:keys-begin string
+-import java.util.Map;
+-
++// @era:keys-begin category
+ import net.minecraft.client.KeyMapping;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-import org.spongepowered.asm.mixin.gen.Accessor;
+ 
+-/** The Controls screen's category order table, so the zoom keys can have their own "Aetherium" category. */
++/** 1.21.9+ registers a KeyMapping$Category instead; nothing to access. */
+ @Mixin(KeyMapping.class)
+ public interface KeyMappingAccessor {
+-    @Accessor("CATEGORY_SORT_ORDER")
+-    static Map<String, Integer> aetherium$categorySortOrder() {
+-        throw new AssertionError("mixin not applied");
+-    }
+ }
+-// @era:keys-else category
++// @era:keys-else string
++//~ import java.util.Map;
++
+ //~ import net.minecraft.client.KeyMapping;
+ 
+ //~ import org.spongepowered.asm.mixin.Mixin;
++//~ import org.spongepowered.asm.mixin.gen.Accessor;
+ 
+-//~ /** 1.21.9+ registers a KeyMapping$Category instead; nothing to access. */
++//~ /** The Controls screen's category order table, so the zoom keys can have their own "Aetherium" category. */
+ //~ @Mixin(KeyMapping.class)
+ //~ public interface KeyMappingAccessor {
++    //~ @Accessor("CATEGORY_SORT_ORDER")
++    //~ static Map<String, Integer> aetherium$categorySortOrder() {
++        //~ throw new AssertionError("mixin not applied");
++    //~ }
+ //~ }
+ // @era:keys-end
 diff --git a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
 index fb2c1fd..046f07d 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
@@ -1021,6 +1219,90 @@ index dd489bc..090bb2c 100644
      // @era:weather-end
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java
+index df6c58d..c09fefb 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java
+@@ -15,23 +15,23 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
+  */
+ @Mixin(Camera.class)
+ public abstract class ZoomCameraMixin {
+-    // @era:zoom-cam-begin float
+-    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getMaxZoom(F)F"),
+-            require = 0)
++    // @era:zoom-cam-begin align
++    @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/Camera;getMaxZoom(F)F"), require = 0)
+     private float aetherium$zoomDistance(final float original) {
+         return (float) ZoomKeys.cameraDistance(original);
+     }
++    // @era:zoom-cam-else float
++    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getMaxZoom(F)F"),
++            //~ require = 0)
++    //~ private float aetherium$zoomDistance(final float original) {
++        //~ return (float) ZoomKeys.cameraDistance(original);
++    //~ }
+     // @era:zoom-cam-else double
+     //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getMaxZoom(D)D"),
+             //~ require = 0)
+     //~ private double aetherium$zoomDistance(final double original) {
+         //~ return ZoomKeys.cameraDistance(original);
+     //~ }
+-    // @era:zoom-cam-else align
+-    //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/Camera;getMaxZoom(F)F"), require = 0)
+-    //~ private float aetherium$zoomDistance(final float original) {
+-        //~ return (float) ZoomKeys.cameraDistance(original);
+-    //~ }
+     // @era:zoom-cam-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java b/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
+index f85e6e7..a00bf0e 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
+@@ -14,15 +14,23 @@ import org.spongepowered.asm.mixin.injection.At;
+  * GameRenderer.getFov returns double until 1.21.1 and float until 1.21.11; 26.x computes the world
+  * FOV in Camera.calculateFov(F)F (the hand FOV is the separate calculateHudFov).
+  */
+-// @era:zoom-fov-begin double
+-@Mixin(net.minecraft.client.renderer.GameRenderer.class)
++// @era:zoom-fov-begin camera
++@Mixin(Camera.class)
+ public abstract class ZoomFovMixin {
+-    @ModifyReturnValue(method = "getFov", at = @At("RETURN"), require = 0)
+-    private double aetherium$zoomFov(final double original, final Camera camera, final float partialTicks,
+-                                     final boolean useFovSetting) {
+-        return useFovSetting ? ZoomKeys.fov(original) : original;
++    @ModifyReturnValue(method = "calculateFov", at = @At("RETURN"), require = 0)
++    private float aetherium$zoomFov(final float original) {
++        return (float) ZoomKeys.fov(original);
+     }
+ }
++// @era:zoom-fov-else double
++//~ @Mixin(net.minecraft.client.renderer.GameRenderer.class)
++//~ public abstract class ZoomFovMixin {
++    //~ @ModifyReturnValue(method = "getFov", at = @At("RETURN"), require = 0)
++    //~ private double aetherium$zoomFov(final double original, final Camera camera, final float partialTicks,
++                                     //~ final boolean useFovSetting) {
++        //~ return useFovSetting ? ZoomKeys.fov(original) : original;
++    //~ }
++//~ }
+ // @era:zoom-fov-else float
+ //~ @Mixin(net.minecraft.client.renderer.GameRenderer.class)
+ //~ public abstract class ZoomFovMixin {
+@@ -32,12 +40,4 @@ public abstract class ZoomFovMixin {
+         //~ return useFovSetting ? (float) ZoomKeys.fov(original) : original;
+     //~ }
+ //~ }
+-// @era:zoom-fov-else camera
+-//~ @Mixin(Camera.class)
+-//~ public abstract class ZoomFovMixin {
+-    //~ @ModifyReturnValue(method = "calculateFov", at = @At("RETURN"), require = 0)
+-    //~ private float aetherium$zoomFov(final float original) {
+-        //~ return (float) ZoomKeys.fov(original);
+-    //~ }
+-//~ }
+ // @era:zoom-fov-end
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
 index 7ae771c..f999cbb 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json

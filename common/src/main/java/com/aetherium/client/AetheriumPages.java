@@ -215,7 +215,7 @@ public final class AetheriumPages {
     }
 
     private static Setting sceneryRow(final Setting setting) {
-        return setting.availableWhen(() -> Capabilities.SCENERY_CONTROLS, "Minecraft 1.16.5 only for now");
+        return setting.availableWhen(() -> Capabilities.SCENERY_CONTROLS, NOT_ON_THIS_VERSION);
     }
 
     // -------------------------------------------------------------- Performance
@@ -268,17 +268,17 @@ public final class AetheriumPages {
                 .presetMember()
                 .availableWhen(() -> Capabilities.BLOCK_ENTITY_CULL, NOT_ON_THIS_VERSION));
         page.add(bool("perf.smooth_streaming", "Smooth terrain streaming", config.smoothStreaming)
-                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(bool("perf.coalesce_rebuilds", "Merge chunk rebuilds", config.coalesceRebuilds)
-                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(bool("perf.smart_chunk_culling", "Smarter chunk culling", config.smartChunkCulling)
-                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(bool("perf.fast_particles", "Fast particles", config.fastParticles)
-                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(bool("perf.visible_animations", "Animate visible textures only", config.visibleAnimations)
-                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(bool("perf.fast_models", "Fast mob models", config.fastModels)
-                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(intSlider("perf.worker_threads", "Worker threads", config.workerThreads, 1,
                 v -> v == 0 ? "Auto" + autoThreadsSuffix() : v + (v == 1 ? " thread" : " threads")));
         return page;
@@ -310,14 +310,14 @@ public final class AetheriumPages {
                     return cap + " FPS" + (ClientHooks.isThermalCapped() ? " (thermal)" : "");
                 }));
         page.add(bool("backend.chunk_renderer", "Aetherium renderer", config.aetheriumRenderer)
-                .availableWhen(() -> Capabilities.AETHERIUM_RENDERER, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.AETHERIUM_RENDERER, NOT_ON_THIS_VERSION));
         page.add(bool("backend.region_batching", "Batched terrain", config.regionBatching)
-                .availableWhen(() -> Capabilities.AETHERIUM_RENDERER, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.AETHERIUM_RENDERER, NOT_ON_THIS_VERSION));
         page.add(Setting.info("backend.chunk_renderer_state", "Chunk renderer",
                 "Which path draws solid and cutout terrain right now.", ChunkRenderer::statusText));
         page.add(bool("backend.debug", "Debug logging", config.debugLogging));
         page.add(bool("backend.stutter_log", "Stutter log", config.stutterLog)
-                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(bool("backend.delegate", "Hand off to conflicting mods", config.conflictAutoDelegate));
         return page;
     }
@@ -361,11 +361,11 @@ public final class AetheriumPages {
         addZoom(page);
         page.add(Setting.info("effects.freelook_key", "Freelook key",
                 "Hold Freelook (Left Alt by default) to look around without turning your player; release to snap back. Rebind it in Options > Controls, category Aetherium.",
-                () -> Capabilities.FREELOOK ? QolHooks.describeKey() : NOT_ON_THIS_VERSION));
+                () -> FreelookHooks.describeKey()));
         page.add(bool("effects.freelook_toggle", "Freelook toggles", config.freelookToggle)
-                .availableWhen(() -> Capabilities.FREELOOK, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.FREELOOK, NOT_ON_THIS_VERSION));
         page.add(bool("effects.freelook_third_person", "Freelook in third person", config.freelookThirdPerson)
-                .availableWhen(() -> Capabilities.FREELOOK, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.FREELOOK, NOT_ON_THIS_VERSION));
         return page;
     }
 

@@ -25,6 +25,7 @@ neoforge_version=unavailable (module disabled)
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `vignette=render`
+- `zoom-cam=double`
 
 ### Where the per-version Java comes from
 
@@ -56,6 +57,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.5.t
 - `build.gradle.kts`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 
 ## Verifying this row before shipping it
 

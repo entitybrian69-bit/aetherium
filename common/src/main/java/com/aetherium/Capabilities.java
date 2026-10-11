@@ -90,11 +90,11 @@ public final class Capabilities {
     //~ public static final boolean AETHERIUM_RENDERER = true;
     // @era:chunk-renderer-end
 
-    /** Zume-style zoom with rebindable keys (1.16.5 first; other versions follow). */
-    // @era:zoom-begin none
-    public static final boolean ZOOM = false;
-    // @era:zoom-else v16
-    //~ public static final boolean ZOOM = true;
+    /** Zume-style zoom with rebindable keys (every version). */
+    // @era:zoom-begin on
+    public static final boolean ZOOM = true;
+    // @era:zoom-else none
+    //~ public static final boolean ZOOM = false;
     // @era:zoom-end
 
     /**
@@ -124,12 +124,8 @@ public final class Capabilities {
     //~ public static final boolean SCENERY_CONTROLS = true;
     // @era:qol16-end
 
-    /** Freelook: look around without turning the player (1.16.5 first). */
-    // @era:qol16-begin none
-    public static final boolean FREELOOK = false;
-    // @era:qol16-else v16
-    //~ public static final boolean FREELOOK = true;
-    // @era:qol16-end
+    /** Freelook: look around without turning the player (every version). */
+    public static final boolean FREELOOK = true;
 
     /** Even frame pacing replaces {@code RenderSystem.limitDisplayFPS} (1.16.5-1.21.11). */
     // @era:pacing-begin rs

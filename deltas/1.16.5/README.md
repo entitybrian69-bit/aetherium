@@ -36,6 +36,7 @@ neoforge_version=unavailable (module disabled)
 - `pacing=rs`
 - `qol16=v16`
 - `reload=all-changed`
+- `rot=fields`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`
@@ -43,7 +44,8 @@ neoforge_version=unavailable (module disabled)
 - `simdist=none`
 - `sound-click=event`
 - `vignette=render`
-- `zoom=v16`
+- `zoom-cam=double`
+- `zoom=on`
 
 ### Where the per-version Java comes from
 
@@ -77,11 +79,11 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/client/FreelookHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/QolHooks.java`
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
-- `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java`
@@ -96,11 +98,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java`
@@ -108,7 +107,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/NearBuildMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java`
@@ -122,7 +120,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 

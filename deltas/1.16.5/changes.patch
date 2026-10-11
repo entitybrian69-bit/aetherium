@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 1854743..b3529dd 100644
+index 3118b81..1a833c4 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -62,7 +62,7 @@ index 1854743..b3529dd 100644
      // @era:bg-threads-end
  
      /**
-@@ -77,58 +77,58 @@ public final class Capabilities {
+@@ -77,17 +77,17 @@ public final class Capabilities {
      public static final boolean ENTITY_OCCLUSION = true;
  
      /** The visible list holds {@code LevelRenderer$RenderChunkInfo} (1.16.5-1.20.1) rather than sections. */
@@ -87,18 +87,8 @@ index 1854743..b3529dd 100644
 +    //~ public static final boolean AETHERIUM_RENDERER = false;
      // @era:chunk-renderer-end
  
-     /** Zume-style zoom with rebindable keys (1.16.5 first; other versions follow). */
--    // @era:zoom-begin none
--    public static final boolean ZOOM = false;
--    // @era:zoom-else v16
--    //~ public static final boolean ZOOM = true;
-+    // @era:zoom-begin v16
-+    public static final boolean ZOOM = true;
-+    // @era:zoom-else none
-+    //~ public static final boolean ZOOM = false;
-     // @era:zoom-end
- 
-     /**
+     /** Zume-style zoom with rebindable keys (every version). */
+@@ -101,27 +101,27 @@ public final class Capabilities {
       * Dirty sections near the camera are rebuilt on worker threads instead of the render thread,
       * and client light updates get a per-frame time budget (1.16.5's "build near" path).
       */
@@ -137,18 +127,7 @@ index 1854743..b3529dd 100644
 +    //~ public static final boolean SCENERY_CONTROLS = false;
      // @era:qol16-end
  
-     /** Freelook: look around without turning the player (1.16.5 first). */
--    // @era:qol16-begin none
--    public static final boolean FREELOOK = false;
--    // @era:qol16-else v16
--    //~ public static final boolean FREELOOK = true;
-+    // @era:qol16-begin v16
-+    public static final boolean FREELOOK = true;
-+    // @era:qol16-else none
-+    //~ public static final boolean FREELOOK = false;
-     // @era:qol16-end
- 
-     /** Even frame pacing replaces {@code RenderSystem.limitDisplayFPS} (1.16.5-1.21.11). */
+     /** Freelook: look around without turning the player (every version). */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 index e5e224a..a041b7e 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
@@ -237,10 +216,10 @@ index e5e224a..a041b7e 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 639a9eb..9388df7 100644
+index 50a1e9b..a7c94df 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -387,10 +387,10 @@ public final class ClientHooks {
+@@ -388,10 +388,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -255,7 +234,7 @@ index 639a9eb..9388df7 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -413,10 +413,10 @@ public final class ClientHooks {
+@@ -414,10 +414,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -270,6 +249,25 @@ index 639a9eb..9388df7 100644
          // @era:screen-pkg-end
      }
  }
+diff --git a/common/src/main/java/com/aetherium/client/FreelookHooks.java b/common/src/main/java/com/aetherium/client/FreelookHooks.java
+index 38eb19b..2098c31 100644
+--- a/common/src/main/java/com/aetherium/client/FreelookHooks.java
++++ b/common/src/main/java/com/aetherium/client/FreelookHooks.java
+@@ -61,10 +61,10 @@ public final class FreelookHooks {
+         final boolean down = mc.screen == null && key.isDown() && Aetherium.isActive();
+         final int change = FREELOOK.update(down, toggle);
+         if (change == Freelook.STARTED) {
+-            // @era:rot-begin getters
+-            FREELOOK.begin(mc.player.getYRot(), mc.player.getXRot());
+-            // @era:rot-else fields
+-            //~ FREELOOK.begin(mc.player.yRot, mc.player.xRot);
++            // @era:rot-begin fields
++            FREELOOK.begin(mc.player.yRot, mc.player.xRot);
++            // @era:rot-else getters
++            //~ FREELOOK.begin(mc.player.getYRot(), mc.player.getXRot());
+             // @era:rot-end
+             restoreCamera = null;
+             forcedCamera = null;
 diff --git a/common/src/main/java/com/aetherium/client/McCanvas.java b/common/src/main/java/com/aetherium/client/McCanvas.java
 index afb236d..ffe04fe 100644
 --- a/common/src/main/java/com/aetherium/client/McCanvas.java
@@ -422,10 +420,10 @@ index afb236d..ffe04fe 100644
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
-index a98c09d..d909db4 100644
+index 892fa91..ef06f9f 100644
 --- a/common/src/main/java/com/aetherium/client/QolHooks.java
 +++ b/common/src/main/java/com/aetherium/client/QolHooks.java
-@@ -15,33 +15,33 @@ import com.aetherium.qol.Freelook;
+@@ -14,31 +14,31 @@ import com.aetherium.perf.VisibilitySearch;
  import com.aetherium.qol.ParticleFilter;
  import com.aetherium.qol.Scenery;
  
@@ -439,8 +437,6 @@ index a98c09d..d909db4 100644
 -//~ import java.util.concurrent.Executor;
 -
 -//~ import net.minecraft.client.Camera;
--//~ import net.minecraft.client.CameraType;
--//~ import net.minecraft.client.KeyMapping;
 -//~ import net.minecraft.client.Minecraft;
 -//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 -//~ import net.minecraft.core.BlockPos;
@@ -465,8 +461,6 @@ index a98c09d..d909db4 100644
 +import java.util.concurrent.Executor;
 +
 +import net.minecraft.client.Camera;
-+import net.minecraft.client.CameraType;
-+import net.minecraft.client.KeyMapping;
 +import net.minecraft.client.Minecraft;
 +import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 +import net.minecraft.core.BlockPos;
@@ -486,276 +480,63 @@ index a98c09d..d909db4 100644
  // @era:qol16-end
  
  /**
-@@ -59,14 +59,14 @@ public final class QolHooks {
-     private static boolean freelookToggle;
-     private static boolean freelookThirdPerson = true;
+@@ -53,9 +53,9 @@ public final class QolHooks {
+     private static volatile boolean prepareUploads;
+     private static volatile boolean meshThreads;
  
 -    // @era:qol16-begin none
 -    // @era:qol16-else v16
--    //~ private static final int KEY_LEFT_ALT = 342;
 -    //~ private static final Map<ParticleType<?>, Integer> CATEGORY = new IdentityHashMap<ParticleType<?>, Integer>();
--    //~ private static KeyMapping freelook;
--    //~ /** Camera type to restore when freelook ends, or null when freelook did not change it. */
--    //~ private static CameraType restoreCamera;
--    //~ private static CameraType forcedCamera;
 +    // @era:qol16-begin v16
-+    private static final int KEY_LEFT_ALT = 342;
 +    private static final Map<ParticleType<?>, Integer> CATEGORY = new IdentityHashMap<ParticleType<?>, Integer>();
-+    private static KeyMapping freelook;
-+    /** Camera type to restore when freelook ends, or null when freelook did not change it. */
-+    private static CameraType restoreCamera;
-+    private static CameraType forcedCamera;
 +    // @era:qol16-else none
      // @era:qol16-end
  
      private QolHooks() {
-@@ -105,15 +105,15 @@ public final class QolHooks {
+@@ -93,12 +93,12 @@ public final class QolHooks {
+         ParticleFilter.setBlockBreaking(!scenery || config.particlesBlockBreak.get().booleanValue());
  
-         freelookToggle = config.freelookToggle.get().booleanValue();
-         freelookThirdPerson = config.freelookThirdPerson.get().booleanValue();
+         FreelookHooks.configure(config);
 -        // @era:qol16-begin none
 -        // @era:qol16-else v16
 -        //~ final Minecraft mc = Minecraft.getInstance();
 -        //~ if (mc != null && mc.gameDirectory != null) {
 -            //~ StutterRecorder.configure(Capabilities.STREAMING && config.stutterLog.get().booleanValue(), mc.gameDirectory);
 -        //~ }
--        //~ if (!active && FREELOOK.active()) {
--            //~ stopFreelook(mc);
--        //~ }
 +        // @era:qol16-begin v16
 +        final Minecraft mc = Minecraft.getInstance();
 +        if (mc != null && mc.gameDirectory != null) {
 +            StutterRecorder.configure(Capabilities.STREAMING && config.stutterLog.get().booleanValue(), mc.gameDirectory);
 +        }
-+        if (!active && FREELOOK.active()) {
-+            stopFreelook(mc);
-+        }
 +        // @era:qol16-else none
          // @era:qol16-end
      }
  
-@@ -130,241 +130,241 @@ public final class QolHooks {
-      */
-     public static void onLevelChange() {
-         DirectPool.trim();
--        // @era:qol16-begin none
--        // @era:qol16-else v16
--        //~ if (FREELOOK.active()) {
--            //~ stopFreelook(Minecraft.getInstance());
--        //~ }
-+        // @era:qol16-begin v16
-+        if (FREELOOK.active()) {
-+            stopFreelook(Minecraft.getInstance());
-+        }
-+        // @era:qol16-else none
-         // @era:qol16-end
+@@ -118,138 +118,138 @@ public final class QolHooks {
+         FreelookHooks.onLevelChange();
      }
  
 -    // @era:qol16-begin none
 -    public static void frame(final net.minecraft.client.Minecraft mc) {
-+    // @era:qol16-begin v16
-+    // ------------------------------------------------------------------ per frame
-+
-+    /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
-+    public static void frame(final Minecraft mc) {
-+        StutterRecorder.frame(System.nanoTime(), null);
-+        UploadBudget.adapt(StutterRecorder.averageFrameNanos());
-+        if (freelook == null || mc == null) {
-+            return;
-+        }
-+        if (mc.level == null || mc.player == null) {
-+            if (FREELOOK.active()) {
-+                stopFreelook(mc);
-+            }
-+            return;
-+        }
-+        final boolean down = mc.screen == null && freelook.isDown() && Aetherium.isActive();
-+        final int change = FREELOOK.update(down, freelookToggle);
-+        if (change == Freelook.STARTED) {
-+            FREELOOK.begin(mc.player.yRot, mc.player.xRot);
-+            restoreCamera = null;
-+            forcedCamera = null;
-+            if (freelookThirdPerson && mc.options.getCameraType().isFirstPerson()) {
-+                restoreCamera = mc.options.getCameraType();
-+                forcedCamera = CameraType.THIRD_PERSON_BACK;
-+                setCamera(mc, forcedCamera);
-+            }
-+        } else if (change == Freelook.STOPPED) {
-+            restore(mc);
-+        }
-     }
- 
--    public static String describeKey() {
--        return "Not available on this version";
-+    private static void stopFreelook(final Minecraft mc) {
-+        FREELOOK.stop();
-+        restore(mc);
-     }
+-    }
 -    // @era:qol16-else v16
 -    //~ // ------------------------------------------------------------------ per frame
--
++    // @era:qol16-begin v16
++    // ------------------------------------------------------------------ per frame
+ 
 -    //~ /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
 -    //~ public static void frame(final Minecraft mc) {
 -        //~ StutterRecorder.frame(System.nanoTime(), null);
 -        //~ UploadBudget.adapt(StutterRecorder.averageFrameNanos());
--        //~ if (freelook == null || mc == null) {
--            //~ return;
--        //~ }
--        //~ if (mc.level == null || mc.player == null) {
--            //~ if (FREELOOK.active()) {
--                //~ stopFreelook(mc);
--            //~ }
--            //~ return;
--        //~ }
--        //~ final boolean down = mc.screen == null && freelook.isDown() && Aetherium.isActive();
--        //~ final int change = FREELOOK.update(down, freelookToggle);
--        //~ if (change == Freelook.STARTED) {
--            //~ FREELOOK.begin(mc.player.yRot, mc.player.xRot);
--            //~ restoreCamera = null;
--            //~ forcedCamera = null;
--            //~ if (freelookThirdPerson && mc.options.getCameraType().isFirstPerson()) {
--                //~ restoreCamera = mc.options.getCameraType();
--                //~ forcedCamera = CameraType.THIRD_PERSON_BACK;
--                //~ setCamera(mc, forcedCamera);
--            //~ }
--        //~ } else if (change == Freelook.STOPPED) {
--            //~ restore(mc);
--        //~ }
 -    //~ }
- 
--    //~ private static void stopFreelook(final Minecraft mc) {
--        //~ FREELOOK.stop();
--        //~ restore(mc);
--    //~ }
-+    private static void restore(final Minecraft mc) {
-+        // Only undo our own switch: if the player pressed F5 meanwhile, their choice stays.
-+        if (mc != null && restoreCamera != null && mc.options.getCameraType() == forcedCamera) {
-+            setCamera(mc, restoreCamera);
-+        }
-+        restoreCamera = null;
-+        forcedCamera = null;
++    /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
++    public static void frame(final Minecraft mc) {
++        StutterRecorder.frame(System.nanoTime(), null);
++        UploadBudget.adapt(StutterRecorder.averageFrameNanos());
 +    }
- 
--    //~ private static void restore(final Minecraft mc) {
--        //~ // Only undo our own switch: if the player pressed F5 meanwhile, their choice stays.
--        //~ if (mc != null && restoreCamera != null && mc.options.getCameraType() == forcedCamera) {
--            //~ setCamera(mc, restoreCamera);
--        //~ }
--        //~ restoreCamera = null;
--        //~ forcedCamera = null;
--    //~ }
-+    private static void setCamera(final Minecraft mc, final CameraType type) {
-+        final boolean wasFirst = mc.options.getCameraType().isFirstPerson();
-+        mc.options.setCameraType(type);
-+        if (wasFirst != type.isFirstPerson()) {
-+            mc.gameRenderer.checkEntityPostEffect(type.isFirstPerson() ? mc.getCameraEntity() : null);
-+        }
-+    }
- 
--    //~ private static void setCamera(final Minecraft mc, final CameraType type) {
--        //~ final boolean wasFirst = mc.options.getCameraType().isFirstPerson();
--        //~ mc.options.setCameraType(type);
--        //~ if (wasFirst != type.isFirstPerson()) {
--            //~ mc.gameRenderer.checkEntityPostEffect(type.isFirstPerson() ? mc.getCameraEntity() : null);
--        //~ }
--    //~ }
-+    // ------------------------------------------------------------------ freelook hooks
- 
--    //~ // ------------------------------------------------------------------ freelook hooks
-+    /** MouseHandler.turnPlayer: true when the mouse turned the free camera instead of the player. */
-+    public static boolean freelookTurn(final double dx, final double dy) {
-+        if (!FREELOOK.active()) {
-+            return false;
-+        }
-+        FREELOOK.turn(dx, dy);
-+        return true;
-+    }
- 
--    //~ /** MouseHandler.turnPlayer: true when the mouse turned the free camera instead of the player. */
--    //~ public static boolean freelookTurn(final double dx, final double dy) {
--        //~ if (!FREELOOK.active()) {
--            //~ return false;
--        //~ }
--        //~ FREELOOK.turn(dx, dy);
--        //~ return true;
--    //~ }
-+    public static float cameraYaw(final float original) {
-+        return FREELOOK.active() ? FREELOOK.yaw() : original;
-+    }
- 
--    //~ public static float cameraYaw(final float original) {
--        //~ return FREELOOK.active() ? FREELOOK.yaw() : original;
--    //~ }
-+    public static float cameraPitch(final float original) {
-+        return FREELOOK.active() ? FREELOOK.pitch() : original;
-+    }
- 
--    //~ public static float cameraPitch(final float original) {
--        //~ return FREELOOK.active() ? FREELOOK.pitch() : original;
--    //~ }
-+    public static boolean freelookActive() {
-+        return FREELOOK.active();
-+    }
- 
--    //~ public static boolean freelookActive() {
--        //~ return FREELOOK.active();
--    //~ }
-+    /** Options.load HEAD: the key list with the Freelook key appended (once). */
-+    public static KeyMapping[] appendKeys(final KeyMapping[] existing) {
-+        if (freelook == null) {
-+            freelook = new KeyMapping("key.aetherium.freelook", KEY_LEFT_ALT, ZoomKeys.category());
-+        }
-+        if (existing == null) {
-+            return new KeyMapping[] {freelook};
-+        }
-+        for (final KeyMapping key : existing) {
-+            if (key == freelook) {
-+                return existing;
-+            }
-+        }
-+        final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 1);
-+        out[existing.length] = freelook;
-+        return out;
-+    }
- 
--    //~ /** Options.load HEAD: the key list with the Freelook key appended (once). */
--    //~ public static KeyMapping[] appendKeys(final KeyMapping[] existing) {
--        //~ if (freelook == null) {
--            //~ freelook = new KeyMapping("key.aetherium.freelook", KEY_LEFT_ALT, ZoomKeys.category());
--        //~ }
--        //~ if (existing == null) {
--            //~ return new KeyMapping[] {freelook};
--        //~ }
--        //~ for (final KeyMapping key : existing) {
--            //~ if (key == freelook) {
--                //~ return existing;
--            //~ }
--        //~ }
--        //~ final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 1);
--        //~ out[existing.length] = freelook;
--        //~ return out;
--    //~ }
-+    /** "Left Alt" for the settings screen. */
-+    public static String describeKey() {
-+        return freelook == null ? "Not registered" : freelook.getTranslatedKeyMessage().getString();
-+    }
- 
--    //~ /** "Left Alt" for the settings screen. */
--    //~ public static String describeKey() {
--        //~ return freelook == null ? "Not registered" : freelook.getTranslatedKeyMessage().getString();
--    //~ }
-+    // ------------------------------------------------------------------ streaming hooks
  
 -    //~ // ------------------------------------------------------------------ streaming hooks
-+    /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
-+    public static Executor meshExecutor(final Executor vanilla) {
-+        if (!meshThreads) {
-+            return vanilla;
-+        }
-+        final Executor own = ChunkBuildExecutor.get(Runtime.getRuntime().availableProcessors(),
-+                Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
-+        return own != null ? own : vanilla;
-+    }
++    // ------------------------------------------------------------------ streaming hooks
  
 -    //~ /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
 -    //~ public static Executor meshExecutor(final Executor vanilla) {
@@ -766,18 +547,14 @@ index a98c09d..d909db4 100644
 -                //~ Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
 -        //~ return own != null ? own : vanilla;
 -    //~ }
-+    /**
-+     * Minecraft.runTick, instead of {@code runAllTasks()}: runs queued packet tasks within the
-+     * frame budget. False when the budget is off (or no world is loaded) and vanilla should run.
-+     */
-+    public static boolean drainTasks(final Minecraft mc) {
-+        if (!PacketBudget.enabled() || mc.level == null || !((Object) mc instanceof BlockableEventLoopInvoker)) {
-+            return false;
++    /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
++    public static Executor meshExecutor(final Executor vanilla) {
++        if (!meshThreads) {
++            return vanilla;
 +        }
-+        taskLoop = (BlockableEventLoopInvoker) (Object) mc;
-+        StutterRecorder.packetTasks += PacketBudget.drain(POLLER, PacketBudget.SYSTEM);
-+        StutterRecorder.packetBacklog = PacketBudget.pressure();
-+        return true;
++        final Executor own = ChunkBuildExecutor.get(Runtime.getRuntime().availableProcessors(),
++                Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
++        return own != null ? own : vanilla;
 +    }
  
 -    //~ /**
@@ -793,24 +570,18 @@ index a98c09d..d909db4 100644
 -        //~ StutterRecorder.packetBacklog = PacketBudget.pressure();
 -        //~ return true;
 -    //~ }
-+    private static BlockableEventLoopInvoker taskLoop;
-+    private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
-+        @Override
-+        public boolean pollTask() {
-+            return taskLoop.aetherium$pollTask();
++    /**
++     * Minecraft.runTick, instead of {@code runAllTasks()}: runs queued packet tasks within the
++     * frame budget. False when the budget is off (or no world is loaded) and vanilla should run.
++     */
++    public static boolean drainTasks(final Minecraft mc) {
++        if (!PacketBudget.enabled() || mc.level == null || !((Object) mc instanceof BlockableEventLoopInvoker)) {
++            return false;
 +        }
-+    };
-+
-+    private static double rebuildCamX;
-+    private static double rebuildCamY;
-+    private static double rebuildCamZ;
-+
-+    /** LevelRenderer.setupRender HEAD. */
-+    public static void setRebuildCamera(final Camera camera) {
-+        final Vec3 pos = camera.getPosition();
-+        rebuildCamX = pos.x;
-+        rebuildCamY = pos.y;
-+        rebuildCamZ = pos.z;
++        taskLoop = (BlockableEventLoopInvoker) (Object) mc;
++        StutterRecorder.packetTasks += PacketBudget.drain(POLLER, PacketBudget.SYSTEM);
++        StutterRecorder.packetBacklog = PacketBudget.pressure();
++        return true;
 +    }
  
 -    //~ private static BlockableEventLoopInvoker taskLoop;
@@ -832,19 +603,24 @@ index a98c09d..d909db4 100644
 -        //~ rebuildCamY = pos.y;
 -        //~ rebuildCamZ = pos.z;
 -    //~ }
-+    /** setupRender's dirty check, for a section that is dirty: true to leave it for a later frame. */
-+    public static boolean deferRebuild(final ChunkRenderDispatcher.RenderChunk chunk) {
-+        if (!RebuildCoalescer.enabled() || !((Object) chunk instanceof RenderChunkDirtyAccess)) {
-+            return false;
++    private static BlockableEventLoopInvoker taskLoop;
++    private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
++        @Override
++        public boolean pollTask() {
++            return taskLoop.aetherium$pollTask();
 +        }
-+        final RenderChunkDirtyAccess times = (RenderChunkDirtyAccess) (Object) chunk;
-+        final BlockPos origin = chunk.getOrigin();
-+        final double dx = origin.getX() + 8.0 - rebuildCamX;
-+        final double dy = origin.getY() + 8.0 - rebuildCamY;
-+        final double dz = origin.getZ() + 8.0 - rebuildCamZ;
-+        final boolean compiled = chunk.getCompiledChunk() != ChunkRenderDispatcher.CompiledChunk.UNCOMPILED;
-+        return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
-+                chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
++    };
++
++    private static double rebuildCamX;
++    private static double rebuildCamY;
++    private static double rebuildCamZ;
++
++    /** LevelRenderer.setupRender HEAD. */
++    public static void setRebuildCamera(final Camera camera) {
++        final Vec3 pos = camera.getPosition();
++        rebuildCamX = pos.x;
++        rebuildCamY = pos.y;
++        rebuildCamZ = pos.z;
 +    }
  
 -    //~ /** setupRender's dirty check, for a section that is dirty: true to leave it for a later frame. */
@@ -861,17 +637,19 @@ index a98c09d..d909db4 100644
 -        //~ return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
 -                //~ chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
 -    //~ }
-+    /**
-+     * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
-+     * Sections already in the visible list draw their new mesh at once either way; the search only
-+     * discovers sections behind them, so it is limited to 20 per second while uploads stream in
-+     * (shared with the other streaming triggers, see {@code VisibilitySearch}).
-+     */
-+    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
-+        if (!PacketBudget.enabled()) {
-+            return uploaded;
++    /** setupRender's dirty check, for a section that is dirty: true to leave it for a later frame. */
++    public static boolean deferRebuild(final ChunkRenderDispatcher.RenderChunk chunk) {
++        if (!RebuildCoalescer.enabled() || !((Object) chunk instanceof RenderChunkDirtyAccess)) {
++            return false;
 +        }
-+        return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
++        final RenderChunkDirtyAccess times = (RenderChunkDirtyAccess) (Object) chunk;
++        final BlockPos origin = chunk.getOrigin();
++        final double dx = origin.getX() + 8.0 - rebuildCamX;
++        final double dy = origin.getY() + 8.0 - rebuildCamY;
++        final double dz = origin.getZ() + 8.0 - rebuildCamZ;
++        final boolean compiled = chunk.getCompiledChunk() != ChunkRenderDispatcher.CompiledChunk.UNCOMPILED;
++        return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
++                chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
 +    }
  
 -    //~ /**
@@ -886,19 +664,54 @@ index a98c09d..d909db4 100644
 -        //~ }
 -        //~ return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
 -    //~ }
-+    // ------------------------------------------------------------------ fog and sky
++    /**
++     * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
++     * Sections already in the visible list draw their new mesh at once either way; the search only
++     * discovers sections behind them, so it is limited to 20 per second while uploads stream in
++     * (shared with the other streaming triggers, see {@code VisibilitySearch}).
++     */
++    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
++        if (!PacketBudget.enabled()) {
++            return uploaded;
++        }
++        return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
++    }
  
 -    //~ // ------------------------------------------------------------------ fog and sky
++    // ------------------------------------------------------------------ fog and sky
+ 
+-    //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
+-    //~ @SuppressWarnings("unchecked")
+-    //~ private static Tag<Fluid> fluidTag(final Object named) {
+-        //~ return (Tag<Fluid>) named;
+-    //~ }
 +    /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
 +    @SuppressWarnings("unchecked")
 +    private static Tag<Fluid> fluidTag(final Object named) {
 +        return (Tag<Fluid>) named;
 +    }
  
--    //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
--    //~ @SuppressWarnings("unchecked")
--    //~ private static Tag<Fluid> fluidTag(final Object named) {
--        //~ return (Tag<Fluid>) named;
+-    //~ /** FogRenderer.setupFog TAIL, terrain fog only. */
+-    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
+-        //~ if (Scenery.fogVanilla()) {
+-            //~ return;
+-        //~ }
+-        //~ final Entity entity = camera.getEntity();
+-        //~ if (entity instanceof LivingEntity && ((LivingEntity) entity).hasEffect(MobEffects.BLINDNESS)) {
+-            //~ return;
+-        //~ }
+-        //~ final FluidState fluid = camera.getFluidInCamera();
+-        //~ final int medium = fluid.is(fluidTag(FluidTags.WATER)) ? Scenery.WATER
+-                //~ : fluid.is(fluidTag(FluidTags.LAVA)) ? Scenery.LAVA : Scenery.AIR;
+-        //~ if (!Scenery.adjustFog(medium, thick, farPlane, FogTracker.start(), FogTracker.end(), FogTracker.density(), FOG)) {
+-            //~ return;
+-        //~ }
+-        //~ if (medium == Scenery.WATER) {
+-            //~ RenderSystem.fogDensity(FOG[Scenery.DENSITY]);
+-        //~ } else {
+-            //~ RenderSystem.fogStart(FOG[Scenery.START]);
+-            //~ RenderSystem.fogEnd(FOG[Scenery.END]);
+-        //~ }
 -    //~ }
 +    /** FogRenderer.setupFog TAIL, terrain fog only. */
 +    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
@@ -923,27 +736,21 @@ index a98c09d..d909db4 100644
 +        }
 +    }
  
--    //~ /** FogRenderer.setupFog TAIL, terrain fog only. */
--    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
--        //~ if (Scenery.fogVanilla()) {
--            //~ return;
+-    //~ // ------------------------------------------------------------------ particles
+-
+-    //~ /** ParticleEngine.createParticle HEAD: true to drop this particle. */
+-    //~ public static boolean dropParticle(final ParticleOptions options) {
+-        //~ if (!ParticleFilter.anyDisabled() || options == null) {
+-            //~ return false;
 -        //~ }
--        //~ final Entity entity = camera.getEntity();
--        //~ if (entity instanceof LivingEntity && ((LivingEntity) entity).hasEffect(MobEffects.BLINDNESS)) {
--            //~ return;
+-        //~ final ParticleType<?> type = options.getType();
+-        //~ Integer category = CATEGORY.get(type);
+-        //~ if (category == null) {
+-            //~ final ResourceLocation id = Registry.PARTICLE_TYPE.getKey(type);
+-            //~ category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
+-            //~ CATEGORY.put(type, category);
 -        //~ }
--        //~ final FluidState fluid = camera.getFluidInCamera();
--        //~ final int medium = fluid.is(fluidTag(FluidTags.WATER)) ? Scenery.WATER
--                //~ : fluid.is(fluidTag(FluidTags.LAVA)) ? Scenery.LAVA : Scenery.AIR;
--        //~ if (!Scenery.adjustFog(medium, thick, farPlane, FogTracker.start(), FogTracker.end(), FogTracker.density(), FOG)) {
--            //~ return;
--        //~ }
--        //~ if (medium == Scenery.WATER) {
--            //~ RenderSystem.fogDensity(FOG[Scenery.DENSITY]);
--        //~ } else {
--            //~ RenderSystem.fogStart(FOG[Scenery.START]);
--            //~ RenderSystem.fogEnd(FOG[Scenery.END]);
--        //~ }
+-        //~ return !ParticleFilter.allowed(category.intValue());
 +    // ------------------------------------------------------------------ particles
 +
 +    /** ParticleEngine.createParticle HEAD: true to drop this particle. */
@@ -962,25 +769,6 @@ index a98c09d..d909db4 100644
 +    }
 +    // @era:qol16-else none
 +    //~ public static void frame(final net.minecraft.client.Minecraft mc) {
-     //~ }
- 
--    //~ // ------------------------------------------------------------------ particles
--
--    //~ /** ParticleEngine.createParticle HEAD: true to drop this particle. */
--    //~ public static boolean dropParticle(final ParticleOptions options) {
--        //~ if (!ParticleFilter.anyDisabled() || options == null) {
--            //~ return false;
--        //~ }
--        //~ final ParticleType<?> type = options.getType();
--        //~ Integer category = CATEGORY.get(type);
--        //~ if (category == null) {
--            //~ final ResourceLocation id = Registry.PARTICLE_TYPE.getKey(type);
--            //~ category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
--            //~ CATEGORY.put(type, category);
--        //~ }
--        //~ return !ParticleFilter.allowed(category.intValue());
-+    //~ public static String describeKey() {
-+        //~ return "Not available on this version";
      //~ }
      // @era:qol16-end
  }
@@ -1770,233 +1558,6 @@ index a561e63..e5c6f9f 100644
 +        //~ }
 +    //~ }
      // @era:options-end
- }
-diff --git a/common/src/main/java/com/aetherium/client/ZoomKeys.java b/common/src/main/java/com/aetherium/client/ZoomKeys.java
-index 8c21101..324d5e5 100644
---- a/common/src/main/java/com/aetherium/client/ZoomKeys.java
-+++ b/common/src/main/java/com/aetherium/client/ZoomKeys.java
-@@ -3,14 +3,14 @@ package com.aetherium.client;
- import com.aetherium.config.AetheriumConfig;
- import com.aetherium.zoom.ZoomController;
- 
--// @era:zoom-begin none
--// @era:zoom-else v16
--//~ import com.aetherium.mixin.core.KeyMappingAccessor;
-+// @era:zoom-begin v16
-+import com.aetherium.mixin.core.KeyMappingAccessor;
- 
--//~ import java.util.Map;
-+import java.util.Map;
- 
--//~ import net.minecraft.client.KeyMapping;
--//~ import net.minecraft.client.Minecraft;
-+import net.minecraft.client.KeyMapping;
-+import net.minecraft.client.Minecraft;
-+// @era:zoom-else none
- // @era:zoom-end
- 
- /**
-@@ -30,11 +30,11 @@ public final class ZoomKeys {
- 
-     private static final ZoomController CONTROLLER = new ZoomController();
- 
--    // @era:zoom-begin none
--    // @era:zoom-else v16
--    //~ private static KeyMapping zoom;
--    //~ private static KeyMapping zoomIn;
--    //~ private static KeyMapping zoomOut;
-+    // @era:zoom-begin v16
-+    private static KeyMapping zoom;
-+    private static KeyMapping zoomIn;
-+    private static KeyMapping zoomOut;
-+    // @era:zoom-else none
-     // @era:zoom-end
- 
-     private ZoomKeys() {
-@@ -82,102 +82,102 @@ public final class ZoomKeys {
-         return CONTROLLER.smoothCamera(original);
-     }
- 
--    // @era:zoom-begin none
-+    // @era:zoom-begin v16
-+    /** Mouse wheel; true = consumed by zoom (the hotbar must not scroll). */
-     public static boolean onScroll(final double delta) {
--        return false;
-+        final Minecraft mc = Minecraft.getInstance();
-+        return mc != null && mc.screen == null && CONTROLLER.scroll(delta);
-     }
- 
--    public static void frame(final net.minecraft.client.Minecraft mc) {
-+    /** Once per frame, before the camera and the FOV are computed. */
-+    public static void frame(final Minecraft mc) {
-+        if (zoom == null || mc == null) {
-+            return;
-+        }
-+        if (mc.level == null || mc.player == null) {
-+            if (CONTROLLER.isZooming()) {
-+                CONTROLLER.reset();
-+            }
-+            return;
-+        }
-+        final boolean held = mc.screen == null && zoom.isDown();
-+        final ZoomController.View view;
-+        if (mc.options.getCameraType().isFirstPerson()) {
-+            view = ZoomController.View.FIRST_PERSON;
-+        } else if (mc.options.getCameraType().isMirrored()) {
-+            view = ZoomController.View.THIRD_PERSON_FRONT;
-+        } else {
-+            view = ZoomController.View.THIRD_PERSON_BACK;
-+        }
-+        CONTROLLER.frame(nowMs(), held, zoomIn.isDown(), zoomOut.isDown(), view);
-     }
- 
--    public static String describe() {
--        return "Not available on this version";
-+    /** Options.load HEAD: returns the key list with the three zoom keys appended (once). */
-+    public static KeyMapping[] append(final KeyMapping[] existing) {
-+        if (zoom == null) {
-+            final String category = registerCategory();
-+            zoom = new KeyMapping("key.aetherium.zoom", KEY_Z, category);
-+            zoomIn = new KeyMapping("key.aetherium.zoom_in", KEY_EQUAL, category);
-+            zoomOut = new KeyMapping("key.aetherium.zoom_out", KEY_MINUS, category);
-+        }
-+        if (existing == null) {
-+            return new KeyMapping[] {zoom, zoomIn, zoomOut};
-+        }
-+        for (final KeyMapping key : existing) {
-+            if (key == zoom) {
-+                return existing;
-+            }
-+        }
-+        final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 3);
-+        out[existing.length] = zoom;
-+        out[existing.length + 1] = zoomIn;
-+        out[existing.length + 2] = zoomOut;
-+        return out;
-     }
--    // @era:zoom-else v16
--    //~ /** Mouse wheel; true = consumed by zoom (the hotbar must not scroll). */
--    //~ public static boolean onScroll(final double delta) {
--        //~ final Minecraft mc = Minecraft.getInstance();
--        //~ return mc != null && mc.screen == null && CONTROLLER.scroll(delta);
--    //~ }
- 
--    //~ /** Once per frame, before the camera and the FOV are computed. */
--    //~ public static void frame(final Minecraft mc) {
--        //~ if (zoom == null || mc == null) {
--            //~ return;
--        //~ }
--        //~ if (mc.level == null || mc.player == null) {
--            //~ if (CONTROLLER.isZooming()) {
--                //~ CONTROLLER.reset();
--            //~ }
--            //~ return;
--        //~ }
--        //~ final boolean held = mc.screen == null && zoom.isDown();
--        //~ final ZoomController.View view;
--        //~ if (mc.options.getCameraType().isFirstPerson()) {
--            //~ view = ZoomController.View.FIRST_PERSON;
--        //~ } else if (mc.options.getCameraType().isMirrored()) {
--            //~ view = ZoomController.View.THIRD_PERSON_FRONT;
--        //~ } else {
--            //~ view = ZoomController.View.THIRD_PERSON_BACK;
--        //~ }
--        //~ CONTROLLER.frame(nowMs(), held, zoomIn.isDown(), zoomOut.isDown(), view);
--    //~ }
-+    /** The Aetherium key category (registered on first use), shared with the Freelook key. */
-+    static String category() {
-+        return registerCategory();
-+    }
- 
--    //~ /** Options.load HEAD: returns the key list with the three zoom keys appended (once). */
--    //~ public static KeyMapping[] append(final KeyMapping[] existing) {
--        //~ if (zoom == null) {
--            //~ final String category = registerCategory();
--            //~ zoom = new KeyMapping("key.aetherium.zoom", KEY_Z, category);
--            //~ zoomIn = new KeyMapping("key.aetherium.zoom_in", KEY_EQUAL, category);
--            //~ zoomOut = new KeyMapping("key.aetherium.zoom_out", KEY_MINUS, category);
--        //~ }
--        //~ if (existing == null) {
--            //~ return new KeyMapping[] {zoom, zoomIn, zoomOut};
--        //~ }
--        //~ for (final KeyMapping key : existing) {
--            //~ if (key == zoom) {
--                //~ return existing;
--            //~ }
--        //~ }
--        //~ final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 3);
--        //~ out[existing.length] = zoom;
--        //~ out[existing.length + 1] = zoomIn;
--        //~ out[existing.length + 2] = zoomOut;
--        //~ return out;
--    //~ }
-+    /**
-+     * The Controls screen sorts categories through a fixed table and throws on unknown names,
-+     * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
-+     */
-+    private static String registerCategory() {
-+        try {
-+            final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
-+            if (!order.containsKey(CATEGORY)) {
-+                int last = 0;
-+                for (final Integer value : order.values()) {
-+                    last = Math.max(last, value.intValue());
-+                }
-+                order.put(CATEGORY, Integer.valueOf(last + 1));
-+            }
-+            return CATEGORY;
-+        } catch (final Throwable error) {
-+            return FALLBACK_CATEGORY;
-+        }
-+    }
- 
--    //~ /** The Aetherium key category (registered on first use), shared with the Freelook key. */
--    //~ static String category() {
--        //~ return registerCategory();
-+    /** "Z / = / -" for the settings screen. */
-+    public static String describe() {
-+        if (zoom == null) {
-+            return "Not registered";
-+        }
-+        return zoom.getTranslatedKeyMessage().getString() + " / " + zoomIn.getTranslatedKeyMessage().getString()
-+                + " / " + zoomOut.getTranslatedKeyMessage().getString();
-+    }
-+    // @era:zoom-else none
-+    //~ public static boolean onScroll(final double delta) {
-+        //~ return false;
-     //~ }
- 
--    //~ /**
--     //~ * The Controls screen sorts categories through a fixed table and throws on unknown names,
--     //~ * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
--     //~ */
--    //~ private static String registerCategory() {
--        //~ try {
--            //~ final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
--            //~ if (!order.containsKey(CATEGORY)) {
--                //~ int last = 0;
--                //~ for (final Integer value : order.values()) {
--                    //~ last = Math.max(last, value.intValue());
--                //~ }
--                //~ order.put(CATEGORY, Integer.valueOf(last + 1));
--            //~ }
--            //~ return CATEGORY;
--        //~ } catch (final Throwable error) {
--            //~ return FALLBACK_CATEGORY;
--        //~ }
-+    //~ public static void frame(final net.minecraft.client.Minecraft mc) {
-     //~ }
- 
--    //~ /** "Z / = / -" for the settings screen. */
-     //~ public static String describe() {
--        //~ if (zoom == null) {
--            //~ return "Not registered";
--        //~ }
--        //~ return zoom.getTranslatedKeyMessage().getString() + " / " + zoomIn.getTranslatedKeyMessage().getString()
--                //~ + " / " + zoomOut.getTranslatedKeyMessage().getString();
-+        //~ return "Not available on this version";
-     //~ }
-     // @era:zoom-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java b/common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java
 index 2d474ee..93ac71a 100644
@@ -3620,109 +3181,6 @@ index 47d147c..61cbafd 100644
 +    // @era:chunk-renderer-else none
      // @era:chunk-renderer-end
  }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
-index 1e5f51b..6ce0643 100644
---- a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
-@@ -1,11 +1,11 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
--//~ import com.aetherium.client.QolHooks;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.ModifyArg;
-+// @era:qol16-begin v16
-+import com.aetherium.client.QolHooks;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.ModifyArg;
-+// @era:qol16-else none
- // @era:qol16-end
- 
- /**
-@@ -15,18 +15,18 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.Camera")
- public abstract class FreelookCameraMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
--    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
--            //~ ordinal = 0), index = 0, require = 0)
--    //~ private float aetherium$freelookYaw(final float yaw) {
--        //~ return QolHooks.cameraYaw(yaw);
--    //~ }
-+    // @era:qol16-begin v16
-+    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
-+            ordinal = 0), index = 0, require = 0)
-+    private float aetherium$freelookYaw(final float yaw) {
-+        return QolHooks.cameraYaw(yaw);
-+    }
- 
--    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
--            //~ ordinal = 0), index = 1, require = 0)
--    //~ private float aetherium$freelookPitch(final float pitch) {
--        //~ return QolHooks.cameraPitch(pitch);
--    //~ }
-+    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
-+            ordinal = 0), index = 1, require = 0)
-+    private float aetherium$freelookPitch(final float pitch) {
-+        return QolHooks.cameraPitch(pitch);
-+    }
-+    // @era:qol16-else none
-     // @era:qol16-end
- }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java
-index 314d474..fb995d0 100644
---- a/common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java
-@@ -1,13 +1,13 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
--//~ import com.aetherium.client.QolHooks;
--//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
--//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
--//~ import net.minecraft.client.player.LocalPlayer;
--//~ import org.spongepowered.asm.mixin.injection.At;
-+// @era:qol16-begin v16
-+import com.aetherium.client.QolHooks;
-+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-+import net.minecraft.client.player.LocalPlayer;
-+import org.spongepowered.asm.mixin.injection.At;
-+// @era:qol16-else none
- // @era:qol16-end
- 
- /**
-@@ -16,15 +16,15 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.MouseHandler")
- public abstract class FreelookMouseMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
--    //~ @WrapOperation(method = "turnPlayer", at = @At(value = "INVOKE",
--            //~ target = "Lnet/minecraft/client/player/LocalPlayer;turn(DD)V"), require = 0)
--    //~ private void aetherium$freelookTurn(final LocalPlayer player, final double dx, final double dy,
--                                        //~ final Operation<Void> original) {
--        //~ if (!QolHooks.freelookTurn(dx, dy)) {
--            //~ original.call(player, dx, dy);
--        //~ }
--    //~ }
-+    // @era:qol16-begin v16
-+    @WrapOperation(method = "turnPlayer", at = @At(value = "INVOKE",
-+            target = "Lnet/minecraft/client/player/LocalPlayer;turn(DD)V"), require = 0)
-+    private void aetherium$freelookTurn(final LocalPlayer player, final double dx, final double dy,
-+                                        final Operation<Void> original) {
-+        if (!QolHooks.freelookTurn(dx, dy)) {
-+            original.call(player, dx, dy);
-+        }
-+    }
-+    // @era:qol16-else none
-     // @era:qol16-end
- }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..531f6bc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -3820,50 +3278,6 @@ index 840bcd1..84cda7b 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
-index 9a6d6b3..19d26a8 100644
---- a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
-@@ -1,28 +1,28 @@
- package com.aetherium.mixin.core;
- 
--// @era:zoom-begin none
-+// @era:zoom-begin v16
-+import java.util.Map;
-+
- import net.minecraft.client.KeyMapping;
- 
- import org.spongepowered.asm.mixin.Mixin;
-+import org.spongepowered.asm.mixin.gen.Accessor;
- 
--/** Zoom is 1.16.5-only for now; the plugin skips this mixin elsewhere. */
-+/** The Controls screen's category order table, so the zoom keys can have their own "Aetherium" category. */
- @Mixin(KeyMapping.class)
- public interface KeyMappingAccessor {
-+    @Accessor("CATEGORY_SORT_ORDER")
-+    static Map<String, Integer> aetherium$categorySortOrder() {
-+        throw new AssertionError("mixin not applied");
-+    }
- }
--// @era:zoom-else v16
--//~ import java.util.Map;
--
-+// @era:zoom-else none
- //~ import net.minecraft.client.KeyMapping;
- 
- //~ import org.spongepowered.asm.mixin.Mixin;
--//~ import org.spongepowered.asm.mixin.gen.Accessor;
- 
--//~ /** The Controls screen's category order table, so the zoom keys can have their own "Aetherium" category. */
-+//~ /** Zoom is 1.16.5-only for now; the plugin skips this mixin elsewhere. */
- //~ @Mixin(KeyMapping.class)
- //~ public interface KeyMappingAccessor {
--    //~ @Accessor("CATEGORY_SORT_ORDER")
--    //~ static Map<String, Integer> aetherium$categorySortOrder() {
--        //~ throw new AssertionError("mixin not applied");
--    //~ }
- //~ }
- // @era:zoom-end
 diff --git a/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java b/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java
 index cf2a547..39b9832 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java
@@ -4409,70 +3823,6 @@ index 0bb9134..70f6233 100644
 +    //~ }
  //~ }
  // @era:options-end
-diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java
-index 0223b53..495bedc 100644
---- a/common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java
-@@ -8,15 +8,15 @@ import org.spongepowered.asm.mixin.Mixin;
- import org.spongepowered.asm.mixin.injection.At;
- import org.spongepowered.asm.mixin.injection.Inject;
- import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
--// @era:zoom-begin none
--// @era:zoom-else v16
--//~ import com.aetherium.client.ZoomKeys;
-+// @era:zoom-begin v16
-+import com.aetherium.client.ZoomKeys;
- 
--//~ import net.minecraft.client.KeyMapping;
-+import net.minecraft.client.KeyMapping;
- 
--//~ import org.spongepowered.asm.mixin.Final;
--//~ import org.spongepowered.asm.mixin.Mutable;
--//~ import org.spongepowered.asm.mixin.Shadow;
-+import org.spongepowered.asm.mixin.Final;
-+import org.spongepowered.asm.mixin.Mutable;
-+import org.spongepowered.asm.mixin.Shadow;
-+// @era:zoom-else none
- // @era:zoom-end
- 
- /**
-@@ -27,21 +27,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-  */
- @Mixin(Options.class)
- public abstract class OptionsMixin {
--    // @era:zoom-begin none
--    // @era:zoom-else v16
--    //~ @Shadow
--    //~ @Final
--    //~ @Mutable
--    //~ public KeyMapping[] keyMappings;
--
--    //~ @Inject(method = "load()V", at = @At("HEAD"), require = 0)
--    //~ private void aetherium$zoomKeys(final CallbackInfo ci) {
--        //~ this.keyMappings = ZoomKeys.append(this.keyMappings);
--        //~ // @era:qol16-begin v16
--        //~ this.keyMappings = com.aetherium.client.QolHooks.appendKeys(this.keyMappings);
--        //~ // @era:qol16-else none
--        //~ // @era:qol16-end
--    //~ }
-+    // @era:zoom-begin v16
-+    @Shadow
-+    @Final
-+    @Mutable
-+    public KeyMapping[] keyMappings;
-+
-+    @Inject(method = "load()V", at = @At("HEAD"), require = 0)
-+    private void aetherium$zoomKeys(final CallbackInfo ci) {
-+        this.keyMappings = ZoomKeys.append(this.keyMappings);
-+        // @era:qol16-begin v16
-+        this.keyMappings = com.aetherium.client.QolHooks.appendKeys(this.keyMappings);
-+        // @era:qol16-else none
-+        // @era:qol16-end
-+    }
-+    // @era:zoom-else none
-     // @era:zoom-end
- 
-     @Inject(method = "save", at = @At("HEAD"), require = 0)
 diff --git a/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java b/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java
 index 39c44b7..155bc42 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java
@@ -6382,160 +5732,73 @@ index f4b7685..91a0a68 100644
          //~ }
      //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java
-index 9bc7728..e9ffc13 100644
+index df6c58d..98d2889 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java
-@@ -3,23 +3,23 @@ package com.aetherium.mixin.core;
- import net.minecraft.client.Camera;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:zoom-begin none
--// @era:zoom-else v16
--//~ import com.aetherium.client.ZoomKeys;
-+// @era:zoom-begin v16
-+import com.aetherium.client.ZoomKeys;
- 
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.ModifyArg;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.ModifyArg;
-+// @era:zoom-else none
- // @era:zoom-end
- 
- /** Third-person zoom: the distance vanilla asks for (4 blocks) is scaled by the zoom keys. */
+@@ -15,17 +15,17 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
+  */
  @Mixin(Camera.class)
  public abstract class ZoomCameraMixin {
--    // @era:zoom-begin none
--    // @era:zoom-else v16
--    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getMaxZoom(D)D"),
--            //~ require = 0)
--    //~ private double aetherium$zoomDistance(final double original) {
--        //~ return ZoomKeys.cameraDistance(original);
--    //~ }
-+    // @era:zoom-begin v16
+-    // @era:zoom-cam-begin float
+-    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getMaxZoom(F)F"),
++    // @era:zoom-cam-begin double
 +    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getMaxZoom(D)D"),
-+            require = 0)
+             require = 0)
+-    private float aetherium$zoomDistance(final float original) {
+-        return (float) ZoomKeys.cameraDistance(original);
 +    private double aetherium$zoomDistance(final double original) {
 +        return ZoomKeys.cameraDistance(original);
-+    }
-+    // @era:zoom-else none
-     // @era:zoom-end
- }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java b/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
-index c23f1ad..b90f14d 100644
---- a/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
-@@ -3,14 +3,14 @@ package com.aetherium.mixin.core;
- import net.minecraft.client.renderer.GameRenderer;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:zoom-begin none
--// @era:zoom-else v16
--//~ import com.aetherium.client.ZoomKeys;
--//~ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-+// @era:zoom-begin v16
-+import com.aetherium.client.ZoomKeys;
-+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
- 
--//~ import net.minecraft.client.Camera;
-+import net.minecraft.client.Camera;
- 
--//~ import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.At;
-+// @era:zoom-else none
- // @era:zoom-end
- 
- /**
-@@ -19,12 +19,12 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(GameRenderer.class)
- public abstract class ZoomFovMixin {
--    // @era:zoom-begin none
--    // @era:zoom-else v16
--    //~ @ModifyReturnValue(method = "getFov", at = @At("RETURN"), require = 0)
--    //~ private double aetherium$zoomFov(final double original, final Camera camera, final float partialTicks,
--                                     //~ final boolean useFovSetting) {
--        //~ return useFovSetting ? ZoomKeys.fov(original) : original;
--    //~ }
-+    // @era:zoom-begin v16
-+    @ModifyReturnValue(method = "getFov", at = @At("RETURN"), require = 0)
-+    private double aetherium$zoomFov(final double original, final Camera camera, final float partialTicks,
-+                                     final boolean useFovSetting) {
-+        return useFovSetting ? ZoomKeys.fov(original) : original;
-+    }
-+    // @era:zoom-else none
-     // @era:zoom-end
- }
+     }
+-    // @era:zoom-cam-else double
+-    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getMaxZoom(D)D"),
++    // @era:zoom-cam-else float
++    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getMaxZoom(F)F"),
+             //~ require = 0)
+-    //~ private double aetherium$zoomDistance(final double original) {
+-        //~ return ZoomKeys.cameraDistance(original);
++    //~ private float aetherium$zoomDistance(final float original) {
++        //~ return (float) ZoomKeys.cameraDistance(original);
+     //~ }
+     // @era:zoom-cam-else align
+     //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java b/common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java
-index fdef7fb..8729947 100644
+index 3ccd445..f069e2d 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java
-@@ -3,14 +3,14 @@ package com.aetherium.mixin.core;
- import net.minecraft.client.MouseHandler;
+@@ -26,20 +26,20 @@ public abstract class ZoomMouseMixin {
+         return ZoomKeys.smoothCamera(original);
+     }
  
- import org.spongepowered.asm.mixin.Mixin;
--// @era:zoom-begin none
--// @era:zoom-else v16
--//~ import com.aetherium.client.ZoomKeys;
--//~ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-+// @era:zoom-begin v16
-+import com.aetherium.client.ZoomKeys;
-+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
- 
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:zoom-else none
- // @era:zoom-end
- 
- /**
-@@ -20,25 +20,25 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(MouseHandler.class)
- public abstract class ZoomMouseMixin {
--    // @era:zoom-begin none
--    // @era:zoom-else v16
--    //~ @ModifyExpressionValue(method = "turnPlayer",
--            //~ at = @At(value = "FIELD", target = "Lnet/minecraft/client/Options;smoothCamera:Z"), require = 0)
--    //~ private boolean aetherium$zoomCinematic(final boolean original) {
--        //~ return ZoomKeys.smoothCamera(original);
--    //~ }
-+    // @era:zoom-begin v16
-+    @ModifyExpressionValue(method = "turnPlayer",
-+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/Options;smoothCamera:Z"), require = 0)
-+    private boolean aetherium$zoomCinematic(final boolean original) {
-+        return ZoomKeys.smoothCamera(original);
-+    }
- 
--    //~ @ModifyExpressionValue(method = "turnPlayer",
--            //~ at = @At(value = "FIELD", target = "Lnet/minecraft/client/Options;sensitivity:D"), require = 0)
--    //~ private double aetherium$zoomSensitivity(final double original) {
--        //~ return ZoomKeys.sensitivity(original);
--    //~ }
+-    // @era:options-begin instances
+-    @ModifyExpressionValue(method = "turnPlayer", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;", ordinal = 0), require = 0)
+-    private Object aetherium$zoomSensitivity(final Object original) {
+-        if (!(original instanceof Double) || !ZoomKeys.isZooming()) {
+-            return original;
+-        }
+-        return Double.valueOf(ZoomKeys.sensitivity(((Double) original).doubleValue()));
++    // @era:options-begin fields
 +    @ModifyExpressionValue(method = "turnPlayer",
 +            at = @At(value = "FIELD", target = "Lnet/minecraft/client/Options;sensitivity:D"), require = 0)
 +    private double aetherium$zoomSensitivity(final double original) {
 +        return ZoomKeys.sensitivity(original);
-+    }
+     }
+-    // @era:options-else fields
+-    //~ @ModifyExpressionValue(method = "turnPlayer",
+-            //~ at = @At(value = "FIELD", target = "Lnet/minecraft/client/Options;sensitivity:D"), require = 0)
+-    //~ private double aetherium$zoomSensitivity(final double original) {
+-        //~ return ZoomKeys.sensitivity(original);
++    // @era:options-else instances
++    //~ @ModifyExpressionValue(method = "turnPlayer", at = @At(value = "INVOKE",
++            //~ target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;", ordinal = 0), require = 0)
++    //~ private Object aetherium$zoomSensitivity(final Object original) {
++        //~ if (!(original instanceof Double) || !ZoomKeys.isZooming()) {
++            //~ return original;
++        //~ }
++        //~ return Double.valueOf(ZoomKeys.sensitivity(((Double) original).doubleValue()));
+     //~ }
+     // @era:options-end
  
--    //~ @Inject(method = "onScroll", at = @At("HEAD"), cancellable = true, require = 0)
--    //~ private void aetherium$zoomScroll(final long window, final double xOffset, final double yOffset, final CallbackInfo ci) {
--        //~ if (ZoomKeys.onScroll(yOffset)) {
--            //~ ci.cancel();
--        //~ }
--    //~ }
-+    @Inject(method = "onScroll", at = @At("HEAD"), cancellable = true, require = 0)
-+    private void aetherium$zoomScroll(final long window, final double xOffset, final double yOffset, final CallbackInfo ci) {
-+        if (ZoomKeys.onScroll(yOffset)) {
-+            ci.cancel();
-+        }
-+    }
-+    // @era:zoom-else none
-     // @era:zoom-end
- }
 diff --git a/common/src/main/java/com/aetherium/util/AetheriumLog.java b/common/src/main/java/com/aetherium/util/AetheriumLog.java
 index 8e1185d..9bed01b 100644
 --- a/common/src/main/java/com/aetherium/util/AetheriumLog.java

@@ -76,8 +76,9 @@ public final class ClientHooks {
         visibilityFrameDirty = true;
         // Zoom reads its keys here, before the camera, the FOV and the mouse use its state.
         ZoomKeys.frame(Minecraft.getInstance());
-        // Stutter log, adaptive upload budget and freelook (before the camera is set up).
+        // Stutter log and adaptive upload budget, then freelook (before the camera is set up).
         QolHooks.frame(Minecraft.getInstance());
+        FreelookHooks.frame(Minecraft.getInstance());
         ChunkRenderer.onFrame();
         if (Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive()) {
             LIMITER.beforeFrame();

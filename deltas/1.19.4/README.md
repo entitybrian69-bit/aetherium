@@ -39,7 +39,8 @@ neoforge_version=unavailable (module disabled)
 - `section-vis=list18`
 - `simdist=sim`
 - `vignette=render`
-- `zoom=none`
+- `zoom-cam=double`
+- `zoom=on`
 
 ### Where the per-version Java comes from
 
@@ -78,6 +79,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.19.4.t
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 
 ## Verifying this row before shipping it
 

@@ -23,10 +23,12 @@ neoforge_version=21.11.45
 
 - `background=render`
 - `be-render=extract`
+- `freelook=minecart`
 - `graphics=preset`
 - `gui-layer=stratum`
 - `gui=graphics`
 - `input=events`
+- `keys=category`
 - `light-hook=brightness`
 - `occlusion-box=renderer`
 - `options=instances`
@@ -34,6 +36,8 @@ neoforge_version=21.11.45
 - `scroll=four`
 - `section-vis=render-origin`
 - `weather=effect`
+- `zoom-fov=float`
+- `zoom=on`
 
 ### Where the per-version Java comes from
 
@@ -64,11 +68,15 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.11.
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 
 ## Verifying this row before shipping it
 

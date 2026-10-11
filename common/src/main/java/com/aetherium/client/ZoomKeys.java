@@ -3,14 +3,14 @@ package com.aetherium.client;
 import com.aetherium.config.AetheriumConfig;
 import com.aetherium.zoom.ZoomController;
 
-// @era:zoom-begin none
-// @era:zoom-else v16
-//~ import com.aetherium.mixin.core.KeyMappingAccessor;
+// @era:zoom-begin on
+import com.aetherium.mixin.core.KeyMappingAccessor;
 
-//~ import java.util.Map;
+import java.util.Map;
 
-//~ import net.minecraft.client.KeyMapping;
-//~ import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+// @era:zoom-else none
 // @era:zoom-end
 
 /**
@@ -30,11 +30,11 @@ public final class ZoomKeys {
 
     private static final ZoomController CONTROLLER = new ZoomController();
 
-    // @era:zoom-begin none
-    // @era:zoom-else v16
-    //~ private static KeyMapping zoom;
-    //~ private static KeyMapping zoomIn;
-    //~ private static KeyMapping zoomOut;
+    // @era:zoom-begin on
+    private static KeyMapping zoom;
+    private static KeyMapping zoomIn;
+    private static KeyMapping zoomOut;
+    // @era:zoom-else none
     // @era:zoom-end
 
     private ZoomKeys() {
@@ -82,102 +82,110 @@ public final class ZoomKeys {
         return CONTROLLER.smoothCamera(original);
     }
 
-    // @era:zoom-begin none
+    /** True while the zoom key is engaged (cheap; lets 1.19+ skip boxing the sensitivity). */
+    public static boolean isZooming() {
+        return CONTROLLER.isZooming();
+    }
+
+    // @era:zoom-begin on
+    /** Mouse wheel; true = consumed by zoom (the hotbar must not scroll). */
     public static boolean onScroll(final double delta) {
-        return false;
+        final Minecraft mc = Minecraft.getInstance();
+        return mc != null && mc.screen == null && CONTROLLER.scroll(delta);
     }
 
-    public static void frame(final net.minecraft.client.Minecraft mc) {
+    /** Once per frame, before the camera and the FOV are computed. */
+    public static void frame(final Minecraft mc) {
+        if (zoom == null || mc == null) {
+            return;
+        }
+        if (mc.level == null || mc.player == null) {
+            if (CONTROLLER.isZooming()) {
+                CONTROLLER.reset();
+            }
+            return;
+        }
+        final boolean held = mc.screen == null && zoom.isDown();
+        final ZoomController.View view;
+        if (mc.options.getCameraType().isFirstPerson()) {
+            view = ZoomController.View.FIRST_PERSON;
+        } else if (mc.options.getCameraType().isMirrored()) {
+            view = ZoomController.View.THIRD_PERSON_FRONT;
+        } else {
+            view = ZoomController.View.THIRD_PERSON_BACK;
+        }
+        CONTROLLER.frame(nowMs(), held, zoomIn.isDown(), zoomOut.isDown(), view);
     }
 
+    /** Options.load HEAD: returns the key list with the three zoom keys appended (once). */
+    public static KeyMapping[] append(final KeyMapping[] existing) {
+        if (zoom == null) {
+            zoom = newKey("key.aetherium.zoom", KEY_Z);
+            zoomIn = newKey("key.aetherium.zoom_in", KEY_EQUAL);
+            zoomOut = newKey("key.aetherium.zoom_out", KEY_MINUS);
+        }
+        if (existing == null) {
+            return new KeyMapping[] {zoom, zoomIn, zoomOut};
+        }
+        for (final KeyMapping key : existing) {
+            if (key == zoom) {
+                return existing;
+            }
+        }
+        final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 3);
+        out[existing.length] = zoom;
+        out[existing.length + 1] = zoomIn;
+        out[existing.length + 2] = zoomOut;
+        return out;
+    }
+
+    // @era:keys-begin string
+    /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+    static KeyMapping newKey(final String name, final int code) {
+        return new KeyMapping(name, code, registerCategory());
+    }
+
+    /**
+     * The Controls screen sorts categories through a fixed table and throws on unknown names,
+     * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
+     */
+    private static String registerCategory() {
+        try {
+            final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
+            if (!order.containsKey(CATEGORY)) {
+                int last = 0;
+                for (final Integer value : order.values()) {
+                    last = Math.max(last, value.intValue());
+                }
+                order.put(CATEGORY, Integer.valueOf(last + 1));
+            }
+            return CATEGORY;
+        } catch (final Throwable error) {
+            return FALLBACK_CATEGORY;
+        }
+    }
+    // @era:keys-else category
+    //~ KEYS_CATEGORY_PLACEHOLDER
+    // @era:keys-end
+
+    /** "Z / = / -" for the settings screen. */
     public static String describe() {
-        return "Not available on this version";
+        if (zoom == null) {
+            return "Not registered";
+        }
+        return zoom.getTranslatedKeyMessage().getString() + " / " + zoomIn.getTranslatedKeyMessage().getString()
+                + " / " + zoomOut.getTranslatedKeyMessage().getString();
     }
-    // @era:zoom-else v16
-    //~ /** Mouse wheel; true = consumed by zoom (the hotbar must not scroll). */
+    // @era:zoom-else none
     //~ public static boolean onScroll(final double delta) {
-        //~ final Minecraft mc = Minecraft.getInstance();
-        //~ return mc != null && mc.screen == null && CONTROLLER.scroll(delta);
+        //~ return false;
     //~ }
 
-    //~ /** Once per frame, before the camera and the FOV are computed. */
-    //~ public static void frame(final Minecraft mc) {
-        //~ if (zoom == null || mc == null) {
-            //~ return;
-        //~ }
-        //~ if (mc.level == null || mc.player == null) {
-            //~ if (CONTROLLER.isZooming()) {
-                //~ CONTROLLER.reset();
-            //~ }
-            //~ return;
-        //~ }
-        //~ final boolean held = mc.screen == null && zoom.isDown();
-        //~ final ZoomController.View view;
-        //~ if (mc.options.getCameraType().isFirstPerson()) {
-            //~ view = ZoomController.View.FIRST_PERSON;
-        //~ } else if (mc.options.getCameraType().isMirrored()) {
-            //~ view = ZoomController.View.THIRD_PERSON_FRONT;
-        //~ } else {
-            //~ view = ZoomController.View.THIRD_PERSON_BACK;
-        //~ }
-        //~ CONTROLLER.frame(nowMs(), held, zoomIn.isDown(), zoomOut.isDown(), view);
+    //~ public static void frame(final net.minecraft.client.Minecraft mc) {
     //~ }
 
-    //~ /** Options.load HEAD: returns the key list with the three zoom keys appended (once). */
-    //~ public static KeyMapping[] append(final KeyMapping[] existing) {
-        //~ if (zoom == null) {
-            //~ final String category = registerCategory();
-            //~ zoom = new KeyMapping("key.aetherium.zoom", KEY_Z, category);
-            //~ zoomIn = new KeyMapping("key.aetherium.zoom_in", KEY_EQUAL, category);
-            //~ zoomOut = new KeyMapping("key.aetherium.zoom_out", KEY_MINUS, category);
-        //~ }
-        //~ if (existing == null) {
-            //~ return new KeyMapping[] {zoom, zoomIn, zoomOut};
-        //~ }
-        //~ for (final KeyMapping key : existing) {
-            //~ if (key == zoom) {
-                //~ return existing;
-            //~ }
-        //~ }
-        //~ final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 3);
-        //~ out[existing.length] = zoom;
-        //~ out[existing.length + 1] = zoomIn;
-        //~ out[existing.length + 2] = zoomOut;
-        //~ return out;
-    //~ }
-
-    //~ /** The Aetherium key category (registered on first use), shared with the Freelook key. */
-    //~ static String category() {
-        //~ return registerCategory();
-    //~ }
-
-    //~ /**
-     //~ * The Controls screen sorts categories through a fixed table and throws on unknown names,
-     //~ * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
-     //~ */
-    //~ private static String registerCategory() {
-        //~ try {
-            //~ final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
-            //~ if (!order.containsKey(CATEGORY)) {
-                //~ int last = 0;
-                //~ for (final Integer value : order.values()) {
-                    //~ last = Math.max(last, value.intValue());
-                //~ }
-                //~ order.put(CATEGORY, Integer.valueOf(last + 1));
-            //~ }
-            //~ return CATEGORY;
-        //~ } catch (final Throwable error) {
-            //~ return FALLBACK_CATEGORY;
-        //~ }
-    //~ }
-
-    //~ /** "Z / = / -" for the settings screen. */
     //~ public static String describe() {
-        //~ if (zoom == null) {
-            //~ return "Not registered";
-        //~ }
-        //~ return zoom.getTranslatedKeyMessage().getString() + " / " + zoomIn.getTranslatedKeyMessage().getString()
-                //~ + " / " + zoomOut.getTranslatedKeyMessage().getString();
+        //~ return "Not available on this version";
     //~ }
     // @era:zoom-end
 }

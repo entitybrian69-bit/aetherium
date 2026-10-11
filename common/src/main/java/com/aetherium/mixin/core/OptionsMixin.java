@@ -8,15 +8,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:zoom-begin none
-// @era:zoom-else v16
-//~ import com.aetherium.client.ZoomKeys;
+// @era:zoom-begin on
+import com.aetherium.client.ZoomKeys;
 
-//~ import net.minecraft.client.KeyMapping;
+import net.minecraft.client.KeyMapping;
 
-//~ import org.spongepowered.asm.mixin.Final;
-//~ import org.spongepowered.asm.mixin.Mutable;
-//~ import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.Shadow;
+// @era:zoom-else none
 // @era:zoom-end
 
 /**
@@ -27,21 +27,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(Options.class)
 public abstract class OptionsMixin {
-    // @era:zoom-begin none
-    // @era:zoom-else v16
-    //~ @Shadow
-    //~ @Final
-    //~ @Mutable
-    //~ public KeyMapping[] keyMappings;
+    // @era:zoom-begin on
+    @Shadow
+    @Final
+    @Mutable
+    public KeyMapping[] keyMappings;
 
-    //~ @Inject(method = "load()V", at = @At("HEAD"), require = 0)
-    //~ private void aetherium$zoomKeys(final CallbackInfo ci) {
-        //~ this.keyMappings = ZoomKeys.append(this.keyMappings);
-        //~ // @era:qol16-begin v16
-        //~ this.keyMappings = com.aetherium.client.QolHooks.appendKeys(this.keyMappings);
-        //~ // @era:qol16-else none
-        //~ // @era:qol16-end
-    //~ }
+    @Inject(method = "load()V", at = @At("HEAD"), require = 0)
+    private void aetherium$zoomKeys(final CallbackInfo ci) {
+        this.keyMappings = ZoomKeys.append(this.keyMappings);
+        this.keyMappings = com.aetherium.client.FreelookHooks.appendKeys(this.keyMappings);
+    }
+    // @era:zoom-else none
     // @era:zoom-end
 
     @Inject(method = "save", at = @At("HEAD"), require = 0)

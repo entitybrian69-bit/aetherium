@@ -44,6 +44,59 @@ index ad232af..291433f 100644
              //~ cir.setReturnValue(Boolean.FALSE);
          //~ }
      //~ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
+index cc1f564..1e90220 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
+@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
+  */
+ @Mixin(targets = "net.minecraft.client.Camera")
+ public abstract class FreelookCameraMixin {
+-    // @era:freelook-begin v16
++    // @era:freelook-begin minecart
+     @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+             ordinal = 0), index = 0, require = 0)
+     private float aetherium$freelookYaw(final float yaw) {
+@@ -28,7 +28,19 @@ public abstract class FreelookCameraMixin {
+     private float aetherium$freelookPitch(final float pitch) {
+         return FreelookHooks.cameraPitch(pitch);
+     }
+-    // @era:freelook-else minecart
++
++    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
++            ordinal = 1), index = 0, require = 0)
++    private float aetherium$freelookYaw2(final float yaw) {
++        return FreelookHooks.cameraYaw(yaw);
++    }
++
++    @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
++            ordinal = 1), index = 1, require = 0)
++    private float aetherium$freelookPitch2(final float pitch) {
++        return FreelookHooks.cameraPitch(pitch);
++    }
++    // @era:freelook-else v16
+     //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+             //~ ordinal = 0), index = 0, require = 0)
+     //~ private float aetherium$freelookYaw(final float yaw) {
+@@ -40,18 +52,6 @@ public abstract class FreelookCameraMixin {
+     //~ private float aetherium$freelookPitch(final float pitch) {
+         //~ return FreelookHooks.cameraPitch(pitch);
+     //~ }
+-
+-    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+-            //~ ordinal = 1), index = 0, require = 0)
+-    //~ private float aetherium$freelookYaw2(final float yaw) {
+-        //~ return FreelookHooks.cameraYaw(yaw);
+-    //~ }
+-
+-    //~ @ModifyArg(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+-            //~ ordinal = 1), index = 1, require = 0)
+-    //~ private float aetherium$freelookPitch2(final float pitch) {
+-        //~ return FreelookHooks.cameraPitch(pitch);
+-    //~ }
+     // @era:freelook-else align
+     //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
+             //~ target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 0), index = 0, require = 0)
 diff --git a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
 index dd489bc..090bb2c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
@@ -76,6 +129,41 @@ index dd489bc..090bb2c 100644
      // @era:weather-end
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java b/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
+index f85e6e7..5c91b44 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java
+@@ -14,22 +14,22 @@ import org.spongepowered.asm.mixin.injection.At;
+  * GameRenderer.getFov returns double until 1.21.1 and float until 1.21.11; 26.x computes the world
+  * FOV in Camera.calculateFov(F)F (the hand FOV is the separate calculateHudFov).
+  */
+-// @era:zoom-fov-begin double
++// @era:zoom-fov-begin float
+ @Mixin(net.minecraft.client.renderer.GameRenderer.class)
+ public abstract class ZoomFovMixin {
+     @ModifyReturnValue(method = "getFov", at = @At("RETURN"), require = 0)
+-    private double aetherium$zoomFov(final double original, final Camera camera, final float partialTicks,
+-                                     final boolean useFovSetting) {
+-        return useFovSetting ? ZoomKeys.fov(original) : original;
++    private float aetherium$zoomFov(final float original, final Camera camera, final float partialTicks,
++                                    final boolean useFovSetting) {
++        return useFovSetting ? (float) ZoomKeys.fov(original) : original;
+     }
+ }
+-// @era:zoom-fov-else float
++// @era:zoom-fov-else double
+ //~ @Mixin(net.minecraft.client.renderer.GameRenderer.class)
+ //~ public abstract class ZoomFovMixin {
+     //~ @ModifyReturnValue(method = "getFov", at = @At("RETURN"), require = 0)
+-    //~ private float aetherium$zoomFov(final float original, final Camera camera, final float partialTicks,
+-                                    //~ final boolean useFovSetting) {
+-        //~ return useFovSetting ? (float) ZoomKeys.fov(original) : original;
++    //~ private double aetherium$zoomFov(final double original, final Camera camera, final float partialTicks,
++                                     //~ final boolean useFovSetting) {
++        //~ return useFovSetting ? ZoomKeys.fov(original) : original;
+     //~ }
+ //~ }
+ // @era:zoom-fov-else camera
 diff --git a/gradle.properties b/gradle.properties
 index 072c719..6c994d7 100644
 --- a/gradle.properties

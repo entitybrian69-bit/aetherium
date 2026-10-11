@@ -64,11 +64,26 @@ ERAS = {
                     ("render-origin", "1.21.5..")],
     "occlusion-box": [("entity", "..1.21.1"), ("renderer", "1.21.2..26.2"), ("renderer-tick", "26.3..")],
     "chunk-renderer": [("gl16", "..1.16.5"), ("none", "1.17..")],
-    # Zume-style zoom (ZoomKeys + Zoom*Mixin, KeyMappingAccessor, OptionsMixin key list): 1.16.5 first.
-    "zoom": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # Zume-style zoom (ZoomKeys + Zoom*Mixin, KeyMappingAccessor, OptionsMixin key list): every version.
+    "zoom": [("on", "..")],
+    # KeyMapping(String, int, <category>): a String plus the CATEGORY_SORT_ORDER table until 1.21.8,
+    # a registered KeyMapping$Category from 1.21.9 (probe dumps).
+    "keys": [("string", "..1.21.8"), ("category", "1.21.9..")],
+    # The zoomed FOV: GameRenderer.getFov returns double until 1.21.1 and float until 1.21.11;
+    # 26.x moved it to Camera.calculateFov(F)F.
+    "zoom-fov": [("double", "..1.21.1"), ("float", "1.21.2..1.21.11"), ("camera", "26.1..")],
+    # Third-person distance: Camera.getMaxZoom(D)D until 1.20.6, (F)F after; called from Camera.setup
+    # until 1.21.11 and from Camera.alignWithEntity on 26.x.
+    "zoom-cam": [("double", "..1.20.6"), ("float", "1.21..1.21.11"), ("align", "26.1..")],
     # Threaded "build near" chunk rebuilds and the per-frame client light budget (NearBuildMixin).
     "near-build": [("v16", "..1.16.5"), ("none", "1.17..")],
-    # 1.5.0 (1.16.5 first): streaming optimizations, fog/sky/particle controls, freelook.
+    # Entity yaw/pitch: public fields on 1.16.5, getYRot()/getXRot() from 1.17.
+    "rot": [("fields", "..1.16.5"), ("getters", "1.17..")],
+    # Freelook camera (FreelookCameraMixin): the view rotation is the first setRotation(FF)V call in
+    # Camera.setup until 1.21.1; from 1.21.2 the first two (minecart lerp branch, normal branch), and
+    # on 26.x they are in Camera.alignWithEntity (probe dumps).
+    "freelook": [("v16", "..1.21.1"), ("minecart", "1.21.2..1.21.11"), ("align", "26.1..")],
+    # 1.5.0 (1.16.5 first): streaming optimizations, fog/sky/particle controls.
     "qol16": [("v16", "..1.16.5"), ("none", "1.17..")],
     # 1.7.2 even frame pacing: RenderSystem.limitDisplayFPS(I)V exists on 1.16.5-1.21.11 (probe dumps).
     "pacing": [("rs", "..1.21.11"), ("none", "26.1..")],

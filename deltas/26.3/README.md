@@ -28,10 +28,12 @@ neoforge_version=26.3.0.64-beta
 - `chunk-upload=none`
 - `dirty=sections`
 - `entity-cull=six`
+- `freelook=align`
 - `graphics=preset`
 - `gui=extractor`
 - `hud=none`
 - `input=events`
+- `keys=category`
 - `light-hook=none`
 - `loom-plugin-id->no-remap`
 - `mappings-line-removed`
@@ -51,7 +53,9 @@ neoforge_version=26.3.0.64-beta
 - `simdist=sim`
 - `vignette=none`
 - `weather=effect`
-- `zoom=none`
+- `zoom-cam=align`
+- `zoom-fov=camera`
+- `zoom=on`
 
 ### Where the per-version Java comes from
 
@@ -88,17 +92,22 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 
 ## Verifying this row before shipping it
 

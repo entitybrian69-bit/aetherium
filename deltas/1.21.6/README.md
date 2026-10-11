@@ -21,12 +21,14 @@ neoforge_version=21.6.20-beta
 
 ### Era transforms applied by the generated patch
 
+- `freelook=minecart`
 - `gui-layer=stratum`
 - `gui=graphics`
 - `light-hook=brightness`
 - `occlusion-box=renderer`
 - `section-vis=render-origin`
 - `weather=effect`
+- `zoom-fov=float`
 
 ### Where the per-version Java comes from
 
@@ -56,9 +58,11 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.6.t
 - `gradle.properties`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 
 ## Verifying this row before shipping it
 

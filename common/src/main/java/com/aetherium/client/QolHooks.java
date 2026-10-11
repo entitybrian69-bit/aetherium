@@ -11,7 +11,6 @@ import com.aetherium.perf.RebuildCoalescer;
 import com.aetherium.perf.StutterRecorder;
 import com.aetherium.perf.UploadBudget;
 import com.aetherium.perf.VisibilitySearch;
-import com.aetherium.qol.Freelook;
 import com.aetherium.qol.ParticleFilter;
 import com.aetherium.qol.Scenery;
 
@@ -25,8 +24,6 @@ import com.aetherium.qol.Scenery;
 //~ import java.util.concurrent.Executor;
 
 //~ import net.minecraft.client.Camera;
-//~ import net.minecraft.client.CameraType;
-//~ import net.minecraft.client.KeyMapping;
 //~ import net.minecraft.client.Minecraft;
 //~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 //~ import net.minecraft.core.BlockPos;
@@ -46,27 +43,19 @@ import com.aetherium.qol.Scenery;
 
 /**
  * Minecraft side of the 1.5.0 features: terrain streaming (packet budget, prepared uploads,
- * rebuild coalescing, chunk-mesh threads), the stutter log, fog/sky/particle controls and
- * freelook. Everything here is render-thread only unless noted, and costs one field read while a
- * feature is at its vanilla setting.
+ * rebuild coalescing, chunk-mesh threads), the stutter log and the fog/sky/particle controls
+ * (freelook lives in {@link FreelookHooks}). Everything here is render-thread only unless noted,
+ * and costs one field read while a feature is at its vanilla setting.
  */
 public final class QolHooks {
-    private static final Freelook FREELOOK = new Freelook();
     private static final float[] FOG = new float[3];
 
     private static volatile boolean prepareUploads;
     private static volatile boolean meshThreads;
-    private static boolean freelookToggle;
-    private static boolean freelookThirdPerson = true;
 
     // @era:qol16-begin none
     // @era:qol16-else v16
-    //~ private static final int KEY_LEFT_ALT = 342;
     //~ private static final Map<ParticleType<?>, Integer> CATEGORY = new IdentityHashMap<ParticleType<?>, Integer>();
-    //~ private static KeyMapping freelook;
-    //~ /** Camera type to restore when freelook ends, or null when freelook did not change it. */
-    //~ private static CameraType restoreCamera;
-    //~ private static CameraType forcedCamera;
     // @era:qol16-end
 
     private QolHooks() {
@@ -103,16 +92,12 @@ public final class QolHooks {
         ParticleFilter.set(ParticleFilter.TOTEM, !scenery || config.particlesTotem.get().booleanValue());
         ParticleFilter.setBlockBreaking(!scenery || config.particlesBlockBreak.get().booleanValue());
 
-        freelookToggle = config.freelookToggle.get().booleanValue();
-        freelookThirdPerson = config.freelookThirdPerson.get().booleanValue();
+        FreelookHooks.configure(config);
         // @era:qol16-begin none
         // @era:qol16-else v16
         //~ final Minecraft mc = Minecraft.getInstance();
         //~ if (mc != null && mc.gameDirectory != null) {
             //~ StutterRecorder.configure(Capabilities.STREAMING && config.stutterLog.get().booleanValue(), mc.gameDirectory);
-        //~ }
-        //~ if (!active && FREELOOK.active()) {
-            //~ stopFreelook(mc);
         //~ }
         // @era:qol16-end
     }
@@ -130,20 +115,11 @@ public final class QolHooks {
      */
     public static void onLevelChange() {
         DirectPool.trim();
-        // @era:qol16-begin none
-        // @era:qol16-else v16
-        //~ if (FREELOOK.active()) {
-            //~ stopFreelook(Minecraft.getInstance());
-        //~ }
-        // @era:qol16-end
+        FreelookHooks.onLevelChange();
     }
 
     // @era:qol16-begin none
     public static void frame(final net.minecraft.client.Minecraft mc) {
-    }
-
-    public static String describeKey() {
-        return "Not available on this version";
     }
     // @era:qol16-else v16
     //~ // ------------------------------------------------------------------ per frame
@@ -152,97 +128,6 @@ public final class QolHooks {
     //~ public static void frame(final Minecraft mc) {
         //~ StutterRecorder.frame(System.nanoTime(), null);
         //~ UploadBudget.adapt(StutterRecorder.averageFrameNanos());
-        //~ if (freelook == null || mc == null) {
-            //~ return;
-        //~ }
-        //~ if (mc.level == null || mc.player == null) {
-            //~ if (FREELOOK.active()) {
-                //~ stopFreelook(mc);
-            //~ }
-            //~ return;
-        //~ }
-        //~ final boolean down = mc.screen == null && freelook.isDown() && Aetherium.isActive();
-        //~ final int change = FREELOOK.update(down, freelookToggle);
-        //~ if (change == Freelook.STARTED) {
-            //~ FREELOOK.begin(mc.player.yRot, mc.player.xRot);
-            //~ restoreCamera = null;
-            //~ forcedCamera = null;
-            //~ if (freelookThirdPerson && mc.options.getCameraType().isFirstPerson()) {
-                //~ restoreCamera = mc.options.getCameraType();
-                //~ forcedCamera = CameraType.THIRD_PERSON_BACK;
-                //~ setCamera(mc, forcedCamera);
-            //~ }
-        //~ } else if (change == Freelook.STOPPED) {
-            //~ restore(mc);
-        //~ }
-    //~ }
-
-    //~ private static void stopFreelook(final Minecraft mc) {
-        //~ FREELOOK.stop();
-        //~ restore(mc);
-    //~ }
-
-    //~ private static void restore(final Minecraft mc) {
-        //~ // Only undo our own switch: if the player pressed F5 meanwhile, their choice stays.
-        //~ if (mc != null && restoreCamera != null && mc.options.getCameraType() == forcedCamera) {
-            //~ setCamera(mc, restoreCamera);
-        //~ }
-        //~ restoreCamera = null;
-        //~ forcedCamera = null;
-    //~ }
-
-    //~ private static void setCamera(final Minecraft mc, final CameraType type) {
-        //~ final boolean wasFirst = mc.options.getCameraType().isFirstPerson();
-        //~ mc.options.setCameraType(type);
-        //~ if (wasFirst != type.isFirstPerson()) {
-            //~ mc.gameRenderer.checkEntityPostEffect(type.isFirstPerson() ? mc.getCameraEntity() : null);
-        //~ }
-    //~ }
-
-    //~ // ------------------------------------------------------------------ freelook hooks
-
-    //~ /** MouseHandler.turnPlayer: true when the mouse turned the free camera instead of the player. */
-    //~ public static boolean freelookTurn(final double dx, final double dy) {
-        //~ if (!FREELOOK.active()) {
-            //~ return false;
-        //~ }
-        //~ FREELOOK.turn(dx, dy);
-        //~ return true;
-    //~ }
-
-    //~ public static float cameraYaw(final float original) {
-        //~ return FREELOOK.active() ? FREELOOK.yaw() : original;
-    //~ }
-
-    //~ public static float cameraPitch(final float original) {
-        //~ return FREELOOK.active() ? FREELOOK.pitch() : original;
-    //~ }
-
-    //~ public static boolean freelookActive() {
-        //~ return FREELOOK.active();
-    //~ }
-
-    //~ /** Options.load HEAD: the key list with the Freelook key appended (once). */
-    //~ public static KeyMapping[] appendKeys(final KeyMapping[] existing) {
-        //~ if (freelook == null) {
-            //~ freelook = new KeyMapping("key.aetherium.freelook", KEY_LEFT_ALT, ZoomKeys.category());
-        //~ }
-        //~ if (existing == null) {
-            //~ return new KeyMapping[] {freelook};
-        //~ }
-        //~ for (final KeyMapping key : existing) {
-            //~ if (key == freelook) {
-                //~ return existing;
-            //~ }
-        //~ }
-        //~ final KeyMapping[] out = java.util.Arrays.copyOf(existing, existing.length + 1);
-        //~ out[existing.length] = freelook;
-        //~ return out;
-    //~ }
-
-    //~ /** "Left Alt" for the settings screen. */
-    //~ public static String describeKey() {
-        //~ return freelook == null ? "Not registered" : freelook.getTranslatedKeyMessage().getString();
     //~ }
 
     //~ // ------------------------------------------------------------------ streaming hooks
