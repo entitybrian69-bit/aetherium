@@ -59,6 +59,14 @@ public final class AetheriumConfig {
             "performance.smooth_streaming", true, "Spread the work of arriving chunks over several frames: incoming chunk, light and entity packets get a time budget per frame instead of all being processed in one frame, and chunk meshes are converted for the GPU on the worker threads. Removes the big frame drops when walking or flying into unloaded terrain.");
     public final ConfigValue<Boolean> coalesceRebuilds = ConfigValue.bool(
             "performance.coalesce_rebuilds", true, "While terrain loads, every chunk section is marked for rebuilding again each time a neighbouring chunk or its light arrives. Wait until a far or new section has been quiet for a moment, then build it once instead of up to ten times. Sections you edit, and built sections within 28 blocks, are never delayed.");
+    public final ConfigValue<Boolean> smartChunkCulling = ConfigValue.bool(
+            "performance.smart_chunk_culling", true, "Minecraft 1.16.5: chunk sections that lie completely inside the distance fog are not drawn and the visible-chunk search stops at them, and while terrain streams in that search runs at most 20 times a second instead of every frame (turning the camera still updates it at once). Steps aside when the fog is changed or removed.");
+    public final ConfigValue<Boolean> fastParticles = ConfigValue.bool(
+            "performance.fast_particles", true, "Minecraft 1.16.5: particles behind you or off screen are skipped, and the rest are written to the particle batch without the six temporary vectors and quaternion copies vanilla creates for every particle every frame. Looks identical.");
+    public final ConfigValue<Boolean> visibleAnimations = ConfigValue.bool(
+            "performance.visible_animations", true, "Minecraft 1.16.5: only animated block textures you can see (in visible chunks, held or shown items, block entities, particles) keep animating; the rest pause, which saves their texture uploads every tick. Fire and portals always animate. If an animated texture from another mod stops moving, turn this off.");
+    public final ConfigValue<Boolean> fastModels = ConfigValue.bool(
+            "performance.fast_models", true, "Minecraft 1.16.5: mob, player and block-entity models are written straight into the vertex buffer, without the temporary vector vanilla creates for every vertex and the per-vertex buffer calls. Same bytes as vanilla; outlines, enchantment glint and unusual buffers keep the vanilla path.");
     public final ConfigValue<Integer> workerThreads = ConfigValue.intRange(
             "performance.worker_threads", 0, 0, 16, false, "Threads for world generation. 0 = automatic (vanilla on desktop; on Android half the cores minus one, between 2 and 4, so the render and server threads are not starved). Chunk meshes are built on Aetherium's own threads. Applies after a restart.");
 

@@ -422,10 +422,10 @@ index afb236d..ffe04fe 100644
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
-index cc8c248..ec944ff 100644
+index a98c09d..d909db4 100644
 --- a/common/src/main/java/com/aetherium/client/QolHooks.java
 +++ b/common/src/main/java/com/aetherium/client/QolHooks.java
-@@ -14,33 +14,33 @@ import com.aetherium.qol.Freelook;
+@@ -15,33 +15,33 @@ import com.aetherium.qol.Freelook;
  import com.aetherium.qol.ParticleFilter;
  import com.aetherium.qol.Scenery;
  
@@ -486,7 +486,7 @@ index cc8c248..ec944ff 100644
  // @era:qol16-end
  
  /**
-@@ -58,14 +58,14 @@ public final class QolHooks {
+@@ -59,14 +59,14 @@ public final class QolHooks {
      private static boolean freelookToggle;
      private static boolean freelookThirdPerson = true;
  
@@ -509,7 +509,7 @@ index cc8c248..ec944ff 100644
      // @era:qol16-end
  
      private QolHooks() {
-@@ -104,15 +104,15 @@ public final class QolHooks {
+@@ -105,15 +105,15 @@ public final class QolHooks {
  
          freelookToggle = config.freelookToggle.get().booleanValue();
          freelookThirdPerson = config.freelookThirdPerson.get().booleanValue();
@@ -534,7 +534,7 @@ index cc8c248..ec944ff 100644
          // @era:qol16-end
      }
  
-@@ -129,254 +129,254 @@ public final class QolHooks {
+@@ -130,241 +130,241 @@ public final class QolHooks {
       */
      public static void onLevelChange() {
          DirectPool.trim();
@@ -861,71 +861,45 @@ index cc8c248..ec944ff 100644
 -        //~ return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
 -                //~ chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
 -    //~ }
-+    /** Minimum time between visible-section searches caused only by finished uploads. */
-+    static final long VISIBILITY_INTERVAL_NANOS = 50_000_000L;
-+    private static long lastVisibilityUpdate;
-+    private static boolean visibilityPending;
- 
--    //~ /** Minimum time between visible-section searches caused only by finished uploads. */
--    //~ static final long VISIBILITY_INTERVAL_NANOS = 50_000_000L;
--    //~ private static long lastVisibilityUpdate;
--    //~ private static boolean visibilityPending;
--
--    //~ /**
--     //~ * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
--     //~ * Sections already in the visible list draw their new mesh at once either way; the search only
--     //~ * discovers sections behind them, so it is limited to 20 per second while uploads stream in.
--     //~ */
--    //~ public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
--        //~ if (!PacketBudget.enabled()) {
--            //~ return uploaded;
--        //~ }
--        //~ final long now = System.nanoTime();
--        //~ if (uploaded) {
--            //~ visibilityPending = true;
--        //~ }
--        //~ if (visibilityPending && now - lastVisibilityUpdate >= VISIBILITY_INTERVAL_NANOS) {
--            //~ visibilityPending = false;
--            //~ lastVisibilityUpdate = now;
--            //~ return true;
--        //~ }
--        //~ return false;
--    //~ }
 +    /**
 +     * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
 +     * Sections already in the visible list draw their new mesh at once either way; the search only
-+     * discovers sections behind them, so it is limited to 20 per second while uploads stream in.
++     * discovers sections behind them, so it is limited to 20 per second while uploads stream in
++     * (shared with the other streaming triggers, see {@code VisibilitySearch}).
 +     */
 +    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
 +        if (!PacketBudget.enabled()) {
 +            return uploaded;
 +        }
-+        final long now = System.nanoTime();
-+        if (uploaded) {
-+            visibilityPending = true;
-+        }
-+        if (visibilityPending && now - lastVisibilityUpdate >= VISIBILITY_INTERVAL_NANOS) {
-+            visibilityPending = false;
-+            lastVisibilityUpdate = now;
-+            return true;
-+        }
-+        return false;
++        return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
 +    }
  
--    //~ // ------------------------------------------------------------------ fog and sky
+-    //~ /**
+-     //~ * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
+-     //~ * Sections already in the visible list draw their new mesh at once either way; the search only
+-     //~ * discovers sections behind them, so it is limited to 20 per second while uploads stream in
+-     //~ * (shared with the other streaming triggers, see {@code VisibilitySearch}).
+-     //~ */
+-    //~ public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
+-        //~ if (!PacketBudget.enabled()) {
+-            //~ return uploaded;
+-        //~ }
+-        //~ return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
+-    //~ }
 +    // ------------------------------------------------------------------ fog and sky
+ 
+-    //~ // ------------------------------------------------------------------ fog and sky
++    /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
++    @SuppressWarnings("unchecked")
++    private static Tag<Fluid> fluidTag(final Object named) {
++        return (Tag<Fluid>) named;
++    }
  
 -    //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
 -    //~ @SuppressWarnings("unchecked")
 -    //~ private static Tag<Fluid> fluidTag(final Object named) {
 -        //~ return (Tag<Fluid>) named;
 -    //~ }
-+    /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
-+    @SuppressWarnings("unchecked")
-+    private static Tag<Fluid> fluidTag(final Object named) {
-+        return (Tag<Fluid>) named;
-+    }
-+
 +    /** FogRenderer.setupFog TAIL, terrain fog only. */
 +    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
 +        if (Scenery.fogVanilla()) {
@@ -2082,6 +2056,122 @@ index 2d474ee..93ac71a 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java
+index bb96633..58cf46d 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java
+@@ -1,18 +1,18 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-begin v16
++import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /** The sprite of a baked quad (1.16.5 has no getter). Applied only where {@code Capabilities.STREAMING} is true. */
+ @Mixin(targets = "net.minecraft.client.renderer.block.model.BakedQuad")
+ public interface BakedQuadAccessor {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Accessor("sprite")
+-    //~ TextureAtlasSprite aetherium$sprite();
++    // @era:qol16-begin v16
++    @Accessor("sprite")
++    TextureAtlasSprite aetherium$sprite();
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java b/common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java
+index 07f26df..f91f3af 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java
+@@ -1,14 +1,14 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.SpriteActivity;
+-//~ import java.util.List;
+-//~ import net.minecraft.client.renderer.block.model.BakedQuad;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
++// @era:qol16-begin v16
++import com.aetherium.perf.SpriteActivity;
++import java.util.List;
++import net.minecraft.client.renderer.block.model.BakedQuad;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.ModifyVariable;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -19,32 +19,32 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer")
+ public abstract class BlockSpriteUseMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @ModifyVariable(method = {"renderModelFaceAO", "renderModelFaceFlat"}, at = @At("HEAD"), argsOnly = true,
+-            //~ require = 0)
+-    //~ private List<BakedQuad> aetherium$faceSprites(final List<BakedQuad> quads) {
+-        //~ aetherium$touchAll(quads);
+-        //~ return quads;
+-    //~ }
++    // @era:qol16-begin v16
++    @ModifyVariable(method = {"renderModelFaceAO", "renderModelFaceFlat"}, at = @At("HEAD"), argsOnly = true,
++            require = 0)
++    private List<BakedQuad> aetherium$faceSprites(final List<BakedQuad> quads) {
++        aetherium$touchAll(quads);
++        return quads;
++    }
+ 
+-    //~ @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
+-    //~ private static List<BakedQuad> aetherium$listSprites(final List<BakedQuad> quads) {
+-        //~ aetherium$touchAll(quads);
+-        //~ return quads;
+-    //~ }
++    @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
++    private static List<BakedQuad> aetherium$listSprites(final List<BakedQuad> quads) {
++        aetherium$touchAll(quads);
++        return quads;
++    }
+ 
+-    //~ @Unique
+-    //~ private static void aetherium$touchAll(final List<BakedQuad> quads) {
+-        //~ for (int i = 0, n = quads.size(); i < n; i++) {
+-            //~ final Object quad = quads.get(i);
+-            //~ if (!(quad instanceof BakedQuadAccessor)) {
+-                //~ // The accessor did not apply: nothing could be recorded, so animate everything.
+-                //~ SpriteActivity.markBroken();
+-                //~ return;
+-            //~ }
+-            //~ SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
+-        //~ }
+-    //~ }
++    @Unique
++    private static void aetherium$touchAll(final List<BakedQuad> quads) {
++        for (int i = 0, n = quads.size(); i < n; i++) {
++            final Object quad = quads.get(i);
++            if (!(quad instanceof BakedQuadAccessor)) {
++                // The accessor did not apply: nothing could be recorded, so animate everything.
++                SpriteActivity.markBroken();
++                return;
++            }
++            SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java b/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java
 index 84ade47..3b93da7 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java
@@ -2114,44 +2204,101 @@ index 84ade47..3b93da7 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
-index 24ad238..14b47c8 100644
+index 5094fdb..57b7daf 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
-@@ -1,10 +1,10 @@
+@@ -1,13 +1,13 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:qol16-begin none
 -// @era:qol16-else v16
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import java.nio.ByteBuffer;
 -//~ import java.util.List;
 -//~ import org.spongepowered.asm.mixin.gen.Accessor;
+-//~ import org.spongepowered.asm.mixin.gen.Invoker;
 +// @era:qol16-begin v16
++import com.mojang.blaze3d.vertex.VertexFormat;
++import java.nio.ByteBuffer;
 +import java.util.List;
 +import org.spongepowered.asm.mixin.gen.Accessor;
++import org.spongepowered.asm.mixin.gen.Invoker;
 +// @era:qol16-else none
  // @era:qol16-end
  
  /**
-@@ -16,14 +16,14 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -16,45 +16,45 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "com.mojang.blaze3d.vertex.BufferBuilder")
  public interface BufferBuilderAccessor {
 -    // @era:qol16-begin none
 -    // @era:qol16-else v16
--    //~ /** Finished meshes ({@code BufferBuilder.DrawState}), oldest first. */
 -    //~ @Accessor("vertexCounts")
 -    //~ List<?> aetherium$drawStates();
 +    // @era:qol16-begin v16
-+    /** Finished meshes ({@code BufferBuilder.DrawState}), oldest first. */
 +    @Accessor("vertexCounts")
 +    List<?> aetherium$drawStates();
  
--    //~ /** Index of the next mesh {@code popNextBuffer} hands out. */
 -    //~ @Accessor("lastRenderedCountIndex")
 -    //~ int aetherium$nextDrawState();
-+    /** Index of the next mesh {@code popNextBuffer} hands out. */
 +    @Accessor("lastRenderedCountIndex")
 +    int aetherium$nextDrawState();
+ 
+-    //~ @Accessor("buffer")
+-    //~ ByteBuffer aetherium$buffer();
++    @Accessor("buffer")
++    ByteBuffer aetherium$buffer();
+ 
+-    //~ @Accessor("nextElementByte")
+-    //~ int aetherium$nextElementByte();
++    @Accessor("nextElementByte")
++    int aetherium$nextElementByte();
+ 
+-    //~ @Accessor("nextElementByte")
+-    //~ void aetherium$setNextElementByte(int value);
++    @Accessor("nextElementByte")
++    void aetherium$setNextElementByte(int value);
+ 
+-    //~ @Accessor("vertices")
+-    //~ int aetherium$vertices();
++    @Accessor("vertices")
++    int aetherium$vertices();
+ 
+-    //~ @Accessor("vertices")
+-    //~ void aetherium$setVertices(int value);
++    @Accessor("vertices")
++    void aetherium$setVertices(int value);
+ 
+-    //~ @Accessor("mode")
+-    //~ int aetherium$mode();
++    @Accessor("mode")
++    int aetherium$mode();
+ 
+-    //~ @Accessor("format")
+-    //~ VertexFormat aetherium$format();
++    @Accessor("format")
++    VertexFormat aetherium$format();
+ 
+-    //~ @Accessor("building")
+-    //~ boolean aetherium$building();
++    @Accessor("building")
++    boolean aetherium$building();
+ 
+-    //~ @Accessor("elementIndex")
+-    //~ int aetherium$elementIndex();
++    @Accessor("elementIndex")
++    int aetherium$elementIndex();
+ 
+-    //~ @Invoker("ensureCapacity")
+-    //~ void aetherium$ensureCapacity(int bytes);
++    @Invoker("ensureCapacity")
++    void aetherium$ensureCapacity(int bytes);
+ 
+-    //~ @Invoker("ensureVertexCapacity")
+-    //~ void aetherium$ensureVertexCapacity();
++    @Invoker("ensureVertexCapacity")
++    void aetherium$ensureVertexCapacity();
 +    // @era:qol16-else none
      // @era:qol16-end
  }
@@ -2800,6 +2947,516 @@ index 34fef4f..72a3e05 100644
          //~ }
      //~ }
      // @era:chunk-upload-else crd
+diff --git a/common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java
+index 40ef84c..a14a2c5 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java
+@@ -3,9 +3,9 @@ package com.aetherium.mixin.core;
+ import com.aetherium.perf.SectionSprites;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import org.spongepowered.asm.mixin.Unique;
++// @era:qol16-begin v16
++import org.spongepowered.asm.mixin.Unique;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -15,27 +15,27 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk")
+ public abstract class CompiledChunkSpritesMixin implements SectionSprites {
+-    // @era:qol16-begin none
++    // @era:qol16-begin v16
++    @Unique
++    private Object[] aetherium$sprites;
++
+     @Override
+     public Object[] aetheriumSprites() {
+-        return null;
++        return this.aetherium$sprites;
+     }
+ 
+     @Override
+     public void aetheriumSetSprites(final Object[] sprites) {
++        this.aetherium$sprites = sprites;
+     }
+-    // @era:qol16-else v16
+-    //~ @Unique
+-    //~ private Object[] aetherium$sprites;
+-
++    // @era:qol16-else none
+     //~ @Override
+     //~ public Object[] aetheriumSprites() {
+-        //~ return this.aetherium$sprites;
++        //~ return null;
+     //~ }
+ 
+     //~ @Override
+     //~ public void aetheriumSetSprites(final Object[] sprites) {
+-        //~ this.aetherium$sprites = sprites;
+     //~ }
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/DefaultedVertexAccessor.java b/common/src/main/java/com/aetherium/mixin/core/DefaultedVertexAccessor.java
+index dd68b18..c8df9db 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/DefaultedVertexAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/DefaultedVertexAccessor.java
+@@ -1,17 +1,17 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-begin v16
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /** Whether a fixed colour is set (vanilla then refuses the fast vertex path; so does Aetherium). 1.16.5, {@code STREAMING} only. */
+ @Mixin(targets = "com.mojang.blaze3d.vertex.DefaultedVertexConsumer")
+ public interface DefaultedVertexAccessor {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Accessor("defaultColorSet")
+-    //~ boolean aetherium$defaultColorSet();
++    // @era:qol16-begin v16
++    @Accessor("defaultColorSet")
++    boolean aetherium$defaultColorSet();
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java b/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
+index 1e06c7b..7a702cc 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
+@@ -1,26 +1,26 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.ModelCubeData;
+-//~ import com.aetherium.perf.ModelVertexWriter;
+-//~ import com.aetherium.perf.RenderToggles;
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.VertexConsumer;
+-//~ import it.unimi.dsi.fastutil.objects.ObjectList;
+-//~ import java.nio.ByteBuffer;
+-//~ import java.nio.FloatBuffer;
+-//~ import net.minecraft.client.model.geom.ModelPart;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.perf.ModelCubeData;
++import com.aetherium.perf.ModelVertexWriter;
++import com.aetherium.perf.RenderToggles;
++import com.mojang.blaze3d.systems.RenderSystem;
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.DefaultVertexFormat;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.VertexConsumer;
++import it.unimi.dsi.fastutil.objects.ObjectList;
++import java.nio.ByteBuffer;
++import java.nio.FloatBuffer;
++import net.minecraft.client.model.geom.ModelPart;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -37,107 +37,107 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.model.geom.ModelPart")
+ public abstract class FastModelMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ /** GL_QUADS, the only mode entity buffers use. */
+-    //~ @Unique
+-    //~ private static final int AETHERIUM$QUADS = 7;
++    // @era:qol16-begin v16
++    /** GL_QUADS, the only mode entity buffers use. */
++    @Unique
++    private static final int AETHERIUM$QUADS = 7;
+ 
+-    //~ /** Render thread only. */
+-    //~ @Unique
+-    //~ private static final float[] AETHERIUM$POSE = new float[16];
++    /** Render thread only. */
++    @Unique
++    private static final float[] AETHERIUM$POSE = new float[16];
+ 
+-    //~ @Unique
+-    //~ private static final FloatBuffer AETHERIUM$POSE_BUFFER = FloatBuffer.wrap(AETHERIUM$POSE);
++    @Unique
++    private static final FloatBuffer AETHERIUM$POSE_BUFFER = FloatBuffer.wrap(AETHERIUM$POSE);
+ 
+-    //~ @Unique
+-    //~ private static final float[] AETHERIUM$NORMAL = new float[9];
++    @Unique
++    private static final float[] AETHERIUM$NORMAL = new float[9];
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private ObjectList<ModelPart.Cube> cubes;
++    @Shadow
++    @Final
++    private ObjectList<ModelPart.Cube> cubes;
+ 
+-    //~ @Inject(method = "compile", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
+-                                       //~ final int overlay, final float r, final float g, final float b, final float a,
+-                                       //~ final CallbackInfo ci) {
+-        //~ if (!RenderToggles.fastModels || consumer == null || consumer.getClass() != BufferBuilder.class
+-                //~ || !RenderSystem.isOnRenderThread()) {
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ if (this.aetherium$write(pose, consumer, light, overlay, r, g, b, a)) {
+-                //~ ci.cancel();
+-            //~ }
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ RenderToggles.breakFastModels(e);
+-        //~ }
+-    //~ }
++    @Inject(method = "compile", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
++                                       final int overlay, final float r, final float g, final float b, final float a,
++                                       final CallbackInfo ci) {
++        if (!RenderToggles.fastModels || consumer == null || consumer.getClass() != BufferBuilder.class
++                || !RenderSystem.isOnRenderThread()) {
++            return;
++        }
++        try {
++            if (this.aetherium$write(pose, consumer, light, overlay, r, g, b, a)) {
++                ci.cancel();
++            }
++        } catch (final RuntimeException | LinkageError e) {
++            RenderToggles.breakFastModels(e);
++        }
++    }
+ 
+-    //~ /** @return true when the part was written (vanilla must not run) */
+-    //~ @Unique
+-    //~ private boolean aetherium$write(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
+-                                    //~ final int overlay, final float r, final float g, final float b, final float a) {
+-        //~ final Object target = consumer;
+-        //~ if (!(target instanceof BufferBuilderAccessor) || !(target instanceof DefaultedVertexAccessor)) {
+-            //~ return false;
+-        //~ }
+-        //~ final BufferBuilderAccessor builder = (BufferBuilderAccessor) target;
+-        //~ if (!builder.aetherium$building() || builder.aetherium$mode() != AETHERIUM$QUADS
+-                //~ || builder.aetherium$format() != DefaultVertexFormat.NEW_ENTITY || builder.aetherium$elementIndex() != 0
+-                //~ || ((DefaultedVertexAccessor) target).aetherium$defaultColorSet()) {
+-            //~ return false;
+-        //~ }
+-        //~ final Object normalMatrix = pose.normal();
+-        //~ if (!(normalMatrix instanceof Matrix3fAccessor)) {
+-            //~ return false;
+-        //~ }
+-        //~ final ObjectList<ModelPart.Cube> list = this.cubes;
+-        //~ final int count = list.size();
+-        //~ int vertices = 0;
+-        //~ for (int i = 0; i < count; i++) {
+-            //~ final Object cube = list.get(i);
+-            //~ if (!(cube instanceof ModelCubeData)) {
+-                //~ return false;
+-            //~ }
+-            //~ final float[] faces = ((ModelCubeData) cube).aetheriumFaces();
+-            //~ if (faces == null) {
+-                //~ return false;
+-            //~ }
+-            //~ vertices += faces.length / ModelCubeData.FACE_FLOATS * 4;
+-        //~ }
+-        //~ if (vertices == 0) {
+-            //~ return false;
+-        //~ }
+-        //~ builder.aetherium$ensureCapacity(vertices * ModelVertexWriter.STRIDE);
+-        //~ final ByteBuffer buffer = builder.aetherium$buffer();
+-        //~ if (!ModelVertexWriter.usable(buffer)) {
+-            //~ return false;
+-        //~ }
+-        //~ pose.pose().store(AETHERIUM$POSE_BUFFER);
+-        //~ final Matrix3fAccessor n = (Matrix3fAccessor) normalMatrix;
+-        //~ final float[] nm = AETHERIUM$NORMAL;
+-        //~ nm[0] = n.aetherium$m00();
+-        //~ nm[1] = n.aetherium$m01();
+-        //~ nm[2] = n.aetherium$m02();
+-        //~ nm[3] = n.aetherium$m10();
+-        //~ nm[4] = n.aetherium$m11();
+-        //~ nm[5] = n.aetherium$m12();
+-        //~ nm[6] = n.aetherium$m20();
+-        //~ nm[7] = n.aetherium$m21();
+-        //~ nm[8] = n.aetherium$m22();
+-        //~ final int color = ModelVertexWriter.packColor(r, g, b, a);
+-        //~ final int start = builder.aetherium$nextElementByte();
+-        //~ int at = start;
+-        //~ for (int i = 0; i < count; i++) {
+-            //~ at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
+-                    //~ ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light);
+-        //~ }
+-        //~ // Committed only after every byte is written (an exception above leaves the builder as it was).
+-        //~ builder.aetherium$setNextElementByte(at);
+-        //~ builder.aetherium$setVertices(builder.aetherium$vertices() + vertices);
+-        //~ builder.aetherium$ensureVertexCapacity();
+-        //~ return true;
+-    //~ }
++    /** @return true when the part was written (vanilla must not run) */
++    @Unique
++    private boolean aetherium$write(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
++                                    final int overlay, final float r, final float g, final float b, final float a) {
++        final Object target = consumer;
++        if (!(target instanceof BufferBuilderAccessor) || !(target instanceof DefaultedVertexAccessor)) {
++            return false;
++        }
++        final BufferBuilderAccessor builder = (BufferBuilderAccessor) target;
++        if (!builder.aetherium$building() || builder.aetherium$mode() != AETHERIUM$QUADS
++                || builder.aetherium$format() != DefaultVertexFormat.NEW_ENTITY || builder.aetherium$elementIndex() != 0
++                || ((DefaultedVertexAccessor) target).aetherium$defaultColorSet()) {
++            return false;
++        }
++        final Object normalMatrix = pose.normal();
++        if (!(normalMatrix instanceof Matrix3fAccessor)) {
++            return false;
++        }
++        final ObjectList<ModelPart.Cube> list = this.cubes;
++        final int count = list.size();
++        int vertices = 0;
++        for (int i = 0; i < count; i++) {
++            final Object cube = list.get(i);
++            if (!(cube instanceof ModelCubeData)) {
++                return false;
++            }
++            final float[] faces = ((ModelCubeData) cube).aetheriumFaces();
++            if (faces == null) {
++                return false;
++            }
++            vertices += faces.length / ModelCubeData.FACE_FLOATS * 4;
++        }
++        if (vertices == 0) {
++            return false;
++        }
++        builder.aetherium$ensureCapacity(vertices * ModelVertexWriter.STRIDE);
++        final ByteBuffer buffer = builder.aetherium$buffer();
++        if (!ModelVertexWriter.usable(buffer)) {
++            return false;
++        }
++        pose.pose().store(AETHERIUM$POSE_BUFFER);
++        final Matrix3fAccessor n = (Matrix3fAccessor) normalMatrix;
++        final float[] nm = AETHERIUM$NORMAL;
++        nm[0] = n.aetherium$m00();
++        nm[1] = n.aetherium$m01();
++        nm[2] = n.aetherium$m02();
++        nm[3] = n.aetherium$m10();
++        nm[4] = n.aetherium$m11();
++        nm[5] = n.aetherium$m12();
++        nm[6] = n.aetherium$m20();
++        nm[7] = n.aetherium$m21();
++        nm[8] = n.aetherium$m22();
++        final int color = ModelVertexWriter.packColor(r, g, b, a);
++        final int start = builder.aetherium$nextElementByte();
++        int at = start;
++        for (int i = 0; i < count; i++) {
++            at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
++                    ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light);
++        }
++        // Committed only after every byte is written (an exception above leaves the builder as it was).
++        builder.aetherium$setNextElementByte(at);
++        builder.aetherium$setVertices(builder.aetherium$vertices() + vertices);
++        builder.aetherium$ensureVertexCapacity();
++        return true;
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java b/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
+index 7bcfc02..56f8715 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
+@@ -1,22 +1,22 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Billboard;
+-//~ import com.aetherium.perf.RenderToggles;
+-//~ import com.aetherium.perf.ViewFrustum;
+-//~ import com.mojang.blaze3d.vertex.VertexConsumer;
+-//~ import com.mojang.math.Quaternion;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.multiplayer.ClientLevel;
+-//~ import net.minecraft.client.particle.Particle;
+-//~ import net.minecraft.world.phys.Vec3;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.perf.Billboard;
++import com.aetherium.perf.RenderToggles;
++import com.aetherium.perf.ViewFrustum;
++import com.mojang.blaze3d.vertex.VertexConsumer;
++import com.mojang.math.Quaternion;
++import net.minecraft.client.Camera;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.client.particle.Particle;
++import net.minecraft.world.phys.Vec3;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -31,71 +31,71 @@ import org.spongepowered.asm.mixin.Mixin;
+  * sheet as one batch. Applied only where {@code Capabilities.STREAMING} is true.
+  */
+ @Mixin(targets = "net.minecraft.client.particle.SingleQuadParticle")
+-// @era:qol16-begin none
+-public abstract class FastParticleMixin {
+-// @era:qol16-else v16
+-//~ public abstract class FastParticleMixin extends Particle {
++// @era:qol16-begin v16
++public abstract class FastParticleMixin extends Particle {
++// @era:qol16-else none
++//~ public abstract class FastParticleMixin {
+ // @era:qol16-end
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ /** Render thread only: 4 corners x (x, y, z). */
+-    //~ @Unique
+-    //~ private static final float[] AETHERIUM$CORNERS = new float[12];
++    // @era:qol16-begin v16
++    /** Render thread only: 4 corners x (x, y, z). */
++    @Unique
++    private static final float[] AETHERIUM$CORNERS = new float[12];
+ 
+-    //~ protected FastParticleMixin(final ClientLevel level, final double x, final double y, final double z) {
+-        //~ super(level, x, y, z);
+-    //~ }
++    protected FastParticleMixin(final ClientLevel level, final double x, final double y, final double z) {
++        super(level, x, y, z);
++    }
+ 
+-    //~ @Shadow
+-    //~ public abstract float getQuadSize(float partialTick);
++    @Shadow
++    public abstract float getQuadSize(float partialTick);
+ 
+-    //~ @Shadow
+-    //~ protected abstract float getU0();
++    @Shadow
++    protected abstract float getU0();
+ 
+-    //~ @Shadow
+-    //~ protected abstract float getU1();
++    @Shadow
++    protected abstract float getU1();
+ 
+-    //~ @Shadow
+-    //~ protected abstract float getV0();
++    @Shadow
++    protected abstract float getV0();
+ 
+-    //~ @Shadow
+-    //~ protected abstract float getV1();
++    @Shadow
++    protected abstract float getV1();
+ 
+-    //~ @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
+-                                      //~ final CallbackInfo ci) {
+-        //~ if (!RenderToggles.fastParticles) {
+-            //~ return;
+-        //~ }
+-        //~ final Vec3 cam = camera.getPosition();
+-        //~ // Mth.lerp(delta, start, end) = start + delta * (end - start), as vanilla interpolates.
+-        //~ final double t = partialTick;
+-        //~ final float px = (float) (this.xo + t * (this.x - this.xo) - cam.x());
+-        //~ final float py = (float) (this.yo + t * (this.y - this.yo) - cam.y());
+-        //~ final float pz = (float) (this.zo + t * (this.z - this.zo) - cam.z());
+-        //~ final float size = this.getQuadSize(partialTick);
+-        //~ ci.cancel();
+-        //~ // Corners are size * sqrt(2) from the centre.
+-        //~ if (!ViewFrustum.FRAME.sphereVisible(px, py, pz, size * 1.4143f + 0.01f)) {
+-            //~ return;
+-        //~ }
+-        //~ final Quaternion q = camera.rotation();
+-        //~ final float roll = this.roll == 0.0f ? 0.0f : this.oRoll + partialTick * (this.roll - this.oRoll);
+-        //~ final float[] c = AETHERIUM$CORNERS;
+-        //~ Billboard.corners(q.i(), q.j(), q.k(), q.r(), roll, size, c);
+-        //~ final float u0 = this.getU0();
+-        //~ final float u1 = this.getU1();
+-        //~ final float v0 = this.getV0();
+-        //~ final float v1 = this.getV1();
+-        //~ final int light = this.getLightColor(partialTick);
+-        //~ final float r = this.rCol;
+-        //~ final float g = this.gCol;
+-        //~ final float b = this.bCol;
+-        //~ final float a = this.alpha;
+-        //~ consumer.vertex(c[0] + px, c[1] + py, c[2] + pz).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[3] + px, c[4] + py, c[5] + pz).uv(u1, v0).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[6] + px, c[7] + py, c[8] + pz).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[9] + px, c[10] + py, c[11] + pz).uv(u0, v1).color(r, g, b, a).uv2(light).endVertex();
+-    //~ }
++    @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
++                                      final CallbackInfo ci) {
++        if (!RenderToggles.fastParticles) {
++            return;
++        }
++        final Vec3 cam = camera.getPosition();
++        // Mth.lerp(delta, start, end) = start + delta * (end - start), as vanilla interpolates.
++        final double t = partialTick;
++        final float px = (float) (this.xo + t * (this.x - this.xo) - cam.x());
++        final float py = (float) (this.yo + t * (this.y - this.yo) - cam.y());
++        final float pz = (float) (this.zo + t * (this.z - this.zo) - cam.z());
++        final float size = this.getQuadSize(partialTick);
++        ci.cancel();
++        // Corners are size * sqrt(2) from the centre.
++        if (!ViewFrustum.FRAME.sphereVisible(px, py, pz, size * 1.4143f + 0.01f)) {
++            return;
++        }
++        final Quaternion q = camera.rotation();
++        final float roll = this.roll == 0.0f ? 0.0f : this.oRoll + partialTick * (this.roll - this.oRoll);
++        final float[] c = AETHERIUM$CORNERS;
++        Billboard.corners(q.i(), q.j(), q.k(), q.r(), roll, size, c);
++        final float u0 = this.getU0();
++        final float u1 = this.getU1();
++        final float v0 = this.getV0();
++        final float v1 = this.getV1();
++        final int light = this.getLightColor(partialTick);
++        final float r = this.rCol;
++        final float g = this.gCol;
++        final float b = this.bCol;
++        final float a = this.alpha;
++        consumer.vertex(c[0] + px, c[1] + py, c[2] + pz).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[3] + px, c[4] + py, c[5] + pz).uv(u1, v0).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[6] + px, c[7] + py, c[8] + pz).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[9] + px, c[10] + py, c[11] + pz).uv(u0, v1).color(r, g, b, a).uv2(light).endVertex();
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
 index 7607824..ffa245c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
@@ -3092,6 +3749,65 @@ index 0b2c6b1..531f6bc 100644
      //~ }
      // @era:hud-else extractor
      //~ @Inject(method = "extractRenderState", at = @At("TAIL"), require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java b/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
+index 840bcd1..84cda7b 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.SpriteActivity;
+-//~ import java.util.List;
+-//~ import net.minecraft.client.renderer.block.model.BakedQuad;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
++// @era:qol16-begin v16
++import com.aetherium.perf.SpriteActivity;
++import java.util.List;
++import net.minecraft.client.renderer.block.model.BakedQuad;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.ModifyVariable;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -16,19 +16,19 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.entity.ItemRenderer")
+ public abstract class ItemSpriteUseMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
+-    //~ private List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
+-        //~ for (int i = 0, n = quads.size(); i < n; i++) {
+-            //~ final Object quad = quads.get(i);
+-            //~ if (!(quad instanceof BakedQuadAccessor)) {
+-                //~ SpriteActivity.markBroken();
+-                //~ return quads;
+-            //~ }
+-            //~ SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
+-        //~ }
+-        //~ return quads;
+-    //~ }
++    // @era:qol16-begin v16
++    @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
++    private List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
++        for (int i = 0, n = quads.size(); i < n; i++) {
++            final Object quad = quads.get(i);
++            if (!(quad instanceof BakedQuadAccessor)) {
++                SpriteActivity.markBroken();
++                return quads;
++            }
++            SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
++        }
++        return quads;
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
 index 9a6d6b3..19d26a8 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
@@ -3136,6 +3852,75 @@ index 9a6d6b3..19d26a8 100644
 -    //~ }
  //~ }
  // @era:zoom-end
+diff --git a/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java b/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java
+index cf2a547..39b9832 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java
+@@ -1,41 +1,41 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-begin v16
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /** The normal matrix entries for the fast model path (1.16.5). Applied only where {@code Capabilities.STREAMING} is true. */
+ @Mixin(targets = "com.mojang.math.Matrix3f")
+ public interface Matrix3fAccessor {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Accessor("m00")
+-    //~ float aetherium$m00();
++    // @era:qol16-begin v16
++    @Accessor("m00")
++    float aetherium$m00();
+ 
+-    //~ @Accessor("m01")
+-    //~ float aetherium$m01();
++    @Accessor("m01")
++    float aetherium$m01();
+ 
+-    //~ @Accessor("m02")
+-    //~ float aetherium$m02();
++    @Accessor("m02")
++    float aetherium$m02();
+ 
+-    //~ @Accessor("m10")
+-    //~ float aetherium$m10();
++    @Accessor("m10")
++    float aetherium$m10();
+ 
+-    //~ @Accessor("m11")
+-    //~ float aetherium$m11();
++    @Accessor("m11")
++    float aetherium$m11();
+ 
+-    //~ @Accessor("m12")
+-    //~ float aetherium$m12();
++    @Accessor("m12")
++    float aetherium$m12();
+ 
+-    //~ @Accessor("m20")
+-    //~ float aetherium$m20();
++    @Accessor("m20")
++    float aetherium$m20();
+ 
+-    //~ @Accessor("m21")
+-    //~ float aetherium$m21();
++    @Accessor("m21")
++    float aetherium$m21();
+ 
+-    //~ @Accessor("m22")
+-    //~ float aetherium$m22();
++    @Accessor("m22")
++    float aetherium$m22();
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java b/common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java
 index c3dd541..b9e9f46 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java
@@ -3210,6 +3995,251 @@ index c3dd541..b9e9f46 100644
 +        return bits;
 +    }
 +    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java b/common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java
+index 9c7fed1..ce3f3e4 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java
+@@ -3,11 +3,11 @@ package com.aetherium.mixin.core;
+ import com.aetherium.perf.ModelCubeData;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.ModelCubes;
+-//~ import net.minecraft.client.model.geom.ModelPart;
+-//~ import org.spongepowered.asm.mixin.Unique;
++// @era:qol16-begin v16
++import com.aetherium.perf.ModelCubes;
++import net.minecraft.client.model.geom.ModelPart;
++import org.spongepowered.asm.mixin.Unique;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -16,25 +16,25 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.model.geom.ModelPart$Cube")
+ public abstract class ModelCubeMixin implements ModelCubeData {
+-    // @era:qol16-begin none
++    // @era:qol16-begin v16
++    @Unique
++    private float[] aetherium$faces;
++
++    @Unique
++    private boolean aetherium$packed;
++
+     @Override
+     public float[] aetheriumFaces() {
+-        return null;
++        if (!this.aetherium$packed) {
++            this.aetherium$faces = ModelCubes.pack(this, ModelPart.Cube.class);
++            this.aetherium$packed = true;
++        }
++        return this.aetherium$faces;
+     }
+-    // @era:qol16-else v16
+-    //~ @Unique
+-    //~ private float[] aetherium$faces;
+-
+-    //~ @Unique
+-    //~ private boolean aetherium$packed;
+-
++    // @era:qol16-else none
+     //~ @Override
+     //~ public float[] aetheriumFaces() {
+-        //~ if (!this.aetherium$packed) {
+-            //~ this.aetherium$faces = ModelCubes.pack(this, ModelPart.Cube.class);
+-            //~ this.aetherium$packed = true;
+-        //~ }
+-        //~ return this.aetherium$faces;
++        //~ return null;
+     //~ }
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ModelPolygonMixin.java b/common/src/main/java/com/aetherium/mixin/core/ModelPolygonMixin.java
+index 11880f1..dfa14f1 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ModelPolygonMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ModelPolygonMixin.java
+@@ -3,49 +3,49 @@ package com.aetherium.mixin.core;
+ import com.aetherium.perf.ModelPolygonData;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.mojang.math.Vector3f;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
++// @era:qol16-begin v16
++import com.mojang.math.Vector3f;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /** A model face's normal for the fast model path (1.16.5). Applied only where {@code Capabilities.STREAMING} is true. */
+ @Mixin(targets = "net.minecraft.client.model.geom.ModelPart$Polygon")
+ public abstract class ModelPolygonMixin implements ModelPolygonData {
+-    // @era:qol16-begin none
++    // @era:qol16-begin v16
++    @Shadow
++    @Final
++    public Vector3f normal;
++
+     @Override
+     public float aetheriumNormalX() {
+-        return 0.0f;
++        return this.normal.x();
+     }
+ 
+     @Override
+     public float aetheriumNormalY() {
+-        return 0.0f;
++        return this.normal.y();
+     }
+ 
+     @Override
+     public float aetheriumNormalZ() {
+-        return 0.0f;
++        return this.normal.z();
+     }
+-    // @era:qol16-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ public Vector3f normal;
+-
++    // @era:qol16-else none
+     //~ @Override
+     //~ public float aetheriumNormalX() {
+-        //~ return this.normal.x();
++        //~ return 0.0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public float aetheriumNormalY() {
+-        //~ return this.normal.y();
++        //~ return 0.0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public float aetheriumNormalZ() {
+-        //~ return this.normal.z();
++        //~ return 0.0f;
+     //~ }
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java b/common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java
+index 8276523..0b49271 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java
+@@ -3,11 +3,11 @@ package com.aetherium.mixin.core;
+ import com.aetherium.perf.ModelVertexData;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.mojang.math.Vector3f;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
++// @era:qol16-begin v16
++import com.mojang.math.Vector3f;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -17,67 +17,67 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.model.geom.ModelPart$Vertex")
+ public abstract class ModelVertexMixin implements ModelVertexData {
+-    // @era:qol16-begin none
++    // @era:qol16-begin v16
++    @Shadow
++    @Final
++    public Vector3f pos;
++
++    @Shadow
++    @Final
++    public float u;
++
++    @Shadow
++    @Final
++    public float v;
++
+     @Override
+     public float aetheriumX() {
+-        return 0.0f;
++        return this.pos.x() / 16.0F;
+     }
+ 
+     @Override
+     public float aetheriumY() {
+-        return 0.0f;
++        return this.pos.y() / 16.0F;
+     }
+ 
+     @Override
+     public float aetheriumZ() {
+-        return 0.0f;
++        return this.pos.z() / 16.0F;
+     }
+ 
+     @Override
+     public float aetheriumU() {
+-        return 0.0f;
++        return this.u;
+     }
+ 
+     @Override
+     public float aetheriumV() {
+-        return 0.0f;
++        return this.v;
+     }
+-    // @era:qol16-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ public Vector3f pos;
+-
+-    //~ @Shadow
+-    //~ @Final
+-    //~ public float u;
+-
+-    //~ @Shadow
+-    //~ @Final
+-    //~ public float v;
+-
++    // @era:qol16-else none
+     //~ @Override
+     //~ public float aetheriumX() {
+-        //~ return this.pos.x() / 16.0F;
++        //~ return 0.0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public float aetheriumY() {
+-        //~ return this.pos.y() / 16.0F;
++        //~ return 0.0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public float aetheriumZ() {
+-        //~ return this.pos.z() / 16.0F;
++        //~ return 0.0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public float aetheriumU() {
+-        //~ return this.u;
++        //~ return 0.0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public float aetheriumV() {
+-        //~ return this.v;
++        //~ return 0.0f;
+     //~ }
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/NearBuildMixin.java b/common/src/main/java/com/aetherium/mixin/core/NearBuildMixin.java
@@ -3820,6 +4850,84 @@ index 0c9cdbc..592d8eb 100644
      //~ }
      // @era:section-vis-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
+index 1a73f6c..95ce672 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
+@@ -1,17 +1,17 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.SectionSprites;
+-//~ import com.aetherium.perf.SpriteActivity;
+-//~ import java.util.Set;
+-//~ import net.minecraft.client.renderer.ChunkBufferBuilderPack;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.world.level.block.entity.BlockEntity;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:qol16-begin v16
++import com.aetherium.perf.SectionSprites;
++import com.aetherium.perf.SpriteActivity;
++import java.util.Set;
++import net.minecraft.client.renderer.ChunkBufferBuilderPack;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.world.level.block.entity.BlockEntity;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -22,25 +22,25 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+ public abstract class SectionSpritesMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Inject(method = "compile", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$beginSprites(final float x, final float y, final float z,
+-                                        //~ final ChunkRenderDispatcher.CompiledChunk compiled,
+-                                        //~ final ChunkBufferBuilderPack buffers,
+-                                        //~ final CallbackInfoReturnable<Set<BlockEntity>> cir) {
+-        //~ SpriteActivity.beginSection();
+-    //~ }
++    // @era:qol16-begin v16
++    @Inject(method = "compile", at = @At("HEAD"), require = 0)
++    private void aetherium$beginSprites(final float x, final float y, final float z,
++                                        final ChunkRenderDispatcher.CompiledChunk compiled,
++                                        final ChunkBufferBuilderPack buffers,
++                                        final CallbackInfoReturnable<Set<BlockEntity>> cir) {
++        SpriteActivity.beginSection();
++    }
+ 
+-    //~ @Inject(method = "compile", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$endSprites(final float x, final float y, final float z,
+-                                      //~ final ChunkRenderDispatcher.CompiledChunk compiled,
+-                                      //~ final ChunkBufferBuilderPack buffers,
+-                                      //~ final CallbackInfoReturnable<Set<BlockEntity>> cir) {
+-        //~ final Object[] sprites = SpriteActivity.endSection();
+-        //~ if ((Object) compiled instanceof SectionSprites) {
+-            //~ ((SectionSprites) (Object) compiled).aetheriumSetSprites(sprites);
+-        //~ }
+-    //~ }
++    @Inject(method = "compile", at = @At("RETURN"), require = 0)
++    private void aetherium$endSprites(final float x, final float y, final float z,
++                                      final ChunkRenderDispatcher.CompiledChunk compiled,
++                                      final ChunkBufferBuilderPack buffers,
++                                      final CallbackInfoReturnable<Set<BlockEntity>> cir) {
++        final Object[] sprites = SpriteActivity.endSection();
++        if ((Object) compiled instanceof SectionSprites) {
++            ((SectionSprites) (Object) compiled).aetheriumSetSprites(sprites);
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
 index e4e6e6d..4b07860 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
@@ -3924,37 +5032,178 @@ index e4e6e6d..4b07860 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java b/common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java
+index 24239c4..7b2f892 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java
+@@ -3,11 +3,11 @@ package com.aetherium.mixin.core;
+ import com.aetherium.perf.SpriteActivity;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
++// @era:qol16-begin v16
++import com.llamalad7.mixinextras.injector.ModifyReturnValue;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -19,55 +19,55 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.texture.TextureAtlasSprite")
+ public abstract class SpriteActivityMixin implements SpriteActivity.Tracked {
+-    // @era:qol16-begin none
++    // @era:qol16-begin v16
++    @Unique
++    private boolean aetherium$tracked;
++
++    @Unique
++    private int aetherium$lastSeen;
++
++    @ModifyReturnValue(method = "getU(D)F", at = @At("RETURN"), require = 0)
++    private float aetherium$touch(final float u) {
++        SpriteActivity.touch(this);
++        return u;
++    }
++
+     @Override
+     public boolean aetheriumTracked() {
+-        return false;
++        return this.aetherium$tracked;
+     }
+ 
+     @Override
+     public void aetheriumSetTracked(final boolean tracked) {
++        this.aetherium$tracked = tracked;
+     }
+ 
+     @Override
+     public int aetheriumLastSeen() {
+-        return 0;
++        return this.aetherium$lastSeen;
+     }
+ 
+     @Override
+     public void aetheriumSetLastSeen(final int tick) {
++        this.aetherium$lastSeen = tick;
+     }
+-    // @era:qol16-else v16
+-    //~ @Unique
+-    //~ private boolean aetherium$tracked;
+-
+-    //~ @Unique
+-    //~ private int aetherium$lastSeen;
+-
+-    //~ @ModifyReturnValue(method = "getU(D)F", at = @At("RETURN"), require = 0)
+-    //~ private float aetherium$touch(final float u) {
+-        //~ SpriteActivity.touch(this);
+-        //~ return u;
+-    //~ }
+-
++    // @era:qol16-else none
+     //~ @Override
+     //~ public boolean aetheriumTracked() {
+-        //~ return this.aetherium$tracked;
++        //~ return false;
+     //~ }
+ 
+     //~ @Override
+     //~ public void aetheriumSetTracked(final boolean tracked) {
+-        //~ this.aetherium$tracked = tracked;
+     //~ }
+ 
+     //~ @Override
+     //~ public int aetheriumLastSeen() {
+-        //~ return this.aetherium$lastSeen;
++        //~ return 0;
+     //~ }
+ 
+     //~ @Override
+     //~ public void aetheriumSetLastSeen(final int tick) {
+-        //~ this.aetherium$lastSeen = tick;
+     //~ }
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java
-index d5e4570..ddd83c8 100644
+index 82a4e33..78c2af7 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java
-@@ -1,20 +1,20 @@
+@@ -1,42 +1,42 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:qol16-begin none
 -// @era:qol16-else v16
+-//~ import com.aetherium.client.ChunkInfoOrigin;
+-//~ import com.aetherium.client.FogTracker;
 -//~ import com.aetherium.client.QolHooks;
+-//~ import com.aetherium.mixin.AetheriumMixinPlugin;
+-//~ import com.aetherium.perf.FogCull;
+-//~ import com.aetherium.perf.RenderToggles;
+-//~ import com.aetherium.perf.SectionSprites;
+-//~ import com.aetherium.perf.SpriteActivity;
+-//~ import com.aetherium.perf.ViewFrustum;
+-//~ import com.aetherium.perf.VisibilitySearch;
 -//~ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 -//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 -//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.math.Matrix4f;
+-//~ import it.unimi.dsi.fastutil.objects.ObjectList;
+-//~ import java.nio.FloatBuffer;
 -//~ import java.util.concurrent.Executor;
 -//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.renderer.GameRenderer;
+-//~ import net.minecraft.client.renderer.LevelRenderer;
+-//~ import net.minecraft.client.renderer.LightTexture;
 -//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 -//~ import net.minecraft.client.renderer.culling.Frustum;
+-//~ import net.minecraft.world.phys.AABB;
+-//~ import net.minecraft.world.phys.Vec3;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.ModifyArg;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:qol16-begin v16
++import com.aetherium.client.ChunkInfoOrigin;
++import com.aetherium.client.FogTracker;
 +import com.aetherium.client.QolHooks;
++import com.aetherium.mixin.AetheriumMixinPlugin;
++import com.aetherium.perf.FogCull;
++import com.aetherium.perf.RenderToggles;
++import com.aetherium.perf.SectionSprites;
++import com.aetherium.perf.SpriteActivity;
++import com.aetherium.perf.ViewFrustum;
++import com.aetherium.perf.VisibilitySearch;
 +import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 +import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 +import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.math.Matrix4f;
++import it.unimi.dsi.fastutil.objects.ObjectList;
++import java.nio.FloatBuffer;
 +import java.util.concurrent.Executor;
 +import net.minecraft.client.Camera;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.renderer.GameRenderer;
++import net.minecraft.client.renderer.LevelRenderer;
++import net.minecraft.client.renderer.LightTexture;
 +import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 +import net.minecraft.client.renderer.culling.Frustum;
++import net.minecraft.world.phys.AABB;
++import net.minecraft.world.phys.Vec3;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -3963,59 +5212,458 @@ index d5e4570..ddd83c8 100644
  // @era:qol16-end
  
  /**
-@@ -32,32 +32,32 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -60,176 +60,176 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class StreamingLevelMixin {
 -    // @era:qol16-begin none
 -    // @era:qol16-else v16
+-    //~ /** PUTFIELD, for field-write injection points. */
+-    //~ @Unique
+-    //~ private static final int AETHERIUM$PUTFIELD = 181;
+-
+-    //~ @Unique
+-    //~ private static final FloatBuffer AETHERIUM$PROJECTION = FloatBuffer.allocate(16);
+-
+-    //~ @Unique
+-    //~ private static final FloatBuffer AETHERIUM$VIEW = FloatBuffer.allocate(16);
+-
+-    //~ /** Fog-end writes counted when the frame started (render thread). */
+-    //~ @Unique
+-    //~ private static int aetherium$fogWritesAtStart;
+-
+-    //~ @Unique
+-    //~ private static double aetherium$camX;
+-
+-    //~ @Unique
+-    //~ private static double aetherium$camY;
+-
+-    //~ @Unique
+-    //~ private static double aetherium$camZ;
+-
+-    //~ @Unique
+-    //~ private static boolean aetherium$spriteHooksChecked;
+-
+-    //~ @Shadow
+-    //~ private boolean needsUpdate;
+-
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private ObjectList<?> renderChunks;
+-
 -    //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V"),
 -            //~ index = 2, require = 0)
 -    //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
 -        //~ return QolHooks.meshExecutor(vanilla);
 -    //~ }
-+    // @era:qol16-begin v16
-+    @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
-+            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V"),
-+            index = 2, require = 0)
-+    private Executor aetherium$meshExecutor(final Executor vanilla) {
-+        return QolHooks.meshExecutor(vanilla);
-+    }
- 
+-
+-    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$frameStart(final PoseStack poseStack, final float partialTick, final long finishNanos,
+-                                      //~ final boolean renderOutline, final Camera camera, final GameRenderer gameRenderer,
+-                                      //~ final LightTexture lightTexture, final Matrix4f projection, final CallbackInfo ci) {
+-        //~ // The same two matrices vanilla builds its own frustum from this frame.
+-        //~ projection.store(AETHERIUM$PROJECTION);
+-        //~ poseStack.last().pose().store(AETHERIUM$VIEW);
+-        //~ ViewFrustum.FRAME.update(AETHERIUM$PROJECTION, AETHERIUM$VIEW);
+-        //~ aetherium$fogWritesAtStart = FogTracker.endWrites();
+-        //~ SpriteActivity.frame();
+-        //~ if (SpriteActivity.enabled() && SpriteActivity.seenPassDue()) {
+-            //~ this.aetherium$markVisibleSprites();
+-        //~ }
+-    //~ }
+-
+-    //~ /** Once per atlas tick: the animated sprites of every section in the visible list are in use. */
+-    //~ @Unique
+-    //~ private void aetherium$markVisibleSprites() {
+-        //~ final ObjectList<?> chunks = this.renderChunks;
+-        //~ final int count = chunks.size();
+-        //~ if (count == 0) {
+-            //~ return;
+-        //~ }
+-        //~ if (!aetherium$spriteHooksChecked) {
+-            //~ // Sections exist, so their mesh hooks had their chance to apply: without them visible
+-            //~ // textures would pause, so everything keeps animating instead.
+-            //~ aetherium$spriteHooksChecked = true;
+-            //~ if (!AetheriumMixinPlugin.isApplied("SectionSpritesMixin")
+-                    //~ || !AetheriumMixinPlugin.isApplied("CompiledChunkSpritesMixin")
+-                    //~ || !AetheriumMixinPlugin.isApplied("BlockSpriteUseMixin")) {
+-                //~ SpriteActivity.markBroken();
+-                //~ return;
+-            //~ }
+-        //~ }
+-        //~ for (int i = 0; i < count; i++) {
+-            //~ final Object info = chunks.get(i);
+-            //~ if (!(info instanceof ChunkInfoOrigin)) {
+-                //~ SpriteActivity.markBroken();
+-                //~ return;
+-            //~ }
+-            //~ final Object chunk = ((ChunkInfoOrigin) info).aetheriumChunk();
+-            //~ if (chunk instanceof ChunkRenderDispatcher.RenderChunk) {
+-                //~ final Object compiled = ((ChunkRenderDispatcher.RenderChunk) chunk).getCompiledChunk();
+-                //~ if (!(compiled instanceof SectionSprites)) {
+-                    //~ SpriteActivity.markBroken();
+-                    //~ return;
+-                //~ }
+-                //~ SpriteActivity.seen(((SectionSprites) compiled).aetheriumSprites());
+-            //~ }
+-        //~ }
+-    //~ }
+-
 -    //~ @Inject(method = "setupRender", at = @At("HEAD"), require = 0)
 -    //~ private void aetherium$camera(final Camera camera, final Frustum frustum, final boolean hasCapturedFrustum,
 -                                  //~ final int frame, final boolean spectator, final CallbackInfo ci) {
 -        //~ QolHooks.setRebuildCamera(camera);
+-        //~ final boolean smart = RenderToggles.smartChunkCulling;
+-        //~ VisibilitySearch.beginFrame(System.nanoTime(), smart);
+-        //~ if (VisibilitySearch.takePending()) {
+-            //~ this.needsUpdate = true;
+-        //~ }
+-        //~ final Vec3 pos = camera.getPosition();
+-        //~ aetherium$camX = pos.x;
+-        //~ aetherium$camY = pos.y;
+-        //~ aetherium$camZ = pos.z;
+-        //~ FogCull.begin(smart, FogTracker.endWrites() != aetherium$fogWritesAtStart, FogTracker.mode(),
+-                //~ FogTracker.start(), FogTracker.end(), Minecraft.getInstance().gameRenderer.getRenderDistance(),
+-                //~ ViewFrustum.FRAME);
 -    //~ }
-+    @Inject(method = "setupRender", at = @At("HEAD"), require = 0)
-+    private void aetherium$camera(final Camera camera, final Frustum frustum, final boolean hasCapturedFrustum,
-+                                  final int frame, final boolean spectator, final CallbackInfo ci) {
-+        QolHooks.setRebuildCamera(camera);
-+    }
- 
+-
 -    //~ @WrapOperation(method = "setupRender", at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;isDirty()Z"), require = 0)
 -    //~ private boolean aetherium$coalesce(final ChunkRenderDispatcher.RenderChunk chunk, final Operation<Boolean> original) {
 -        //~ // Direct call instead of original.call: no argument array per section per frame.
 -        //~ return chunk.isDirty() && !QolHooks.deferRebuild(chunk);
 -    //~ }
+-
+-    //~ /** Both frustum tests of the visible-section search: a section wholly inside the fog counts as outside. */
+-    //~ @WrapOperation(method = "setupRender", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/culling/Frustum;isVisible(Lnet/minecraft/world/phys/AABB;)Z"),
+-            //~ require = 0)
+-    //~ private boolean aetherium$fogCull(final Frustum frustum, final AABB box, final Operation<Boolean> original) {
+-        //~ if (!frustum.isVisible(box)) {
+-            //~ return false;
+-        //~ }
+-        //~ if (!FogCull.active()) {
+-            //~ return true;
+-        //~ }
+-        //~ return !FogCull.hidden(ViewFrustum.FRAME,
+-                //~ (float) ((box.minX + box.maxX) * 0.5 - aetherium$camX),
+-                //~ (float) ((box.minY + box.maxY) * 0.5 - aetherium$camY),
+-                //~ (float) ((box.minZ + box.maxZ) * 0.5 - aetherium$camZ),
+-                //~ (float) ((box.maxX - box.minX) * 0.5), (float) ((box.maxY - box.minY) * 0.5),
+-                //~ (float) ((box.maxZ - box.minZ) * 0.5));
+-    //~ }
+-
+-    //~ /** {@code !chunksToCompile.isEmpty()} in the update condition (camera moves are separate terms). */
+-    //~ @ModifyExpressionValue(method = "setupRender", at = @At(value = "INVOKE", target = "Ljava/util/Set;isEmpty()Z"),
+-            //~ require = 0)
+-    //~ private boolean aetherium$holdQueueTrigger(final boolean empty) {
+-        //~ return VisibilitySearch.compileQueueEmpty(empty);
+-    //~ }
+-
+-    //~ /** {@code needsUpdate = false} where the search starts: it ran this frame. */
+-    //~ @Inject(method = "setupRender", at = @At(value = "FIELD",
+-            //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;needsUpdate:Z", opcode = AETHERIUM$PUTFIELD,
+-            //~ ordinal = 1), require = 0)
+-    //~ private void aetherium$searched(final Camera camera, final Frustum frustum, final boolean hasCapturedFrustum,
+-                                    //~ final int frame, final boolean spectator, final CallbackInfo ci) {
+-        //~ VisibilitySearch.searched(System.nanoTime());
+-    //~ }
+-
+-    //~ /** {@code needsUpdate = true} for a visible section that is dirty or queued. */
+-    //~ @WrapOperation(method = "setupRender", at = @At(value = "FIELD",
+-            //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;needsUpdate:Z", opcode = AETHERIUM$PUTFIELD,
+-            //~ ordinal = 2), require = 0)
+-    //~ private void aetherium$holdDirtyTrigger(final LevelRenderer self, final boolean value,
+-                                            //~ final Operation<Void> original) {
+-        //~ // Written directly (no argument array per dirty section per frame).
+-        //~ if (!value || VisibilitySearch.dirtyTrigger()) {
+-            //~ this.needsUpdate = value;
+-        //~ }
+-    //~ }
+-
+-    //~ @ModifyExpressionValue(method = "compileChunksUntil", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;uploadAllPendingUploads()Z"), require = 0)
+-    //~ private boolean aetherium$throttleVisibility(final boolean uploaded) {
+-        //~ return QolHooks.visibilityUpdateAfterUploads(uploaded);
+-    //~ }
++    // @era:qol16-begin v16
++    /** PUTFIELD, for field-write injection points. */
++    @Unique
++    private static final int AETHERIUM$PUTFIELD = 181;
++
++    @Unique
++    private static final FloatBuffer AETHERIUM$PROJECTION = FloatBuffer.allocate(16);
++
++    @Unique
++    private static final FloatBuffer AETHERIUM$VIEW = FloatBuffer.allocate(16);
++
++    /** Fog-end writes counted when the frame started (render thread). */
++    @Unique
++    private static int aetherium$fogWritesAtStart;
++
++    @Unique
++    private static double aetherium$camX;
++
++    @Unique
++    private static double aetherium$camY;
++
++    @Unique
++    private static double aetherium$camZ;
++
++    @Unique
++    private static boolean aetherium$spriteHooksChecked;
++
++    @Shadow
++    private boolean needsUpdate;
++
++    @Shadow
++    @Final
++    private ObjectList<?> renderChunks;
++
++    @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V"),
++            index = 2, require = 0)
++    private Executor aetherium$meshExecutor(final Executor vanilla) {
++        return QolHooks.meshExecutor(vanilla);
++    }
++
++    @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
++    private void aetherium$frameStart(final PoseStack poseStack, final float partialTick, final long finishNanos,
++                                      final boolean renderOutline, final Camera camera, final GameRenderer gameRenderer,
++                                      final LightTexture lightTexture, final Matrix4f projection, final CallbackInfo ci) {
++        // The same two matrices vanilla builds its own frustum from this frame.
++        projection.store(AETHERIUM$PROJECTION);
++        poseStack.last().pose().store(AETHERIUM$VIEW);
++        ViewFrustum.FRAME.update(AETHERIUM$PROJECTION, AETHERIUM$VIEW);
++        aetherium$fogWritesAtStart = FogTracker.endWrites();
++        SpriteActivity.frame();
++        if (SpriteActivity.enabled() && SpriteActivity.seenPassDue()) {
++            this.aetherium$markVisibleSprites();
++        }
++    }
++
++    /** Once per atlas tick: the animated sprites of every section in the visible list are in use. */
++    @Unique
++    private void aetherium$markVisibleSprites() {
++        final ObjectList<?> chunks = this.renderChunks;
++        final int count = chunks.size();
++        if (count == 0) {
++            return;
++        }
++        if (!aetherium$spriteHooksChecked) {
++            // Sections exist, so their mesh hooks had their chance to apply: without them visible
++            // textures would pause, so everything keeps animating instead.
++            aetherium$spriteHooksChecked = true;
++            if (!AetheriumMixinPlugin.isApplied("SectionSpritesMixin")
++                    || !AetheriumMixinPlugin.isApplied("CompiledChunkSpritesMixin")
++                    || !AetheriumMixinPlugin.isApplied("BlockSpriteUseMixin")) {
++                SpriteActivity.markBroken();
++                return;
++            }
++        }
++        for (int i = 0; i < count; i++) {
++            final Object info = chunks.get(i);
++            if (!(info instanceof ChunkInfoOrigin)) {
++                SpriteActivity.markBroken();
++                return;
++            }
++            final Object chunk = ((ChunkInfoOrigin) info).aetheriumChunk();
++            if (chunk instanceof ChunkRenderDispatcher.RenderChunk) {
++                final Object compiled = ((ChunkRenderDispatcher.RenderChunk) chunk).getCompiledChunk();
++                if (!(compiled instanceof SectionSprites)) {
++                    SpriteActivity.markBroken();
++                    return;
++                }
++                SpriteActivity.seen(((SectionSprites) compiled).aetheriumSprites());
++            }
++        }
++    }
++
++    @Inject(method = "setupRender", at = @At("HEAD"), require = 0)
++    private void aetherium$camera(final Camera camera, final Frustum frustum, final boolean hasCapturedFrustum,
++                                  final int frame, final boolean spectator, final CallbackInfo ci) {
++        QolHooks.setRebuildCamera(camera);
++        final boolean smart = RenderToggles.smartChunkCulling;
++        VisibilitySearch.beginFrame(System.nanoTime(), smart);
++        if (VisibilitySearch.takePending()) {
++            this.needsUpdate = true;
++        }
++        final Vec3 pos = camera.getPosition();
++        aetherium$camX = pos.x;
++        aetherium$camY = pos.y;
++        aetherium$camZ = pos.z;
++        FogCull.begin(smart, FogTracker.endWrites() != aetherium$fogWritesAtStart, FogTracker.mode(),
++                FogTracker.start(), FogTracker.end(), Minecraft.getInstance().gameRenderer.getRenderDistance(),
++                ViewFrustum.FRAME);
++    }
++
 +    @WrapOperation(method = "setupRender", at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;isDirty()Z"), require = 0)
 +    private boolean aetherium$coalesce(final ChunkRenderDispatcher.RenderChunk chunk, final Operation<Boolean> original) {
 +        // Direct call instead of original.call: no argument array per section per frame.
 +        return chunk.isDirty() && !QolHooks.deferRebuild(chunk);
 +    }
- 
--    //~ @ModifyExpressionValue(method = "compileChunksUntil", at = @At(value = "INVOKE",
--            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;uploadAllPendingUploads()Z"), require = 0)
--    //~ private boolean aetherium$throttleVisibility(final boolean uploaded) {
--        //~ return QolHooks.visibilityUpdateAfterUploads(uploaded);
--    //~ }
++
++    /** Both frustum tests of the visible-section search: a section wholly inside the fog counts as outside. */
++    @WrapOperation(method = "setupRender", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/culling/Frustum;isVisible(Lnet/minecraft/world/phys/AABB;)Z"),
++            require = 0)
++    private boolean aetherium$fogCull(final Frustum frustum, final AABB box, final Operation<Boolean> original) {
++        if (!frustum.isVisible(box)) {
++            return false;
++        }
++        if (!FogCull.active()) {
++            return true;
++        }
++        return !FogCull.hidden(ViewFrustum.FRAME,
++                (float) ((box.minX + box.maxX) * 0.5 - aetherium$camX),
++                (float) ((box.minY + box.maxY) * 0.5 - aetherium$camY),
++                (float) ((box.minZ + box.maxZ) * 0.5 - aetherium$camZ),
++                (float) ((box.maxX - box.minX) * 0.5), (float) ((box.maxY - box.minY) * 0.5),
++                (float) ((box.maxZ - box.minZ) * 0.5));
++    }
++
++    /** {@code !chunksToCompile.isEmpty()} in the update condition (camera moves are separate terms). */
++    @ModifyExpressionValue(method = "setupRender", at = @At(value = "INVOKE", target = "Ljava/util/Set;isEmpty()Z"),
++            require = 0)
++    private boolean aetherium$holdQueueTrigger(final boolean empty) {
++        return VisibilitySearch.compileQueueEmpty(empty);
++    }
++
++    /** {@code needsUpdate = false} where the search starts: it ran this frame. */
++    @Inject(method = "setupRender", at = @At(value = "FIELD",
++            target = "Lnet/minecraft/client/renderer/LevelRenderer;needsUpdate:Z", opcode = AETHERIUM$PUTFIELD,
++            ordinal = 1), require = 0)
++    private void aetherium$searched(final Camera camera, final Frustum frustum, final boolean hasCapturedFrustum,
++                                    final int frame, final boolean spectator, final CallbackInfo ci) {
++        VisibilitySearch.searched(System.nanoTime());
++    }
++
++    /** {@code needsUpdate = true} for a visible section that is dirty or queued. */
++    @WrapOperation(method = "setupRender", at = @At(value = "FIELD",
++            target = "Lnet/minecraft/client/renderer/LevelRenderer;needsUpdate:Z", opcode = AETHERIUM$PUTFIELD,
++            ordinal = 2), require = 0)
++    private void aetherium$holdDirtyTrigger(final LevelRenderer self, final boolean value,
++                                            final Operation<Void> original) {
++        // Written directly (no argument array per dirty section per frame).
++        if (!value || VisibilitySearch.dirtyTrigger()) {
++            this.needsUpdate = value;
++        }
++    }
++
 +    @ModifyExpressionValue(method = "compileChunksUntil", at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;uploadAllPendingUploads()Z"), require = 0)
 +    private boolean aetherium$throttleVisibility(final boolean uploaded) {
 +        return QolHooks.visibilityUpdateAfterUploads(uploaded);
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java b/common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java
+index 57d589e..7b779e9 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java
+@@ -8,16 +8,16 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.SpriteActivity;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import java.util.List;
+-//~ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+-//~ import net.minecraft.resources.ResourceLocation;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
++// @era:qol16-begin v16
++import com.aetherium.perf.SpriteActivity;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import java.util.List;
++import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++import net.minecraft.resources.ResourceLocation;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -39,43 +39,43 @@ public abstract class TextureAtlasMixin {
+             ci.cancel();
+         }
+     }
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
++    // @era:qol16-begin v16
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private List<TextureAtlasSprite> animatedTextures;
++    @Shadow
++    @Final
++    private List<TextureAtlasSprite> animatedTextures;
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private ResourceLocation location;
++    @Shadow
++    @Final
++    private ResourceLocation location;
+ 
+-    //~ @Inject(method = "reload", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$trackSprites(final CallbackInfo ci) {
+-        //~ final boolean blocks = TextureAtlas.LOCATION_BLOCKS.equals(this.location);
+-        //~ final List<TextureAtlasSprite> sprites = this.animatedTextures;
+-        //~ for (int i = 0, n = sprites.size(); i < n; i++) {
+-            //~ final Object sprite = sprites.get(i);
+-            //~ if (sprite instanceof SpriteActivity.Tracked) {
+-                //~ SpriteActivity.track((SpriteActivity.Tracked) sprite,
+-                        //~ blocks && !SpriteActivity.alwaysAnimated(String.valueOf(sprites.get(i).getName())));
+-            //~ }
+-        //~ }
+-    //~ }
++    @Inject(method = "reload", at = @At("TAIL"), require = 0)
++    private void aetherium$trackSprites(final CallbackInfo ci) {
++        final boolean blocks = TextureAtlas.LOCATION_BLOCKS.equals(this.location);
++        final List<TextureAtlasSprite> sprites = this.animatedTextures;
++        for (int i = 0, n = sprites.size(); i < n; i++) {
++            final Object sprite = sprites.get(i);
++            if (sprite instanceof SpriteActivity.Tracked) {
++                SpriteActivity.track((SpriteActivity.Tracked) sprite,
++                        blocks && !SpriteActivity.alwaysAnimated(String.valueOf(sprites.get(i).getName())));
++            }
++        }
++    }
+ 
+-    //~ @WrapOperation(method = "cycleAnimationFrames", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;cycleFrames()V"), require = 0)
+-    //~ private void aetherium$animateIfSeen(final TextureAtlasSprite sprite, final Operation<Void> original) {
+-        //~ if (SpriteActivity.shouldAnimate(sprite)) {
+-            //~ original.call(sprite);
+-        //~ }
+-    //~ }
++    @WrapOperation(method = "cycleAnimationFrames", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;cycleFrames()V"), require = 0)
++    private void aetherium$animateIfSeen(final TextureAtlasSprite sprite, final Operation<Void> original) {
++        if (SpriteActivity.shouldAnimate(sprite)) {
++            original.call(sprite);
++        }
++    }
+ 
+-    //~ @Inject(method = "cycleAnimationFrames", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$advanceTick(final CallbackInfo ci) {
+-        //~ if (TextureAtlas.LOCATION_BLOCKS.equals(this.location)) {
+-            //~ SpriteActivity.advance();
+-        //~ }
+-    //~ }
++    @Inject(method = "cycleAnimationFrames", at = @At("TAIL"), require = 0)
++    private void aetherium$advanceTick(final CallbackInfo ci) {
++        if (TextureAtlas.LOCATION_BLOCKS.equals(this.location)) {
++            SpriteActivity.advance();
++        }
 +    }
 +    // @era:qol16-else none
      // @era:qol16-end
@@ -4915,7 +6563,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index a5c7db7..6f6ffa1 100644
+index c2c4934..c2e10e1 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

@@ -10,6 +10,7 @@ import com.aetherium.perf.PacketBudget;
 import com.aetherium.perf.RebuildCoalescer;
 import com.aetherium.perf.StutterRecorder;
 import com.aetherium.perf.UploadBudget;
+import com.aetherium.perf.VisibilitySearch;
 import com.aetherium.qol.Freelook;
 import com.aetherium.qol.ParticleFilter;
 import com.aetherium.qol.Scenery;
@@ -305,30 +306,17 @@ public final class QolHooks {
                 //~ chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
     //~ }
 
-    //~ /** Minimum time between visible-section searches caused only by finished uploads. */
-    //~ static final long VISIBILITY_INTERVAL_NANOS = 50_000_000L;
-    //~ private static long lastVisibilityUpdate;
-    //~ private static boolean visibilityPending;
-
     //~ /**
      //~ * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
      //~ * Sections already in the visible list draw their new mesh at once either way; the search only
-     //~ * discovers sections behind them, so it is limited to 20 per second while uploads stream in.
+     //~ * discovers sections behind them, so it is limited to 20 per second while uploads stream in
+     //~ * (shared with the other streaming triggers, see {@code VisibilitySearch}).
      //~ */
     //~ public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
         //~ if (!PacketBudget.enabled()) {
             //~ return uploaded;
         //~ }
-        //~ final long now = System.nanoTime();
-        //~ if (uploaded) {
-            //~ visibilityPending = true;
-        //~ }
-        //~ if (visibilityPending && now - lastVisibilityUpdate >= VISIBILITY_INTERVAL_NANOS) {
-            //~ visibilityPending = false;
-            //~ lastVisibilityUpdate = now;
-            //~ return true;
-        //~ }
-        //~ return false;
+        //~ return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
     //~ }
 
     //~ // ------------------------------------------------------------------ fog and sky

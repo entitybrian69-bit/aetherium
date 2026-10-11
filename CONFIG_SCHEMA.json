@@ -346,6 +346,18 @@
               "description": "Skip rendering entities beyond the cull distance (bosses, vehicles and the camera entity are exempt).",
               "x-java-field": "entityCulling"
             },
+            "performance.fast_models": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: mob, player and block-entity models are written straight into the vertex buffer, without the temporary vector vanilla creates for every vertex and the per-vertex buffer calls. Same bytes as vanilla; outlines, enchantment glint and unusual buffers keep the vanilla path.",
+              "x-java-field": "fastModels"
+            },
+            "performance.fast_particles": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: particles behind you or off screen are skipped, and the rest are written to the particle batch without the six temporary vectors and quaternion copies vanilla creates for every particle every frame. Looks identical.",
+              "x-java-field": "fastParticles"
+            },
             "performance.occlusion_culling": {
               "type": "boolean",
               "default": true,
@@ -359,6 +371,12 @@
               "maximum": 100,
               "description": "Percentage of spawned particles that are kept.",
               "x-java-field": "particleDensity"
+            },
+            "performance.smart_chunk_culling": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: chunk sections that lie completely inside the distance fog are not drawn and the visible-chunk search stops at them, and while terrain streams in that search runs at most 20 times a second instead of every frame (turning the camera still updates it at once). Steps aside when the fog is changed or removed.",
+              "x-java-field": "smartChunkCulling"
             },
             "performance.smooth_chunk_loading": {
               "type": "boolean",
@@ -377,6 +395,12 @@
               "default": true,
               "description": "Rebuild changed chunks near you on the worker threads instead of freezing the frame (vanilla 1.16.5 rebuilds everything within 28 blocks on the render thread). Blocks you place or break still update instantly. Also spreads client light updates over frames. The biggest fix for stutter while chunks load and while walking with dynamic lights.",
               "x-java-field": "threadedChunkBuilder"
+            },
+            "performance.visible_animations": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: only animated block textures you can see (in visible chunks, held or shown items, block entities, particles) keep animating; the rest pause, which saves their texture uploads every tick. Fire and portals always animate. If an animated texture from another mod stops moving, turn this off.",
+              "x-java-field": "visibleAnimations"
             },
             "performance.worker_threads": {
               "type": "integer",

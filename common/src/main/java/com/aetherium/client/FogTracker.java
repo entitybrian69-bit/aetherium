@@ -18,6 +18,7 @@ public final class FogTracker {
     private static float start;
     private static float end = 1.0f;
     private static float density = 1.0f;
+    private static int endWrites;
     private static final float[] COLOR = new float[4];
 
     private FogTracker() {
@@ -41,6 +42,12 @@ public final class FogTracker {
     public static void setEnd(final float value) {
         seen = true;
         end = value;
+        endWrites++;
+    }
+
+    /** Fog-end writes since start: compared across a frame to tell whether this frame set its fog. */
+    public static int endWrites() {
+        return endWrites;
     }
 
     public static void setDensity(final float value) {

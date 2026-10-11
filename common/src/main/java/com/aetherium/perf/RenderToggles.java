@@ -2,6 +2,7 @@ package com.aetherium.perf;
 
 import com.aetherium.Capabilities;
 import com.aetherium.config.AetheriumConfig;
+import com.aetherium.util.AetheriumLog;
 
 /**
  * Flags read by the render-thread hooks. Every field is a plain volatile so a
@@ -27,6 +28,14 @@ public final class RenderToggles {
     public static volatile boolean hideVignette;
     /** Skip the per-tick animation of water, lava, fire, portal... textures. */
     public static volatile boolean freezeTextureAnimations;
+    /** 1.7.0 (1.16.5): fog culling and the rate-limited visible-section search. */
+    public static volatile boolean smartChunkCulling = true;
+    /** 1.7.0 (1.16.5): particle frustum culling and allocation-free particle quads. */
+    public static volatile boolean fastParticles = true;
+    /** 1.7.0 (1.16.5): direct model vertex writes. */
+    public static volatile boolean fastModels = true;
+    /** Fast models failed once: vanilla for the rest of the session. */
+    private static volatile boolean fastModelsBroken;
 
     /** Client-thread only; spreads dropped particles evenly instead of randomly. */
     private static int particleAccumulator;
@@ -48,6 +57,10 @@ public final class RenderToggles {
         hideWeather = isActive && !config.weather.get().booleanValue();
         hideVignette = isActive && !config.vignette.get().booleanValue();
         freezeTextureAnimations = isActive && !config.animatedTextures.get().booleanValue();
+        smartChunkCulling = isActive && Capabilities.STREAMING && config.smartChunkCulling.get().booleanValue();
+        fastParticles = isActive && Capabilities.STREAMING && config.fastParticles.get().booleanValue();
+        fastModels = isActive && Capabilities.STREAMING && !fastModelsBroken && config.fastModels.get().booleanValue();
+        SpriteActivity.setEnabled(isActive && Capabilities.STREAMING && config.visibleAnimations.get().booleanValue());
         UploadBudget.setEnabled(isActive && config.smoothChunkLoading.get().booleanValue());
         BlockEntityCull.setDistance(isActive ? config.blockEntityDistance.get().intValue() : BlockEntityCull.VANILLA);
     }
@@ -72,6 +85,15 @@ public final class RenderToggles {
             return false;
         }
         return true;
+    }
+
+    /** Turns the fast model path off for the rest of the session (it threw); vanilla draws from then on. */
+    public static void breakFastModels(final Throwable error) {
+        if (!fastModelsBroken) {
+            AetheriumLog.of(RenderToggles.class).warn("Fast mob models failed; using vanilla models for this session", error);
+        }
+        fastModelsBroken = true;
+        fastModels = false;
     }
 
     /** Turns entity occlusion culling off for the rest of the session (the hook threw). */

@@ -3,27 +3,58 @@ package com.aetherium.mixin.core;
 import org.spongepowered.asm.mixin.Mixin;
 // @era:qol16-begin none
 // @era:qol16-else v16
+//~ import com.mojang.blaze3d.vertex.VertexFormat;
+//~ import java.nio.ByteBuffer;
 //~ import java.util.List;
 //~ import org.spongepowered.asm.mixin.gen.Accessor;
+//~ import org.spongepowered.asm.mixin.gen.Invoker;
 // @era:qol16-end
 
 /**
- * Read access to a vertex builder's queue of finished meshes, so a chunk upload can check that
- * the builder still holds a mesh before taking it out. {@code popNextBuffer} increments its read
- * index before the list lookup, so popping an empty builder both throws and leaves the builder
- * unusable for the next renderer that draws with it. Applied only where
- * {@code Capabilities.STREAMING} and {@code Capabilities.EXPERIMENTAL_CHUNK_RENDERER} are true.
+ * {@code BufferBuilder} internals (1.16.5): the draw-state queue for the pipeline's mesh
+ * conversion, and the write position, counters and growth used by the fast model path.
  */
 @Mixin(targets = "com.mojang.blaze3d.vertex.BufferBuilder")
 public interface BufferBuilderAccessor {
     // @era:qol16-begin none
     // @era:qol16-else v16
-    //~ /** Finished meshes ({@code BufferBuilder.DrawState}), oldest first. */
     //~ @Accessor("vertexCounts")
     //~ List<?> aetherium$drawStates();
 
-    //~ /** Index of the next mesh {@code popNextBuffer} hands out. */
     //~ @Accessor("lastRenderedCountIndex")
     //~ int aetherium$nextDrawState();
+
+    //~ @Accessor("buffer")
+    //~ ByteBuffer aetherium$buffer();
+
+    //~ @Accessor("nextElementByte")
+    //~ int aetherium$nextElementByte();
+
+    //~ @Accessor("nextElementByte")
+    //~ void aetherium$setNextElementByte(int value);
+
+    //~ @Accessor("vertices")
+    //~ int aetherium$vertices();
+
+    //~ @Accessor("vertices")
+    //~ void aetherium$setVertices(int value);
+
+    //~ @Accessor("mode")
+    //~ int aetherium$mode();
+
+    //~ @Accessor("format")
+    //~ VertexFormat aetherium$format();
+
+    //~ @Accessor("building")
+    //~ boolean aetherium$building();
+
+    //~ @Accessor("elementIndex")
+    //~ int aetherium$elementIndex();
+
+    //~ @Invoker("ensureCapacity")
+    //~ void aetherium$ensureCapacity(int bytes);
+
+    //~ @Invoker("ensureVertexCapacity")
+    //~ void aetherium$ensureVertexCapacity();
     // @era:qol16-end
 }

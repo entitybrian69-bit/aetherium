@@ -671,3 +671,76 @@ classes); `testrun.py` 154 passed; `gen_deltas --all --verify` (32 patches); `ch
 `check_refs.py` clean; `java_api_lint 8` clean.
 CI: `ship` run 38137191599 for commit 3dbb857 passed and published `v1.6.0+1.16.5`
 (`aetherium-fabric-1.6.0+1.16.5.jar`, 965206 bytes).
+
+## 24. 1.7.0: smart chunk culling, fast particles, visible-only animations, fast models (1.16.5)
+
+Request: "Better hidden-chunk culling, particle batching, and animated textures only when visible / Fast
+mob models / In one go", 1.16.5 only. Every hook target, descriptor and argument order below was read
+from the 1.16.5 bytecode in `tools/probe/1.16.5.txt`.
+
+**Smart chunk culling** (`VisibilitySearch`, `FogCull`, `StreamingLevelMixin`):
+- `setupRender` sets `needsUpdate` in three places (PUTFIELD offsets 491, 563 and 1260).
+  - 491 is the camera-moved / `!chunksToCompile.isEmpty()` expression.
+  - 563 is the reset where the search starts.
+  - 1260 is set by every visible section that is dirty or queued.
+- The `isEmpty` value (offset 417) and the 1260 write are held to one search per 50 ms. The upload
+  trigger (`compileChunksUntil`) shares the same interval, and a held trigger fires once the interval
+  passes. Camera terms are untouched.
+- The 563 reset records that the search ran and closes the frame's window. The dirty loop runs after
+  the search, so without that it would request a search for the very next frame.
+- Both `Frustum.isVisible(AABB)` calls of the search also reject a box whose nearest depth along the
+  view is more than 16 blocks past the fog end. They only do so when all of these hold:
+  - the frame wrote a fog end before `setupRender` (both `setupFog` calls, offsets 417 and 465, come
+    before `setupRender` at 506);
+  - the mode is `GL_LINEAR`;
+  - the end is at most the render distance.
+
+  A culled section is also not meshed until it comes within that margin.
+
+**Fast particles** (`FastParticleMixin`, `Billboard`, `ViewFrustum`): `SingleQuadParticle.render` HEAD.
+- Positions use vanilla's lerp.
+- The quad is skipped when its bounding sphere (size times sqrt 2) is outside this frame's frustum.
+  That frustum is built at `renderLevel` HEAD from the same projection and pose vanilla uses.
+- Corners come from `Billboard` (checked against vanilla's quaternion arithmetic in 200 random cases,
+  with and without roll).
+- Vertex order, UVs, colour and light are vanilla's (bytecode offsets 298-365 and later).
+
+**Visible-only animations** (`SpriteActivity`, `SpriteActivityMixin`, `TextureAtlasMixin`,
+`BlockSpriteUseMixin`, `ItemSpriteUseMixin`, `SectionSpritesMixin`, `CompiledChunkSpritesMixin`):
+- After the block atlas reloads, its animated sprites except fire, soul fire and nether portal are
+  tracked.
+- Uses are recorded from:
+  - `getU(D)F` (fluids, `SpriteCoordinateExpander`, breaking particles, overlays);
+  - the quad lists of `renderModelFaceAO`, `renderModelFaceFlat` and the static `renderQuadList`;
+  - `ItemRenderer.renderQuadList`.
+- Inside `RebuildTask.compile` the sprites are collected per section and stored on its
+  `CompiledChunk`. Synchronous rebuilds on the render thread are collected as well.
+- Once per tick the sections in `renderChunks` mark their sprites, and `cycleAnimationFrames` skips
+  `cycleFrames` for sprites unseen for more than 8 ticks.
+- A missing hook or duck turns tracking off for the session.
+- Known limit: blocks drawn by a custom renderer (a Fabric Renderer API model that isn't a vanilla
+  adapter) are not recorded, and the option description says so.
+
+**Fast mob models** (`FastModelMixin`, `ModelCubes`, `ModelVertexWriter`, cube/face/vertex ducks,
+`BufferBuilderAccessor`, `DefaultedVertexAccessor`, `Matrix3fAccessor`): `ModelPart.compile` HEAD.
+- `compile` passes `iload 4, iload_3` as (overlay, light), so its third argument is light.
+- It acts only when vanilla itself would take the fast vertex path:
+  - the consumer's class is exactly `BufferBuilder`;
+  - the builder is building, in GL_QUADS mode, in format `NEW_ENTITY`;
+  - it sits at a vertex boundary with no default colour;
+  - the call is on the render thread;
+  - the buffer is little-endian.
+- Faces are packed once per cube. `Polygon`/`Vertex` aren't public, so the face and vertex arrays are
+  found by type (exactly one object-array field each, never by name), in vanilla's array order.
+- `Polygon` keeps the array it was given and remaps it in place (bytecode offsets 4-6).
+- Bytes match vanilla's arithmetic (`SodiumStyleTest.cubes`, `modelVertices`). The position and count
+  are committed only after every byte is written; an exception turns the option off for the session.
+
+**Not established:** frame-time gains on the user's devices. Expected size: fog culling and the search
+limit help most at large render distances and while terrain streams in. Particles help in heavy
+particle scenes, animations on GL4ES uploads, models with many mobs on screen.
+
+Gates run for 1.7.0: `stubcheck --all` 33/33; `testrun.py` 162 passed (`SodiumStyleTest`: frustum,
+depth, billboard, sprites, model vertices, cubes, visibility search, fog cull);
+`gen_deltas --all --verify` (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8`
+clean on the 1.16.5 sources.

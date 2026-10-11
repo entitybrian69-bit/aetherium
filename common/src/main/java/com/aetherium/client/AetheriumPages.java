@@ -269,6 +269,14 @@ public final class AetheriumPages {
                 .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
         page.add(bool("perf.coalesce_rebuilds", "Merge chunk rebuilds", config.coalesceRebuilds)
                 .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+        page.add(bool("perf.smart_chunk_culling", "Smarter chunk culling", config.smartChunkCulling)
+                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+        page.add(bool("perf.fast_particles", "Fast particles", config.fastParticles)
+                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+        page.add(bool("perf.visible_animations", "Animate visible textures only", config.visibleAnimations)
+                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+        page.add(bool("perf.fast_models", "Fast mob models", config.fastModels)
+                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
         page.add(intSlider("perf.worker_threads", "Worker threads", config.workerThreads, 1,
                 v -> v == 0 ? "Auto" + autoThreadsSuffix() : v + (v == 1 ? " thread" : " threads")));
         return page;

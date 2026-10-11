@@ -5,6 +5,25 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
+Version **1.7.0** (1.16.5) adds four options on the **Performance** page, all on by default:
+- **Smart chunk culling.** Chunk sections that lie completely inside the distance fog are treated as
+  outside the view: they are not drawn or meshed, and the visible-chunk search stops at them. Vanilla
+  repeats that whole search every frame while chunks load, upload or wait to be meshed; now it runs at
+  most 20 times a second, and turning the camera still updates it at once. Fog culling only acts on the
+  normal linear fog this frame actually set. It steps aside underwater, when the fog was not set, and
+  when the fog reaches past the render distance (Aetherium's fog options or another mod).
+- **Fast particles.** Particles that can't reach the screen are skipped. The rest are written into
+  vanilla's particle batch without the six temporary vectors and quaternion copies vanilla creates per
+  particle per frame. Vanilla already draws each particle sheet as one batch.
+- **Visible animations.** Animated block textures that nothing visible uses (chunk sections
+  in view, items, block entities, particles, fluids) pause, which saves their texture upload every tick.
+  They resume when seen. Fire and portals always animate. If a mod's animated texture stops moving,
+  turn this off.
+- **Fast mob models.** Mob, player and block-entity models are written straight into the vertex buffer,
+  byte for byte what vanilla writes, without the per-vertex temporary vector and fourteen-argument
+  buffer calls. Outlines, enchantment glint and any other buffer keep vanilla's path, and an error turns
+  the option off for the session.
+
 Version **1.6.0** (1.16.5) adds **batched terrain** to the Aetherium pipeline (**Backend > Batched
 terrain**, on by default, active only while the experimental pipeline is on). Vanilla gives every chunk
 section its own GL buffer and draws it on its own: bind, set the vertex pointers, push and load a
