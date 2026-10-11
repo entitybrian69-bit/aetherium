@@ -516,3 +516,5 @@ here). The size of the stutter reduction depends on the device and the server; t
 Gates run for 1.5.0: `stubcheck --all` 33/33; `testrun.py --bench` 152 passed (145 unit + 7
 benchmarks); `gen_deltas --all --verify` (32 patches); `gen_resources --check`; `check.py` clean;
 `check_refs.py` clean; `java_api_lint 8` clean.
+CI: `ship` run 38126263750 for commit 310d9cf passed (plan, 1.16.5 java 8, downloads) and published
+`v1.5.0+1.16.5` (`aetherium-fabric-1.5.0+1.16.5.jar`, 946133 bytes).
