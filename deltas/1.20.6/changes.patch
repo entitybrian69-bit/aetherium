@@ -5,7 +5,7 @@
 # apply:  git apply --whitespace=nowarn deltas/1.20.6/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.20.6/changes.patch
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 50a1e9b..a7c94df 100644
+index 56b4f74..f139b2b 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
 @@ -388,10 +388,10 @@ public final class ClientHooks {
@@ -23,7 +23,7 @@ index 50a1e9b..a7c94df 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -414,10 +414,10 @@ public final class ClientHooks {
+@@ -426,10 +426,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -65,6 +65,100 @@ index 0b2c6b1..120379c 100644
          //~ FrameHud.render(McCanvas.INSTANCE.begin(graphics));
      //~ }
      // @era:hud-else stack
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
+index 7594ede..63f6ea1 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
+@@ -5,13 +5,20 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:sky-begin mesh
++// @era:sky-begin rb193
+ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-import com.mojang.blaze3d.vertex.MeshData;
++import com.mojang.blaze3d.vertex.BufferBuilder;
+ import com.mojang.blaze3d.vertex.VertexBuffer;
+ import net.minecraft.client.renderer.ShaderInstance;
+ import org.joml.Matrix4f;
++// @era:sky-else mesh
++//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++//~ import com.mojang.blaze3d.vertex.MeshData;
++//~ import com.mojang.blaze3d.vertex.VertexBuffer;
++//~ import net.minecraft.client.renderer.ShaderInstance;
++//~ import org.joml.Matrix4f;
+ // @era:sky-else v16
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+@@ -32,13 +39,6 @@ import org.joml.Matrix4f;
+ //~ import com.mojang.blaze3d.vertex.VertexBuffer;
+ //~ import com.mojang.math.Matrix4f;
+ //~ import net.minecraft.client.renderer.ShaderInstance;
+-// @era:sky-else rb193
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.VertexBuffer;
+-//~ import net.minecraft.client.renderer.ShaderInstance;
+-//~ import org.joml.Matrix4f;
+ // @era:sky-else renderer
+ // @era:sky-end
+ 
+@@ -92,36 +92,36 @@ public abstract class SkyMixin {
+     //~ }
+     // @era:sky-end
+ 
+-    // @era:sky-begin mesh
++    // @era:sky-begin rb19|rb193
+     @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V"),
++            target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/BufferBuilder$RenderedBuffer;)V"),
+             require = 0)
+-    private void aetherium$sunMoon(final MeshData mesh, final Operation<Void> original) {
++    private void aetherium$sunMoon(final BufferBuilder.RenderedBuffer rendered, final Operation<Void> original) {
+         if (Scenery.sunMoon) {
+-            original.call(mesh);
++            original.call(rendered);
+         } else {
+-            mesh.close();
++            rendered.release();
+         }
+     }
+-    // @era:sky-else v16|end17
++    // @era:sky-else mesh
+     //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;)V"), require = 0)
+-    //~ private void aetherium$sunMoon(final BufferBuilder builder, final Operation<Void> original) {
++            //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V"),
++            //~ require = 0)
++    //~ private void aetherium$sunMoon(final MeshData mesh, final Operation<Void> original) {
+         //~ if (Scenery.sunMoon) {
+-            //~ original.call(builder);
++            //~ original.call(mesh);
+         //~ } else {
+-            //~ builder.popNextBuffer();
++            //~ mesh.close();
+         //~ }
+     //~ }
+-    // @era:sky-else rb19|rb193
++    // @era:sky-else v16|end17
+     //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/BufferBuilder$RenderedBuffer;)V"),
+-            //~ require = 0)
+-    //~ private void aetherium$sunMoon(final BufferBuilder.RenderedBuffer rendered, final Operation<Void> original) {
++            //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;)V"), require = 0)
++    //~ private void aetherium$sunMoon(final BufferBuilder builder, final Operation<Void> original) {
+         //~ if (Scenery.sunMoon) {
+-            //~ original.call(rendered);
++            //~ original.call(builder);
+         //~ } else {
+-            //~ rendered.release();
++            //~ builder.popNextBuffer();
+         //~ }
+     //~ }
+     // @era:sky-else renderer
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java
 index df6c58d..98d2889 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java

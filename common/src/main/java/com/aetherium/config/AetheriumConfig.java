@@ -54,7 +54,7 @@ public final class AetheriumConfig {
     public final ConfigValue<Boolean> smoothChunkLoading = ConfigValue.bool(
             "performance.smooth_chunk_loading", true, "Spread finished chunk meshes over several frames instead of uploading them all in one frame, which removes the stutter while chunks load or generate.");
     public final ConfigValue<Boolean> threadedChunkBuilder = ConfigValue.bool(
-            "performance.threaded_chunk_builder", true, "Rebuild changed chunks near you on the worker threads instead of freezing the frame (vanilla 1.16.5 rebuilds everything within 28 blocks on the render thread). Blocks you place or break still update instantly. Also spreads client light updates over frames. The biggest fix for stutter while chunks load and while walking with dynamic lights.");
+            "performance.threaded_chunk_builder", true, "Rebuild changed chunks near you on the worker threads instead of freezing the frame (vanilla 1.16.5 and 1.17 rebuild everything within 28 blocks on the render thread). Blocks you place or break still update instantly. Also spreads client light updates over frames. The biggest fix for stutter while chunks load and while walking with dynamic lights.");
     public final ConfigValue<Boolean> smoothStreaming = ConfigValue.bool(
             "performance.smooth_streaming", true, "Spread the work of arriving chunks over several frames: incoming chunk, light and entity packets get a time budget per frame instead of all being processed in one frame, and chunk meshes are converted for the GPU on the worker threads. Removes the big frame drops when walking or flying into unloaded terrain.");
     public final ConfigValue<Boolean> coalesceRebuilds = ConfigValue.bool(

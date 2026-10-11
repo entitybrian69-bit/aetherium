@@ -77,7 +77,8 @@ ERAS = {
     # until 1.21.11 and from Camera.alignWithEntity on 26.x.
     "zoom-cam": [("double", "..1.20.6"), ("float", "1.21..1.21.11"), ("align", "26.1..")],
     # Threaded "build near" chunk rebuilds and the per-frame client light budget (NearBuildMixin).
-    "near-build": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # 1.17 still rebuilds near sections on the render thread; 1.18+ vanilla builds them threaded by default.
+    "near-build": [("v16", "..1.17.1"), ("none", "1.18..")],
     # Entity yaw/pitch: public fields on 1.16.5, getYRot()/getXRot() from 1.17.
     "rot": [("fields", "..1.16.5"), ("getters", "1.17..")],
     # Freelook camera (FreelookCameraMixin): the view rotation is the first setRotation(FF)V call in
@@ -86,6 +87,22 @@ ERAS = {
     "freelook": [("v16", "..1.21.1"), ("minecart", "1.21.2..1.21.11"), ("align", "26.1..")],
     # 1.5.0 (1.16.5 first): streaming optimizations, fog/sky/particle controls.
     "qol16": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # Scenery (fog / sky / clouds / particles), ported from 1.16.5 in 1.8.0.
+    "fog": [("gl", "..1.16.5"), ("shader17", "1.17..1.18.2"), ("shader19", "1.19..1.21.1"),
+            ("params", "1.21.2..1.21.5"), ("buffer", "1.21.6..1.21.11"), ("data", "26.1..")],
+    "sky": [("v16", "..1.16.5"), ("end17", "1.17..1.18.2"), ("rb19", "1.19..1.19.2"), ("rb193", "1.19.3..1.20.6"),
+            ("mesh", "1.21..1.21.1"), ("renderer", "1.21.2..")],
+    "clouds": [("level", "..1.21.1"), ("renderer", "1.21.2..")],
+    "block-particles": [("engine", "..1.21.8"), ("level", "1.21.9..")],
+    "registry": [("static", "..1.19.2"), ("builtin", "1.19.3..")],
+    "camera-get": [("getter", "..26.1"), ("record", "26.2..")],
+    "mesh-exec": [("crd", "..1.20.1"), ("srd", "1.20.2..1.21.1"), ("tracing", "1.21.2..")],
+    # vanilla allocates a BitSet per block and a MutableBlockPos per AO face up to 1.21.4 only.
+    "mesh-alloc": [("v16", "..1.21.4"), ("none", "1.21.5..")],
+    # Render sections: class, origin getter and "compiled" check (rebuild coalescing).
+    "section-api": [("v16", "..1.16.5"), ("crd", "1.17..1.20.1"), ("srd", "1.20.2..1.21.4"), ("srd-ro", "1.21.5..1.21.5"),
+                    ("mesh", "1.21.6..26.1"), ("none", "26.2..")],
+    "cam-pos": [("getter", "..1.21.5"), ("position", "1.21.6..")],
     # 1.7.2 even frame pacing: static limitDisplayFPS(I)V is in RenderSystem on 1.16.5-1.21.11 and in
     # net.minecraft.client.FramerateLimiter on 26.x (probe dumps).
     "pacing": [("rs", "..1.21.11"), ("limiter", "26.1..")],

@@ -125,8 +125,13 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("PacketBudgetMixin".equals(simpleName) || "BlockableEventLoopInvoker".equals(simpleName)) {
             return Capabilities.PACKET_BUDGET;
         }
-        if ("StreamingLevelMixin".equals(simpleName) || "RenderChunkDirtyMixin".equals(simpleName)
-                || "MeshAllocMixin".equals(simpleName) || "AoFaceAllocMixin".equals(simpleName)) {
+        if ("MeshAllocMixin".equals(simpleName) || "AoFaceAllocMixin".equals(simpleName)) {
+            return Capabilities.MESH_ALLOC;
+        }
+        if ("RenderChunkDirtyMixin".equals(simpleName) || "CoalesceMixin".equals(simpleName)) {
+            return Capabilities.COALESCE;
+        }
+        if ("StreamingLevelMixin".equals(simpleName)) {
             return Capabilities.STREAMING;
         }
         if ("FramePacingMixin".equals(simpleName)) {
@@ -140,8 +145,12 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
             // Converts meshes for the Aetherium pipeline, so it needs the pipeline's buffer hooks.
             return Capabilities.STREAMING && Capabilities.AETHERIUM_RENDERER;
         }
+        if ("MeshExecutorMixin".equals(simpleName)) {
+            return Capabilities.MESH_THREADS;
+        }
         if ("FogControlMixin".equals(simpleName) || "SkyMixin".equals(simpleName)
-                || "ParticleTypeMixin".equals(simpleName)) {
+                || "ParticleTypeMixin".equals(simpleName) || "BlockParticleMixin".equals(simpleName)
+                || "CloudHeightMixin".equals(simpleName)) {
             return Capabilities.SCENERY_CONTROLS;
         }
         if ("FreelookMouseMixin".equals(simpleName) || "FreelookCameraMixin".equals(simpleName)) {

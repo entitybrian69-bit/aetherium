@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 5dd5f18..ba03313 100644
+index c922c54..8d4aea4 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,10 +37,10 @@ public final class Capabilities {
@@ -139,7 +139,7 @@ index e5e224a..a041b7e 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 50a1e9b..a7c94df 100644
+index 56b4f74..f139b2b 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
 @@ -388,10 +388,10 @@ public final class ClientHooks {
@@ -157,7 +157,7 @@ index 50a1e9b..a7c94df 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -414,10 +414,10 @@ public final class ClientHooks {
+@@ -426,10 +426,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -323,6 +323,55 @@ index afb236d..ffe04fe 100644
      //~ }
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
+diff --git a/common/src/main/java/com/aetherium/client/SceneryHooks.java b/common/src/main/java/com/aetherium/client/SceneryHooks.java
+index 061c32d..af21c5f 100644
+--- a/common/src/main/java/com/aetherium/client/SceneryHooks.java
++++ b/common/src/main/java/com/aetherium/client/SceneryHooks.java
+@@ -26,10 +26,10 @@ import net.minecraft.world.level.material.FogType;
+ //~ import net.minecraft.client.Minecraft;
+ //~ import net.minecraft.world.level.material.FogType;
+ // @era:fog-end
+-// @era:registry-begin builtin
+-import net.minecraft.core.registries.BuiltInRegistries;
+-// @era:registry-else static
+-//~ import net.minecraft.core.Registry;
++// @era:registry-begin static
++import net.minecraft.core.Registry;
++// @era:registry-else builtin
++//~ import net.minecraft.core.registries.BuiltInRegistries;
+ // @era:registry-end
+ 
+ /**
+@@ -59,10 +59,10 @@ public final class SceneryHooks {
+             return false;
+         }
+         final LivingEntity living = (LivingEntity) entity;
+-        // @era:fog-begin shader19|params
+-        return living.hasEffect(MobEffects.BLINDNESS) || living.hasEffect(MobEffects.DARKNESS);
+-        // @era:fog-else gl|shader17|buffer|data
+-        //~ return living.hasEffect(MobEffects.BLINDNESS);
++        // @era:fog-begin gl|shader17|buffer|data
++        return living.hasEffect(MobEffects.BLINDNESS);
++        // @era:fog-else shader19|params
++        //~ return living.hasEffect(MobEffects.BLINDNESS) || living.hasEffect(MobEffects.DARKNESS);
+         // @era:fog-end
+     }
+ 
+@@ -174,10 +174,10 @@ public final class SceneryHooks {
+         final ParticleType<?> type = options.getType();
+         Integer category = CATEGORY.get(type);
+         if (category == null) {
+-            // @era:registry-begin builtin
+-            final Object id = BuiltInRegistries.PARTICLE_TYPE.getKey(type);
+-            // @era:registry-else static
+-            //~ final Object id = Registry.PARTICLE_TYPE.getKey(type);
++            // @era:registry-begin static
++            final Object id = Registry.PARTICLE_TYPE.getKey(type);
++            // @era:registry-else builtin
++            //~ final Object id = BuiltInRegistries.PARTICLE_TYPE.getKey(type);
+             // @era:registry-end
+             category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
+             CATEGORY.put(type, category);
 diff --git a/common/src/main/java/com/aetherium/client/UiSounds.java b/common/src/main/java/com/aetherium/client/UiSounds.java
 index f0c97dc..823ad0d 100644
 --- a/common/src/main/java/com/aetherium/client/UiSounds.java
@@ -1182,6 +1231,97 @@ index 34fef4f..ad76ca8 100644
      // @era:chunk-upload-else none
      //~ @Inject(method = "uploadAllPendingUploads", at = @At("HEAD"), cancellable = true, require = 0)
      //~ private void aetherium$pacedUploads(final CallbackInfo ci) {
+diff --git a/common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java b/common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java
+index 2279e5b..07da951 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java
+@@ -1,19 +1,19 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:section-api-begin srd|srd-ro
++// @era:section-api-begin crd
+ import com.aetherium.client.CoalesceHooks;
+ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+ import org.spongepowered.asm.mixin.injection.At;
+-// @era:section-api-else v16|none
+-// @era:section-api-else crd
++// @era:section-api-else srd|srd-ro
+ //~ import com.aetherium.client.CoalesceHooks;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+ //~ import org.spongepowered.asm.mixin.injection.At;
++// @era:section-api-else v16|none
+ // @era:section-api-else mesh
+ //~ import com.aetherium.client.CoalesceHooks;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+@@ -34,22 +34,22 @@ import org.spongepowered.asm.mixin.injection.At;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class CoalesceMixin {
+-    // @era:section-api-begin srd
+-    @WrapOperation(method = "compileSections", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection;isDirty()Z"), require = 0)
+-    private boolean aetherium$coalesce(final SectionRenderDispatcher.RenderSection section, final Operation<Boolean> original) {
++    // @era:section-api-begin crd
++    @WrapOperation(method = {"setupRender", "compileChunks"}, at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;isDirty()Z"), require = 0)
++    private boolean aetherium$coalesce(final ChunkRenderDispatcher.RenderChunk section, final Operation<Boolean> original) {
++        // Direct call instead of original.call: no argument array per section per frame.
+         return section.isDirty() && !CoalesceHooks.defer(section, section.getOrigin(), section.isDirtyFromPlayer(),
+-                section.getCompiled() != SectionRenderDispatcher.CompiledSection.UNCOMPILED);
++                section.getCompiledChunk() != ChunkRenderDispatcher.CompiledChunk.UNCOMPILED);
+     }
+-    // @era:section-api-else v16|none
+-    // @era:section-api-else crd
+-    //~ @WrapOperation(method = {"setupRender", "compileChunks"}, at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;isDirty()Z"), require = 0)
+-    //~ private boolean aetherium$coalesce(final ChunkRenderDispatcher.RenderChunk section, final Operation<Boolean> original) {
+-        //~ // Direct call instead of original.call: no argument array per section per frame.
++    // @era:section-api-else srd
++    //~ @WrapOperation(method = "compileSections", at = @At(value = "INVOKE",
++            //~ target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection;isDirty()Z"), require = 0)
++    //~ private boolean aetherium$coalesce(final SectionRenderDispatcher.RenderSection section, final Operation<Boolean> original) {
+         //~ return section.isDirty() && !CoalesceHooks.defer(section, section.getOrigin(), section.isDirtyFromPlayer(),
+-                //~ section.getCompiledChunk() != ChunkRenderDispatcher.CompiledChunk.UNCOMPILED);
++                //~ section.getCompiled() != SectionRenderDispatcher.CompiledSection.UNCOMPILED);
+     //~ }
++    // @era:section-api-else v16|none
+     // @era:section-api-else srd-ro
+     //~ @WrapOperation(method = "compileSections", at = @At(value = "INVOKE",
+             //~ target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection;isDirty()Z"), require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
+index 7a014ca..4f96dfa 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
+@@ -40,18 +40,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ //~ @Mixin(targets = "net.minecraft.client.renderer.fog.FogRenderer")
+ // @era:fog-end
+ public abstract class FogControlMixin {
+-    // @era:fog-begin shader19
++    // @era:fog-begin gl|shader17
+     @Inject(method = "setupFog", at = @At("TAIL"), require = 0)
+     private static void aetherium$fogControls(final Camera camera, final FogRenderer.FogMode mode, final float farPlane,
+-                                              final boolean thick, final float partialTick, final CallbackInfo ci) {
++                                              final boolean thick, final CallbackInfo ci) {
+         if (mode == FogRenderer.FogMode.FOG_TERRAIN) {
+             SceneryHooks.adjustFog(camera, farPlane, thick);
+         }
+     }
+-    // @era:fog-else gl|shader17
++    // @era:fog-else shader19
+     //~ @Inject(method = "setupFog", at = @At("TAIL"), require = 0)
+     //~ private static void aetherium$fogControls(final Camera camera, final FogRenderer.FogMode mode, final float farPlane,
+-                                              //~ final boolean thick, final CallbackInfo ci) {
++                                              //~ final boolean thick, final float partialTick, final CallbackInfo ci) {
+         //~ if (mode == FogRenderer.FogMode.FOG_TERRAIN) {
+             //~ SceneryHooks.adjustFog(camera, farPlane, thick);
+         //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..531f6bc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -1220,6 +1360,30 @@ index 0b2c6b1..531f6bc 100644
      //~ }
      // @era:hud-else extractor
      //~ @Inject(method = "extractRenderState", at = @At("TAIL"), require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
+index 1544ef9..4238395 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
+@@ -26,15 +26,15 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class MeshExecutorMixin {
+-    // @era:mesh-exec-begin srd
++    // @era:mesh-exec-begin crd
+     @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher;<init>"), require = 0)
++            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>"), require = 0)
+     private Executor aetherium$meshExecutor(final Executor vanilla) {
+         return QolHooks.meshExecutor(vanilla);
+     }
+-    // @era:mesh-exec-else crd
++    // @era:mesh-exec-else srd
+     //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>"), require = 0)
++            //~ target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher;<init>"), require = 0)
+     //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
+         //~ return QolHooks.meshExecutor(vanilla);
+     //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java b/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java
 index 0bb9134..70f6233 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java
@@ -1289,6 +1453,25 @@ index 0bb9134..70f6233 100644
 +    //~ }
  //~ }
  // @era:options-end
+diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java
+index 7849c9d..ff41036 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java
+@@ -19,10 +19,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  * {@code SectionRenderDispatcher.RenderSection} from 1.20.2; 26.2 dropped the dirty flag. Applied only
+  * where {@code Capabilities.COALESCE} is true.
+  */
+-// @era:section-api-begin srd|srd-ro|mesh|none
+-@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection")
+-// @era:section-api-else v16|crd
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
++// @era:section-api-begin v16|crd
++@Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
++// @era:section-api-else srd|srd-ro|mesh|none
++//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection")
+ // @era:section-api-end
+ public abstract class RenderChunkDirtyMixin implements RenderChunkDirtyAccess {
+     // @era:section-api-begin v16|crd|srd|srd-ro|mesh
 diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
 index 0c9cdbc..592d8eb 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
@@ -1345,6 +1528,129 @@ index 0c9cdbc..592d8eb 100644
 +        //~ return null;
      //~ }
      // @era:section-vis-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
+index 7594ede..234735a 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
+@@ -5,26 +5,26 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:sky-begin mesh
++// @era:sky-begin end17
+ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-import com.mojang.blaze3d.vertex.MeshData;
++import com.mojang.blaze3d.vertex.BufferBuilder;
+ import com.mojang.blaze3d.vertex.VertexBuffer;
++import com.mojang.math.Matrix4f;
+ import net.minecraft.client.renderer.ShaderInstance;
+-import org.joml.Matrix4f;
+-// @era:sky-else v16
++// @era:sky-else mesh
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
++//~ import com.mojang.blaze3d.vertex.MeshData;
+ //~ import com.mojang.blaze3d.vertex.VertexBuffer;
+-//~ import com.mojang.math.Matrix4f;
+-// @era:sky-else end17
++//~ import net.minecraft.client.renderer.ShaderInstance;
++//~ import org.joml.Matrix4f;
++// @era:sky-else v16
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+ //~ import com.mojang.blaze3d.vertex.BufferBuilder;
+ //~ import com.mojang.blaze3d.vertex.VertexBuffer;
+ //~ import com.mojang.math.Matrix4f;
+-//~ import net.minecraft.client.renderer.ShaderInstance;
+ // @era:sky-else rb19
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+@@ -92,25 +92,25 @@ public abstract class SkyMixin {
+     //~ }
+     // @era:sky-end
+ 
+-    // @era:sky-begin mesh
++    // @era:sky-begin v16|end17
+     @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V"),
+-            require = 0)
+-    private void aetherium$sunMoon(final MeshData mesh, final Operation<Void> original) {
++            target = "Lcom/mojang/blaze3d/vertex/BufferUploader;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;)V"), require = 0)
++    private void aetherium$sunMoon(final BufferBuilder builder, final Operation<Void> original) {
+         if (Scenery.sunMoon) {
+-            original.call(mesh);
++            original.call(builder);
+         } else {
+-            mesh.close();
++            builder.popNextBuffer();
+         }
+     }
+-    // @era:sky-else v16|end17
++    // @era:sky-else mesh
+     //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;)V"), require = 0)
+-    //~ private void aetherium$sunMoon(final BufferBuilder builder, final Operation<Void> original) {
++            //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V"),
++            //~ require = 0)
++    //~ private void aetherium$sunMoon(final MeshData mesh, final Operation<Void> original) {
+         //~ if (Scenery.sunMoon) {
+-            //~ original.call(builder);
++            //~ original.call(mesh);
+         //~ } else {
+-            //~ builder.popNextBuffer();
++            //~ mesh.close();
+         //~ }
+     //~ }
+     // @era:sky-else rb19|rb193
+@@ -127,9 +127,9 @@ public abstract class SkyMixin {
+     // @era:sky-else renderer
+     // @era:sky-end
+ 
+-    // @era:sky-begin rb193|mesh
++    // @era:sky-begin end17|rb19
+     @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;drawWithShader(Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lnet/minecraft/client/renderer/ShaderInstance;)V",
++            target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;drawWithShader(Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/ShaderInstance;)V",
+             ordinal = 1), require = 0)
+     private void aetherium$stars(final VertexBuffer buffer, final Matrix4f pose, final Matrix4f projection,
+                                  final ShaderInstance shader, final Operation<Void> original) {
+@@ -137,17 +137,9 @@ public abstract class SkyMixin {
+             original.call(buffer, pose, projection, shader);
+         }
+     }
+-    // @era:sky-else v16
+-    //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;draw(Lcom/mojang/math/Matrix4f;I)V", ordinal = 1), require = 0)
+-    //~ private void aetherium$stars(final VertexBuffer buffer, final Matrix4f matrix, final int mode, final Operation<Void> original) {
+-        //~ if (Scenery.stars) {
+-            //~ original.call(buffer, matrix, mode);
+-        //~ }
+-    //~ }
+-    // @era:sky-else end17|rb19
++    // @era:sky-else rb193|mesh
+     //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;drawWithShader(Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/ShaderInstance;)V",
++            //~ target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;drawWithShader(Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lnet/minecraft/client/renderer/ShaderInstance;)V",
+             //~ ordinal = 1), require = 0)
+     //~ private void aetherium$stars(final VertexBuffer buffer, final Matrix4f pose, final Matrix4f projection,
+                                  //~ final ShaderInstance shader, final Operation<Void> original) {
+@@ -155,6 +147,14 @@ public abstract class SkyMixin {
+             //~ original.call(buffer, pose, projection, shader);
+         //~ }
+     //~ }
++    // @era:sky-else v16
++    //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
++            //~ target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;draw(Lcom/mojang/math/Matrix4f;I)V", ordinal = 1), require = 0)
++    //~ private void aetherium$stars(final VertexBuffer buffer, final Matrix4f matrix, final int mode, final Operation<Void> original) {
++        //~ if (Scenery.stars) {
++            //~ original.call(buffer, matrix, mode);
++        //~ }
++    //~ }
+     // @era:sky-else renderer
+     // @era:sky-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
 index f4b7685..3186fc3 100644
@@ -1529,7 +1835,7 @@ index 3ccd445..f069e2d 100644
      // @era:options-end
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 7ae771c..0786d2b 100644
+index 5b85985..903657e 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

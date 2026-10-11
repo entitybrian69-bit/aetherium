@@ -16,51 +16,41 @@ import com.aetherium.qol.Scenery;
 
 import com.aetherium.mixin.core.BlockableEventLoopInvoker;
 
+import java.util.concurrent.Executor;
+
 import net.minecraft.client.Minecraft;
 
 // @era:qol16-begin none
 // @era:qol16-else v16
-//~ import com.mojang.blaze3d.systems.RenderSystem;
 
-//~ import java.util.IdentityHashMap;
-//~ import java.util.Map;
-//~ import java.util.concurrent.Executor;
 
 //~ import net.minecraft.client.Camera;
 //~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 //~ import net.minecraft.core.BlockPos;
-//~ import net.minecraft.core.Registry;
-//~ import net.minecraft.core.particles.ParticleOptions;
-//~ import net.minecraft.core.particles.ParticleType;
-//~ import net.minecraft.resources.ResourceLocation;
-//~ import net.minecraft.tags.FluidTags;
-//~ import net.minecraft.tags.Tag;
-//~ import net.minecraft.world.effect.MobEffects;
-//~ import net.minecraft.world.entity.Entity;
-//~ import net.minecraft.world.entity.LivingEntity;
-//~ import net.minecraft.world.level.material.Fluid;
-//~ import net.minecraft.world.level.material.FluidState;
 //~ import net.minecraft.world.phys.Vec3;
 // @era:qol16-end
 
 /**
  * Minecraft side of the 1.5.0 features: terrain streaming (packet budget, prepared uploads,
- * rebuild coalescing, chunk-mesh threads), the stutter log and the fog/sky/particle controls
- * (freelook lives in {@link FreelookHooks}). Everything here is render-thread only unless noted,
+ * rebuild coalescing, chunk-mesh threads), the stutter log and the scenery settings (the fog
+ * and particle hooks live in {@link SceneryHooks}, freelook in {@link FreelookHooks}). Everything here is render-thread only unless noted,
  * and costs one field read while a feature is at its vanilla setting.
  */
 public final class QolHooks {
-    private static final float[] FOG = new float[3];
-
     private static volatile boolean prepareUploads;
     private static volatile boolean meshThreads;
 
-    // @era:qol16-begin none
-    // @era:qol16-else v16
-    //~ private static final Map<ParticleType<?>, Integer> CATEGORY = new IdentityHashMap<ParticleType<?>, Integer>();
-    // @era:qol16-end
-
     private QolHooks() {
+    }
+
+    /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
+    public static Executor meshExecutor(final Executor vanilla) {
+        if (!meshThreads) {
+            return vanilla;
+        }
+        final Executor own = ChunkBuildExecutor.get(Runtime.getRuntime().availableProcessors(),
+                Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
+        return own != null ? own : vanilla;
     }
 
     /** After Apply and at startup. */
@@ -70,7 +60,7 @@ public final class QolHooks {
         PacketBudget.setEnabled(active && Capabilities.PACKET_BUDGET && smooth);
         prepareUploads = active && Capabilities.STREAMING && smooth;
         meshThreads = Capabilities.MESH_THREADS && smooth;
-        RebuildCoalescer.setEnabled(active && Capabilities.STREAMING && config.coalesceRebuilds.get().booleanValue());
+        RebuildCoalescer.setEnabled(active && Capabilities.COALESCE && config.coalesceRebuilds.get().booleanValue());
 
         final boolean scenery = active && Capabilities.SCENERY_CONTROLS;
         Scenery.distanceFog = !scenery || config.distanceFog.get().booleanValue();
@@ -153,15 +143,6 @@ public final class QolHooks {
     // @era:qol16-else v16
     //~ // ------------------------------------------------------------------ streaming hooks
 
-    //~ /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
-    //~ public static Executor meshExecutor(final Executor vanilla) {
-        //~ if (!meshThreads) {
-            //~ return vanilla;
-        //~ }
-        //~ final Executor own = ChunkBuildExecutor.get(Runtime.getRuntime().availableProcessors(),
-                //~ Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
-        //~ return own != null ? own : vanilla;
-    //~ }
 
     //~ private static double rebuildCamX;
     //~ private static double rebuildCamY;
@@ -201,54 +182,6 @@ public final class QolHooks {
             //~ return uploaded;
         //~ }
         //~ return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
-    //~ }
-
-    //~ // ------------------------------------------------------------------ fog and sky
-
-    //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
-    //~ @SuppressWarnings("unchecked")
-    //~ private static Tag<Fluid> fluidTag(final Object named) {
-        //~ return (Tag<Fluid>) named;
-    //~ }
-
-    //~ /** FogRenderer.setupFog TAIL, terrain fog only. */
-    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
-        //~ if (Scenery.fogVanilla()) {
-            //~ return;
-        //~ }
-        //~ final Entity entity = camera.getEntity();
-        //~ if (entity instanceof LivingEntity && ((LivingEntity) entity).hasEffect(MobEffects.BLINDNESS)) {
-            //~ return;
-        //~ }
-        //~ final FluidState fluid = camera.getFluidInCamera();
-        //~ final int medium = fluid.is(fluidTag(FluidTags.WATER)) ? Scenery.WATER
-                //~ : fluid.is(fluidTag(FluidTags.LAVA)) ? Scenery.LAVA : Scenery.AIR;
-        //~ if (!Scenery.adjustFog(medium, thick, farPlane, FogTracker.start(), FogTracker.end(), FogTracker.density(), FOG)) {
-            //~ return;
-        //~ }
-        //~ if (medium == Scenery.WATER) {
-            //~ RenderSystem.fogDensity(FOG[Scenery.DENSITY]);
-        //~ } else {
-            //~ RenderSystem.fogStart(FOG[Scenery.START]);
-            //~ RenderSystem.fogEnd(FOG[Scenery.END]);
-        //~ }
-    //~ }
-
-    //~ // ------------------------------------------------------------------ particles
-
-    //~ /** ParticleEngine.createParticle HEAD: true to drop this particle. */
-    //~ public static boolean dropParticle(final ParticleOptions options) {
-        //~ if (!ParticleFilter.anyDisabled() || options == null) {
-            //~ return false;
-        //~ }
-        //~ final ParticleType<?> type = options.getType();
-        //~ Integer category = CATEGORY.get(type);
-        //~ if (category == null) {
-            //~ final ResourceLocation id = Registry.PARTICLE_TYPE.getKey(type);
-            //~ category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
-            //~ CATEGORY.put(type, category);
-        //~ }
-        //~ return !ParticleFilter.allowed(category.intValue());
     //~ }
     // @era:qol16-end
 }

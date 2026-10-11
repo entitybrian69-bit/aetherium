@@ -21,8 +21,13 @@ neoforge_version=21.2.1-beta
 
 ### Era transforms applied by the generated patch
 
+- `clouds=renderer`
+- `fog=params`
 - `freelook=minecart`
+- `mesh-exec=tracing`
 - `occlusion-box=renderer`
+- `registry=builtin`
+- `sky=renderer`
 - `weather=effect`
 - `zoom-fov=float`
 
@@ -52,8 +57,13 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.2.t
 ## Files the generated patch touches
 
 - `gradle.properties`
+- `common/src/main/java/com/aetherium/client/SceneryHooks.java`
+- `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 

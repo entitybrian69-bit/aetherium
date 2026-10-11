@@ -396,6 +396,18 @@ public final class ClientHooks {
         bypassVideoScreen = false;
     }
 
+    /** The main camera; its getter became record-style in 26.2. Null before the renderer exists. */
+    public static net.minecraft.client.Camera mainCamera(final Minecraft mc) {
+        if (mc == null || mc.gameRenderer == null) {
+            return null;
+        }
+        // @era:camera-get-begin getter
+        return mc.gameRenderer.getMainCamera();
+        // @era:camera-get-else record
+        //~ return mc.gameRenderer.mainCamera();
+        // @era:camera-get-end
+    }
+
     /** The open screen; it moved from {@code Minecraft} to {@code Gui} in 26.2. */
     public static Screen currentScreen(final Minecraft mc) {
         // @era:screen-owner-begin minecraft

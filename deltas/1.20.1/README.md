@@ -23,20 +23,25 @@ neoforge_version=unavailable (module disabled)
 
 - `background=none`
 - `bg-threads=property`
+- `camera-get=getter`
 - `chunk-renderer=none`
 - `chunk-upload=crd`
 - `gui=graphics`
 - `hud=graphics-float`
 - `input=doubles`
 - `light-hook=color`
+- `mesh-alloc=v16`
+- `mesh-exec=crd`
 - `near-build=none`
 - `options=instances`
 - `qol16=none`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`
+- `section-api=crd`
 - `section-vis=list18`
 - `simdist=sim`
+- `sky=rb193`
 - `vignette=render`
 - `zoom-cam=double`
 - `zoom=on`
@@ -74,8 +79,12 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.1.t
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 

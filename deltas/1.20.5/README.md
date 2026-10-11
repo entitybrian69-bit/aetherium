@@ -21,9 +21,11 @@ neoforge_version=unavailable (module disabled)
 
 ### Era transforms applied by the generated patch
 
+- `camera-get=getter`
 - `hud=graphics-float`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
+- `sky=rb193`
 - `vignette=render`
 - `zoom-cam=double`
 
@@ -57,6 +59,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.5.t
 - `build.gradle.kts`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 
 ## Verifying this row before shipping it

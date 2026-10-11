@@ -87,6 +87,62 @@ public final class Scenery {
         }
     }
 
+    /** Index into the result of {@link #adjustFogData}. */
+    public static final int ENV_START = 0;
+    public static final int ENV_END = 1;
+    public static final int RD_START = 2;
+    public static final int RD_END = 3;
+
+    /**
+     * 1.21.6+: the fog uniform holds two linear ranges, the environmental one (water, lava, the
+     * Nether, blindness, powder snow) and the render-distance one (terrain fade-out). The
+     * distance settings only move the render-distance range, so they can never lift blindness or
+     * Nether fog; the water and lava settings move the environmental range.
+     *
+     * @param medium {@link #AIR}, {@link #WATER} or {@link #LAVA} at the camera
+     * @param out    receives envStart, envEnd, rdStart, rdEnd
+     * @return true when anything changed
+     */
+    public static boolean adjustFogData(final int medium, final float envStart, final float envEnd,
+                                        final float rdStart, final float rdEnd, final float[] out) {
+        out[ENV_START] = envStart;
+        out[ENV_END] = envEnd;
+        out[RD_START] = rdStart;
+        out[RD_END] = rdEnd;
+        if (medium == WATER) {
+            final int pct = waterFogPercent;
+            if (pct >= 100) {
+                return false;
+            }
+            if (pct <= 0) {
+                out[ENV_START] = rdEnd * 4.0f + 64.0f;
+                out[ENV_END] = out[ENV_START] + 1.0f;
+            } else {
+                out[ENV_END] = envStart + (envEnd - envStart) * 100.0f / pct;
+            }
+            return true;
+        }
+        if (medium == LAVA) {
+            if (!clearLava) {
+                return false;
+            }
+            out[ENV_START] = 0.0f;
+            out[ENV_END] = Math.max(envEnd, Math.min(CLEAR_LAVA_END, rdEnd));
+            return true;
+        }
+        if (!distanceFog) {
+            out[RD_START] = rdEnd * 4.0f + 64.0f;
+            out[RD_END] = out[RD_START] + 1.0f;
+            return true;
+        }
+        final int pct = fogStartPercent;
+        if (pct == VANILLA_FOG_START) {
+            return false;
+        }
+        out[RD_START] = Math.min(rdEnd * 0.995f, rdEnd * pct / 100.0f);
+        return true;
+    }
+
     /** Cloud height after the user's setting; NaN (no clouds in this dimension) is kept. */
     /**
      * 1.17+ (shader fog, always linear): like {@link #adjustFog}, except that water fog is linear

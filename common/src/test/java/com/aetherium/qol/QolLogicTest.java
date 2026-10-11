@@ -35,6 +35,47 @@ final class QolLogicTest {
         vanillaScenery();
     }
 
+    @Test
+    @DisplayName("fog (1.21.6+): distance settings move only the render-distance range, medium settings only the environmental one")
+    void splitFog() {
+        vanillaScenery();
+        final float[] out = new float[4];
+        assertFalse(Scenery.adjustFogData(Scenery.AIR, 1f, 4f, 230f, 256f, out), "vanilla");
+        assertFalse(Scenery.adjustFogData(Scenery.WATER, -8f, 96f, 230f, 256f, out), "vanilla water");
+
+        Scenery.distanceFog = false;
+        assertTrue(Scenery.adjustFogData(Scenery.AIR, 1f, 4f, 230f, 256f, out));
+        assertEquals(1f, out[Scenery.ENV_START], 0f, "blindness / Nether range untouched");
+        assertEquals(4f, out[Scenery.ENV_END], 0f);
+        assertTrue(out[Scenery.RD_START] > 256f * 4f && out[Scenery.RD_END] > out[Scenery.RD_START]);
+        assertFalse(Scenery.adjustFogData(Scenery.LAVA, 0.25f, 1f, 230f, 256f, out), "lava ignores distance fog");
+
+        vanillaScenery();
+        Scenery.fogStartPercent = 50;
+        assertTrue(Scenery.adjustFogData(Scenery.AIR, 1f, 4f, 230f, 256f, out));
+        assertEquals(128f, out[Scenery.RD_START], 1e-4f);
+        assertEquals(256f, out[Scenery.RD_END], 0f);
+        Scenery.fogStartPercent = 100;
+        assertTrue(Scenery.adjustFogData(Scenery.AIR, 1f, 4f, 230f, 256f, out));
+        assertTrue(out[Scenery.RD_START] < out[Scenery.RD_END], "start stays below end");
+
+        vanillaScenery();
+        Scenery.waterFogPercent = 25;
+        assertTrue(Scenery.adjustFogData(Scenery.WATER, -8f, 96f, 230f, 256f, out));
+        assertEquals(-8f + 104f * 4f, out[Scenery.ENV_END], 1e-3f);
+        assertEquals(230f, out[Scenery.RD_START], 0f, "terrain fade-out untouched underwater");
+        Scenery.waterFogPercent = 0;
+        assertTrue(Scenery.adjustFogData(Scenery.WATER, -8f, 96f, 230f, 256f, out));
+        assertTrue(out[Scenery.ENV_START] > 256f && out[Scenery.ENV_END] > out[Scenery.ENV_START]);
+
+        vanillaScenery();
+        Scenery.clearLava = true;
+        assertTrue(Scenery.adjustFogData(Scenery.LAVA, 0.25f, 1f, 230f, 256f, out));
+        assertEquals(0f, out[Scenery.ENV_START], 0f);
+        assertEquals(Scenery.CLEAR_LAVA_END, out[Scenery.ENV_END], 0f);
+        vanillaScenery();
+    }
+
     private static void vanillaScenery() {
         Scenery.distanceFog = true;
         Scenery.fogStartPercent = Scenery.VANILLA_FOG_START;

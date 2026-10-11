@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import com.mojang.math.Matrix4f;
 //~ import it.unimi.dsi.fastutil.objects.ObjectList;
 //~ import java.nio.FloatBuffer;
-//~ import java.util.concurrent.Executor;
 //~ import net.minecraft.client.Camera;
 //~ import net.minecraft.client.Minecraft;
 //~ import net.minecraft.client.renderer.GameRenderer;
@@ -35,15 +34,13 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.Unique;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
-//~ import org.spongepowered.asm.mixin.injection.ModifyArg;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:qol16-end
 
 /**
- * Terrain streaming and culling in {@code LevelRenderer} (1.16.5):
+ * Terrain streaming and culling in {@code LevelRenderer} (1.16.5; the mesh threads are
+ * {@code MeshExecutorMixin}):
  * <ul>
- *   <li>the chunk mesh dispatcher gets Aetherium's own mesh threads instead of the pool it shares
- *       with world generation;</li>
  *   <li>sections dirtied repeatedly while chunks arrive are rebuilt once
  *       ({@code RebuildCoalescer}), by answering "not dirty yet" at the one {@code isDirty()} call
  *       of {@code setupRender} while a section is still settling;</li>
@@ -94,13 +91,6 @@ public abstract class StreamingLevelMixin {
     //~ @Shadow
     //~ @Final
     //~ private ObjectList<?> renderChunks;
-
-    //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V"),
-            //~ index = 2, require = 0)
-    //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
-        //~ return QolHooks.meshExecutor(vanilla);
-    //~ }
 
     //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
     //~ private void aetherium$frameStart(final PoseStack poseStack, final float partialTick, final long finishNanos,

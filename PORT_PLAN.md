@@ -25,21 +25,21 @@ variant is only enabled once its targets are confirmed there and `stubcheck --al
 | feature | G0 | G1 | G2 | G3 | G4 | G5 | G6 | eras / notes |
 |---|---|---|---|---|---|---|---|---|
 | Renderer named "Aetherium renderer", on by default | done | | | | | | | `advanced.aetherium_renderer` |
-| Even frame pacing | done | done | done | done | done | done | probe | `pacing`: `RenderSystem.limitDisplayFPS` to 1.21.11; 26.x `FramerateLimitTracker` |
-| Zoom (Zume-style, 3 keys) | done | done | done | done | done | 1.21.9+ probe | probe | `zoom`, `keys`, `zoom-fov`, `zoom-cam`, `options` |
-| Freelook | done | done | done | done | done | 1.21.9+ probe | done* | `freelook`, `rot`; key via `ZoomKeys.newKey` |
-| Fog controls | done | | | | | | | `setupFog` TAIL; 1.17+ shader fog start/end; 1.21.2 `FogParameters`; 1.21.6 fog environments |
-| Sky / sun-moon / stars / cloud height | done | | | | | | | 1.17 `renderSky` (Matrix4f); 1.21.2 sky pass; 1.21.6 `SkyRenderer` |
-| Per-type particles | done | | | | | | | `createParticle` on all; block break/crack moved in 1.21.9 |
-| Packet budget | done | | | | | | | `runTick -> runAllTasks` on all; `BlockableEventLoop.pollTask` (probe) |
+| Even frame pacing | done | done | done | done | done | done | done | `pacing`: `RenderSystem.limitDisplayFPS` to 1.21.11; 26.x `FramerateLimiter` |
+| Zoom (Zume-style, 3 keys) | done | done | done | done | done | done | done | `zoom`, `keys`, `zoom-fov`, `zoom-cam`, `options` |
+| Freelook | done | done | done | done | done | done | done | `freelook`, `rot`; key via `ZoomKeys.newKey` |
+| Fog controls | done | done | done | done | done | done | done | `fog`: setupFog TAIL (shader fog to 1.21.1); `FogParameters` return; 1.21.6+ wrap of the fog-buffer write (env / render-distance ranges) |
+| Sky / sun-moon / stars / cloud height | done | done | done | done | done | done | done | `sky`: renderSky draws (popNextBuffer / RenderedBuffer.release / MeshData.close); 1.21.2+ `SkyRenderer` methods; `clouds`: 1.21.2+ `CloudRenderer.render` height arg |
+| Per-type particles | done | done | done | done | done | done | done | `createParticle` on all; `block-particles`: ParticleEngine destroy/crack, 1.21.9+ ClientLevel effects; `registry` |
+| Packet budget, stutter log | done | done | done | done | done | done | done | `runTick -> runAllTasks` on all; `BlockableEventLoop.pollTask` |
 | Mesh threads, allocation-free mesh | done | | | | | | | dispatcher constructor executor per group |
 | Rebuild coalescing, visibility throttle, fog cull | done | | | | | | | per-group `setupRender` / occlusion graph rewrite |
 | Threaded near builds | done | | | | | | | |
 | 1.7.0: smart culling, fast particles, visible-only animations, fast models | done | | | | | | | |
 | Aetherium renderer (terrain pipeline) | done | | | | | | | shader-era rewrite per group, last |
 
-`*` the 26.x freelook hooks are written (`Camera.alignWithEntity`) but they need the 1.21.9+ key
-category.
+Scenery settings: the 1.21.6+ distance settings only move the render-distance fog range, so they
+never lift blindness, darkness or Nether fog (those live in the environmental range).
 
 ## Order
 

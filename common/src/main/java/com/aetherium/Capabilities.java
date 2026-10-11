@@ -123,19 +123,25 @@ public final class Capabilities {
     /** The stutter log (frame-time spikes with their streaming counters); every version. */
     public static final boolean STUTTER_LOG = true;
 
-    /** Chunk meshes built on Aetherium's own threads (the dispatcher's executor). */
-    // @era:qol16-begin none
-    public static final boolean MESH_THREADS = false;
-    // @era:qol16-else v16
-    //~ public static final boolean MESH_THREADS = true;
-    // @era:qol16-end
+    /** Chunk meshes built on Aetherium's own threads (the dispatcher's executor); every version. */
+    public static final boolean MESH_THREADS = true;
 
-    /** Fog controls, sky toggles and per-type particle toggles (1.16.5 first). */
-    // @era:qol16-begin none
-    public static final boolean SCENERY_CONTROLS = false;
-    // @era:qol16-else v16
-    //~ public static final boolean SCENERY_CONTROLS = true;
-    // @era:qol16-end
+    /** Allocation-free block meshing (reused BitSet / AO position); vanilla stopped allocating in 1.21.5. */
+    // @era:mesh-alloc-begin v16
+    public static final boolean MESH_ALLOC = true;
+    // @era:mesh-alloc-else none
+    //~ public static final boolean MESH_ALLOC = false;
+    // @era:mesh-alloc-end
+
+    /** Rebuild coalescing (per-section dirty timestamps); 26.2 dropped the section dirty flag. */
+    // @era:section-api-begin v16|crd|srd|srd-ro|mesh
+    public static final boolean COALESCE = true;
+    // @era:section-api-else none
+    //~ public static final boolean COALESCE = false;
+    // @era:section-api-end
+
+    /** Fog controls, sky toggles and per-type particle toggles (every version since 1.8.0). */
+    public static final boolean SCENERY_CONTROLS = true;
 
     /** Freelook: look around without turning the player (every version). */
     public static final boolean FREELOOK = true;

@@ -21,14 +21,32 @@ neoforge_version=21.6.20-beta
 
 ### Era transforms applied by the generated patch
 
+- `bg-threads=property`
+- `cam-pos=position`
+- `chunk-renderer=none`
+- `chunk-upload=srd`
+- `clouds=renderer`
+- `fog=buffer`
 - `freelook=minecart`
 - `gui-layer=stratum`
 - `gui=graphics`
+- `hud=graphics-delta`
 - `light-hook=brightness`
+- `mesh-alloc=none`
+- `mesh-exec=tracing`
+- `near-build=none`
 - `occlusion-box=renderer`
+- `options=instances`
+- `qol16=none`
+- `registry=builtin`
+- `section-api=mesh`
 - `section-vis=render-origin`
+- `simdist=sim`
+- `sky=renderer`
+- `vignette=render`
 - `weather=effect`
 - `zoom-fov=float`
+- `zoom=on`
 
 ### Where the per-version Java comes from
 
@@ -56,10 +74,20 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.6.t
 ## Files the generated patch touches
 
 - `gradle.properties`
+- `common/src/main/java/com/aetherium/Capabilities.java`
+- `common/src/main/java/com/aetherium/client/CoalesceHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
+- `common/src/main/java/com/aetherium/client/SceneryHooks.java`
+- `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`

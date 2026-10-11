@@ -4,6 +4,137 @@
 # status: derived
 # apply:  git apply --whitespace=nowarn deltas/1.21.3/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.3/changes.patch
+diff --git a/common/src/main/java/com/aetherium/client/SceneryHooks.java b/common/src/main/java/com/aetherium/client/SceneryHooks.java
+index 061c32d..c0cc98a 100644
+--- a/common/src/main/java/com/aetherium/client/SceneryHooks.java
++++ b/common/src/main/java/com/aetherium/client/SceneryHooks.java
+@@ -10,18 +10,18 @@ import net.minecraft.core.particles.ParticleType;
+ import net.minecraft.world.effect.MobEffects;
+ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.entity.LivingEntity;
+-// @era:fog-begin shader17|shader19
+-import com.mojang.blaze3d.systems.RenderSystem;
++// @era:fog-begin params
++import net.minecraft.client.renderer.FogParameters;
+ import net.minecraft.world.level.material.FogType;
++// @era:fog-else shader17|shader19
++//~ import com.mojang.blaze3d.systems.RenderSystem;
++//~ import net.minecraft.world.level.material.FogType;
+ // @era:fog-else gl
+ //~ import com.mojang.blaze3d.systems.RenderSystem;
+ //~ import net.minecraft.tags.FluidTags;
+ //~ import net.minecraft.tags.Tag;
+ //~ import net.minecraft.world.level.material.Fluid;
+ //~ import net.minecraft.world.level.material.FluidState;
+-// @era:fog-else params
+-//~ import net.minecraft.client.renderer.FogParameters;
+-//~ import net.minecraft.world.level.material.FogType;
+ // @era:fog-else buffer|data
+ //~ import net.minecraft.client.Minecraft;
+ //~ import net.minecraft.world.level.material.FogType;
+@@ -112,35 +112,35 @@ public final class SceneryHooks {
+     //~ }
+     // @era:fog-end
+ 
+-    // @era:fog-begin shader17|shader19
+-    /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
+-    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
+-        if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
+-            return;
++    // @era:fog-begin params
++    /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
++    public static FogParameters adjustFog(final FogParameters fog, final Camera camera, final float renderDistance,
++                                          final boolean thick) {
++        if (fog == null || fog == FogParameters.NO_FOG || Scenery.fogVanilla() || blinded(camera.getEntity())) {
++            return fog;
+         }
+         final int medium = medium(camera);
+-        if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, farPlane, RenderSystem.getShaderFogStart(),
+-                RenderSystem.getShaderFogEnd(), FOG)) {
+-            return;
++        if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, renderDistance, fog.start(), fog.end(), FOG)) {
++            return fog;
+         }
+-        RenderSystem.setShaderFogStart(FOG[Scenery.START]);
+-        RenderSystem.setShaderFogEnd(FOG[Scenery.END]);
++        return new FogParameters(FOG[Scenery.START], FOG[Scenery.END], fog.shape(), fog.red(), fog.green(),
++                fog.blue(), fog.alpha());
+     }
+-    // @era:fog-else gl
+-    // @era:fog-else params
+-    //~ /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
+-    //~ public static FogParameters adjustFog(final FogParameters fog, final Camera camera, final float renderDistance,
+-                                          //~ final boolean thick) {
+-        //~ if (fog == null || fog == FogParameters.NO_FOG || Scenery.fogVanilla() || blinded(camera.getEntity())) {
+-            //~ return fog;
++    // @era:fog-else shader17|shader19
++    //~ /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
++    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
++        //~ if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
++            //~ return;
+         //~ }
+         //~ final int medium = medium(camera);
+-        //~ if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, renderDistance, fog.start(), fog.end(), FOG)) {
+-            //~ return fog;
++        //~ if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, farPlane, RenderSystem.getShaderFogStart(),
++                //~ RenderSystem.getShaderFogEnd(), FOG)) {
++            //~ return;
+         //~ }
+-        //~ return new FogParameters(FOG[Scenery.START], FOG[Scenery.END], fog.shape(), fog.red(), fog.green(),
+-                //~ fog.blue(), fog.alpha());
++        //~ RenderSystem.setShaderFogStart(FOG[Scenery.START]);
++        //~ RenderSystem.setShaderFogEnd(FOG[Scenery.END]);
+     //~ }
++    // @era:fog-else gl
+     // @era:fog-else buffer|data
+     //~ /**
+      //~ * Before FogRenderer writes the fog uniform: the four ranges to write instead, or null to
+diff --git a/common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java b/common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java
+index 348c80a..397e449 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java
+@@ -3,10 +3,10 @@ package com.aetherium.mixin.core;
+ import com.aetherium.qol.Scenery;
+ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+-// @era:clouds-begin level
+-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+-// @era:clouds-else renderer
+-//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
++// @era:clouds-begin renderer
++import org.spongepowered.asm.mixin.injection.ModifyVariable;
++// @era:clouds-else level
++//~ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+ // @era:clouds-end
+ 
+ /**
+@@ -16,17 +16,17 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+  * clouds (NaN / no render call) stays without. Applied only where
+  * {@code Capabilities.SCENERY_CONTROLS} is true.
+  */
+-// @era:clouds-begin level
+-@Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+-// @era:clouds-else renderer
+-//~ @Mixin(targets = "net.minecraft.client.renderer.CloudRenderer")
++// @era:clouds-begin renderer
++@Mixin(targets = "net.minecraft.client.renderer.CloudRenderer")
++// @era:clouds-else level
++//~ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ // @era:clouds-end
+ public abstract class CloudHeightMixin {
+-    // @era:clouds-begin level
+-    @ModifyExpressionValue(method = "renderClouds", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/renderer/DimensionSpecialEffects;getCloudHeight()F"), require = 0)
+-    // @era:clouds-else renderer
+-    //~ @ModifyVariable(method = "render", at = @At("HEAD"), argsOnly = true, ordinal = 0, require = 0)
++    // @era:clouds-begin renderer
++    @ModifyVariable(method = "render", at = @At("HEAD"), argsOnly = true, ordinal = 0, require = 0)
++    // @era:clouds-else level
++    //~ @ModifyExpressionValue(method = "renderClouds", at = @At(value = "INVOKE",
++            //~ target = "Lnet/minecraft/client/renderer/DimensionSpecialEffects;getCloudHeight()F"), require = 0)
+     // @era:clouds-end
+     private float aetherium$cloudHeight(final float original) {
+         return Scenery.cloudHeight(original);
 diff --git a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java b/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
 index ad232af..291433f 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
@@ -44,6 +175,82 @@ index ad232af..291433f 100644
              //~ cir.setReturnValue(Boolean.FALSE);
          //~ }
      //~ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
+index 7a014ca..f261295 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
+@@ -3,17 +3,17 @@ package com.aetherium.mixin.core;
+ import com.aetherium.client.SceneryHooks;
+ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+-// @era:fog-begin gl|shader17|shader19
++// @era:fog-begin params
++import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+ import net.minecraft.client.Camera;
++import net.minecraft.client.renderer.FogParameters;
+ import net.minecraft.client.renderer.FogRenderer;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:fog-else params
+-//~ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
++import org.joml.Vector4f;
++// @era:fog-else gl|shader17|shader19
+ //~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.renderer.FogParameters;
+ //~ import net.minecraft.client.renderer.FogRenderer;
+-//~ import org.joml.Vector4f;
++//~ import org.spongepowered.asm.mixin.injection.Inject;
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:fog-else buffer|data
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+@@ -40,14 +40,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ //~ @Mixin(targets = "net.minecraft.client.renderer.fog.FogRenderer")
+ // @era:fog-end
+ public abstract class FogControlMixin {
+-    // @era:fog-begin shader19
+-    @Inject(method = "setupFog", at = @At("TAIL"), require = 0)
+-    private static void aetherium$fogControls(final Camera camera, final FogRenderer.FogMode mode, final float farPlane,
+-                                              final boolean thick, final float partialTick, final CallbackInfo ci) {
+-        if (mode == FogRenderer.FogMode.FOG_TERRAIN) {
+-            SceneryHooks.adjustFog(camera, farPlane, thick);
+-        }
++    // @era:fog-begin params
++    @ModifyReturnValue(method = "setupFog", at = @At("RETURN"), require = 0)
++    private static FogParameters aetherium$fogControls(final FogParameters original, final Camera camera,
++                                                       final FogRenderer.FogMode mode, final Vector4f color,
++                                                       final float renderDistance, final boolean thick,
++                                                       final float partialTick) {
++        return mode == FogRenderer.FogMode.FOG_TERRAIN
++                ? SceneryHooks.adjustFog(original, camera, renderDistance, thick) : original;
+     }
++    // @era:fog-else shader19
++    //~ @Inject(method = "setupFog", at = @At("TAIL"), require = 0)
++    //~ private static void aetherium$fogControls(final Camera camera, final FogRenderer.FogMode mode, final float farPlane,
++                                              //~ final boolean thick, final float partialTick, final CallbackInfo ci) {
++        //~ if (mode == FogRenderer.FogMode.FOG_TERRAIN) {
++            //~ SceneryHooks.adjustFog(camera, farPlane, thick);
++        //~ }
++    //~ }
+     // @era:fog-else gl|shader17
+     //~ @Inject(method = "setupFog", at = @At("TAIL"), require = 0)
+     //~ private static void aetherium$fogControls(final Camera camera, final FogRenderer.FogMode mode, final float farPlane,
+@@ -56,15 +65,6 @@ public abstract class FogControlMixin {
+             //~ SceneryHooks.adjustFog(camera, farPlane, thick);
+         //~ }
+     //~ }
+-    // @era:fog-else params
+-    //~ @ModifyReturnValue(method = "setupFog", at = @At("RETURN"), require = 0)
+-    //~ private static FogParameters aetherium$fogControls(final FogParameters original, final Camera camera,
+-                                                       //~ final FogRenderer.FogMode mode, final Vector4f color,
+-                                                       //~ final float renderDistance, final boolean thick,
+-                                                       //~ final float partialTick) {
+-        //~ return mode == FogRenderer.FogMode.FOG_TERRAIN
+-                //~ ? SceneryHooks.adjustFog(original, camera, renderDistance, thick) : original;
+-    //~ }
+     // @era:fog-else buffer
+     //~ @WrapOperation(method = "setupFog", at = @At(value = "INVOKE",
+             //~ target = "Lnet/minecraft/client/renderer/fog/FogRenderer;updateBuffer(Ljava/nio/ByteBuffer;ILorg/joml/Vector4f;FFFFFF)V"),
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
 index cc1f564..1e90220 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
@@ -97,6 +304,223 @@ index cc1f564..1e90220 100644
      // @era:freelook-else align
      //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
              //~ target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 0), index = 0, require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
+index 1544ef9..d04d9a6 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
+@@ -5,10 +5,10 @@ import java.util.concurrent.Executor;
+ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.ModifyArg;
+-// @era:mesh-exec-begin crd|srd
+-// @era:mesh-exec-else tracing
+-//~ import java.util.concurrent.ExecutorService;
+-//~ import net.minecraft.TracingExecutor;
++// @era:mesh-exec-begin tracing
++import java.util.concurrent.ExecutorService;
++import net.minecraft.TracingExecutor;
++// @era:mesh-exec-else crd|srd
+ // @era:mesh-exec-end
+ 
+ /**
+@@ -26,24 +26,24 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class MeshExecutorMixin {
+-    // @era:mesh-exec-begin srd
+-    @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
++    // @era:mesh-exec-begin tracing
++    @ModifyArg(method = {"allChanged", "invalidateCompiledGeometry"}, at = @At(value = "INVOKE",
+             target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher;<init>"), require = 0)
+-    private Executor aetherium$meshExecutor(final Executor vanilla) {
+-        return QolHooks.meshExecutor(vanilla);
++    private TracingExecutor aetherium$meshExecutor(final TracingExecutor vanilla) {
++        final Executor own = QolHooks.meshExecutor(null);
++        return own instanceof ExecutorService ? new TracingExecutor((ExecutorService) own) : vanilla;
+     }
++    // @era:mesh-exec-else srd
++    //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
++            //~ target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher;<init>"), require = 0)
++    //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
++        //~ return QolHooks.meshExecutor(vanilla);
++    //~ }
+     // @era:mesh-exec-else crd
+     //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
+             //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>"), require = 0)
+     //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
+         //~ return QolHooks.meshExecutor(vanilla);
+     //~ }
+-    // @era:mesh-exec-else tracing
+-    //~ @ModifyArg(method = {"allChanged", "invalidateCompiledGeometry"}, at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher;<init>"), require = 0)
+-    //~ private TracingExecutor aetherium$meshExecutor(final TracingExecutor vanilla) {
+-        //~ final Executor own = QolHooks.meshExecutor(null);
+-        //~ return own instanceof ExecutorService ? new TracingExecutor((ExecutorService) own) : vanilla;
+-    //~ }
+     // @era:mesh-exec-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
+index 7594ede..ebe6c74 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
+@@ -5,13 +5,14 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:sky-begin mesh
+-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-import com.mojang.blaze3d.vertex.MeshData;
+-import com.mojang.blaze3d.vertex.VertexBuffer;
+-import net.minecraft.client.renderer.ShaderInstance;
+-import org.joml.Matrix4f;
++// @era:sky-begin renderer
++// @era:sky-else mesh
++//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++//~ import com.mojang.blaze3d.vertex.MeshData;
++//~ import com.mojang.blaze3d.vertex.VertexBuffer;
++//~ import net.minecraft.client.renderer.ShaderInstance;
++//~ import org.joml.Matrix4f;
+ // @era:sky-else v16
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+@@ -39,7 +40,6 @@ import org.joml.Matrix4f;
+ //~ import com.mojang.blaze3d.vertex.VertexBuffer;
+ //~ import net.minecraft.client.renderer.ShaderInstance;
+ //~ import org.joml.Matrix4f;
+-// @era:sky-else renderer
+ // @era:sky-end
+ 
+ /**
+@@ -54,55 +54,56 @@ import org.joml.Matrix4f;
+  * The cloud height is {@code CloudHeightMixin}. Applied only where
+  * {@code Capabilities.SCENERY_CONTROLS} is true.
+  */
+-// @era:sky-begin v16|end17|rb19|rb193|mesh
+-@Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+-// @era:sky-else renderer
+-//~ @Mixin(targets = "net.minecraft.client.renderer.SkyRenderer")
++// @era:sky-begin renderer
++@Mixin(targets = "net.minecraft.client.renderer.SkyRenderer")
++// @era:sky-else v16|end17|rb19|rb193|mesh
++//~ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ // @era:sky-end
+ public abstract class SkyMixin {
+-    // @era:sky-begin v16|end17|rb19|rb193|mesh
+-    @Inject(method = "renderSky", at = @At("HEAD"), cancellable = true, require = 0)
++    // @era:sky-begin renderer
++    @Inject(method = {"renderSkyDisc", "renderDarkDisc", "renderEndSky", "renderEndFlash", "renderSunMoonAndStars",
++            "renderSunriseAndSunset"}, at = @At("HEAD"), cancellable = true, require = 0)
+     private void aetherium$sky(final CallbackInfo ci) {
+         if (!Scenery.sky) {
+             ci.cancel();
+         }
+     }
+-    // @era:sky-else renderer
+-    //~ @Inject(method = {"renderSkyDisc", "renderDarkDisc", "renderEndSky", "renderEndFlash", "renderSunMoonAndStars",
+-            //~ "renderSunriseAndSunset"}, at = @At("HEAD"), cancellable = true, require = 0)
++
++    @Inject(method = {"renderSun", "renderMoon", "renderSunriseAndSunset"}, at = @At("HEAD"), cancellable = true,
++            require = 0)
++    private void aetherium$sunMoon(final CallbackInfo ci) {
++        if (!Scenery.sunMoon) {
++            ci.cancel();
++        }
++    }
++
++    @Inject(method = "renderStars", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$stars(final CallbackInfo ci) {
++        if (!Scenery.stars) {
++            ci.cancel();
++        }
++    }
++    // @era:sky-else v16|end17|rb19|rb193|mesh
++    //~ @Inject(method = "renderSky", at = @At("HEAD"), cancellable = true, require = 0)
+     //~ private void aetherium$sky(final CallbackInfo ci) {
+         //~ if (!Scenery.sky) {
+             //~ ci.cancel();
+         //~ }
+     //~ }
++    // @era:sky-end
+ 
+-    //~ @Inject(method = {"renderSun", "renderMoon", "renderSunriseAndSunset"}, at = @At("HEAD"), cancellable = true,
++    // @era:sky-begin renderer
++    // @era:sky-else mesh
++    //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
++            //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V"),
+             //~ require = 0)
+-    //~ private void aetherium$sunMoon(final CallbackInfo ci) {
+-        //~ if (!Scenery.sunMoon) {
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
+-
+-    //~ @Inject(method = "renderStars", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$stars(final CallbackInfo ci) {
+-        //~ if (!Scenery.stars) {
+-            //~ ci.cancel();
++    //~ private void aetherium$sunMoon(final MeshData mesh, final Operation<Void> original) {
++        //~ if (Scenery.sunMoon) {
++            //~ original.call(mesh);
++        //~ } else {
++            //~ mesh.close();
+         //~ }
+     //~ }
+-    // @era:sky-end
+-
+-    // @era:sky-begin mesh
+-    @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V"),
+-            require = 0)
+-    private void aetherium$sunMoon(final MeshData mesh, final Operation<Void> original) {
+-        if (Scenery.sunMoon) {
+-            original.call(mesh);
+-        } else {
+-            mesh.close();
+-        }
+-    }
+     // @era:sky-else v16|end17
+     //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+             //~ target = "Lcom/mojang/blaze3d/vertex/BufferUploader;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;)V"), require = 0)
+@@ -124,19 +125,19 @@ public abstract class SkyMixin {
+             //~ rendered.release();
+         //~ }
+     //~ }
+-    // @era:sky-else renderer
+     // @era:sky-end
+ 
+-    // @era:sky-begin rb193|mesh
+-    @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+-            target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;drawWithShader(Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lnet/minecraft/client/renderer/ShaderInstance;)V",
+-            ordinal = 1), require = 0)
+-    private void aetherium$stars(final VertexBuffer buffer, final Matrix4f pose, final Matrix4f projection,
+-                                 final ShaderInstance shader, final Operation<Void> original) {
+-        if (Scenery.stars) {
+-            original.call(buffer, pose, projection, shader);
+-        }
+-    }
++    // @era:sky-begin renderer
++    // @era:sky-else rb193|mesh
++    //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
++            //~ target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;drawWithShader(Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lnet/minecraft/client/renderer/ShaderInstance;)V",
++            //~ ordinal = 1), require = 0)
++    //~ private void aetherium$stars(final VertexBuffer buffer, final Matrix4f pose, final Matrix4f projection,
++                                 //~ final ShaderInstance shader, final Operation<Void> original) {
++        //~ if (Scenery.stars) {
++            //~ original.call(buffer, pose, projection, shader);
++        //~ }
++    //~ }
+     // @era:sky-else v16
+     //~ @WrapOperation(method = "renderSky", at = @At(value = "INVOKE",
+             //~ target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;draw(Lcom/mojang/math/Matrix4f;I)V", ordinal = 1), require = 0)
+@@ -155,6 +156,5 @@ public abstract class SkyMixin {
+             //~ original.call(buffer, pose, projection, shader);
+         //~ }
+     //~ }
+-    // @era:sky-else renderer
+     // @era:sky-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
 index dd489bc..090bb2c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
