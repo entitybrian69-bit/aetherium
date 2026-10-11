@@ -8,6 +8,10 @@ package com.aetherium.mixin.core;
 //~ import com.aetherium.perf.RenderToggles;
 //~ import com.aetherium.render.CompactTerrain;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
+//~ import com.mojang.math.Matrix4f;
+//~ import net.minecraft.client.Camera;
+//~ import net.minecraft.client.renderer.GameRenderer;
+//~ import net.minecraft.client.renderer.LightTexture;
 //~ import it.unimi.dsi.fastutil.objects.ObjectList;
 //~ import java.nio.FloatBuffer;
 //~ import net.minecraft.client.renderer.RenderType;
@@ -51,7 +55,13 @@ public abstract class ChunkRendererMixin {
      //~ * (so the whole view converts at once) or turns off / fails while compact buffers exist.
      //~ */
     //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
-    //~ private void aetherium$pipelineSwitch(final CallbackInfo ci) {
+    //~ private void aetherium$pipelineSwitch(final PoseStack poseStack, final float partialTick, final long finishNanos,
+                                          //~ final boolean renderOutline, final Camera camera, final GameRenderer gameRenderer,
+                                          //~ final LightTexture lightTexture, final Matrix4f projection, final CallbackInfo ci) {
+        //~ // The projection vanilla loads into GL for this frame: read it here instead of querying
+        //~ // fixed-function state, which GL translators may not track.
+        //~ projection.store(ChunkRenderer.projectionBuffer());
+        //~ ChunkRenderer.projectionStored();
         //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
             //~ ((LevelRenderer) (Object) this).allChanged();
         //~ }

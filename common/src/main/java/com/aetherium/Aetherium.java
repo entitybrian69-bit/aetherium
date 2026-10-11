@@ -162,6 +162,10 @@ public final class Aetherium {
         store.load();
         LOGGER.setDevEnabled(config.debugLogging.get().booleanValue());
 
+        if (com.aetherium.perf.PipelineCrashGuard.checkAtStartup(platform.configDirectory(), config)) {
+            store.saveNow();
+        }
+
         final ModConflictScanner conflicts = new ModConflictScanner(platform);
         conflicts.scan(config);
 
@@ -223,6 +227,7 @@ public final class Aetherium {
             return;
         }
         STATE.set(State.CLOSED);
+        com.aetherium.perf.PipelineCrashGuard.disarm();
         RenderToggles.refresh(local.config, false);
         BenchmarkRecorder.stop();
         local.store.close();
@@ -232,7 +237,7 @@ public final class Aetherium {
     private static String versionFromManifest() {
         final Package pack = Aetherium.class.getPackage();
         final String declared = pack == null ? null : pack.getImplementationVersion();
-        return declared == null || declared.isEmpty() ? "1.3.0" : declared;
+        return declared == null || declared.isEmpty() ? "1.3.1" : declared;
     }
 
     public static String describeRuntime() {

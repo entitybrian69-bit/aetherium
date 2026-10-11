@@ -1,5 +1,6 @@
 package com.aetherium.client;
 
+import com.aetherium.perf.PipelineCrashGuard;
 import com.aetherium.render.CompactTerrain;
 import com.aetherium.util.AetheriumLog;
 
@@ -235,6 +236,16 @@ public final class ChunkRenderer {
     private static boolean compactWanted;
     private static boolean compactUploaded;
 
+    // Projection captured from LevelRenderer.renderLevel's argument (no fixed-function query needed).
+    private static final FloatBuffer PROJECTION = directFloats(16);
+    private static boolean projectionCaptured;
+
+    // Early-frame verification: GL errors are checked after the first layers that drew something.
+    static final int ERROR_CHECK_LAYERS = 8;
+    private static int errorChecksLeft = ERROR_CHECK_LAYERS;
+    private static boolean loggedFirstUpload;
+    private static boolean loggedFirstCompactLayer;
+
     private ChunkRenderer() {
     }
 
@@ -253,6 +264,9 @@ public final class ChunkRenderer {
         if (failed) {
             return "Vanilla (fell back: " + failure + ")";
         }
+        if (!isDrawing() && PipelineCrashGuard.wasTripped()) {
+            return "Vanilla (turned off: the game closed while the pipeline was drawing last time)";
+        }
         if (isDrawing()) {
             return "Aetherium pipeline (" + sectionsLastLayer + " sections in the last layer" + lastStats + ")";
         }
@@ -263,6 +277,19 @@ public final class ChunkRenderer {
     public static FloatBuffer poseBuffer() {
         POSE.clear();
         return POSE;
+    }
+
+    /**
+     * Scratch buffer the mixin stores this frame's projection matrix into (column-major); call
+     * {@link #projectionStored()} afterwards. Render thread only.
+     */
+    public static FloatBuffer projectionBuffer() {
+        PROJECTION.clear();
+        return PROJECTION;
+    }
+
+    public static void projectionStored() {
+        projectionCaptured = true;
     }
 
     /** GameRenderer frame start: ages the "drawing" status. */
@@ -288,8 +315,16 @@ public final class ChunkRenderer {
             if (!programsReady && !createPrograms()) {
                 return false;
             }
+            if (errorChecksLeft > 0) {
+                drainGlErrors();
+            }
             MATRIX.clear();
-            GL11.glGetFloatv(GL_PROJECTION_MATRIX, MATRIX);
+            if (projectionCaptured) {
+                PROJECTION.rewind();
+                MATRIX.put(PROJECTION).flip();
+            } else {
+                GL11.glGetFloatv(GL_PROJECTION_MATRIX, MATRIX);
+            }
             MATRIX.rewind();
             MODEL_VIEW.clear();
             modelView.rewind();
@@ -303,6 +338,7 @@ public final class ChunkRenderer {
             GL20.glEnableVertexAttribArray(ATTR_UV0);
             sectionsLastLayer = 0;
             compactSectionsLastLayer = 0;
+            PipelineCrashGuard.arm();
             return true;
         } catch (final RuntimeException | LinkageError error) {
             fail("setup failed: " + error);
@@ -390,6 +426,17 @@ public final class ChunkRenderer {
             fail("cleanup failed: " + error);
         }
         current = null;
+        if (!failed && errorChecksLeft > 0 && sectionsLastLayer > 0) {
+            errorChecksLeft--;
+            final int error = GL11.glGetError();
+            if (error != 0) {
+                fail("GL error 0x" + Integer.toHexString(error) + " while drawing terrain");
+            } else if (compactSectionsLastLayer > 0 && !loggedFirstCompactLayer) {
+                loggedFirstCompactLayer = true;
+                LOG.info("Aetherium pipeline: first compact terrain layer drawn ({} sections, no GL error)",
+                        compactSectionsLastLayer);
+            }
+        }
         drawingThisFrame = !failed;
         lastDrawFrame = frame;
         if (compactQuadsTotal > 2_000_000L) {
@@ -406,6 +453,7 @@ public final class ChunkRenderer {
             failed = true;
             failure = reason.length() > 80 ? reason.substring(0, 80) : reason;
             LOG.warn("Experimental chunk renderer disabled, vanilla draws terrain: {}", reason);
+            PipelineCrashGuard.disarm();
         }
     }
 
@@ -420,8 +468,14 @@ public final class ChunkRenderer {
     }
 
     /** The upload mixin stored a compact buffer: from now on, turning the pipeline off needs a rebuild. */
-    public static void noteCompactUpload() {
+    public static void noteCompactUpload(final int quads) {
         compactUploaded = true;
+        if (!loggedFirstUpload) {
+            loggedFirstUpload = true;
+            errorChecksLeft = ERROR_CHECK_LAYERS; // verify the first frames that draw compact data too
+            LOG.info("Aetherium pipeline: first compact chunk upload ({} quads, {} KB instead of {} KB)", quads,
+                    (quads * CompactTerrain.QUAD_BYTES + 1023) / 1024, (quads * 4 * STRIDE + 1023) / 1024);
+        }
     }
 
     /**
@@ -436,10 +490,16 @@ public final class ChunkRenderer {
         }
         compactWanted = wanted;
         if (wanted) {
+            errorChecksLeft = ERROR_CHECK_LAYERS;
+            LOG.info("Aetherium pipeline on: rebuilding the loaded chunks in the compact format");
             return true;
         }
+        PipelineCrashGuard.disarm();
         final boolean rebuild = compactUploaded;
         compactUploaded = false;
+        if (rebuild) {
+            LOG.info("Aetherium pipeline off: rebuilding the loaded chunks for vanilla");
+        }
         return rebuild;
     }
 
@@ -535,6 +595,12 @@ public final class ChunkRenderer {
         fogDensity = GL11.glGetFloat(GL_FOG_DENSITY);
         FOG_COLOR.clear();
         GL11.glGetFloatv(GL_FOG_COLOR, FOG_COLOR);
+    }
+
+    private static void drainGlErrors() {
+        for (int i = 0; i < 16 && GL11.glGetError() != 0; i++) {
+            // errors left by earlier (vanilla or other mods') calls are not ours
+        }
     }
 
     /** GLSL float literal (always has a decimal point). */

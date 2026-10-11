@@ -1,4 +1,4 @@
-# Aetherium 1.3.0: verification report
+# Aetherium 1.3.1: verification report
 
 What was checked, how it was checked, and what was **not** checked. The audit trail for the
 0.1.0 line (CI compile reports 1–6, the old renderer's defects) is in git history at
@@ -336,3 +336,21 @@ Gates run for 1.3.0: `stubcheck --all` 33/33 (Java 8 API lint on the new 1.16.5 
 `gen_deltas --all --verify` (32 patches apply cleanly); `check.py` clean; `check_refs.py` clean.
 CI: `ship` run 38104354261 for commit d52294c passed all 35 jobs and published 33 releases
 `v1.3.0+<mc>` (50 jars, listed in `DOWNLOADS.md`).
+
+## 12. 1.3.1: crash guard
+
+Report: 1.16.5, Fabric, Android (PojavLauncher-based launcher, renderer reported as MobileGlues /
+LTW), LWJGL 3.3.3. The game closed right after `Aetherium pipeline ready`, with no Java exception
+in `latest.log`. That means a native crash. Its cause is **not established**: no native crash log
+(`hs_err_pid*.log`) or launcher message has been seen yet.
+
+| Change | Check |
+| --- | --- |
+| `perf/PipelineCrashGuard` marker file | `PipelineCrashGuardTest`: a session that dies while armed switches the option off once at the next start and removes the marker; re-enabling and drawing clears the note; a clean exit removes the marker; a stale marker with the option already off changes nothing |
+| Projection from `renderLevel(..., Matrix4f)` | the 1.16.5 probe lists `renderLevel(PoseStack, float, long, boolean, Camera, GameRenderer, LightTexture, Matrix4f)` and `Matrix4f.store(FloatBuffer)`; `GameRenderer` loads that same matrix as the GL projection before calling it. Falls back to the GL query if the injection did not apply |
+| First-frame `glGetError` checks, milestone logging | `ChunkRendererTest` (switching still rebuilds exactly once each way); stubcheck 1.16.5 |
+| `fabric.mod.json` `_comment` removed | JSON parses; the rationale moved to docs/ARCHITECTURE.md |
+
+Gates run for 1.3.1: `stubcheck --all` 33/33; `testrun.py --bench` 127 passed (120 unit + 7
+benchmarks); `gen_resources --check` (36 options, 97 lang keys); `gen_deltas --all --verify` (32
+patches apply cleanly); `check.py` clean (335 files); `check_refs.py` clean.

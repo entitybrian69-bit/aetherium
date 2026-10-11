@@ -5,7 +5,8 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **1.3.0** turns the experimental 1.16.5 chunk renderer into **Aetherium's own terrain
+Version **1.3.1** makes the pipeline safe to try after a crash report on 1.16.5 (see
+[1.3.1: crash guard](#131-crash-guard-for-the-pipeline)). Version **1.3.0** turned the experimental 1.16.5 chunk renderer into **Aetherium's own terrain
 pipeline**: a compact 16-byte vertex format, chunk meshes grouped by face direction, and back-face
 groups that are never drawn (see [1.3.0: the Aetherium pipeline](#130-the-aetherium-pipeline-1165)).
 It is still 1.16.5 only and off by default. Version 1.2.0 added **entity occlusion culling** on all
@@ -19,6 +20,29 @@ added smooth chunk loading, an animated-texture switch, a block-entity distance,
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
 either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
 OpenGL calls of its own unless you turn on the experimental 1.16.5 Aetherium pipeline.
+
+## 1.3.1: crash guard for the pipeline
+
+A tester's game closed on 1.16.5 (Android, a GL translator) right after the log line
+`Aetherium pipeline ready`. There was no Java exception, so the crash was inside the graphics
+driver or translator, where Java code cannot catch it. 1.3.1 does not claim to fix that crash,
+because its cause is not known yet. It makes sure it cannot repeat on its own and that the next
+log shows how far the pipeline got:
+
+- **Crash guard.** While the pipeline draws, a marker file `config/aetherium-pipeline.running`
+  exists. A normal exit, switching the option off, or a caught failure removes it. If the game
+  starts and the marker is still there, the pipeline is switched off in the config and the Backend
+  tab's *Chunk renderer* row says so. Turn it back on to try again. Closing the app from the task
+  switcher also counts as an unexpected exit.
+- **No fixed-function queries for the projection.** The projection matrix now comes from the
+  argument vanilla passes to `LevelRenderer.renderLevel`, not from `glGetFloatv(GL_PROJECTION_MATRIX)`,
+  which GL translators may not track.
+- **GL error check during the first frames.** For the first 8 layers that draw something, after
+  the switch-on, and again after the first compact upload, Aetherium checks `glGetError`. Any error
+  turns the pipeline off and vanilla draws (one rebuild).
+- **Milestones in the log:** pipeline on/off with rebuild, the first compact chunk upload (with its
+  size against vanilla's), and the first compact terrain layer drawn without a GL error.
+- Removed the `_comment` entry from `fabric.mod.json` that Fabric Loader warned about.
 
 ## 1.3.0: the Aetherium pipeline (1.16.5)
 
@@ -124,12 +148,12 @@ a feature is off.
 
 | | |
 | --- | --- |
-| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261 (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
-| Tests | 118 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
+| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: see the latest `ship` run (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
+| Tests | 120 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.3.0+<mcversion>`, and only for versions whose
+Releases are published per Minecraft version as `v1.3.1+<mcversion>`, and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -166,7 +190,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.3.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.3.1 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.

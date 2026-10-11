@@ -143,7 +143,7 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
         //~ }
         //~ this.aetherium$compact = compact;
         //~ if (compact) {
-            //~ ChunkRenderer.noteCompactUpload();
+            //~ ChunkRenderer.noteCompactUpload(this.aetherium$layout.quads());
         //~ }
     //~ }
     // @era:chunk-renderer-end

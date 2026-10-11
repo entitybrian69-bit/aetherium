@@ -121,7 +121,7 @@ final class ChunkRendererTest {
         assertFalse(ChunkRenderer.updatePipeline(false), "no compact buffer was ever stored: nothing to undo");
         assertFalse(ChunkRenderer.compactUploadsWanted());
         assertTrue(ChunkRenderer.updatePipeline(true));
-        ChunkRenderer.noteCompactUpload();
+        ChunkRenderer.noteCompactUpload(10);
         assertTrue(ChunkRenderer.hasCompactBuffers());
         assertTrue(ChunkRenderer.updatePipeline(false), "vanilla cannot draw compact buffers: rebuild");
         assertFalse(ChunkRenderer.hasCompactBuffers());

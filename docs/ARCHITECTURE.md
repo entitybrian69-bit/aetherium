@@ -150,6 +150,16 @@ throws is logged at warn once and the feature is disabled for the session, never
 frame. A benchmark or HUD readout that cannot be measured prints `stale` — the last thing this
 project will do is show a plausible number it did not measure.
 
+Native crashes (inside a GL driver or translator) cannot be caught. The experimental 1.16.5
+terrain pipeline therefore keeps a marker file (`config/aetherium-pipeline.running`) while it
+draws; if a session ends without removing it, `PipelineCrashGuard` switches the pipeline off at
+the next start and the Backend tab says why, so a driver crash never becomes a crash loop.
+
+`fabric.mod.json` has no `breaks` block on purpose: Aetherium degrades instead of refusing to
+start. `ModConflictScanner` detects Sodium, Embeddium, VulkanMod and other renderer mods and hands
+the overlapping feature to them, which keeps a modpack launchable. A pack that wants a hard
+guarantee can add its own `breaks` entry.
+
 ## Honest status
 
 The runtime error message in `Aetherium.initialize` points here, so this section is the

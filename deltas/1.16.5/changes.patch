@@ -1148,10 +1148,10 @@ index a561e63..e5c6f9f 100644
      // @era:options-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-index ade3f08..aa1570b 100644
+index daa9da9..53cd742 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-@@ -1,23 +1,23 @@
+@@ -1,27 +1,27 @@
  package com.aetherium.mixin.core;
  
 -// @era:chunk-renderer-begin none
@@ -1162,6 +1162,10 @@ index ade3f08..aa1570b 100644
 -//~ import com.aetherium.perf.RenderToggles;
 -//~ import com.aetherium.render.CompactTerrain;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.math.Matrix4f;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.renderer.GameRenderer;
+-//~ import net.minecraft.client.renderer.LightTexture;
 -//~ import it.unimi.dsi.fastutil.objects.ObjectList;
 -//~ import java.nio.FloatBuffer;
 -//~ import net.minecraft.client.renderer.RenderType;
@@ -1179,6 +1183,10 @@ index ade3f08..aa1570b 100644
 +import com.aetherium.perf.RenderToggles;
 +import com.aetherium.render.CompactTerrain;
 +import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.math.Matrix4f;
++import net.minecraft.client.Camera;
++import net.minecraft.client.renderer.GameRenderer;
++import net.minecraft.client.renderer.LightTexture;
 +import it.unimi.dsi.fastutil.objects.ObjectList;
 +import java.nio.FloatBuffer;
 +import net.minecraft.client.renderer.RenderType;
@@ -1193,7 +1201,7 @@ index ade3f08..aa1570b 100644
  // @era:chunk-renderer-end
  import net.minecraft.client.renderer.LevelRenderer;
  
-@@ -40,87 +40,87 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -44,93 +44,93 @@ import org.spongepowered.asm.mixin.Mixin;
  @Mixin(LevelRenderer.class)
  public abstract class ChunkRendererMixin {
  
@@ -1212,7 +1220,13 @@ index ade3f08..aa1570b 100644
 -     //~ * (so the whole view converts at once) or turns off / fails while compact buffers exist.
 -     //~ */
 -    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
--    //~ private void aetherium$pipelineSwitch(final CallbackInfo ci) {
+-    //~ private void aetherium$pipelineSwitch(final PoseStack poseStack, final float partialTick, final long finishNanos,
+-                                          //~ final boolean renderOutline, final Camera camera, final GameRenderer gameRenderer,
+-                                          //~ final LightTexture lightTexture, final Matrix4f projection, final CallbackInfo ci) {
+-        //~ // The projection vanilla loads into GL for this frame: read it here instead of querying
+-        //~ // fixed-function state, which GL translators may not track.
+-        //~ projection.store(ChunkRenderer.projectionBuffer());
+-        //~ ChunkRenderer.projectionStored();
 -        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
 -            //~ ((LevelRenderer) (Object) this).allChanged();
 -        //~ }
@@ -1222,7 +1236,13 @@ index ade3f08..aa1570b 100644
 +     * (so the whole view converts at once) or turns off / fails while compact buffers exist.
 +     */
 +    @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
-+    private void aetherium$pipelineSwitch(final CallbackInfo ci) {
++    private void aetherium$pipelineSwitch(final PoseStack poseStack, final float partialTick, final long finishNanos,
++                                          final boolean renderOutline, final Camera camera, final GameRenderer gameRenderer,
++                                          final LightTexture lightTexture, final Matrix4f projection, final CallbackInfo ci) {
++        // The projection vanilla loads into GL for this frame: read it here instead of querying
++        // fixed-function state, which GL translators may not track.
++        projection.store(ChunkRenderer.projectionBuffer());
++        ChunkRenderer.projectionStored();
 +        if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
 +            ((LevelRenderer) (Object) this).allChanged();
 +        }
@@ -1655,7 +1675,7 @@ index 0c9cdbc..592d8eb 100644
      // @era:section-vis-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-index fc2af38..03d81ec 100644
+index 51a565b..66581ef 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 @@ -3,18 +3,18 @@ package com.aetherium.mixin.core;
@@ -1800,7 +1820,7 @@ index fc2af38..03d81ec 100644
 +        }
 +        this.aetherium$compact = compact;
 +        if (compact) {
-+            ChunkRenderer.noteCompactUpload();
++            ChunkRenderer.noteCompactUpload(this.aetherium$layout.quads());
 +        }
 +    }
 +    // @era:chunk-renderer-else none
@@ -1870,7 +1890,7 @@ index fc2af38..03d81ec 100644
 -        //~ }
 -        //~ this.aetherium$compact = compact;
 -        //~ if (compact) {
--            //~ ChunkRenderer.noteCompactUpload();
+-            //~ ChunkRenderer.noteCompactUpload(this.aetherium$layout.quads());
 -        //~ }
 +        //~ return null;
      //~ }
@@ -2009,7 +2029,7 @@ index fbfb8d3..d749f5d 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index d3d56a5..9777da6 100644
+index 96bf9ee..997d380 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
