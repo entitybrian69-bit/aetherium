@@ -5922,6 +5922,125 @@ public abstract class net.minecraft.client.renderer.DimensionSpecialEffects {
   private static void method_29092(it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap);
   static {};
 }
+=== net.minecraft.core.Registry
+Compiled from "Registry.java"
+public interface net.minecraft.core.Registry<T> extends com.mojang.serialization.Keyable, net.minecraft.core.HolderLookup$RegistryLookup<T>, net.minecraft.core.IdMap<T> {
+  public abstract net.minecraft.resources.ResourceKey<? extends net.minecraft.core.Registry<T>> key();
+  public default com.mojang.serialization.Codec<T> byNameCodec();
+  public default com.mojang.serialization.Codec<net.minecraft.core.Holder<T>> holderByNameCodec();
+  private com.mojang.serialization.Codec<net.minecraft.core.Holder$Reference<T>> referenceHolderWithLifecycle();
+  private com.mojang.serialization.DataResult<net.minecraft.core.Holder$Reference<T>> safeCastToReference(net.minecraft.core.Holder<T>);
+  public default <U> java.util.stream.Stream<U> keys(com.mojang.serialization.DynamicOps<U>);
+  public abstract net.minecraft.resources.ResourceLocation getKey(T);
+  public abstract java.util.Optional<net.minecraft.resources.ResourceKey<T>> getResourceKey(T);
+  public abstract int getId(T);
+  public abstract T getValue(net.minecraft.resources.ResourceKey<T>);
+  public abstract T getValue(net.minecraft.resources.ResourceLocation);
+  public abstract java.util.Optional<net.minecraft.core.RegistrationInfo> registrationInfo(net.minecraft.resources.ResourceKey<T>);
+  public default java.util.Optional<T> getOptional(net.minecraft.resources.ResourceLocation);
+  public default java.util.Optional<T> getOptional(net.minecraft.resources.ResourceKey<T>);
+  public abstract java.util.Optional<net.minecraft.core.Holder$Reference<T>> getAny();
+  public default T getValueOrThrow(net.minecraft.resources.ResourceKey<T>);
+  public abstract java.util.Set<net.minecraft.resources.ResourceLocation> keySet();
+  public abstract java.util.Set<java.util.Map$Entry<net.minecraft.resources.ResourceKey<T>, T>> entrySet();
+  public abstract java.util.Set<net.minecraft.resources.ResourceKey<T>> registryKeySet();
+  public abstract java.util.Optional<net.minecraft.core.Holder$Reference<T>> getRandom(net.minecraft.util.RandomSource);
+  public default java.util.stream.Stream<T> stream();
+  public abstract boolean containsKey(net.minecraft.resources.ResourceLocation);
+  public abstract boolean containsKey(net.minecraft.resources.ResourceKey<T>);
+  public static <T> T register(net.minecraft.core.Registry<? super T>, java.lang.String, T);
+  public static <V, T extends V> T register(net.minecraft.core.Registry<V>, net.minecraft.resources.ResourceLocation, T);
+  public static <V, T extends V> T register(net.minecraft.core.Registry<V>, net.minecraft.resources.ResourceKey<V>, T);
+  public static <T> net.minecraft.core.Holder$Reference<T> registerForHolder(net.minecraft.core.Registry<T>, net.minecraft.resources.ResourceKey<T>, T);
+  public static <T> net.minecraft.core.Holder$Reference<T> registerForHolder(net.minecraft.core.Registry<T>, net.minecraft.resources.ResourceLocation, T);
+  public abstract net.minecraft.core.Registry<T> freeze();
+  public abstract net.minecraft.core.Holder$Reference<T> createIntrusiveHolder(T);
+  public abstract java.util.Optional<net.minecraft.core.Holder$Reference<T>> get(int);
+  public abstract java.util.Optional<net.minecraft.core.Holder$Reference<T>> get(net.minecraft.resources.ResourceLocation);
+  public abstract net.minecraft.core.Holder<T> wrapAsHolder(T);
+  public default java.lang.Iterable<net.minecraft.core.Holder<T>> getTagOrEmpty(net.minecraft.tags.TagKey<T>);
+  public default java.util.Optional<net.minecraft.core.Holder<T>> getRandomElementOf(net.minecraft.tags.TagKey<T>, net.minecraft.util.RandomSource);
+  public abstract java.util.stream.Stream<net.minecraft.core.HolderSet$Named<T>> getTags();
+  public default net.minecraft.core.IdMap<net.minecraft.core.Holder<T>> asHolderIdMap();
+  public abstract net.minecraft.core.Registry$PendingTags<T> prepareTagReload(net.minecraft.tags.TagLoader$LoadResult<T>);
+  private static java.util.Optional method_56160(net.minecraft.util.RandomSource, net.minecraft.core.HolderSet$Named);
+  private static java.lang.Object method_34028(com.mojang.serialization.DynamicOps, net.minecraft.resources.ResourceLocation);
+  private java.lang.String method_57063(net.minecraft.core.Holder);
+  private com.mojang.serialization.Lifecycle method_57060(net.minecraft.core.Holder$Reference);
+  private static net.minecraft.resources.ResourceLocation method_57062(net.minecraft.core.Holder$Reference);
+  private com.mojang.serialization.DataResult method_57065(net.minecraft.resources.ResourceLocation);
+  private com.mojang.serialization.DataResult method_57066(net.minecraft.resources.ResourceLocation);
+  private java.lang.String method_57067(net.minecraft.resources.ResourceLocation);
+  private static net.minecraft.core.Holder method_57064(net.minecraft.core.Holder$Reference);
+  private com.mojang.serialization.DataResult method_47448(java.lang.Object);
+}
+=== net.minecraft.tags.FluidTags
+Compiled from "FluidTags.java"
+public final class net.minecraft.tags.FluidTags {
+  public static final net.minecraft.tags.TagKey<net.minecraft.world.level.material.Fluid> WATER;
+  public static final net.minecraft.tags.TagKey<net.minecraft.world.level.material.Fluid> LAVA;
+  private net.minecraft.tags.FluidTags();
+  private static net.minecraft.tags.TagKey<net.minecraft.world.level.material.Fluid> create(java.lang.String);
+  static {};
+}
+=== net.minecraft.world.effect.MobEffects
+Compiled from "MobEffects.java"
+public class net.minecraft.world.effect.MobEffects {
+  private static final int DARKNESS_EFFECT_FACTOR_PADDING_DURATION_TICKS;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> SPEED;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> SLOWNESS;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> HASTE;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> MINING_FATIGUE;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> STRENGTH;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> INSTANT_HEALTH;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> INSTANT_DAMAGE;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> JUMP_BOOST;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> NAUSEA;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> REGENERATION;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> RESISTANCE;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> FIRE_RESISTANCE;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> WATER_BREATHING;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> INVISIBILITY;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> BLINDNESS;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> NIGHT_VISION;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> HUNGER;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> WEAKNESS;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> POISON;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> WITHER;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> HEALTH_BOOST;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> ABSORPTION;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> SATURATION;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> GLOWING;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> LEVITATION;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> LUCK;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> UNLUCK;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> SLOW_FALLING;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> CONDUIT_POWER;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> DOLPHINS_GRACE;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> BAD_OMEN;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> HERO_OF_THE_VILLAGE;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> DARKNESS;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> TRIAL_OMEN;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> RAID_OMEN;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> WIND_CHARGED;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> WEAVING;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> OOZING;
+  public static final net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> INFESTED;
+  public net.minecraft.world.effect.MobEffects();
+  private static net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> register(java.lang.String, net.minecraft.world.effect.MobEffect);
+  public static net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> bootstrap(net.minecraft.core.Registry<net.minecraft.world.effect.MobEffect>);
+  private static int method_58624(net.minecraft.util.RandomSource);
+  private static int method_58625(net.minecraft.util.RandomSource);
+  private static int method_58626(net.minecraft.util.RandomSource);
+  static {};
+}
+=== net.minecraft.core.particles.ParticleOptions
+Compiled from "ParticleOptions.java"
+public interface net.minecraft.core.particles.ParticleOptions {
+  public abstract net.minecraft.core.particles.ParticleType<?> getType();
+}
+=== net.minecraft.client.renderer.FogRenderer$FogMode
+Error: class not found: net.minecraft.client.renderer.FogRenderer$FogMode
 === code net.minecraft.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
   private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads"; :: private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads";
   private static final net.minecraft.TracingExecutor BACKGROUND_EXECUTOR; :: private static final net.minecraft.TracingExecutor BACKGROUND_EXECUTOR;
@@ -6485,30 +6604,30 @@ net/minecraft/client/gui/screens/AlertScreen.class
 net/minecraft/client/gui/screens/BackupConfirmScreen.class
 net/minecraft/client/gui/screens/ConfirmLinkScreen.class
 net/minecraft/client/gui/screens/ChatScreen.class
-net/minecraft/client/gui/screens/AccessibilityOnboardingScreen.class
-net/minecraft/client/gui/screens/ConfirmScreen.class
-net/minecraft/client/gui/screens/CreateFlatWorldScreen.class
-net/minecraft/client/gui/screens/CreateBuffetWorldScreen.class
-net/minecraft/client/gui/screens/DatapackLoadFailureScreen.class
-net/minecraft/client/gui/screens/CreditsAndAttributionScreen.class
-net/minecraft/client/gui/screens/DeathScreen.class
 net/minecraft/client/gui/screens/ConnectScreen.class
+net/minecraft/client/gui/screens/CreateFlatWorldScreen.class
+net/minecraft/client/gui/screens/AccessibilityOnboardingScreen.class
+net/minecraft/client/gui/screens/DatapackLoadFailureScreen.class
+net/minecraft/client/gui/screens/CreateBuffetWorldScreen.class
+net/minecraft/client/gui/screens/CreditsAndAttributionScreen.class
+net/minecraft/client/gui/screens/DemoIntroScreen.class
 net/minecraft/client/gui/screens/DisconnectedScreen.class
+net/minecraft/client/gui/screens/DeathScreen.class
 net/minecraft/client/gui/screens/DirectJoinServerScreen.class
 net/minecraft/client/gui/screens/ErrorScreen.class
+net/minecraft/client/gui/screens/EditServerScreen.class
 net/minecraft/client/gui/screens/GenericMessageScreen.class
 net/minecraft/client/gui/screens/GenericWaitingScreen.class
 net/minecraft/client/gui/screens/LevelLoadingScreen.class
 net/minecraft/client/gui/screens/InBedChatScreen.class
-net/minecraft/client/gui/screens/DemoIntroScreen.class
 net/minecraft/client/gui/screens/NoticeWithLinkScreen.class
-net/minecraft/client/gui/screens/EditServerScreen.class
-net/minecraft/client/gui/screens/PresetFlatWorldScreen.class
+net/minecraft/client/gui/screens/OutOfMemoryScreen.class
+net/minecraft/client/gui/screens/ConfirmScreen.class
 net/minecraft/client/gui/screens/PauseScreen.class
 net/minecraft/client/gui/screens/ProgressScreen.class
 net/minecraft/client/gui/screens/ReceivingLevelScreen.class
-net/minecraft/client/gui/screens/OutOfMemoryScreen.class
-net/minecraft/client/gui/screens/TitleScreen.class
-net/minecraft/client/gui/screens/ShareToLanScreen.class
-net/minecraft/client/gui/screens/WinScreen.class
 net/minecraft/client/gui/screens/RecoverWorldDataScreen.class
+net/minecraft/client/gui/screens/ShareToLanScreen.class
+net/minecraft/client/gui/screens/TitleScreen.class
+net/minecraft/client/gui/screens/WinScreen.class
+net/minecraft/client/gui/screens/PresetFlatWorldScreen.class
