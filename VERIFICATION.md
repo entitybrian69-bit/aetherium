@@ -538,3 +538,5 @@ record per builder: several render-thread rebuilds in one frame overwrote each o
 
 Gates run for 1.5.1: `stubcheck --all` 33/33; `testrun.py` 146 passed; `gen_deltas --all --verify`
 (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.
+CI: `ship` run 38128138939 for commit 0a33ac1 passed and published `v1.5.1+1.16.5`
+(`aetherium-fabric-1.5.1+1.16.5.jar`, 946576 bytes).
