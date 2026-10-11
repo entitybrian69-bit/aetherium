@@ -781,3 +781,5 @@ Backend status line will show it.
 
 Gates run for 1.7.1: `testrun.py` 163 passed; `stubcheck --all` 33/33; `gen_deltas --all --verify`;
 `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean on the 1.16.5 sources.
+CI: `ship` run 38144789068 for commit 49d393f passed and published `v1.7.1+1.16.5`
+(`aetherium-fabric-1.7.1+1.16.5.jar`, 1000071 bytes).
