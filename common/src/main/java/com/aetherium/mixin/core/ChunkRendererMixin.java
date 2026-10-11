@@ -71,7 +71,7 @@ public abstract class ChunkRendererMixin {
         //~ // fixed-function state, which GL translators may not track.
         //~ projection.store(ChunkRenderer.projectionBuffer());
         //~ ChunkRenderer.projectionStored();
-        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, RenderToggles.pipelineShader)) {
+        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, false)) {
             //~ ((LevelRenderer) (Object) this).allChanged();
         //~ }
     //~ }

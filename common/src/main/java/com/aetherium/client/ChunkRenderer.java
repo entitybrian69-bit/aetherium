@@ -331,10 +331,6 @@ public final class ChunkRenderer {
             String why = "";
             if (compatible && shaderFailed) {
                 why = "; shader mode failed: " + shaderFailure;
-            } else if (compatible && PipelineCrashGuard.wasDowngraded()) {
-                why = "; shader mode crashed last time";
-            } else if (!compatible && PipelineCrashGuard.wasRetriedAfterFix()) {
-                why = "; retrying after the 1.3.4 GL4ES fix";
             }
             return "Aetherium pipeline, " + (compatible ? "compatible mode" : "shader mode") + " (" + sectionsLastLayer
                     + " sections in the last layer" + lastStats + why + ")";

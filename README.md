@@ -5,6 +5,14 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
+Version **1.5.5** removes the pipeline's shader mode and the **Backend > Pipeline shader** option.
+On GL4ES, shader mode kept crashing in the graphics driver after each fix (1.5.2, 1.5.3, 1.5.4), and
+that can't be tested without the device. The Aetherium pipeline now always draws in compatible mode:
+vanilla's vertex format and vanilla's own GL calls, with faces pointing away from you skipped. This
+was the mode reported working. An `advanced.pipeline_shader` key in an existing config file is kept
+but ignored. A crash marker left by shader mode in an older version no longer turns the pipeline off.
+The shader code is still in the source but is never selected.
+
 Version **1.5.4** fixes a "Rendering chunk" crash (`IndexOutOfBoundsException` in
 `BufferBuilder.popNextBuffer`) with the experimental pipeline on 1.16.5. On the first tick in a
 world, Aetherium threw away the chunk meshes its workers had already converted while their uploads
@@ -174,7 +182,7 @@ attribute was `GL_UNSIGNED_SHORT` from 1.3.0 to 1.3.3: every pipeline crash on t
 What is left between `pipeline ready` and the crash is the pipeline's own GLSL 1.20 program and its
 generic vertex attributes, which LTW translates to GL 3.3 core. 1.3.3 adds a mode that has neither.
 
-- **Backend > Pipeline shader** (new, on by default). On: shader mode, as in 1.3.2. Off:
+- **Backend > Pipeline shader** (new, on by default; removed in 1.5.5). On: shader mode, as in 1.3.2. Off:
   **compatible mode**. Chunks keep vanilla's 32-byte vertices and are drawn with vanilla's own calls
   (`VertexBuffer.bind`, `DefaultVertexFormat.BLOCK.setupBufferState`, the matrix push/load/mult/pop,
   `RenderSystem.drawArrays(GL_QUADS)`), in the same order vanilla makes them. The only change is
@@ -341,7 +349,7 @@ a feature is off.
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.5.4+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
+Releases are published per Minecraft version as `v1.5.5+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -378,7 +386,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.5.4 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.5.5 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.

@@ -607,3 +607,26 @@ Gates run for 1.5.4: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_delt
 (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.
 CI: `ship` run 38132394475 for commit eeeee9e passed and published `v1.5.4+1.16.5`
 (`aetherium-fabric-1.5.4+1.16.5.jar`, 948176 bytes).
+
+## 22. 1.5.5: shader mode removed (1.16.5)
+
+User report after 1.5.4: a native crash (`SIGSEGV` in `memcpy` called from the Mali driver) in
+`glDrawArrays` from `BufferUploader` while drawing an entity layer (`MultiBufferSource.BufferSource.endBatch`
+from `LevelRenderer.renderEntity`, vertex format size 36). The shader path disables its vertex attributes,
+unbinds its buffer and program after each layer (`ChunkRenderer.end`), so no leaked state was found to
+blame. This was the third shader-mode crash on this device after a fix, and the user asked for the option
+to be removed if it can't be fixed.
+
+Change: `ChunkRendererMixin` calls `ChunkRenderer.updatePipeline(enabled, false)`, so the pipeline only
+ever selects compatible mode. The `advanced.pipeline_shader` option, its GUI entry, lang keys and schema
+entry are removed (an existing key in a config file is kept as an unknown key and ignored).
+`PipelineCrashGuard` ignores markers without `mode=compatible` (shader mode or 1.3.1/1.3.2 markers)
+instead of switching modes; a compatible-mode marker still turns the pipeline off
+(`PipelineCrashGuardTest.shaderMarkersIgnored`).
+
+**Not established:** that this crash came from shader mode. The report does not show the settings, and the
+crash is in vanilla's entity draw, not in a pipeline draw. If it happens in compatible mode too, its cause
+is elsewhere.
+
+Gates run for 1.5.5: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_deltas --all --verify`
+(32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.

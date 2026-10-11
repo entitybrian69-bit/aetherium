@@ -301,8 +301,6 @@ public final class AetheriumPages {
                 }));
         page.add(bool("backend.chunk_renderer", "Aetherium pipeline (experimental)", config.experimentalChunkRenderer)
                 .availableWhen(() -> Capabilities.EXPERIMENTAL_CHUNK_RENDERER, "Minecraft 1.16.5 only for now"));
-        page.add(bool("backend.pipeline_shader", "Pipeline shader", config.pipelineShader)
-                .availableWhen(() -> Capabilities.EXPERIMENTAL_CHUNK_RENDERER, "Minecraft 1.16.5 only for now"));
         page.add(Setting.info("backend.chunk_renderer_state", "Chunk renderer",
                 "Which path draws solid and cutout terrain right now.", ChunkRenderer::statusText));
         page.add(bool("backend.debug", "Debug logging", config.debugLogging));
