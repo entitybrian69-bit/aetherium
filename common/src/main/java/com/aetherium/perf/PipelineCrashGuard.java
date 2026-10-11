@@ -19,7 +19,8 @@ import java.nio.file.Path;
  *
  * <p>The marker records which mode was drawing. Shader mode was removed in 1.5.5 (it kept crashing
  * GL4ES), so a shader-mode marker (or one without a mode, from 1.3.1/1.3.2) left by an older version
- * is ignored; a crash in compatible mode turns the pipeline off.</p>
+ * is ignored; a crash in compatible mode turns the pipeline off. A crash while drawing batched
+ * terrain (1.6.0, {@link #MODE_REGIONS}) first turns only batching off.</p>
  *
  * <p>Closing the app from the task switcher also skips the normal exit, so it can trip the guard.
  * Turning the option back on clears it.</p>
@@ -33,11 +34,14 @@ public final class PipelineCrashGuard {
     private static volatile Path marker;
     private static volatile boolean armed;
     private static volatile boolean tripped;
+    private static volatile boolean batchingOff;
     private static volatile String armedMode = "";
 
     /** Marker modes. */
     public static final String MODE_SHADER = "shader";
     public static final String MODE_COMPATIBLE = "compatible";
+    /** Compatible mode with batched terrain (TerrainRegions). */
+    public static final String MODE_REGIONS = "regions";
 
     private PipelineCrashGuard() {
     }
@@ -51,6 +55,7 @@ public final class PipelineCrashGuard {
         armed = false;
         armedMode = "";
         tripped = false;
+        batchingOff = false;
         if (!Files.exists(marker)) {
             return false;
         }
@@ -58,6 +63,22 @@ public final class PipelineCrashGuard {
         deleteQuietly(marker);
         if (!config.experimentalChunkRenderer.get().booleanValue()) {
             return false;
+        }
+        if (content.contains("mode=" + MODE_REGIONS) && config.regionBatching.get().booleanValue()) {
+            config.regionBatching.set(Boolean.FALSE);
+            batchingOff = true;
+            LOG.warn("The last session ended while the Aetherium pipeline was drawing batched terrain (most likely a "
+                    + "crash in the graphics driver or GL translator). Batched terrain has been turned off; the "
+                    + "pipeline stays on. Turn it back on in Video Settings > Backend to try again.");
+            return true;
+        }
+        if (content.contains("mode=" + MODE_REGIONS)) {
+            // Batching already off (the user turned it off since): treat as a compatible-mode crash.
+            config.experimentalChunkRenderer.set(Boolean.FALSE);
+            tripped = true;
+            LOG.warn("The last session ended while the Aetherium pipeline was drawing. The pipeline has been turned "
+                    + "off; turn it back on in Video Settings > Backend to try again.");
+            return true;
         }
         if (!content.contains("mode=" + MODE_COMPATIBLE)) {
             // Written by a version that still had shader mode (removed in 1.5.5): the pipeline now
@@ -86,6 +107,9 @@ public final class PipelineCrashGuard {
         armed = true;
         armedMode = mode;
         tripped = false;
+        if (MODE_REGIONS.equals(mode)) {
+            batchingOff = false;
+        }
         try {
             Files.write(file, ("mode=" + mode + "\npipeline drawing since " + System.currentTimeMillis() + "\n")
                     .getBytes(StandardCharsets.UTF_8));
@@ -112,6 +136,11 @@ public final class PipelineCrashGuard {
     /** True when this session started with the pipeline switched off by the guard. */
     public static boolean wasTripped() {
         return tripped;
+    }
+
+    /** True when this session started with batched terrain switched off by the guard. */
+    public static boolean wasBatchingTurnedOff() {
+        return batchingOff;
     }
 
     private static String readQuietly(final Path file) {

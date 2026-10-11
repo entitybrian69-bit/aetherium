@@ -331,9 +331,11 @@ public final class ChunkRenderer {
             String why = "";
             if (compatible && shaderFailed) {
                 why = "; shader mode failed: " + shaderFailure;
+            } else if (PipelineCrashGuard.wasBatchingTurnedOff()) {
+                why = "; batched terrain turned off: the game closed while drawing it last time";
             }
             return "Aetherium pipeline, " + (compatible ? "compatible mode" : "shader mode") + " (" + sectionsLastLayer
-                    + " sections in the last layer" + lastStats + why + ")";
+                    + " sections in the last layer" + lastStats + TerrainRegions.status() + why + ")";
         }
         return "Vanilla";
     }
@@ -633,11 +635,11 @@ public final class ChunkRenderer {
     // ------------------------------------------------------------------ compatible mode
 
     /** A compatible-mode layer starts (the mixin then replays vanilla's draw calls). */
-    public static void beginCompatible() {
+    public static void beginCompatible(final boolean regions) {
         if (!loggedGlInfo) {
             logGlInfo();
         }
-        PipelineCrashGuard.arm(PipelineCrashGuard.MODE_COMPATIBLE);
+        PipelineCrashGuard.arm(regions ? PipelineCrashGuard.MODE_REGIONS : PipelineCrashGuard.MODE_COMPATIBLE);
         sectionsLastLayer = 0;
         compactSectionsLastLayer = 0;
     }
@@ -692,6 +694,11 @@ public final class ChunkRenderer {
             LOG.info("Aetherium pipeline: first compatible-mode terrain layer drawn ({} sections, {} sorted by face)",
                     sectionsLastLayer, compactSectionsLastLayer);
         }
+    }
+
+    /** A mesh went into a shared region buffer: vanilla cannot draw it, so switching off needs a rebuild. */
+    public static void noteRegionUpload() {
+        compactUploaded = true;
     }
 
     /** Whether any compact buffers may still be live (then vanilla must not draw these layers). */

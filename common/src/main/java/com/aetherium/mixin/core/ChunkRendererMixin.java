@@ -4,6 +4,7 @@ package com.aetherium.mixin.core;
 // @era:chunk-renderer-else gl16
 //~ import com.aetherium.client.ChunkInfoOrigin;
 //~ import com.aetherium.client.ChunkRenderer;
+//~ import com.aetherium.client.TerrainRegions;
 //~ import com.aetherium.client.VertexBufferAccess;
 //~ import com.aetherium.perf.RenderToggles;
 //~ import com.aetherium.render.CompactTerrain;
@@ -20,6 +21,7 @@ package com.aetherium.mixin.core;
 //~ import net.minecraft.client.renderer.RenderType;
 //~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 //~ import net.minecraft.core.BlockPos;
+//~ import org.lwjgl.opengl.GL15;
 //~ import org.spongepowered.asm.mixin.Final;
 //~ import org.spongepowered.asm.mixin.Shadow;
 //~ import org.spongepowered.asm.mixin.Unique;
@@ -71,7 +73,10 @@ public abstract class ChunkRendererMixin {
         //~ // fixed-function state, which GL translators may not track.
         //~ projection.store(ChunkRenderer.projectionBuffer());
         //~ ChunkRenderer.projectionStored();
-        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, false)) {
+        //~ final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, false);
+        //~ final boolean pipelineOn = ChunkRenderer.uploadMode() == ChunkRenderer.MODE_COMPATIBLE;
+        //~ final boolean regions = TerrainRegions.configure(pipelineOn && RenderToggles.regionBatching, pipelineOn);
+        //~ if (switched || regions) {
             //~ ((LevelRenderer) (Object) this).allChanged();
         //~ }
     //~ }
@@ -166,7 +171,8 @@ public abstract class ChunkRendererMixin {
     //~ private void aetherium$drawCompatible(final RenderType type, final PoseStack poseStack, final double camX,
                                           //~ final double camY, final double camZ) {
         //~ type.setupRenderState();
-        //~ ChunkRenderer.beginCompatible();
+        //~ ChunkRenderer.beginCompatible(TerrainRegions.enabled());
+        //~ TerrainRegions.beginLayer();
         //~ try {
             //~ final ObjectList<?> list = this.renderChunks;
             //~ for (int i = 0, n = list.size(); i < n; i++) {
@@ -178,6 +184,23 @@ public abstract class ChunkRendererMixin {
                 //~ final VertexBuffer buffer = chunk.getBuffer(type);
                 //~ final VertexBufferAccess access = (VertexBufferAccess) buffer;
                 //~ if (access.aetheriumCompactLayout() != null) {
+                    //~ continue;
+                //~ }
+                //~ final TerrainRegions.Slot slot = access.aetheriumSlot();
+                //~ if (slot != null) {
+                    //~ // Batched: queue the ranges that can face the camera; the page draws them below.
+                    //~ final int runs = ChunkRenderer.compatibleRuns(access.aetheriumSortedLayout(),
+                            //~ (float) (slot.originX() - camX), (float) (slot.originY() - camY), (float) (slot.originZ() - camZ));
+                    //~ if (runs < 0) {
+                        //~ TerrainRegions.queueAll(slot);
+                    //~ } else {
+                        //~ for (int r = 0; r < runs; r++) {
+                            //~ TerrainRegions.queue(slot, ChunkRenderer.runFirstVertex(r), ChunkRenderer.runVertexCount(r));
+                        //~ }
+                    //~ }
+                    //~ if (runs != 0) {
+                        //~ ChunkRenderer.compatibleSectionDrawn();
+                    //~ }
                     //~ continue;
                 //~ }
                 //~ final BlockPos origin = chunk.getOrigin();
@@ -200,12 +223,28 @@ public abstract class ChunkRendererMixin {
                     //~ RenderSystem.drawArrays(7, 0, access.aetheriumVertexCount()); // GL_QUADS, as vanilla
                 //~ } else {
                     //~ for (int r = 0; r < runs; r++) {
-                        //~ RenderSystem.drawArrays(7, ChunkRenderer.runFirstVertex(r), ChunkRenderer.runVertexCount(r));
+                        //~ aetherium$drawQuads(ChunkRenderer.runFirstVertex(r), ChunkRenderer.runVertexCount(r));
                     //~ }
                 //~ }
                 //~ RenderSystem.popMatrix();
                 //~ poseStack.popPose();
                 //~ ChunkRenderer.compatibleSectionDrawn();
+            //~ }
+            //~ // Batched pages: one bind, one set of vertex pointers and one matrix per page.
+            //~ for (int p = 0, pages = TerrainRegions.preparePages(); p < pages; p++) {
+                //~ final TerrainRegions.RegionPage page = TerrainRegions.page(p);
+                //~ poseStack.pushPose();
+                //~ poseStack.translate(page.originX() - camX, page.originY() - camY, page.originZ() - camZ);
+                //~ GL15.glBindBuffer(0x8892, page.id()); // GL_ARRAY_BUFFER, as VertexBuffer.bind
+                //~ DefaultVertexFormat.BLOCK.setupBufferState(0L);
+                //~ RenderSystem.pushMatrix();
+                //~ RenderSystem.loadIdentity();
+                //~ RenderSystem.multMatrix(poseStack.last().pose());
+                //~ for (int r = 0, n = page.ranges(); r < n; r++) {
+                    //~ RenderSystem.drawArrays(7, page.rangeFirst(r), page.rangeCount(r)); // GL_QUADS
+                //~ }
+                //~ RenderSystem.popMatrix();
+                //~ poseStack.popPose();
             //~ }
             //~ VertexBuffer.unbind();
             //~ RenderSystem.clearCurrentColor();
@@ -214,7 +253,19 @@ public abstract class ChunkRendererMixin {
         //~ } catch (final RuntimeException | LinkageError error) {
             //~ ChunkRenderer.fail("compatible mode: " + error);
         //~ } finally {
+            //~ TerrainRegions.endLayer();
             //~ type.clearRenderState();
+        //~ }
+    //~ }
+
+    //~ /**
+     //~ * {@code GL_QUADS} draw of at most {@link TerrainRegions#DRAW_MAX_VERTICES} vertices at a time:
+     //~ * GL4ES splits longer quad draws itself but restarts each piece at vertex 0.
+     //~ */
+    //~ @Unique
+    //~ private static void aetherium$drawQuads(final int first, final int count) {
+        //~ for (int done = 0; done < count; done += TerrainRegions.DRAW_MAX_VERTICES) {
+            //~ RenderSystem.drawArrays(7, first + done, Math.min(TerrainRegions.DRAW_MAX_VERTICES, count - done));
         //~ }
     //~ }
     // @era:chunk-renderer-end

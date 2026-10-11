@@ -8,5 +8,7 @@ public class GL15 {
     public static void glBindBuffer(int target, int buffer) { }
     public static void glBufferData(int target, ShortBuffer data, int usage) { }
     public static void glBufferData(int target, java.nio.ByteBuffer data, int usage) { }
+    public static void glBufferData(int target, long size, int usage) { }
+    public static void glBufferSubData(int target, long offset, java.nio.ByteBuffer data) { }
     public static void glDeleteBuffers(int buffer) { }
 }

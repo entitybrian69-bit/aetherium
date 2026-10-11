@@ -117,7 +117,8 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
             return Capabilities.THREADED_NEAR_BUILDS;
         }
         if ("PacketBudgetMixin".equals(simpleName) || "BlockableEventLoopInvoker".equals(simpleName)
-                || "StreamingLevelMixin".equals(simpleName) || "RenderChunkDirtyMixin".equals(simpleName)) {
+                || "StreamingLevelMixin".equals(simpleName) || "RenderChunkDirtyMixin".equals(simpleName)
+                || "MeshAllocMixin".equals(simpleName) || "AoFaceAllocMixin".equals(simpleName)) {
             return Capabilities.STREAMING;
         }
         if ("ChunkPrepareMixin".equals(simpleName) || "BufferBuilderAccessor".equals(simpleName)) {

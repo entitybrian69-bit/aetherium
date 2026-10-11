@@ -13,8 +13,23 @@ public interface VertexBufferAccess {
 
     int aetheriumVertexCount();
 
-    /** Marks a solid / cutout-mipped / cutout section buffer: its uploads may use the compact format. */
-    void aetheriumMarkTerrain();
+    /**
+     * Marks a solid / cutout-mipped / cutout section buffer: its uploads may be re-encoded or
+     * batched ({@link TerrainRegions}).
+     *
+     * @param owner the {@code RenderChunk} that owns the buffer (its origin places batched meshes)
+     * @param layer 0 solid, 1 cutout-mipped, 2 cutout
+     */
+    void aetheriumMarkTerrain(Object owner, int layer);
+
+    /** Where the last upload went when it was batched, otherwise null (in the buffer's own GL buffer). */
+    TerrainRegions.Slot aetheriumSlot();
+
+    /**
+     * Frees the batched copy, if any. Called when the owning section is reset (moved or emptied):
+     * vanilla stops drawing it, but a merged draw of its page could otherwise still cover it.
+     */
+    void aetheriumLeaveRegion();
 
     boolean aetheriumTerrain();
 

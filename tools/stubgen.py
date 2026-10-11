@@ -185,7 +185,10 @@ def parse_header(line):
 
 def parse_member(line, cls):
     line = line.strip().rstrip(";")
-    if not line or line.startswith("static {}") or "$" in line.split("(")[0].split(" ")[-1]:
+    if not line or line.startswith("static {}"):
+        return None
+    head_name = line.split("(")[0].split(" ")[-1]
+    if "$" in head_name and head_name != cls.fq:  # synthetic members; a nested class's constructor is kept
         return None
     throws = []
     if " throws " in line:

@@ -157,6 +157,8 @@ public final class AetheriumConfig {
             "advanced.stutter_log", true, "Write every frame that takes far longer than usual to logs/aetherium-stutter.log, with what happened in that frame (packets, chunk uploads, builds, garbage collection). Written on a background thread; at most 1 MB.");
     public final ConfigValue<Boolean> experimentalChunkRenderer = ConfigValue.bool(
             "advanced.experimental_chunk_renderer", false, "Experimental, Minecraft 1.16.5 only: Aetherium's own terrain pipeline. Solid and cutout chunks are grouped by face direction so faces pointing away from you are never sent to the GPU; they keep vanilla's vertex format and are drawn with vanilla's own GL calls. Translucent blocks stay vanilla. Switching it rebuilds the loaded chunks once; it turns itself off and falls back to vanilla if anything fails.");
+    public final ConfigValue<Boolean> regionBatching = ConfigValue.bool(
+            "advanced.region_batching", true, "With the Aetherium pipeline on: store the terrain of every 8 x 4 x 8 chunk sections in a few shared GPU buffers and draw each buffer with one setup instead of setting up every chunk section on its own; neighbouring pieces are joined into one draw call. Same vertex format and GL calls as vanilla. Turns itself off at the next start if the game crashed while drawing with it.");
     public final ConfigValue<Boolean> conflictAutoDelegate = ConfigValue.bool("advanced.conflict_auto_delegate", true, "Hand features back to a conflicting mod instead of double-applying them.");
 
     // ------------------------------------------------------------------- lookup

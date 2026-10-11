@@ -81,6 +81,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`
+- `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java`
 - `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java`
@@ -92,6 +93,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
+- `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/NearBuildMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java`

@@ -19,6 +19,8 @@ public final class RenderToggles {
     private static volatile boolean occlusionBroken;
     /** The opt-in 1.16.5 terrain renderer (ChunkRenderer); false on every other version. */
     public static volatile boolean experimentalChunkRenderer;
+    /** Batch the pipeline's terrain into shared region buffers (TerrainRegions). */
+    public static volatile boolean regionBatching = true;
     /** Percentage of particles kept, 0..100. */
     public static volatile int particleKeep = 100;
     public static volatile boolean hideWeather;
@@ -39,6 +41,7 @@ public final class RenderToggles {
                 && config.occlusionCulling.get().booleanValue();
         experimentalChunkRenderer = isActive && Capabilities.EXPERIMENTAL_CHUNK_RENDERER
                 && config.experimentalChunkRenderer.get().booleanValue();
+        regionBatching = config.regionBatching.get().booleanValue();
         final double distance = config.entityCullDistance.get().intValue();
         entityCullDistanceSq = distance * distance;
         particleKeep = isActive ? config.particleDensity.get().intValue() : 100;

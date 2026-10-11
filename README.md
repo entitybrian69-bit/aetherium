@@ -5,6 +5,20 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
+Version **1.6.0** (1.16.5) adds **batched terrain** to the Aetherium pipeline (**Backend > Batched
+terrain**, on by default, active only while the experimental pipeline is on). Vanilla gives every chunk
+section its own GL buffer and draws it on its own: bind, set the vertex pointers, push and load a
+matrix, draw. With batched terrain, the solid and cutout meshes of each 8 x 4 x 8-section region share a
+few small GL buffers (512 KiB at most, so tile-based mobile GPUs never copy much when one is updated),
+and each buffer is bound and given its matrix once per layer, with neighbouring sections drawn as one
+range. Vertex format, GL calls and draw mode stay vanilla's, the path that already works on GL4ES; the
+GL4ES quad limits (65536 vertices per buffer, draws of at most 32000 vertices, no `glMultiDrawArrays`
+with quads) are respected. A crash while drawing batched terrain turns batching off and keeps the
+pipeline on; a second one turns the pipeline off. Chunk meshing also makes less garbage (the shared
+direction array, one reused `BitSet` and one smooth-lighting position per thread instead of new ones
+for every block and quad), which means fewer garbage-collection pauses while chunks load. There is no
+custom shader.
+
 Version **1.5.5** removes the pipeline's shader mode and the **Backend > Pipeline shader** option.
 On GL4ES, shader mode kept crashing in the graphics driver after each fix (1.5.2, 1.5.3, 1.5.4), and
 that can't be tested without the device. The Aetherium pipeline now always draws in compatible mode:
@@ -344,7 +358,7 @@ a feature is off.
 
 | | |
 | --- | --- |
-| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874; 1.3.2: 38108163083; 1.3.3: 38110414122; 1.3.4: 38111557998; 1.4.0 (1.16.5 only): 38118710605; 1.5.0 (1.16.5 only): 38126263750; 1.5.1 (1.16.5 only): 38128138939; 1.5.2 (1.16.5 only): 38128995655; 1.5.3 (1.16.5 only): 38130796347; 1.5.4 (1.16.5 only): 38132394475; 1.5.5 (1.16.5 only): 38133270845 (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
+| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874; 1.3.2: 38108163083; 1.3.3: 38110414122; 1.3.4: 38111557998; 1.4.0 (1.16.5 only): 38118710605; 1.5.0 (1.16.5 only): 38126263750; 1.5.1 (1.16.5 only): 38128138939; 1.5.2 (1.16.5 only): 38128995655; 1.5.3 (1.16.5 only): 38130796347; 1.5.4 (1.16.5 only): 38132394475; 1.5.5 (1.16.5 only): 38133270845; 1.6.0 (1.16.5 only): pending (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
 | Tests | 133 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |

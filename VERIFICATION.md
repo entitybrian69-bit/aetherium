@@ -632,3 +632,40 @@ Gates run for 1.5.5: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_delt
 (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.
 CI: `ship` run 38133270845 for commit 00b03bf passed and published `v1.5.5+1.16.5`
 (`aetherium-fabric-1.5.5+1.16.5.jar`, 947052 bytes).
+
+## 23. 1.6.0: batched terrain and less meshing garbage (1.16.5)
+
+Request: "make what sodium did", 1.16.5 only, aimed at the stutter, lag and instability when joining a
+world. No custom shader (shader mode was removed in 1.5.5 at the user's request).
+
+**Batched terrain** (`TerrainRegions`, `ArenaAllocator`, `DrawRanges`): in compatible mode, each
+solid / cutout-mipped / cutout upload of a section (vanilla BLOCK format, 32 bytes per vertex) is stored
+in a page shared by its region (8 x 4 x 8 sections) and layer. Pages start at 2048 vertices and double
+per region and layer up to 16384 (512 KiB); larger meshes keep their own buffer. Positions are moved
+from section-local to region-local when stored (at most 144 blocks, exact in float). The section's own
+`VertexBuffer` then draws nothing (`vertexCount = 0`) and its GL buffer is recreated empty to free
+GL4ES's CPU copy. `ChunkRendererMixin` queues the camera-facing face groups of each visible batched
+section, then per page: one `glBindBuffer`, one `setupBufferState`, one matrix, and one `GL_QUADS`
+`drawArrays` per merged range. Ranges merge across gaps only when the gap is live data (never across
+free, uninitialised space), and no draw exceeds 32000 vertices (GL4ES restarts longer quad draws at
+vertex 0). Slots are freed on `VertexBuffer.close`, on uploads that stay standalone, on empty or
+unusable uploads, on pipeline off, and on `RenderChunk.reset` (a moved section must not be drawn
+through a merged range). Releases from other threads are queued until the render thread's next upload
+or layer.
+
+**Crash fallback:** `PipelineCrashGuard` records `mode=regions` while batched terrain draws. A regions
+marker found at start-up turns batching off and keeps the pipeline on; if batching was already off, it
+turns the pipeline off (`PipelineCrashGuardTest.regionsCrashTurnsBatchingOff`).
+
+**Meshing garbage** (`MeshAllocMixin`, `AoFaceAllocMixin`, from the 1.16.5 bytecode in
+`tools/probe/1.16.5.txt`): `tesselateWithAO`, `tesselateWithoutAO` and `calculateShape` get one shared
+`Direction[]` instead of a `Direction.values()` copy per call. Both tesselate methods reuse one
+`BitSet` per thread: `calculateShape` sets both bits that are read for every face. The ambient-occlusion
+`calculate` reuses one `MutableBlockPos` per thread: it is set before every read. Mob models were left
+alone: their per-vertex vectors do not escape the method, so the JIT can already remove them.
+
+**Not established:** the frame-time gain on the user's devices; batched terrain has not run on a phone yet.
+
+Gates run for 1.6.0: `stubcheck --all` 33/33 (the stub generator now keeps constructors of nested
+classes); `testrun.py` 154 passed; `gen_deltas --all --verify` (32 patches); `check.py` clean;
+`check_refs.py` clean; `java_api_lint 8` clean.

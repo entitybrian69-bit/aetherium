@@ -1,5 +1,6 @@
 package com.aetherium.mixin.core;
 
+import com.aetherium.client.TerrainRegions;
 import com.aetherium.client.VertexBufferAccess;
 import com.aetherium.render.CompactTerrain;
 
@@ -11,6 +12,8 @@ import com.aetherium.render.CompactTerrain;
 //~ import com.mojang.blaze3d.vertex.BufferBuilder;
 //~ import com.mojang.blaze3d.vertex.VertexFormat;
 //~ import java.nio.ByteBuffer;
+//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+//~ import net.minecraft.core.BlockPos;
 //~ import org.lwjgl.opengl.GL15;
 //~ import org.spongepowered.asm.mixin.Final;
 //~ import org.spongepowered.asm.mixin.Unique;
@@ -50,7 +53,16 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
     }
 
     @Override
-    public void aetheriumMarkTerrain() {
+    public void aetheriumMarkTerrain(final Object owner, final int layer) {
+    }
+
+    @Override
+    public TerrainRegions.Slot aetheriumSlot() {
+        return null;
+    }
+
+    @Override
+    public void aetheriumLeaveRegion() {
     }
 
     @Override
@@ -92,6 +104,21 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
     //~ @Unique
     //~ private CompactTerrain.Layout aetherium$layout;
 
+    //~ /** The RenderChunk owning this buffer, and its layer (0 solid, 1 cutout-mipped, 2 cutout). */
+    //~ @Unique
+    //~ private Object aetherium$owner;
+
+    //~ @Unique
+    //~ private int aetherium$layer;
+
+    //~ /** Where the mesh lives when batched ({@link TerrainRegions}); then this buffer's own GL buffer is empty. */
+    //~ @Unique
+    //~ private TerrainRegions.Slot aetherium$slot;
+
+    //~ /** Whether this buffer's own GL buffer holds data (vanilla or standalone upload). */
+    //~ @Unique
+    //~ private boolean aetherium$storage;
+
     //~ @Override
     //~ public int aetheriumId() {
         //~ return this.id;
@@ -103,8 +130,64 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
     //~ }
 
     //~ @Override
-    //~ public void aetheriumMarkTerrain() {
+    //~ public void aetheriumMarkTerrain(final Object owner, final int layer) {
         //~ this.aetherium$terrain = true;
+        //~ this.aetherium$owner = owner;
+        //~ this.aetherium$layer = layer;
+    //~ }
+
+    //~ @Override
+    //~ public TerrainRegions.Slot aetheriumSlot() {
+        //~ return this.aetherium$slot;
+    //~ }
+
+    //~ /**
+     //~ * Batches a vanilla-format mesh into its region ({@link TerrainRegions}) in compatible mode.
+     //~ * Returns false, with {@code data} untouched, when it stays in this buffer's own GL buffer.
+     //~ */
+    //~ @Unique
+    //~ private boolean aetherium$storeInRegion(final ByteBuffer data, final int format, final int vertices, final int mode) {
+        //~ if (mode != ChunkRenderer.MODE_COMPATIBLE || format == 1 || this.id == -1 || !TerrainRegions.enabled()
+                //~ || this.format.getVertexSize() != TerrainRegions.STRIDE
+                //~ || !(this.aetherium$owner instanceof ChunkRenderDispatcher.RenderChunk)) {
+            //~ return false;
+        //~ }
+        //~ final BlockPos origin = ((ChunkRenderDispatcher.RenderChunk) this.aetherium$owner).getOrigin();
+        //~ final TerrainRegions.Slot slot = TerrainRegions.store(this.aetherium$slot, this.aetherium$layer,
+                //~ origin.getX(), origin.getY(), origin.getZ(), data, vertices);
+        //~ this.aetherium$slot = slot;
+        //~ if (slot == null) {
+            //~ return false;
+        //~ }
+        //~ this.vertexCount = 0; // vanilla's own draw of this buffer draws nothing
+        //~ if (this.aetherium$storage) {
+            //~ // Free the copy vanilla (or an earlier standalone upload) left in this buffer: GL
+            //~ // translators keep a CPU copy of every buffer and only free it with the buffer.
+            //~ GL15.glDeleteBuffers(this.id);
+            //~ this.id = GL15.glGenBuffers();
+            //~ this.aetherium$storage = false;
+        //~ }
+        //~ ChunkRenderer.noteRegionUpload();
+        //~ return true;
+    //~ }
+
+    //~ /** The next upload goes to this buffer's own GL buffer: frees the batched copy. */
+    //~ @Unique
+    //~ private void aetherium$leaveRegion() {
+        //~ if (this.aetherium$slot != null) {
+            //~ TerrainRegions.release(this.aetherium$slot);
+            //~ this.aetherium$slot = null;
+        //~ }
+    //~ }
+
+    //~ @Override
+    //~ public void aetheriumLeaveRegion() {
+        //~ this.aetherium$leaveRegion();
+    //~ }
+
+    //~ @Inject(method = "close", at = @At("HEAD"), require = 0)
+    //~ private void aetherium$close(final CallbackInfo ci) {
+        //~ this.aetherium$leaveRegion();
     //~ }
 
     //~ @Override
@@ -174,13 +257,19 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
         //~ final boolean unusable = prepared.data == null || (mode == ChunkRenderer.MODE_OFF && format != 0);
         //~ if (this.id != -1) {
             //~ if (unusable) {
+                //~ this.aetherium$leaveRegion();
                 //~ this.vertexCount = 0;
             //~ } else {
-                //~ this.vertexCount = format == 1 ? prepared.quads * CompactTerrain.VERTICES_PER_QUAD
+                //~ final int vertices = format == 1 ? prepared.quads * CompactTerrain.VERTICES_PER_QUAD
                         //~ : prepared.data.remaining() / this.format.getVertexSize();
-                //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
-                //~ GL15.glBufferData(0x8892, prepared.data, 0x88E4); // GL_STATIC_DRAW, as vanilla
-                //~ GL15.glBindBuffer(0x8892, 0);
+                //~ if (!this.aetherium$storeInRegion(prepared.data, format, vertices, mode)) {
+                    //~ this.aetherium$leaveRegion();
+                    //~ this.vertexCount = vertices;
+                    //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
+                    //~ GL15.glBufferData(0x8892, prepared.data, 0x88E4); // GL_STATIC_DRAW, as vanilla
+                    //~ GL15.glBindBuffer(0x8892, 0);
+                    //~ this.aetherium$storage = true;
+                //~ }
             //~ }
         //~ }
         //~ if (unusable) {
@@ -217,6 +306,7 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
         //~ if (!aetherium$hasMesh(builder)) {
             //~ // Should never happen; if it does, an empty section (rebuilt later) beats a crash.
             //~ ci.cancel();
+            //~ this.aetherium$leaveRegion();
             //~ if (this.id != -1) {
                 //~ this.vertexCount = 0;
             //~ }
@@ -225,6 +315,9 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
             //~ return;
         //~ }
         //~ if (mode == ChunkRenderer.MODE_OFF) {
+            //~ // Vanilla uploads into this buffer's own GL buffer.
+            //~ this.aetherium$leaveRegion();
+            //~ this.aetherium$storage = true;
             //~ this.aetherium$format = 0;
             //~ return;
         //~ }
@@ -254,10 +347,15 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
             //~ ChunkRenderer.fail("chunk encode failed: " + error);
         //~ }
         //~ if (this.id != -1) {
-            //~ this.vertexCount = format == 1 ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
-            //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
-            //~ GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
-            //~ GL15.glBindBuffer(0x8892, 0);
+            //~ final int vertices = format == 1 ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
+            //~ if (!this.aetherium$storeInRegion(upload, format, vertices, mode)) {
+                //~ this.aetherium$leaveRegion();
+                //~ this.vertexCount = vertices;
+                //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
+                //~ GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
+                //~ GL15.glBindBuffer(0x8892, 0);
+                //~ this.aetherium$storage = true;
+            //~ }
         //~ }
         //~ this.aetherium$format = format;
         //~ if (format == 1) {

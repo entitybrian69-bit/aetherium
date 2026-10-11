@@ -75,6 +75,32 @@ final class PipelineCrashGuardTest {
     }
 
     @Test
+    @DisplayName("pipeline crash guard: a crash while drawing batched terrain turns only batching off, then the pipeline")
+    void regionsCrashTurnsBatchingOff() throws Exception {
+        final Path dir = Files.createTempDirectory("aetherium-guard");
+        final Path marker = dir.resolve(PipelineCrashGuard.MARKER_NAME);
+        final AetheriumConfig config = AetheriumConfig.createDefaults();
+        config.experimentalChunkRenderer.set(Boolean.TRUE);
+        assertEquals(Boolean.TRUE, config.regionBatching.get(), "batching is the default");
+        assertFalse(PipelineCrashGuard.checkAtStartup(dir, config));
+
+        PipelineCrashGuard.arm(PipelineCrashGuard.MODE_REGIONS);
+        assertTrue(new String(Files.readAllBytes(marker), java.nio.charset.StandardCharsets.UTF_8).contains("mode=regions"));
+        assertTrue(PipelineCrashGuard.checkAtStartup(dir, config));
+        assertEquals(Boolean.FALSE, config.regionBatching.get());
+        assertEquals(Boolean.TRUE, config.experimentalChunkRenderer.get(), "the pipeline stays on");
+        assertTrue(PipelineCrashGuard.wasBatchingTurnedOff());
+        assertFalse(PipelineCrashGuard.wasTripped());
+
+        // The pipeline then crashes in plain compatible mode: off.
+        PipelineCrashGuard.arm(PipelineCrashGuard.MODE_COMPATIBLE);
+        assertTrue(PipelineCrashGuard.checkAtStartup(dir, config));
+        assertEquals(Boolean.FALSE, config.experimentalChunkRenderer.get());
+        assertTrue(PipelineCrashGuard.wasTripped());
+        assertFalse(PipelineCrashGuard.wasBatchingTurnedOff());
+    }
+
+    @Test
     @DisplayName("pipeline crash guard: a stale marker with the option already off changes nothing")
     void staleMarkerWithOptionOff() throws Exception {
         final Path dir = Files.createTempDirectory("aetherium-guard");
