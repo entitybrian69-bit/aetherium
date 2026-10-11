@@ -669,3 +669,5 @@ alone: their per-vertex vectors do not escape the method, so the JIT can already
 Gates run for 1.6.0: `stubcheck --all` 33/33 (the stub generator now keeps constructors of nested
 classes); `testrun.py` 154 passed; `gen_deltas --all --verify` (32 patches); `check.py` clean;
 `check_refs.py` clean; `java_api_lint 8` clean.
+CI: `ship` run 38137191599 for commit 3dbb857 passed and published `v1.6.0+1.16.5`
+(`aetherium-fabric-1.6.0+1.16.5.jar`, 965206 bytes).
