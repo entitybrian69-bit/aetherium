@@ -54,12 +54,25 @@ jobs:
         run: |
           python3 - "${{ github.event.inputs.only }}" <<'PY' >> "$GITHUB_OUTPUT"
           import json, sys
-          only = (sys.argv[1] or '').strip()
+          import os
+          only = {(sys.argv[1] or '').strip()} - {''}
+          # .github/ship-only: one Minecraft version per line (# comments). When it lists anything, a
+          # push builds and releases only those versions (fast iteration on one version).
+          if not only and os.path.exists('.github/ship-only'):
+              for line in open('.github/ship-only'):
+                  line = line.split('#', 1)[0].strip()
+                  if line:
+                      only.add(line)
           data = json.load(open('tools/porting_pins.json'))
           rows = data['rows']
+          known = {row['version'] for row in rows}
+          unknown = sorted(only - known)
+          if unknown:
+              print('unknown versions in ship-only: ' + ', '.join(unknown), file=sys.stderr)
+              sys.exit(1)
           picks = []
           for row in rows:
-              if only and row['version'] != only:
+              if only and row['version'] not in only:
                   continue
               target = int(row.get('java') or 21)
               picks.append({
@@ -197,7 +210,7 @@ jobs:
           * \`aetherium-fabric-*\` goes in \`mods/\` and needs only Fabric Loader (no Fabric API).
           * \`aetherium-neoforge-*\` needs nothing extra. $([ "${{ matrix.neoforge }}" = no ] && echo "There is no NeoForge/Forge jar for this version: the porting row pins no NeoForge, so the loader shell is disabled by the delta.")
           * Each jar requires exactly Minecraft ${{ matrix.version }}: its version-specific code was selected and compiled for that version only.
-          * Aetherium issues no OpenGL calls of its own and adds no shaders; it runs wherever this Minecraft version runs. It was built and unit-tested on CI, not launched on a GPU: read VERIFICATION.md before filing a rendering bug.
+          * By default Aetherium makes no OpenGL calls of its own and adds no shaders. The exception is the opt-in, experimental Aetherium pipeline on 1.16.5 (Video Settings > Backend). It was built and unit-tested on CI, not launched on a GPU: read VERIFICATION.md before filing a rendering bug.
           EOF
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false \

@@ -336,6 +336,10 @@ Every other version is the same tree plus `deltas/<version>/changes.patch`:
 sh tools/port.sh 1.19.2            # materialise the ported tree under build/ports/1.19.2
 ```
 
+CI (`ship.yml`) builds and releases every version on each push, unless `.github/ship-only` lists
+versions: then only those. It currently lists **1.16.5** while the 1.16.5 pipeline is being fixed,
+so the other 32 versions stay at their v1.3.4 release.
+
 ### How one source tree serves 33 versions
 
 Version-specific code is written in place as **era blocks**:
