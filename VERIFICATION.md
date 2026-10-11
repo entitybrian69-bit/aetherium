@@ -137,6 +137,7 @@ jars only as a run artifact.
 | 38060927789 | `eb58e91` | **33/33** | every version compiles with its real toolchain and passes the JUnit suite; 33 releases, 50 jars (16 Fabric-only versions + 17 with Fabric and NeoForge) |
 | 38065183797 | `f2eb838` | **33/33** | 1.0.0: every version, including the four new mixins and the headless GUI tests, builds with its real toolchain and passes the JUnit suite; 33 `v1.0.0+<version>` releases, 50 jars |
 | 38078947462 | `1bee594` | **33/33** | 1.1.0: the frame-rate fixes, config v5 migration, description popup and the shader-mod removal build with every real toolchain and pass the JUnit suite (35/35 jobs); 33 `v1.1.0+<version>` releases, 50 jars |
+| 38102357434 | `ebf9a14` | **33/33** | 1.2.0: entity occlusion culling (five `section-vis` and three `occlusion-box` variants) and the experimental 1.16.5 chunk renderer build with every real toolchain and pass the JUnit suite (35/35 jobs); 33 `v1.2.0+<version>` releases, 50 jars |
 
 Fixes that came out of these runs:
 
