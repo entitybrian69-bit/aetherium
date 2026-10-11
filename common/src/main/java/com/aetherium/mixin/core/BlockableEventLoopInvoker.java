@@ -11,5 +11,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(targets = "net.minecraft.util.thread.BlockableEventLoop")
 public interface BlockableEventLoopInvoker {
     @Invoker("pollTask")
-    boolean aetherium$pollTask();
+    boolean aetheriumPollTask();
 }

@@ -145,7 +145,7 @@ public final class QolHooks {
     private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
         @Override
         public boolean pollTask() {
-            return taskLoop.aetherium$pollTask();
+            return taskLoop.aetheriumPollTask();
         }
     };
 
