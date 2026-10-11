@@ -7452,6 +7452,183 @@ class net.minecraft.client.renderer.block.ModelBlockRenderer$AmbientOcclusionFac
   private int blend(int, int, int, int);
   private int blend(int, int, int, int, float, float, float, float);
 }
+=== net.minecraft.client.renderer.texture.TextureAtlasSprite$Ticker
+Compiled from "TextureAtlasSprite.java"
+public interface net.minecraft.client.renderer.texture.TextureAtlasSprite$Ticker extends java.lang.AutoCloseable {
+  public abstract void tickAndUpload();
+  public abstract void close();
+}
+=== net.minecraft.client.renderer.texture.SpriteContents$Ticker
+Compiled from "SpriteContents.java"
+class net.minecraft.client.renderer.texture.SpriteContents$Ticker implements net.minecraft.client.renderer.texture.SpriteTicker {
+  int frame;
+  int subFrame;
+  final net.minecraft.client.renderer.texture.SpriteContents$AnimatedTexture animationInfo;
+  private final net.minecraft.client.renderer.texture.SpriteContents$InterpolationData interpolationData;
+  final net.minecraft.client.renderer.texture.SpriteContents field_40543;
+  net.minecraft.client.renderer.texture.SpriteContents$Ticker(net.minecraft.client.renderer.texture.SpriteContents, net.minecraft.client.renderer.texture.SpriteContents$AnimatedTexture, net.minecraft.client.renderer.texture.SpriteContents$InterpolationData);
+  public void tickAndUpload(int, int);
+  public void close();
+  private void method_45825(int, int);
+}
+=== net.minecraft.client.renderer.texture.SpriteContents$AnimatedTexture
+Compiled from "SpriteContents.java"
+class net.minecraft.client.renderer.texture.SpriteContents$AnimatedTexture {
+  final java.util.List<net.minecraft.client.renderer.texture.SpriteContents$FrameInfo> frames;
+  private final int frameRowSize;
+  private final boolean interpolateFrames;
+  final net.minecraft.client.renderer.texture.SpriteContents field_28469;
+  net.minecraft.client.renderer.texture.SpriteContents$AnimatedTexture(java.util.List<net.minecraft.client.renderer.texture.SpriteContents$FrameInfo>, int, boolean);
+  int getFrameX(int);
+  int getFrameY(int);
+  void uploadFrame(int, int, int);
+  public net.minecraft.client.renderer.texture.SpriteTicker createTicker();
+  public void uploadFirstFrame(int, int);
+  public java.util.stream.IntStream getUniqueFrames();
+  private static int method_33449(net.minecraft.client.renderer.texture.SpriteContents$FrameInfo);
+}
+=== net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask
+Compiled from "SectionRenderDispatcher.java"
+class net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask extends net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask {
+  protected net.minecraft.client.renderer.chunk.RenderChunkRegion region;
+  final net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection field_20839;
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection, double, net.minecraft.client.renderer.chunk.RenderChunkRegion, boolean);
+  protected java.lang.String name();
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack);
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask$CompileResults compile(float, float, float, net.minecraft.client.renderer.SectionBufferBuilderPack);
+  private <E extends net.minecraft.world.level.block.entity.BlockEntity> void handleBlockEntity(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask$CompileResults, E);
+  public void cancel();
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult method_23619(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, java.util.List, java.lang.Throwable);
+  private void method_22788(java.util.List, net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer);
+}
+=== net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask
+Compiled from "SectionRenderDispatcher.java"
+abstract class net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask implements java.lang.Comparable<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask> {
+  protected final double distAtCreation;
+  protected final java.util.concurrent.atomic.AtomicBoolean isCancelled;
+  protected final boolean isHighPriority;
+  final net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection field_20837;
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection, double, boolean);
+  public abstract java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack);
+  public abstract void cancel();
+  protected abstract java.lang.String name();
+  public int compareTo(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask);
+  public int compareTo(java.lang.Object);
+}
+=== net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection
+Compiled from "SectionRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection {
+  public static final net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection UNCOMPILED;
+  final java.util.Set<net.minecraft.client.renderer.RenderType> hasBlocks;
+  final java.util.List<net.minecraft.world.level.block.entity.BlockEntity> renderableBlockEntities;
+  net.minecraft.client.renderer.chunk.VisibilitySet visibilitySet;
+  com.mojang.blaze3d.vertex.BufferBuilder$SortState transparencyState;
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection();
+  public boolean hasNoRenderableLayers();
+  public boolean isEmpty(net.minecraft.client.renderer.RenderType);
+  public java.util.List<net.minecraft.world.level.block.entity.BlockEntity> getRenderableBlockEntities();
+  public boolean facesCanSeeEachother(net.minecraft.core.Direction, net.minecraft.core.Direction);
+  static {};
+}
+=== net.minecraft.client.renderer.chunk.CompiledSectionMesh
+Error: class not found: net.minecraft.client.renderer.chunk.CompiledSectionMesh
+=== com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer
+Compiled from "BufferBuilder.java"
+public class com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer {
+  private final int pointer;
+  private final com.mojang.blaze3d.vertex.BufferBuilder$DrawState drawState;
+  private boolean released;
+  final com.mojang.blaze3d.vertex.BufferBuilder field_39063;
+  com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer(com.mojang.blaze3d.vertex.BufferBuilder, int, com.mojang.blaze3d.vertex.BufferBuilder$DrawState);
+  public java.nio.ByteBuffer vertexBuffer();
+  public java.nio.ByteBuffer indexBuffer();
+  public com.mojang.blaze3d.vertex.BufferBuilder$DrawState drawState();
+  public boolean isEmpty();
+  public void release();
+}
+=== com.mojang.blaze3d.vertex.MeshData
+Error: class not found: com.mojang.blaze3d.vertex.MeshData
+=== net.minecraft.client.renderer.SectionBufferBuilderPack
+Compiled from "SectionBufferBuilderPack.java"
+public class net.minecraft.client.renderer.SectionBufferBuilderPack implements java.lang.AutoCloseable {
+  public static final int TOTAL_BUFFERS_SIZE;
+  private final java.util.Map<net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.BufferBuilder> builders;
+  public net.minecraft.client.renderer.SectionBufferBuilderPack();
+  public com.mojang.blaze3d.vertex.BufferBuilder builder(net.minecraft.client.renderer.RenderType);
+  public void clearAll();
+  public void discardAll();
+  public void close();
+  private static com.mojang.blaze3d.vertex.BufferBuilder method_22706(net.minecraft.client.renderer.RenderType);
+  private static net.minecraft.client.renderer.RenderType method_22707(net.minecraft.client.renderer.RenderType);
+  static {};
+}
+=== net.minecraft.client.renderer.ChunkBufferBuilderPack
+Error: class not found: net.minecraft.client.renderer.ChunkBufferBuilderPack
+=== net.minecraft.client.renderer.ShaderInstance
+Compiled from "ShaderInstance.java"
+public class net.minecraft.client.renderer.ShaderInstance implements com.mojang.blaze3d.shaders.Shader,java.lang.AutoCloseable {
+  public static final java.lang.String SHADER_PATH;
+  private static final java.lang.String SHADER_CORE_PATH;
+  private static final java.lang.String SHADER_INCLUDE_PATH;
+  static final org.slf4j.Logger LOGGER;
+  private static final com.mojang.blaze3d.shaders.AbstractUniform DUMMY_UNIFORM;
+  private static final boolean ALWAYS_REAPPLY;
+  private static net.minecraft.client.renderer.ShaderInstance lastAppliedShader;
+  private static int lastProgramId;
+  private final java.util.Map<java.lang.String, java.lang.Object> samplerMap;
+  private final java.util.List<java.lang.String> samplerNames;
+  private final java.util.List<java.lang.Integer> samplerLocations;
+  private final java.util.List<com.mojang.blaze3d.shaders.Uniform> uniforms;
+  private final java.util.List<java.lang.Integer> uniformLocations;
+  private final java.util.Map<java.lang.String, com.mojang.blaze3d.shaders.Uniform> uniformMap;
+  private final int programId;
+  private final java.lang.String name;
+  private boolean dirty;
+  private final com.mojang.blaze3d.shaders.BlendMode blend;
+  private final java.util.List<java.lang.Integer> attributes;
+  private final java.util.List<java.lang.String> attributeNames;
+  private final com.mojang.blaze3d.shaders.Program vertexProgram;
+  private final com.mojang.blaze3d.shaders.Program fragmentProgram;
+  private final com.mojang.blaze3d.vertex.VertexFormat vertexFormat;
+  public final com.mojang.blaze3d.shaders.Uniform MODEL_VIEW_MATRIX;
+  public final com.mojang.blaze3d.shaders.Uniform PROJECTION_MATRIX;
+  public final com.mojang.blaze3d.shaders.Uniform INVERSE_VIEW_ROTATION_MATRIX;
+  public final com.mojang.blaze3d.shaders.Uniform TEXTURE_MATRIX;
+  public final com.mojang.blaze3d.shaders.Uniform SCREEN_SIZE;
+  public final com.mojang.blaze3d.shaders.Uniform COLOR_MODULATOR;
+  public final com.mojang.blaze3d.shaders.Uniform LIGHT0_DIRECTION;
+  public final com.mojang.blaze3d.shaders.Uniform LIGHT1_DIRECTION;
+  public final com.mojang.blaze3d.shaders.Uniform GLINT_ALPHA;
+  public final com.mojang.blaze3d.shaders.Uniform FOG_START;
+  public final com.mojang.blaze3d.shaders.Uniform FOG_END;
+  public final com.mojang.blaze3d.shaders.Uniform FOG_COLOR;
+  public final com.mojang.blaze3d.shaders.Uniform FOG_SHAPE;
+  public final com.mojang.blaze3d.shaders.Uniform LINE_WIDTH;
+  public final com.mojang.blaze3d.shaders.Uniform GAME_TIME;
+  public final com.mojang.blaze3d.shaders.Uniform CHUNK_OFFSET;
+  public net.minecraft.client.renderer.ShaderInstance(net.minecraft.server.packs.resources.ResourceProvider, java.lang.String, com.mojang.blaze3d.vertex.VertexFormat) throws java.io.IOException;
+  private static com.mojang.blaze3d.shaders.Program getOrCreate(net.minecraft.server.packs.resources.ResourceProvider, com.mojang.blaze3d.shaders.Program$Type, java.lang.String) throws java.io.IOException;
+  public static com.mojang.blaze3d.shaders.BlendMode parseBlendNode(com.google.gson.JsonObject);
+  public void close();
+  public void clear();
+  public void apply();
+  public void markDirty();
+  public com.mojang.blaze3d.shaders.Uniform getUniform(java.lang.String);
+  public com.mojang.blaze3d.shaders.AbstractUniform safeGetUniform(java.lang.String);
+  private void updateLocations();
+  private void parseSamplerNode(com.google.gson.JsonElement);
+  public void setSampler(java.lang.String, java.lang.Object);
+  private void parseUniformNode(com.google.gson.JsonElement) throws net.minecraft.server.ChainedJsonException;
+  public com.mojang.blaze3d.shaders.Program getVertexProgram();
+  public com.mojang.blaze3d.shaders.Program getFragmentProgram();
+  public void attachToProgram();
+  public com.mojang.blaze3d.vertex.VertexFormat getVertexFormat();
+  public java.lang.String getName();
+  public int getId();
+  static {};
+}
+=== net.minecraft.client.renderer.CompiledShaderProgram
+Error: class not found: net.minecraft.client.renderer.CompiledShaderProgram
 === code net.minecraft.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
   private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads"; :: private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads";
   private static final java.util.concurrent.ExecutorService BACKGROUND_EXECUTOR; :: private static final java.util.concurrent.ExecutorService BACKGROUND_EXECUTOR;
@@ -10126,6 +10303,59 @@ class net.minecraft.client.renderer.block.ModelBlockRenderer$AmbientOcclusionFac
   public void needsUpdate(); :: public void needsUpdate();
   public void needsUpdate(); :: 1: getfield      #254                // Field sectionOcclusionGraph:Lnet/minecraft/client/renderer/SectionOcclusionGraph;
   public void needsUpdate(); :: 4: invokevirtual #1397               // Method net/minecraft/client/renderer/SectionOcclusionGraph.invalidate:()V
+=== code net.minecraft.client.renderer.chunk.SectionCompiler :: compile|tesselate|renderBatched|renderLiquid|getRenderShape|BufferBuilder|MeshData|getBuffer|begin
+=== code net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask :: compile|doTask|SectionCompiler|CompiledSection|tesselate|renderBatched|renderLiquid|setCompiled
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack);
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: 110: invokevirtual #126                // Method compile:(FFFLnet/minecraft/client/renderer/SectionBufferBuilderPack;)Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$RebuildTask$CompileResults;
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: 164: new           #24                 // class net/minecraft/client/renderer/chunk/SectionRenderDispatcher$CompiledSection
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: 168: invokespecial #172                // Method net/minecraft/client/renderer/chunk/SectionRenderDispatcher$CompiledSection."<init>":()V
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: 180: putfield      #177                // Field net/minecraft/client/renderer/chunk/SectionRenderDispatcher$CompiledSection.visibilitySet:Lnet/minecraft/client/renderer/chunk/VisibilitySet;
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: 185: getfield      #180                // Field net/minecraft/client/renderer/chunk/SectionRenderDispatcher$CompiledSection.renderableBlockEntities:Ljava/util/List;
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: 206: putfield      #194                // Field net/minecraft/client/renderer/chunk/SectionRenderDispatcher$CompiledSection.transparencyState:Lcom/mojang/blaze3d/vertex/BufferBuilder$SortState;
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: 224: invokedynamic #212,  0            // InvokeDynamic #1:accept:(Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$RebuildTask;Ljava/util/List;Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$CompiledSection;)Ljava/util/function/BiConsumer;
+  public java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: 242: invokedynamic #234,  0            // InvokeDynamic #2:apply:(Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$RebuildTask;Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$CompiledSection;)Ljava/util/function/BiFunction;
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask$CompileResults compile(float, float, float, net.minecraft.client.renderer.SectionBufferBuilderPack); :: private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask$CompileResults compile(float, float, float, net.minecraft.client.renderer.SectionBufferBuilderPack);
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask$CompileResults compile(float, float, float, net.minecraft.client.renderer.SectionBufferBuilderPack); :: 262: invokevirtual #389                // Method net/minecraft/client/renderer/block/BlockRenderDispatcher.renderLiquid:(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;)V
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask$CompileResults compile(float, float, float, net.minecraft.client.renderer.SectionBufferBuilderPack); :: 365: invokevirtual #423                // Method net/minecraft/client/renderer/block/BlockRenderDispatcher.renderBatched:(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;)V
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult method_23619(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, java.util.List, java.lang.Throwable); :: private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult method_23619(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, java.util.List, java.lang.Throwable);
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult method_23619(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, java.util.List, java.lang.Throwable); :: 49: getfield      #543                // Field net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection.compiled:Ljava/util/concurrent/atomic/AtomicReference;
+  private net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult method_23619(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, java.util.List, java.lang.Throwable); :: 81: invokevirtual #565                // Method net/minecraft/client/renderer/LevelRenderer.addRecentlyCompiledSection:(Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection;)V
+  private void method_22788(java.util.List, net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer); :: private void method_22788(java.util.List, net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer);
+  private void method_22788(java.util.List, net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection, net.minecraft.client.renderer.RenderType, com.mojang.blaze3d.vertex.BufferBuilder$RenderedBuffer); :: 28: getfield      #580                // Field net/minecraft/client/renderer/chunk/SectionRenderDispatcher$CompiledSection.hasBlocks:Ljava/util/Set;
+=== code net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask :: compile|doTask|SectionCompiler|CompiledSectionMesh|setSectionMesh
+  public abstract java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack); :: public abstract java.util.concurrent.CompletableFuture<net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionTaskResult> doTask(net.minecraft.client.renderer.SectionBufferBuilderPack);
+=== code net.minecraft.client.renderer.texture.SpriteContents :: tick|uploadFrame|Ticker|animatedTexture|createTicker
+  private final net.minecraft.client.renderer.texture.SpriteContents$AnimatedTexture animatedTexture; :: private final net.minecraft.client.renderer.texture.SpriteContents$AnimatedTexture animatedTexture;
+  public net.minecraft.client.renderer.texture.SpriteContents(net.minecraft.resources.ResourceLocation, net.minecraft.client.resources.metadata.animation.FrameSize, com.mojang.blaze3d.platform.NativeImage, net.minecraft.server.packs.resources.ResourceMetadata); :: 68: putfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  private int getFrameCount(); :: 1: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  private int getFrameCount(); :: 8: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public java.util.stream.IntStream getUniqueFrames(); :: 1: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public java.util.stream.IntStream getUniqueFrames(); :: 8: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public net.minecraft.client.renderer.texture.SpriteTicker createTicker(); :: public net.minecraft.client.renderer.texture.SpriteTicker createTicker();
+  public net.minecraft.client.renderer.texture.SpriteTicker createTicker(); :: 1: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public net.minecraft.client.renderer.texture.SpriteTicker createTicker(); :: 8: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public net.minecraft.client.renderer.texture.SpriteTicker createTicker(); :: 11: invokevirtual #379                // Method net/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture.createTicker:()Lnet/minecraft/client/renderer/texture/SpriteTicker;
+  public boolean isTransparent(int, int, int); :: 7: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public boolean isTransparent(int, int, int); :: 16: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public boolean isTransparent(int, int, int); :: 34: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public void uploadFirstFrame(int, int); :: 1: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+  public void uploadFirstFrame(int, int); :: 8: getfield      #112                // Field animatedTexture:Lnet/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture;
+=== code net.minecraft.client.renderer.texture.TextureAtlas :: Ticker|animatedTextures|createTicker|tickers|SpriteContents
+  private java.util.List<net.minecraft.client.renderer.texture.SpriteContents> sprites; :: private java.util.List<net.minecraft.client.renderer.texture.SpriteContents> sprites;
+  private java.util.List<net.minecraft.client.renderer.texture.TextureAtlasSprite$Ticker> animatedTextures; :: private java.util.List<net.minecraft.client.renderer.texture.TextureAtlasSprite$Ticker> animatedTextures;
+  public net.minecraft.client.renderer.texture.TextureAtlas(net.minecraft.resources.ResourceLocation); :: 15: putfield      #72                 // Field animatedTextures:Ljava/util/List;
+  public void upload(net.minecraft.client.renderer.texture.SpriteLoader$Preparations); :: 218: invokevirtual #205                // Method net/minecraft/client/renderer/texture/TextureAtlasSprite.contents:()Lnet/minecraft/client/renderer/texture/SpriteContents;
+  public void upload(net.minecraft.client.renderer.texture.SpriteLoader$Preparations); :: 289: invokevirtual #245                // Method net/minecraft/client/renderer/texture/TextureAtlasSprite.createTicker:()Lnet/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker;
+  public void upload(net.minecraft.client.renderer.texture.SpriteLoader$Preparations); :: 324: putfield      #72                 // Field animatedTextures:Ljava/util/List;
+  private static void dumpSpriteNames(java.nio.file.Path, java.lang.String, java.util.Map<net.minecraft.resources.ResourceLocation, net.minecraft.client.renderer.texture.TextureAtlasSprite>); :: 136: invokevirtual #205                // Method net/minecraft/client/renderer/texture/TextureAtlasSprite.contents:()Lnet/minecraft/client/renderer/texture/SpriteContents;
+  private static void dumpSpriteNames(java.nio.file.Path, java.lang.String, java.util.Map<net.minecraft.resources.ResourceLocation, net.minecraft.client.renderer.texture.TextureAtlasSprite>); :: 139: invokevirtual #352                // Method net/minecraft/client/renderer/texture/SpriteContents.width:()I
+  private static void dumpSpriteNames(java.nio.file.Path, java.lang.String, java.util.Map<net.minecraft.resources.ResourceLocation, net.minecraft.client.renderer.texture.TextureAtlasSprite>); :: 150: invokevirtual #205                // Method net/minecraft/client/renderer/texture/TextureAtlasSprite.contents:()Lnet/minecraft/client/renderer/texture/SpriteContents;
+  private static void dumpSpriteNames(java.nio.file.Path, java.lang.String, java.util.Map<net.minecraft.resources.ResourceLocation, net.minecraft.client.renderer.texture.TextureAtlasSprite>); :: 153: invokevirtual #353                // Method net/minecraft/client/renderer/texture/SpriteContents.height:()I
+  public void cycleAnimationFrames(); :: 5: getfield      #72                 // Field animatedTextures:Ljava/util/List;
+  public void cycleAnimationFrames(); :: 29: checkcast     #20                 // class net/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker
+  public void cycleAnimationFrames(); :: 34: invokeinterface #392,  1          // InterfaceMethod net/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker.tickAndUpload:()V
+  public void clearTextureData(); :: 15: getfield      #72                 // Field animatedTextures:Ljava/util/List;
+  public void clearTextureData(); :: 39: putfield      #72                 // Field animatedTextures:Ljava/util/List;
 === package listing (client.gui.screens, client.input, client, renderer, particle, model.geom, blaze3d)
 net/minecraft/client/renderer/RenderType$CompositeState$CompositeStateBuilder.class
 net/minecraft/client/particle/CritParticle$MagicProvider.class
