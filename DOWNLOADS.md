@@ -7,7 +7,7 @@ not shipped - the table only ever lists what exists, never what should exist.
 
 | Minecraft | Loader | Jar |
 | --- | --- | --- |
-| 1.16.5 | Fabric | [aetherium-fabric-1.5.0+1.16.5.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.5.0+1.16.5/aetherium-fabric-1.5.0+1.16.5.jar) |
+| 1.16.5 | Fabric | [aetherium-fabric-1.5.1+1.16.5.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.5.1+1.16.5/aetherium-fabric-1.5.1+1.16.5.jar) |
 | 1.16.5 | Forge/NeoForge | *none: this row pins no (Neo)Forge loader; see VERIFICATION.md* |
 
 Shipped: **1/33** Minecraft versions.
