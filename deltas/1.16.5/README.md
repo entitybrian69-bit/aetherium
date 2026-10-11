@@ -31,6 +31,7 @@ neoforge_version=unavailable (module disabled)
 - `input=doubles`
 - `light-hook=color`
 - `logger=log4j`
+- `near-build=v16`
 - `options=fields`
 - `reload=all-changed`
 - `screen-owner=minecraft`
@@ -40,6 +41,7 @@ neoforge_version=unavailable (module disabled)
 - `simdist=none`
 - `sound-click=event`
 - `vignette=render`
+- `zoom=v16`
 
 ### Where the per-version Java comes from
 
@@ -76,15 +78,22 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
+- `common/src/main/java/com/aetherium/mixin/core/NearBuildMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/OptionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 
 ## Verifying this row before shipping it

@@ -35,6 +35,7 @@ neoforge_version=26.1.2.115
 - `mappings-line-removed`
 - `modCompileOnly->compileOnly`
 - `modImplementation->implementation`
+- `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`
 - `reload=all-changed`
@@ -44,6 +45,7 @@ neoforge_version=26.1.2.115
 - `simdist=sim`
 - `vignette=extract`
 - `weather=effect`
+- `zoom=none`
 
 ### Where the per-version Java comes from
 

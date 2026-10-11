@@ -29,6 +29,7 @@ neoforge_version=unavailable (module disabled)
 - `hud=graphics-float`
 - `input=doubles`
 - `light-hook=color`
+- `near-build=none`
 - `options=instances`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
@@ -36,6 +37,7 @@ neoforge_version=unavailable (module disabled)
 - `section-vis=list18`
 - `simdist=sim`
 - `vignette=render`
+- `zoom=none`
 
 ### Where the per-version Java comes from
 

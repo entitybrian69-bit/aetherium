@@ -125,7 +125,7 @@
             "effects.dynamic_lights": {
               "type": "string",
               "default": "OFF",
-              "description": "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick. Off removes the light hooks entirely for full speed, so turning it on from Off takes effect after a restart.",
+              "description": "Light emitted by held items and entities: hold a torch and the blocks around you light up. FAST updates 4x per second with a shorter radius; FANCY updates every tick. Takes effect immediately, no restart; Off costs nothing.",
               "x-java-field": "dynamicLights"
             },
             "effects.dynamic_lights.entities": {
@@ -153,6 +153,78 @@
               "maximum": 100,
               "description": "Fullbright strength in percent.",
               "x-java-field": "fullbrightStrength"
+            },
+            "effects.zoom.cinematic": {
+              "type": "boolean",
+              "default": true,
+              "description": "Use the smooth cinematic camera while zoomed, for steady aiming at long range.",
+              "x-java-field": "zoomCinematic"
+            },
+            "effects.zoom.default": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "How far the Zoom key zooms in when pressed, in percent. 50 is about four times, like OptiFine. Change it while zooming with the scroll wheel or the Zoom In / Zoom Out keys (rebind them in Options > Controls).",
+              "x-java-field": "zoomDefault"
+            },
+            "effects.zoom.min_fov": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1,
+              "maximum": 30,
+              "description": "Field of view at full zoom, in degrees. Lower = stronger maximum zoom.",
+              "x-java-field": "zoomMinFov"
+            },
+            "effects.zoom.scrolling": {
+              "type": "boolean",
+              "default": true,
+              "description": "While zooming, the scroll wheel zooms in and out instead of changing the hotbar slot.",
+              "x-java-field": "zoomScrolling"
+            },
+            "effects.zoom.sensitivity_floor": {
+              "type": "integer",
+              "default": 40,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Mouse sensitivity is lowered while zoomed, but never below this percentage of normal. 100 = unchanged.",
+              "x-java-field": "zoomSensitivityFloor"
+            },
+            "effects.zoom.smoothness_ms": {
+              "type": "integer",
+              "default": 150,
+              "minimum": 0,
+              "maximum": 500,
+              "description": "Zoom changes are animated over this many milliseconds. 0 = instant.",
+              "x-java-field": "zoomSmoothnessMs"
+            },
+            "effects.zoom.speed": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100,
+              "description": "How fast the scroll wheel and the Zoom In / Zoom Out keys change the zoom.",
+              "x-java-field": "zoomSpeed"
+            },
+            "effects.zoom.third_person_distance": {
+              "type": "integer",
+              "default": 15,
+              "minimum": 0,
+              "maximum": 32,
+              "description": "Third person: the zoom keys move the camera between 0.5 blocks and this distance instead of zooming. 0 = zoom the field of view in third person too.",
+              "x-java-field": "zoomThirdPersonDistance"
+            },
+            "effects.zoom.third_person_toggle": {
+              "type": "boolean",
+              "default": true,
+              "description": "Third person: the Zoom key toggles the camera distance instead of being held.",
+              "x-java-field": "zoomThirdPersonToggle"
+            },
+            "effects.zoom.toggle": {
+              "type": "boolean",
+              "default": false,
+              "description": "First person: press Zoom once to zoom and again to stop, instead of holding it.",
+              "x-java-field": "zoomToggle"
             }
           }
         },
@@ -269,6 +341,12 @@
               "default": true,
               "description": "Spread finished chunk meshes over several frames instead of uploading them all in one frame, which removes the stutter while chunks load or generate.",
               "x-java-field": "smoothChunkLoading"
+            },
+            "performance.threaded_chunk_builder": {
+              "type": "boolean",
+              "default": true,
+              "description": "Rebuild changed chunks near you on the worker threads instead of freezing the frame (vanilla 1.16.5 rebuilds everything within 28 blocks on the render thread). Blocks you place or break still update instantly. Also spreads client light updates over frames. The biggest fix for stutter while chunks load and while walking with dynamic lights.",
+              "x-java-field": "threadedChunkBuilder"
             },
             "performance.worker_threads": {
               "type": "integer",

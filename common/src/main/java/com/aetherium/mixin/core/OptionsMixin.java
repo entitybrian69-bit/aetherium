@@ -8,10 +8,36 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+// @era:zoom-begin none
+// @era:zoom-else v16
+//~ import com.aetherium.client.ZoomKeys;
 
-/** Keeps the fullbright override out of options.txt: vanilla saves the user's real brightness. */
+//~ import net.minecraft.client.KeyMapping;
+
+//~ import org.spongepowered.asm.mixin.Final;
+//~ import org.spongepowered.asm.mixin.Mutable;
+//~ import org.spongepowered.asm.mixin.Shadow;
+// @era:zoom-end
+
+/**
+ * Keeps the fullbright override out of options.txt (vanilla saves the user's real brightness),
+ * and on versions with zoom adds the three zoom keys to the key list right before options.txt is
+ * read, so their saved bindings load like vanilla's own and they appear in Options &gt; Controls.
+ */
 @Mixin(Options.class)
 public abstract class OptionsMixin {
+    // @era:zoom-begin none
+    // @era:zoom-else v16
+    //~ @Shadow
+    //~ @Final
+    //~ @Mutable
+    //~ public KeyMapping[] keyMappings;
+
+    //~ @Inject(method = "load()V", at = @At("HEAD"), require = 0)
+    //~ private void aetherium$zoomKeys(final CallbackInfo ci) {
+        //~ this.keyMappings = ZoomKeys.append(this.keyMappings);
+    //~ }
+    // @era:zoom-end
 
     @Inject(method = "save", at = @At("HEAD"), require = 0)
     private void aetherium$saveBegin(final CallbackInfo ci) {

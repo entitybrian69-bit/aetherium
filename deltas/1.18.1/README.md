@@ -30,6 +30,7 @@ neoforge_version=unavailable (module disabled)
 - `hud=stack`
 - `input=doubles`
 - `light-hook=color`
+- `near-build=none`
 - `options=fields`
 - `reload=all-changed`
 - `screen-owner=minecraft`
@@ -39,6 +40,7 @@ neoforge_version=unavailable (module disabled)
 - `simdist=sim`
 - `sound-click=event`
 - `vignette=render`
+- `zoom=none`
 
 ### Where the per-version Java comes from
 

@@ -1,6 +1,7 @@
 package com.aetherium.mixin.core;
 
 import com.aetherium.lighting.LightField;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.core.BlockPos;
@@ -8,22 +9,19 @@ import net.minecraft.world.entity.Entity;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** Dynamic lights for entities: mobs and items near a light source are lit too. */
+/**
+ * Dynamic lights for entities: mobs and items near a light source are lit too.
+ * A return-value modifier, so the per-entity call allocates nothing.
+ */
 @Mixin(EntityRenderer.class)
 public abstract class EntityLightMixin {
 
-    @Inject(method = "getBlockLightLevel", at = @At("RETURN"), cancellable = true, require = 0)
-    private void aetherium$entityLight(final Entity entity, final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
+    @ModifyReturnValue(method = "getBlockLightLevel", at = @At("RETURN"), require = 0)
+    private int aetherium$entityLight(final int original, final Entity entity, final BlockPos pos) {
         if (LightField.isEmpty()) {
-            return;
+            return original;
         }
-        final int base = cir.getReturnValueI();
-        final int adjusted = LightField.adjustLevel(base, pos.getX(), pos.getY(), pos.getZ());
-        if (adjusted != base) {
-            cir.setReturnValue(Integer.valueOf(adjusted));
-        }
+        return LightField.adjustLevel(original, pos.getX(), pos.getY(), pos.getZ());
     }
 }

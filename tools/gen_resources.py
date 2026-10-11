@@ -177,6 +177,10 @@ CURATED_EN = {
     "aetherium.section.experimental": "Experimental",
     "aetherium.button.write_conflict_report": "Write conflict report to log",
     "aetherium.button.clear_program_cache": "Clear program-binary cache",
+    "key.categories.aetherium": "Aetherium",
+    "key.aetherium.zoom": "Zoom",
+    "key.aetherium.zoom_in": "Zoom In",
+    "key.aetherium.zoom_out": "Zoom Out",
 }
 CURATED_PT = {
     "aetherium.screen.title": "Renderizador Aetherium",
@@ -204,6 +208,10 @@ CURATED_PT = {
     "aetherium.section.experimental": "Experimental",
     "aetherium.button.write_conflict_report": "Gravar relatório de conflitos no log",
     "aetherium.button.clear_program_cache": "Limpar cache de programa binário",
+    "key.categories.aetherium": "Aetherium",
+    "key.aetherium.zoom": "Zoom",
+    "key.aetherium.zoom_in": "Aproximar zoom",
+    "key.aetherium.zoom_out": "Afastar zoom",
 }
 
 

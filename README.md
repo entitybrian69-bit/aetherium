@@ -5,6 +5,10 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
+Version **1.4.0** (1.16.5 first) adds a **Zume-style zoom** with rebindable Zoom / Zoom In / Zoom Out
+keys, makes **dynamic lights** switch on live (they used to need a restart, which looked like they
+did not work), and removes the biggest stutter of 1.16.5: chunks near you were rebuilt on the render
+thread (see [1.4.0: zoom, live dynamic lights, no render-thread chunk builds](#140-zoom-live-dynamic-lights-no-render-thread-chunk-builds-1165)).
 Version **1.3.4** fixes the actual cause of the 1.16.5 pipeline crash on GL4ES / LTW, found in the
 crash's hs_err file (see [1.3.4: the crash, found](#134-the-crash-found-1165)). Version **1.3.3** added a **compatible mode** to the 1.16.5 pipeline for GL translators that crash on
 its shader, and switches to it automatically after such a crash (see
@@ -25,6 +29,39 @@ added smooth chunk loading, an animated-texture switch, a block-entity distance,
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
 either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
 OpenGL calls of its own unless you turn on the experimental 1.16.5 Aetherium pipeline.
+
+## 1.4.0: zoom, live dynamic lights, no render-thread chunk builds (1.16.5)
+
+Built for 1.16.5 only for now (`.github/ship-only`); the other versions follow.
+
+- **Threaded chunk builder (the stutter fix).** Vanilla 1.16.5 rebuilds every changed chunk section
+  within about 28 blocks of the camera *synchronously on the render thread* ("build near"), not only
+  the ones you edited. Chunks arriving around you, light updates, water and redstone next to you,
+  and every step with a torch in hand each froze the frame for a full section mesh, often a dozen
+  at once. Now only your own block edits stay synchronous (they still appear instantly); everything
+  else goes to the worker threads, nearest first, like vanilla 1.18's *Threaded* chunk builder.
+  Performance > *Threaded chunk builder*, on by default.
+- **Client light updates are budgeted.** `renderLevel` ran every pending light update in one go. It now
+  runs them in slices for at most 2 ms per frame and continues next frame. Incoming light data is
+  always applied in full; only propagation is spread.
+- **Faster terrain shader** (Aetherium pipeline). The solid layer has its own program without
+  `discard`, so mobile GPUs keep their hidden-surface removal (Mali's Forward Pixel Kill, early depth
+  test) for most of the screen. Fog is computed per vertex, like vanilla's fixed-function fog, which
+  leaves one `mix` per pixel.
+- **Dynamic lights work live.** The light hooks used to be installed only if dynamic lights were
+  already on when the game started, so turning them on in the screen did nothing until a restart.
+  They are now MixinExtras return-value modifiers that allocate nothing and cost one volatile read
+  while no light source exists, so they are always installed and the setting applies immediately.
+- **Zoom, the Zume way** (Effects tab, keys in Options > Controls > Aetherium):
+  - Hold **Zoom** (Z) to zoom smoothly to about 18° from 70°, OptiFine's strength.
+  - While zooming, the **scroll wheel** or **Zoom In** (=) / **Zoom Out** (-) change the zoom, down
+    to 1°.
+  - Mouse sensitivity drops with the zoom (never below 40 %), with the cinematic camera on.
+  - In **third person** the same keys move the camera between 0.5 and 15 blocks instead. It toggles
+    by default.
+  - The curves, timings and defaults follow Zume's documented behaviour; the code is Aetherium's
+    own. All of it is adjustable: strength, toggle mode, cinematic camera, scroll zoom, speed,
+    animation time, sensitivity floor, minimum FOV, third-person distance and toggle.
 
 ## 1.3.4: the crash, found (1.16.5)
 
@@ -216,11 +253,11 @@ a feature is off.
 | | |
 | --- | --- |
 | Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874; 1.3.2: 38108163083; 1.3.3: 38110414122; 1.3.4: 38111557998 (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
-| Tests | 125 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
+| Tests | 133 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.3.4+<mcversion>`, and only for versions whose
+Releases are published per Minecraft version as `v1.4.0+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -257,7 +294,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.3.4 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.4.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.
@@ -337,7 +374,7 @@ sh tools/port.sh 1.19.2            # materialise the ported tree under build/por
 ```
 
 CI (`ship.yml`) builds and releases every version on each push, unless `.github/ship-only` lists
-versions: then only those. It currently lists **1.16.5** while the 1.16.5 pipeline is being fixed,
+versions: then only those. It currently lists **1.16.5** while 1.16.5 is the development target,
 so the other 32 versions stay at their v1.3.4 release.
 
 ### How one source tree serves 33 versions

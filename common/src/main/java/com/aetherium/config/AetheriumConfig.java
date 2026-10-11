@@ -53,6 +53,8 @@ public final class AetheriumConfig {
             "performance.block_entity_distance", 64, 16, 64, false, "Chests, signs, banners, heads and other block entities farther than this many blocks are not drawn (64 = vanilla; beacon beams are exempt).");
     public final ConfigValue<Boolean> smoothChunkLoading = ConfigValue.bool(
             "performance.smooth_chunk_loading", true, "Spread finished chunk meshes over several frames instead of uploading them all in one frame, which removes the stutter while chunks load or generate.");
+    public final ConfigValue<Boolean> threadedChunkBuilder = ConfigValue.bool(
+            "performance.threaded_chunk_builder", true, "Rebuild changed chunks near you on the worker threads instead of freezing the frame (vanilla 1.16.5 rebuilds everything within 28 blocks on the render thread). Blocks you place or break still update instantly. Also spreads client light updates over frames. The biggest fix for stutter while chunks load and while walking with dynamic lights.");
     public final ConfigValue<Integer> workerThreads = ConfigValue.intRange(
             "performance.worker_threads", 0, 0, 16, false, "Threads for world generation and chunk building. 0 = automatic (vanilla on desktop; on Android all cores but three, at least 2, so the render and server threads are not starved). Applies after a restart.");
 
@@ -63,12 +65,32 @@ public final class AetheriumConfig {
     // ---------------------------------------------------------------- effects
     public final ConfigValue<LightMode> dynamicLights = ConfigValue.enumerated(
             "effects.dynamic_lights", LightMode.OFF, LightMode.class, false,
-            "Light emitted by held items and entities. FAST updates 4x per second with a shorter radius; FANCY updates every tick. Off removes the light hooks entirely for full speed, so turning it on from Off takes effect after a restart.");
+            "Light emitted by held items and entities: hold a torch and the blocks around you light up. FAST updates 4x per second with a shorter radius; FANCY updates every tick. Takes effect immediately, no restart; Off costs nothing.");
     public final ConfigValue<Boolean> dynamicLightsHeld = ConfigValue.bool("effects.dynamic_lights.held", true, "Torches and other luminous items held by players and mobs emit light.");
     public final ConfigValue<Boolean> dynamicLightsEntities = ConfigValue.bool("effects.dynamic_lights.entities", true, "Dropped luminous items, burning entities and blazes emit light.");
     public final ConfigValue<Boolean> fullbright = ConfigValue.bool("effects.fullbright", false, "Override the brightness so caves and nights are fully lit.");
     public final ConfigValue<Integer> fullbrightStrength = ConfigValue.intRange(
             "effects.fullbright.strength", 100, 10, 100, false, "Fullbright strength in percent.");
+    public final ConfigValue<Integer> zoomDefault = ConfigValue.intRange(
+            "effects.zoom.default", 50, 0, 100, false, "How far the Zoom key zooms in when pressed, in percent. 50 is about four times, like OptiFine. Change it while zooming with the scroll wheel or the Zoom In / Zoom Out keys (rebind them in Options > Controls).");
+    public final ConfigValue<Boolean> zoomToggle = ConfigValue.bool(
+            "effects.zoom.toggle", false, "First person: press Zoom once to zoom and again to stop, instead of holding it.");
+    public final ConfigValue<Boolean> zoomCinematic = ConfigValue.bool(
+            "effects.zoom.cinematic", true, "Use the smooth cinematic camera while zoomed, for steady aiming at long range.");
+    public final ConfigValue<Boolean> zoomScrolling = ConfigValue.bool(
+            "effects.zoom.scrolling", true, "While zooming, the scroll wheel zooms in and out instead of changing the hotbar slot.");
+    public final ConfigValue<Integer> zoomSpeed = ConfigValue.intRange(
+            "effects.zoom.speed", 20, 1, 100, false, "How fast the scroll wheel and the Zoom In / Zoom Out keys change the zoom.");
+    public final ConfigValue<Integer> zoomSmoothnessMs = ConfigValue.intRange(
+            "effects.zoom.smoothness_ms", 150, 0, 500, false, "Zoom changes are animated over this many milliseconds. 0 = instant.");
+    public final ConfigValue<Integer> zoomSensitivityFloor = ConfigValue.intRange(
+            "effects.zoom.sensitivity_floor", 40, 0, 100, false, "Mouse sensitivity is lowered while zoomed, but never below this percentage of normal. 100 = unchanged.");
+    public final ConfigValue<Integer> zoomMinFov = ConfigValue.intRange(
+            "effects.zoom.min_fov", 1, 1, 30, false, "Field of view at full zoom, in degrees. Lower = stronger maximum zoom.");
+    public final ConfigValue<Integer> zoomThirdPersonDistance = ConfigValue.intRange(
+            "effects.zoom.third_person_distance", 15, 0, 32, false, "Third person: the zoom keys move the camera between 0.5 blocks and this distance instead of zooming. 0 = zoom the field of view in third person too.");
+    public final ConfigValue<Boolean> zoomThirdPersonToggle = ConfigValue.bool(
+            "effects.zoom.third_person_toggle", true, "Third person: the Zoom key toggles the camera distance instead of being held.");
 
     // ----------------------------------------------------------------- android
     public final ConfigValue<Boolean> androidSupport = ConfigValue.bool("android.enabled", true, "Enable launcher/renderer probing. No-op on desktop.");

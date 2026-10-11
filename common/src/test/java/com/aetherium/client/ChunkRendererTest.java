@@ -58,11 +58,25 @@ final class ChunkRendererTest {
         for (final String uniform : new String[] {"u_projection", "u_modelView", "u_offset"}) {
             assertTrue(vs.contains("uniform") && vs.contains(uniform + ";"), uniform);
         }
-        for (final String uniform : new String[] {"u_blocks", "u_lightmap", "u_alphaCutoff", "u_fogMode", "u_fog", "u_fogColor"}) {
+        for (final String uniform : new String[] {"u_blocks", "u_lightmap", "u_alphaCutoff", "u_fogColor"}) {
             assertTrue(fs.contains(uniform + ";"), uniform);
         }
+        for (final String uniform : new String[] {"u_fogMode", "u_fog"}) {
+            assertTrue(vs.contains(uniform + ";") && ChunkRenderer.COMPACT_VERTEX_SHADER.contains(uniform + ";"),
+                    "fog is computed per vertex: " + uniform);
+        }
+        final String solid = ChunkRenderer.FRAGMENT_SHADER_SOLID;
+        assertTrue(solid.startsWith("#version 120\n"));
+        assertFalse(solid.contains("discard"), "the solid program must never discard (keeps early-Z / Forward Pixel Kill)");
+        assertTrue(fs.contains("discard"), "cutout program discards");
+        for (final String shader : new String[] {fs, solid}) {
+            assertTrue(shader.contains("varying float v_fog;") && !shader.contains("v_distance"), "fog arrives as a varying");
+        }
+        assertFalse((vs + ChunkRenderer.COMPACT_VERTEX_SHADER).contains("float distance"),
+                "no local named like the distance() built-in (GL4ES rewrites shader text)");
         for (final String banned : new String[] {"in ", "out ", "texture(", "layout", "#version 1" + "50", "gl_ModelView", "gl_Fog"}) {
-            assertFalse(vs.contains(banned) || fs.contains(banned), "GLSL 1.20 / no fixed-function built-ins: " + banned);
+            assertFalse(vs.contains(banned) || fs.contains(banned) || solid.contains(banned),
+                    "GLSL 1.20 / no fixed-function built-ins: " + banned);
         }
         assertEquals(32, ChunkRenderer.STRIDE);
         assertEquals(7, ChunkRenderer.GL_QUADS, "legacy buffers use vanilla's own draw call");

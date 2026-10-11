@@ -90,6 +90,23 @@ public final class Capabilities {
     //~ public static final boolean EXPERIMENTAL_CHUNK_RENDERER = true;
     // @era:chunk-renderer-end
 
+    /** Zume-style zoom with rebindable keys (1.16.5 first; other versions follow). */
+    // @era:zoom-begin none
+    public static final boolean ZOOM = false;
+    // @era:zoom-else v16
+    //~ public static final boolean ZOOM = true;
+    // @era:zoom-end
+
+    /**
+     * Dirty sections near the camera are rebuilt on worker threads instead of the render thread,
+     * and client light updates get a per-frame time budget (1.16.5's "build near" path).
+     */
+    // @era:near-build-begin none
+    public static final boolean THREADED_NEAR_BUILDS = false;
+    // @era:near-build-else v16
+    //~ public static final boolean THREADED_NEAR_BUILDS = true;
+    // @era:near-build-end
+
     /** Weather can be hidden on every supported version. */
     public static final boolean WEATHER = true;
 

@@ -225,6 +225,8 @@ public final class AetheriumPages {
         page.add(bool("perf.smooth_chunks", "Smooth chunk loading", config.smoothChunkLoading)
                 .presetMember()
                 .availableWhen(() -> Capabilities.SMOOTH_CHUNK_UPLOADS, NOT_ON_THIS_VERSION));
+        page.add(bool("perf.threaded_builder", "Threaded chunk builder", config.threadedChunkBuilder)
+                .availableWhen(() -> Capabilities.THREADED_NEAR_BUILDS, "Vanilla already does this on this version"));
         page.add(bool("perf.animated_textures", "Animated textures", config.animatedTextures)
                 .presetMember()
                 .availableWhen(() -> Capabilities.TEXTURE_ANIMATION_TOGGLE, NOT_ON_THIS_VERSION));
@@ -283,7 +285,7 @@ public final class AetheriumPages {
     // ------------------------------------------------------------------ Effects
 
     private Page effects() {
-        final Page page = new Page("Effects", "Effects", "Dynamic lights and brightness", PixelArt.SUN);
+        final Page page = new Page("Effects", "Effects", "Dynamic lights, brightness and zoom", PixelArt.SUN);
         page.add(Setting.choice("effects.dynamic_lights", Setting.Kind.SEGMENTED, "Dynamic lights",
                         config.dynamicLights.getComment(), LIGHTS,
                         () -> config.dynamicLights.get().ordinal(),
@@ -296,17 +298,45 @@ public final class AetheriumPages {
         page.add(bool("effects.entities", "Glowing entities", config.dynamicLightsEntities)
                 .availableWhen(() -> Capabilities.DYNAMIC_LIGHTS, NOT_ON_THIS_VERSION));
         page.add(Setting.info("effects.sources", "Active light sources",
-                "Updated live. With dynamic lights Off at launch the light hooks are not installed (zero cost), so turning them on takes effect after a restart.",
+                "Updated live: the number of light sources currently lighting the world around you.",
                 () -> {
                     if (Capabilities.DYNAMIC_LIGHTS && !AetheriumMixinPlugin.lightHooksInstalled()) {
-                        return config.dynamicLights.get() == AetheriumConfig.LightMode.OFF ? "Off (zero cost)" : "Restart to apply";
+                        return "Unavailable (hooks failed)";
+                    }
+                    if (config.dynamicLights.get() == AetheriumConfig.LightMode.OFF) {
+                        return "Off";
                     }
                     return Integer.toString(ClientHooks.activeLightSources());
                 }));
         page.add(bool("effects.fullbright", "Fullbright", config.fullbright));
         page.add(intSlider("effects.fullbright_strength", "Fullbright strength", config.fullbrightStrength, 5,
                 v -> v + "%"));
+        addZoom(page);
         return page;
+    }
+
+    private void addZoom(final Page page) {
+        page.add(Setting.info("effects.zoom_keys", "Zoom keys",
+                "Zoom / Zoom In / Zoom Out. Hold Zoom to zoom (Z by default), scroll or use Zoom In (=) and Zoom Out (-) while zooming. Rebind them in Options > Controls, category Aetherium.",
+                () -> Capabilities.ZOOM ? ZoomKeys.describe() : NOT_ON_THIS_VERSION));
+        page.add(zoomRow(intSlider("effects.zoom_default", "Zoom strength", config.zoomDefault, 5, v -> v + "%")));
+        page.add(zoomRow(bool("effects.zoom_toggle", "Zoom toggles", config.zoomToggle)));
+        page.add(zoomRow(bool("effects.zoom_cinematic", "Cinematic zoom", config.zoomCinematic)));
+        page.add(zoomRow(bool("effects.zoom_scrolling", "Scroll to zoom", config.zoomScrolling)));
+        page.add(zoomRow(intSlider("effects.zoom_speed", "Zoom speed", config.zoomSpeed, 1, v -> Integer.toString(v))));
+        page.add(zoomRow(intSlider("effects.zoom_smoothness", "Zoom animation", config.zoomSmoothnessMs, 10,
+                v -> v == 0 ? "Instant" : v + " ms")));
+        page.add(zoomRow(intSlider("effects.zoom_sensitivity", "Zoomed mouse floor", config.zoomSensitivityFloor, 5,
+                v -> v + "%")));
+        page.add(zoomRow(intSlider("effects.zoom_min_fov", "Maximum zoom FOV", config.zoomMinFov, 1,
+                v -> v + "\u00b0")));
+        page.add(zoomRow(intSlider("effects.zoom_third_person", "Third-person zoom", config.zoomThirdPersonDistance, 1,
+                v -> v == 0 ? "Off (FOV zoom)" : "0.5-" + v + " blocks")));
+        page.add(zoomRow(bool("effects.zoom_third_person_toggle", "Third-person toggles", config.zoomThirdPersonToggle)));
+    }
+
+    private static Setting zoomRow(final Setting setting) {
+        return setting.availableWhen(() -> Capabilities.ZOOM, NOT_ON_THIS_VERSION);
     }
 
     // ------------------------------------------------------------------ Android

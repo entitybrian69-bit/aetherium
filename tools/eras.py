@@ -64,6 +64,10 @@ ERAS = {
                     ("render-origin", "1.21.5..")],
     "occlusion-box": [("entity", "..1.21.1"), ("renderer", "1.21.2..26.2"), ("renderer-tick", "26.3..")],
     "chunk-renderer": [("gl16", "..1.16.5"), ("none", "1.17..")],
+    # Zume-style zoom (ZoomKeys + Zoom*Mixin, KeyMappingAccessor, OptionsMixin key list): 1.16.5 first.
+    "zoom": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # Threaded "build near" chunk rebuilds and the per-frame client light budget (NearBuildMixin).
+    "near-build": [("v16", "..1.16.5"), ("none", "1.17..")],
     "be-render": [("render", "..1.21.8"), ("extract", "1.21.9..26.1"), ("extract-flag", "26.2..")],
     "bg-threads": [("clamp", "..1.17.1"), ("property", "1.18..")],
     "sound-click": [("event", "..1.19.2"), ("holder", "1.19.3..")],

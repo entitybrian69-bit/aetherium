@@ -201,4 +201,47 @@ final class PerfLogicTest {
         assertFalse(BlockEntityCull.active(), "0 or less means vanilla, never cull everything");
         BlockEntityCull.setDistance(64);
     }
+
+    @Test
+    @DisplayName("near build: client light updates run one slice, then more only while work is pending and time is left")
+    void lightBudget() {
+        final long[] now = {0L};
+        final int[] slices = {0};
+        final int[] pending = {10};
+        final NearBuild.Clock clock = new NearBuild.Clock() {
+            @Override
+            public long nanoTime() {
+                return now[0];
+            }
+        };
+        final NearBuild.LightStep step = new NearBuild.LightStep() {
+            @Override
+            public int run(final int maxUpdates) {
+                assertEquals(NearBuild.LIGHT_SLICE, maxUpdates);
+                slices[0]++;
+                pending[0]--;
+                now[0] += 500_000L;
+                return pending[0];
+            }
+        };
+        final NearBuild.Pending any = new NearBuild.Pending() {
+            @Override
+            public boolean any() {
+                return pending[0] > 0;
+            }
+        };
+        NearBuild.runLight(step, any, clock, 2_000_000L);
+        assertEquals(4, slices[0], "2 ms budget / 0.5 ms per slice");
+        assertEquals(6, pending[0], "the rest waits for the next frame");
+
+        pending[0] = 0;
+        slices[0] = 0;
+        NearBuild.runLight(step, any, clock, 2_000_000L);
+        assertEquals(1, slices[0], "always one slice, so vanilla's bookkeeping still runs every frame");
+
+        pending[0] = 2;
+        slices[0] = 0;
+        NearBuild.runLight(step, any, clock, 100_000_000L);
+        assertEquals(2, slices[0], "stops as soon as nothing is pending");
+    }
 }

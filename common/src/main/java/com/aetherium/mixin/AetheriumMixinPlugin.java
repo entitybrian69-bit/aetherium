@@ -1,7 +1,6 @@
 package com.aetherium.mixin;
 
 import com.aetherium.Capabilities;
-import com.aetherium.config.EarlyConfig;
 import com.aetherium.perf.WorkerThreads;
 
 import java.util.Collections;
@@ -38,8 +37,6 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
 
     private static volatile boolean mixinActive = true;
     private static volatile String minecraftVersion = "unknown";
-    /** Decided in {@link #onLoad}: dynamic lights were on in the config this launch started with. */
-    private static volatile boolean lightHooksWanted;
 
     // ------------------------------------------------------------------ public API
 
@@ -68,7 +65,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         return APPLIED.contains(simpleName);
     }
 
-    /** Whether the dynamic-light hooks are in place this launch (false = lights need a restart). */
+    /** Whether the dynamic-light hooks are in place this launch (always, where the version supports them). */
     public static boolean lightHooksInstalled() {
         return APPLIED.contains("LightLevelMixin");
     }
@@ -85,9 +82,10 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     static boolean enabledOnThisVersion(final String simpleName) {
         if ("LightLevelMixin".equals(simpleName) || "EntityLightMixin".equals(simpleName)) {
             // These hook vanilla's per-vertex light lookup, which runs millions of times while
-            // chunks are meshed. With dynamic lights off they are not applied at all, so that
-            // path stays vanilla bytecode; switching lights on from Off needs a restart.
-            return Capabilities.DYNAMIC_LIGHTS && lightHooksWanted;
+            // chunks are meshed. They are allocation-free return-value modifiers that cost one
+            // volatile read while no light source exists, so they are always installed and
+            // dynamic lights switch on and off live.
+            return Capabilities.DYNAMIC_LIGHTS;
         }
         if ("OptionInstanceMixin".equals(simpleName)) {
             return Capabilities.GAMMA_INSTANCE;
@@ -111,6 +109,13 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
                 || "RenderChunkBuffersMixin".equals(simpleName) || "FogStateMixin".equals(simpleName)) {
             return Capabilities.EXPERIMENTAL_CHUNK_RENDERER;
         }
+        if ("KeyMappingAccessor".equals(simpleName) || "ZoomFovMixin".equals(simpleName)
+                || "ZoomMouseMixin".equals(simpleName) || "ZoomCameraMixin".equals(simpleName)) {
+            return Capabilities.ZOOM;
+        }
+        if ("NearBuildMixin".equals(simpleName)) {
+            return Capabilities.THREADED_NEAR_BUILDS;
+        }
         if ("GuiMixin".equals(simpleName)) {
             return Capabilities.HUD_OVERLAY || Capabilities.VIGNETTE_TOGGLE;
         }
@@ -124,10 +129,12 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         // Runs before Minecraft's Util class initializes, the only moment the pool size can be set.
         WorkerThreads.applyEarly(WorkerThreads.defaultConfigFile());
         try {
-            lightHooksWanted = Capabilities.DYNAMIC_LIGHTS
-                    && EarlyConfig.dynamicLightsOn(EarlyConfig.read(WorkerThreads.defaultConfigFile()));
-        } catch (final RuntimeException | LinkageError error) {
-            lightHooksWanted = false;
+            // Fabric Loader 0.15+ and NeoForge initialise MixinExtras themselves; this covers older
+            // loaders, where the copy bundled in the Aetherium jar has to be started by hand.
+            // Idempotent when it is already running.
+            com.llamalad7.mixinextras.MixinExtrasBootstrap.init();
+        } catch (final Throwable error) {
+            // Without MixinExtras the light hooks fail to apply (require = 0) and lights stay off.
         }
     }
 

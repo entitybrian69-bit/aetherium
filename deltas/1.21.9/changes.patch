@@ -211,35 +211,38 @@ index ad232af..291433f 100644
          //~ }
      //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
-index fb558a9..dc12d6f 100644
+index fb2c1fd..8262138 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
-@@ -21,18 +21,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+@@ -24,19 +24,19 @@ import org.spongepowered.asm.mixin.injection.At;
  @Mixin(LevelRenderer.class)
  public abstract class LightLevelMixin {
  
 -    // @era:light-hook-begin color
--    @Inject(method = "getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
+-    @ModifyReturnValue(method = "getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
 +    // @era:light-hook-begin brightness
-+    @Inject(method = "getLightColor(Lnet/minecraft/client/renderer/LevelRenderer$BrightnessGetter;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
-             at = @At("RETURN"), cancellable = true, require = 0)
--    private static void aetherium$light(final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
-+    private static void aetherium$light(final LevelRenderer.BrightnessGetter getter,
-+                                        final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
-                                         final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
-         adjust(pos, cir);
++    @ModifyReturnValue(method = "getLightColor(Lnet/minecraft/client/renderer/LevelRenderer$BrightnessGetter;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
+             at = @At("RETURN"), require = 0)
+-    private static int aetherium$light(final int original, final net.minecraft.world.level.BlockAndTintGetter level,
+-                                       final BlockState state, final BlockPos pos) {
++    private static int aetherium$light(final int original, final LevelRenderer.BrightnessGetter getter,
++                                       final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
++                                       final BlockPos pos) {
+         return adjust(original, pos);
      }
 -    // @era:light-hook-else brightness
--    //~ @Inject(method = "getLightColor(Lnet/minecraft/client/renderer/LevelRenderer$BrightnessGetter;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
+-    //~ @ModifyReturnValue(method = "getLightColor(Lnet/minecraft/client/renderer/LevelRenderer$BrightnessGetter;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
 +    // @era:light-hook-else color
-+    //~ @Inject(method = "getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
-             //~ at = @At("RETURN"), cancellable = true, require = 0)
--    //~ private static void aetherium$light(final LevelRenderer.BrightnessGetter getter,
--                                        //~ final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
-+    //~ private static void aetherium$light(final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
-                                         //~ final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
-         //~ adjust(pos, cir);
++    //~ @ModifyReturnValue(method = "getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",
+             //~ at = @At("RETURN"), require = 0)
+-    //~ private static int aetherium$light(final int original, final LevelRenderer.BrightnessGetter getter,
+-                                       //~ final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
+-                                       //~ final BlockPos pos) {
++    //~ private static int aetherium$light(final int original, final net.minecraft.world.level.BlockAndTintGetter level,
++                                       //~ final BlockState state, final BlockPos pos) {
+         //~ return adjust(original, pos);
      //~ }
+     // @era:light-hook-else coords
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
 index f4b7685..56aed81 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
@@ -323,7 +326,7 @@ index dd489bc..090bb2c 100644
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
 diff --git a/gradle.properties b/gradle.properties
-index 6feabad..ad0b7a9 100644
+index 26b33d3..811978c 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@ org.gradle.daemon=true

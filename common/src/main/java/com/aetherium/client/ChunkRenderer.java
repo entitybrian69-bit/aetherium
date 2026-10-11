@@ -105,6 +105,22 @@ public final class ChunkRenderer {
     static final int FOG_EXP = 1;
     static final int FOG_EXP2 = 2;
 
+    /**
+     * Fog, computed per vertex like vanilla's fixed-function fog: terrain quads are one block, so
+     * interpolating it is exact to the eye, and the fragment shader is left with one mix.
+     */
+    static final String FOG_PER_VERTEX = String.join("\n",
+            "    float fogDistance = length(view.xyz);",
+            "    v_fog = 1.0;",
+            "    if (u_fogMode == 0) {",
+            "        v_fog = clamp((u_fog.y - fogDistance) / max(u_fog.y - u_fog.x, 0.0001), 0.0, 1.0);",
+            "    } else if (u_fogMode == 1) {",
+            "        v_fog = clamp(exp(-u_fog.z * fogDistance), 0.0, 1.0);",
+            "    } else if (u_fogMode == 2) {",
+            "        float k = u_fog.z * fogDistance;",
+            "        v_fog = clamp(exp(-k * k), 0.0, 1.0);",
+            "    }");
+
     static final String VERTEX_SHADER = String.join("\n",
             "#version 120",
             "attribute vec3 a_pos;",
@@ -114,10 +130,12 @@ public final class ChunkRenderer {
             "uniform mat4 u_projection;",
             "uniform mat4 u_modelView;",
             "uniform vec3 u_offset;",
+            "uniform int u_fogMode;",
+            "uniform vec3 u_fog;",
             "varying vec4 v_color;",
             "varying vec2 v_uv0;",
             "varying vec2 v_uv2;",
-            "varying float v_distance;",
+            "varying float v_fog;",
             "void main() {",
             "    vec4 view = u_modelView * vec4(a_pos + u_offset, 1.0);",
             "    gl_Position = u_projection * view;",
@@ -125,7 +143,7 @@ public final class ChunkRenderer {
             "    v_uv0 = a_uv0;",
             // Vanilla's lightmap texture matrix: scale 1/256, translate 8 texels.
             "    v_uv2 = (a_uv2 + vec2(8.0)) / 256.0;",
-            "    v_distance = length(view.xyz);",
+            FOG_PER_VERTEX,
             "}",
             "");
 
@@ -141,10 +159,12 @@ public final class ChunkRenderer {
             "uniform mat4 u_projection;",
             "uniform mat4 u_modelView;",
             "uniform vec3 u_offset;",
+            "uniform int u_fogMode;",
+            "uniform vec3 u_fog;",
             "varying vec4 v_color;",
             "varying vec2 v_uv0;",
             "varying vec2 v_uv2;",
-            "varying float v_distance;",
+            "varying float v_fog;",
             "void main() {",
             "    vec4 raw = a_pos + vec4(" + glslFloat(CompactTerrain.ATTRIBUTE_BIAS) + ");",
             "    vec3 local = raw.xyz / " + glslFloat(CompactTerrain.POSITION_SCALE) + " - vec3("
@@ -155,38 +175,48 @@ public final class ChunkRenderer {
             "    v_uv0 = a_uv0;",
             "    float sky = floor(raw.w / 256.0);",
             "    v_uv2 = (vec2(raw.w - sky * 256.0, sky) + vec2(8.0)) / 256.0;",
-            "    v_distance = length(view.xyz);",
+            FOG_PER_VERTEX,
             "}",
             "");
 
+    /** Cutout layers: texels under the cutoff are discarded. */
     static final String FRAGMENT_SHADER = String.join("\n",
             "#version 120",
             "uniform sampler2D u_blocks;",
             "uniform sampler2D u_lightmap;",
             "uniform float u_alphaCutoff;",
-            "uniform int u_fogMode;",
-            "uniform vec3 u_fog;",
             "uniform vec4 u_fogColor;",
             "varying vec4 v_color;",
             "varying vec2 v_uv0;",
             "varying vec2 v_uv2;",
-            "varying float v_distance;",
+            "varying float v_fog;",
             "void main() {",
             "    vec4 color = texture2D(u_blocks, v_uv0) * v_color;",
             "    if (color.a < u_alphaCutoff) {",
             "        discard;",
             "    }",
             "    color *= texture2D(u_lightmap, v_uv2);",
-            "    float visibility = 1.0;",
-            "    if (u_fogMode == 0) {",
-            "        visibility = clamp((u_fog.y - v_distance) / max(u_fog.y - u_fog.x, 0.0001), 0.0, 1.0);",
-            "    } else if (u_fogMode == 1) {",
-            "        visibility = clamp(exp(-u_fog.z * v_distance), 0.0, 1.0);",
-            "    } else if (u_fogMode == 2) {",
-            "        float k = u_fog.z * v_distance;",
-            "        visibility = clamp(exp(-k * k), 0.0, 1.0);",
-            "    }",
-            "    gl_FragColor = vec4(mix(u_fogColor.rgb, color.rgb, visibility), color.a);",
+            "    gl_FragColor = vec4(mix(u_fogColor.rgb, color.rgb, v_fog), color.a);",
+            "}",
+            "");
+
+    /**
+     * The solid layer: no {@code discard} anywhere in the shader. Mobile GPUs (Mali's Forward Pixel
+     * Kill, early depth test on Adreno and PowerVR) switch hidden-surface removal off for any shader
+     * that can discard, and solid terrain is most of the screen, so it gets its own program.
+     */
+    static final String FRAGMENT_SHADER_SOLID = String.join("\n",
+            "#version 120",
+            "uniform sampler2D u_blocks;",
+            "uniform sampler2D u_lightmap;",
+            "uniform vec4 u_fogColor;",
+            "varying vec4 v_color;",
+            "varying vec2 v_uv0;",
+            "varying vec2 v_uv2;",
+            "varying float v_fog;",
+            "void main() {",
+            "    vec4 color = texture2D(u_blocks, v_uv0) * v_color * texture2D(u_lightmap, v_uv2);",
+            "    gl_FragColor = vec4(mix(u_fogColor.rgb, color.rgb, v_fog), color.a);",
             "}",
             "");
 
@@ -219,14 +249,20 @@ public final class ChunkRenderer {
         int uFogMode = -1;
         int uFog = -1;
         int uFogColor = -1;
+        /** Vanilla's 32-byte layout, which has the separate lightmap attribute. */
+        final boolean legacy;
 
-        Program(final String name) {
+        Program(final String name, final boolean legacy) {
             this.name = name;
+            this.legacy = legacy;
         }
     }
 
-    private static final Program LEGACY = new Program("legacy");
-    private static final Program COMPACT = new Program("compact");
+    private static final Program LEGACY = new Program("legacy solid", true);
+    private static final Program LEGACY_CUTOUT = new Program("legacy cutout", true);
+    private static final Program COMPACT = new Program("compact solid", false);
+    private static final Program COMPACT_CUTOUT = new Program("compact cutout", false);
+    private static final Program[] PROGRAMS = {LEGACY, LEGACY_CUTOUT, COMPACT, COMPACT_CUTOUT};
     private static boolean programsReady;
 
     // Per-layer state captured in begin(), uploaded to whichever program is switched to.
@@ -403,8 +439,9 @@ public final class ChunkRenderer {
         if (vertexBuffer <= 0 || vertexCount < 4) {
             return;
         }
-        use(LEGACY);
-        GL20.glUniform3f(LEGACY.uOffset, dx, dy, dz);
+        final Program program = layerCutout ? LEGACY_CUTOUT : LEGACY;
+        use(program);
+        GL20.glUniform3f(program.uOffset, dx, dy, dz);
         GL15.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         pointAttributes(0L);
         if (traceLeft > 0) {
@@ -433,8 +470,9 @@ public final class ChunkRenderer {
             return;
         }
         runs = CompactTerrain.mergeRuns(RUN_FIRST, RUN_COUNT, runs, MERGE_GAP_QUADS);
-        use(COMPACT);
-        GL20.glUniform3f(COMPACT.uOffset, dx, dy, dz);
+        final Program program = layerCutout ? COMPACT_CUTOUT : COMPACT;
+        use(program);
+        GL20.glUniform3f(program.uOffset, dx, dy, dz);
         GL15.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         pointCompactAttributes(0L);
         for (int r = 0; r < runs; r++) {
@@ -702,14 +740,16 @@ public final class ChunkRenderer {
         MATRIX.rewind();
         GL20.glUniformMatrix4fv(program.uModelView, false, MODEL_VIEW);
         MODEL_VIEW.rewind();
-        GL20.glUniform1f(program.uAlphaCutoff, layerCutout ? 0.5f : -1.0f);
+        if (program.uAlphaCutoff >= 0) {
+            GL20.glUniform1f(program.uAlphaCutoff, 0.5f);
+        }
         GL20.glUniform1i(program.uFogMode, fogMode);
         if (fogMode != FOG_NONE) {
             GL20.glUniform3f(program.uFog, fogStart, fogEnd, fogDensity);
             GL20.glUniform4f(program.uFogColor, FOG_COLOR.get(0), FOG_COLOR.get(1), FOG_COLOR.get(2), FOG_COLOR.get(3));
         }
         // Attribute 3 (lightmap uv) exists only in vanilla's layout.
-        if (program == LEGACY) {
+        if (program.legacy) {
             GL20.glEnableVertexAttribArray(ATTR_UV2);
         } else {
             GL20.glDisableVertexAttribArray(ATTR_UV2);
@@ -772,23 +812,28 @@ public final class ChunkRenderer {
             logGlInfo();
         }
         trace("compiling and linking the GLSL 1.20 programs");
-        if (!link(LEGACY, VERTEX_SHADER, "a_pos", "a_color", "a_uv0", "a_uv2")
-                || !link(COMPACT, COMPACT_VERTEX_SHADER, "a_pos", "a_color", "a_uv0", null)) {
-            if (LEGACY.id != 0) {
-                GL20.glDeleteProgram(LEGACY.id);
-                LEGACY.id = 0;
+        if (!link(LEGACY, VERTEX_SHADER, FRAGMENT_SHADER_SOLID, "a_pos", "a_color", "a_uv0", "a_uv2")
+                || !link(LEGACY_CUTOUT, VERTEX_SHADER, FRAGMENT_SHADER, "a_pos", "a_color", "a_uv0", "a_uv2")
+                || !link(COMPACT, COMPACT_VERTEX_SHADER, FRAGMENT_SHADER_SOLID, "a_pos", "a_color", "a_uv0", null)
+                || !link(COMPACT_CUTOUT, COMPACT_VERTEX_SHADER, FRAGMENT_SHADER, "a_pos", "a_color", "a_uv0", null)) {
+            for (final Program program : PROGRAMS) {
+                if (program.id != 0) {
+                    GL20.glDeleteProgram(program.id);
+                    program.id = 0;
+                }
             }
             return false;
         }
         programsReady = true;
-        LOG.info("Aetherium pipeline ready (GLSL 1.20, 16-byte compact vertices, plain triangles, no index buffer)");
+        LOG.info("Aetherium pipeline ready (GLSL 1.20, 16-byte compact vertices, plain triangles, no index buffer, "
+                + "discard-free solid program, per-vertex fog)");
         return true;
     }
 
-    private static boolean link(final Program program, final String vertexSource, final String pos, final String color,
-                                final String uv0, final String uv2) {
+    private static boolean link(final Program program, final String vertexSource, final String fragmentSource,
+                                final String pos, final String color, final String uv0, final String uv2) {
         final int vertex = compile(GL_VERTEX_SHADER, vertexSource);
-        final int fragment = vertex == 0 ? 0 : compile(GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
+        final int fragment = vertex == 0 ? 0 : compile(GL_FRAGMENT_SHADER, fragmentSource);
         if (vertex == 0 || fragment == 0) {
             if (vertex != 0) {
                 GL20.glDeleteShader(vertex);

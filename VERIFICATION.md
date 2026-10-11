@@ -446,3 +446,35 @@ Gates run for 1.3.4: `stubcheck --all` 33/33; `testrun.py --bench` 132 passed (1
 benchmarks); `gen_deltas --all --verify` (32 patches); `check.py` clean; `check_refs.py` clean.
 CI: `ship` run 38111557998 for commit 417084e passed all 35 jobs and published 33 releases
 `v1.3.4+<mc>`.
+
+## 16. 1.4.0: zoom, live dynamic lights, threaded near builds (1.16.5)
+
+Mixin targets, read from `tools/probe/1.16.5.txt` (probe run 38117791115, commit 0b1d525):
+
+| Hook | Bytecode it relies on |
+| --- | --- |
+| `NearBuildMixin` threaded near builds | `LevelRenderer.setupRender`: `BlockPos.distSqr` (offset 1283) `< 768.0d` (1286), `RenderChunk.isDirtyFromPlayer` (1302), `ChunkRenderDispatcher.rebuildChunkSync(RenderChunk)V` (1334), `setNotDirty` (1339). `compileChunksUntil` uses `RenderChunk.rebuildChunkAsync(ChunkRenderDispatcher)V` + `setNotDirty` for far sections, which is what the wrap does |
+| `NearBuildMixin` light budget | `LevelRenderer.renderLevel`: `ClientChunkCache.getLightEngine` (82), `LevelLightEngine.runUpdates(IZZ)I` (90); `LevelLightEngine.hasLightWork()Z` exists |
+| `ZoomFovMixin` | `GameRenderer.getFov(Camera, float, boolean)D`, the only `getFov` |
+| `ZoomMouseMixin` | `MouseHandler.turnPlayer` reads `Options.sensitivity:D` once (51) and `Options.smoothCamera:Z` once (85); `onScroll(JDD)V` |
+| `ZoomCameraMixin` | `Camera.setup` calls private `getMaxZoom(D)D` (133) |
+| `KeyMappingAccessor` | `KeyMapping.CATEGORY_SORT_ORDER : Map<String,Integer>` (static); constructor `(String, int, String)`; `isDown()`; `getTranslatedKeyMessage()` |
+| `OptionsMixin` zoom keys | `Options.keyMappings : KeyMapping[]` (public final), `Options.load()V`; `Options.getCameraType()` returns `CameraType` with `isFirstPerson()` / `isMirrored()` |
+| `LightLevelMixin`, `EntityLightMixin` | unchanged targets; now `@ModifyReturnValue` (MixinExtras 0.5.3, bundled; `MixinExtrasBootstrap.init()` in the plugin for loaders that do not start it) |
+
+**Established:** the targets above exist with these descriptors in the 1.16.5 jar CI probed; every
+version compiles (`stubcheck --all` 33/33; the zoom and near-build code is an empty `none` variant
+outside 1.16.5 and the plugin skips those mixins there). **Not established:** behaviour in game
+(no GPU here). Zoom follows Zume's documented formulas (FOV `min + (fov - min) * z^2`, 150 ms
+quartic ease-out, scroll `speed * 0.004` per notch, keys `speed * 0.0001` per ms, sensitivity
+`floor + (1 - floor) * z`, third-person distance `0.5 .. 15` with vanilla's 4 blocks as rest);
+Zume is OSL-3.0, so no code was copied.
+
+| Change | Check |
+| --- | --- |
+| Zoom state machine and curves | `ZoomControllerTest` (7 tests: hold, easing, scroll, keys, toggle, third person, reset) |
+| Light budget: one slice always, then only while pending and within budget | `PerfLogicTest.lightBudget` |
+| Solid program has no `discard`; fog per vertex; no GLSL built-in shadowed | `ChunkRendererTest.shaderSources` |
+
+Gates run for 1.4.0: `stubcheck --all` 33/33; `testrun.py --bench` 140 passed (133 unit + 7
+benchmarks); `gen_deltas --all --verify` (32 patches); `gen_resources --check`; `check.py` clean.

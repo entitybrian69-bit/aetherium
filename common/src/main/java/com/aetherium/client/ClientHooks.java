@@ -12,6 +12,7 @@ import com.aetherium.mixin.AetheriumMixinPlugin;
 import com.aetherium.perf.AdaptiveDistance;
 import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.FrameLimiter;
+import com.aetherium.perf.NearBuild;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.perf.SectionVisibility;
 import com.aetherium.util.AetheriumLog;
@@ -73,6 +74,8 @@ public final class ClientHooks {
     /** GameRenderer.render HEAD: frame pacing (battery/thermal caps) and frame-time stats. */
     public static void onFrameStart() {
         visibilityFrameDirty = true;
+        // Zoom reads its keys here, before the camera, the FOV and the mouse use its state.
+        ZoomKeys.frame(Minecraft.getInstance());
         ChunkRenderer.onFrame();
         if (Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive()) {
             LIMITER.beforeFrame();
@@ -216,6 +219,7 @@ public final class ClientHooks {
         if (mc.level != lastLevel) {
             lastLevel = mc.level;
             tracker.reset();
+            ZoomKeys.reset();
             ADAPTIVE.reset();
         }
 
@@ -226,8 +230,8 @@ public final class ClientHooks {
         ticks++;
         final AetheriumConfig config = sub.config;
 
-        // Without the light hook (dynamic lights were Off at launch) the tracker would only cause
-        // pointless chunk rebuilds, so it stays idle until the next restart.
+        // Without the light hook (it failed to apply) the tracker would only cause pointless chunk
+        // rebuilds, so it stays idle.
         final boolean lightsAllowed = active && Capabilities.DYNAMIC_LIGHTS && AetheriumMixinPlugin.lightHooksInstalled();
         tracker.tick(mc, lightsAllowed);
 
@@ -322,6 +326,8 @@ public final class ClientHooks {
         Aetherium.refreshState();
         final AetheriumConfig config = sub.config;
         final boolean active = Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive();
+        ZoomKeys.configure(config);
+        NearBuild.configure(config);
 
         if (active && config.fullbright.get().booleanValue()) {
             final double strength = config.fullbrightStrength.get().intValue() / 100.0;
