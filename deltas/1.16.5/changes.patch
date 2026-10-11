@@ -422,10 +422,10 @@ index afb236d..ffe04fe 100644
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
-index 9238030..bf710ca 100644
+index cc8c248..ec944ff 100644
 --- a/common/src/main/java/com/aetherium/client/QolHooks.java
 +++ b/common/src/main/java/com/aetherium/client/QolHooks.java
-@@ -15,33 +15,33 @@ import com.aetherium.qol.Freelook;
+@@ -14,33 +14,33 @@ import com.aetherium.qol.Freelook;
  import com.aetherium.qol.ParticleFilter;
  import com.aetherium.qol.Scenery;
  
@@ -486,7 +486,7 @@ index 9238030..bf710ca 100644
  // @era:qol16-end
  
  /**
-@@ -59,14 +59,14 @@ public final class QolHooks {
+@@ -58,14 +58,14 @@ public final class QolHooks {
      private static boolean freelookToggle;
      private static boolean freelookThirdPerson = true;
  
@@ -509,7 +509,7 @@ index 9238030..bf710ca 100644
      // @era:qol16-end
  
      private QolHooks() {
-@@ -105,15 +105,15 @@ public final class QolHooks {
+@@ -104,15 +104,15 @@ public final class QolHooks {
  
          freelookToggle = config.freelookToggle.get().booleanValue();
          freelookThirdPerson = config.freelookThirdPerson.get().booleanValue();
@@ -534,9 +534,9 @@ index 9238030..bf710ca 100644
          // @era:qol16-end
      }
  
-@@ -126,254 +126,254 @@ public final class QolHooks {
+@@ -129,254 +129,254 @@ public final class QolHooks {
+      */
      public static void onLevelChange() {
-         PreparedUploads.clear();
          DirectPool.trim();
 -        // @era:qol16-begin none
 -        // @era:qol16-else v16
@@ -865,27 +865,6 @@ index 9238030..bf710ca 100644
 +    static final long VISIBILITY_INTERVAL_NANOS = 50_000_000L;
 +    private static long lastVisibilityUpdate;
 +    private static boolean visibilityPending;
-+
-+    /**
-+     * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
-+     * Sections already in the visible list draw their new mesh at once either way; the search only
-+     * discovers sections behind them, so it is limited to 20 per second while uploads stream in.
-+     */
-+    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
-+        if (!PacketBudget.enabled()) {
-+            return uploaded;
-+        }
-+        final long now = System.nanoTime();
-+        if (uploaded) {
-+            visibilityPending = true;
-+        }
-+        if (visibilityPending && now - lastVisibilityUpdate >= VISIBILITY_INTERVAL_NANOS) {
-+            visibilityPending = false;
-+            lastVisibilityUpdate = now;
-+            return true;
-+        }
-+        return false;
-+    }
  
 -    //~ /** Minimum time between visible-section searches caused only by finished uploads. */
 -    //~ static final long VISIBILITY_INTERVAL_NANOS = 50_000_000L;
@@ -912,20 +891,41 @@ index 9238030..bf710ca 100644
 -        //~ }
 -        //~ return false;
 -    //~ }
-+    // ------------------------------------------------------------------ fog and sky
++    /**
++     * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
++     * Sections already in the visible list draw their new mesh at once either way; the search only
++     * discovers sections behind them, so it is limited to 20 per second while uploads stream in.
++     */
++    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
++        if (!PacketBudget.enabled()) {
++            return uploaded;
++        }
++        final long now = System.nanoTime();
++        if (uploaded) {
++            visibilityPending = true;
++        }
++        if (visibilityPending && now - lastVisibilityUpdate >= VISIBILITY_INTERVAL_NANOS) {
++            visibilityPending = false;
++            lastVisibilityUpdate = now;
++            return true;
++        }
++        return false;
++    }
  
 -    //~ // ------------------------------------------------------------------ fog and sky
-+    /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
-+    @SuppressWarnings("unchecked")
-+    private static Tag<Fluid> fluidTag(final Object named) {
-+        return (Tag<Fluid>) named;
-+    }
++    // ------------------------------------------------------------------ fog and sky
  
 -    //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
 -    //~ @SuppressWarnings("unchecked")
 -    //~ private static Tag<Fluid> fluidTag(final Object named) {
 -        //~ return (Tag<Fluid>) named;
 -    //~ }
++    /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
++    @SuppressWarnings("unchecked")
++    private static Tag<Fluid> fluidTag(final Object named) {
++        return (Tag<Fluid>) named;
++    }
++
 +    /** FogRenderer.setupFog TAIL, terrain fog only. */
 +    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
 +        if (Scenery.fogVanilla()) {
@@ -2052,6 +2052,48 @@ index 84ade47..3b93da7 100644
 +    // @era:qol16-begin v16
 +    @Invoker("pollTask")
 +    boolean aetherium$pollTask();
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
+index 24ad238..14b47c8 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
+@@ -1,10 +1,10 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import java.util.List;
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-begin v16
++import java.util.List;
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -16,14 +16,14 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "com.mojang.blaze3d.vertex.BufferBuilder")
+ public interface BufferBuilderAccessor {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ /** Finished meshes ({@code BufferBuilder.DrawState}), oldest first. */
+-    //~ @Accessor("vertexCounts")
+-    //~ List<?> aetherium$drawStates();
++    // @era:qol16-begin v16
++    /** Finished meshes ({@code BufferBuilder.DrawState}), oldest first. */
++    @Accessor("vertexCounts")
++    List<?> aetherium$drawStates();
+ 
+-    //~ /** Index of the next mesh {@code popNextBuffer} hands out. */
+-    //~ @Accessor("lastRenderedCountIndex")
+-    //~ int aetherium$nextDrawState();
++    /** Index of the next mesh {@code popNextBuffer} hands out. */
++    @Accessor("lastRenderedCountIndex")
++    int aetherium$nextDrawState();
 +    // @era:qol16-else none
      // @era:qol16-end
  }
@@ -3706,7 +3748,7 @@ index d5e4570..ddd83c8 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-index 28ad7d0..f8d0f9d 100644
+index 22dd685..74e32e3 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 @@ -3,20 +3,20 @@ package com.aetherium.mixin.core;
@@ -3744,7 +3786,7 @@ index 28ad7d0..f8d0f9d 100644
  // @era:chunk-renderer-end
  import org.spongepowered.asm.mixin.Mixin;
  import org.spongepowered.asm.mixin.Shadow;
-@@ -38,200 +38,200 @@ import org.spongepowered.asm.mixin.Shadow;
+@@ -38,231 +38,231 @@ import org.spongepowered.asm.mixin.Shadow;
  @Mixin(targets = "com.mojang.blaze3d.vertex.VertexBuffer")
  public abstract class VertexBufferMixin implements VertexBufferAccess {
  
@@ -3821,7 +3863,12 @@ index 28ad7d0..f8d0f9d 100644
 +            return;
 +        }
 +        final BufferBuilder builder = (BufferBuilder) source;
++        if (!aetherium$hasMesh(builder)) {
++            return; // nothing to take out; the upload sees the same and leaves the section empty
++        }
 +        final ByteBuffer data = builder.popNextBuffer().getSecond();
++        // From here on the mesh exists only in this record: it must reach the upload whatever
++        // happens (prepare never throws; a failed conversion parks an empty placeholder).
 +        PreparedUploads.put(builder, PreparedUploads.prepare(data, mode == ChunkRenderer.MODE_SHADER));
      }
 -    // @era:chunk-renderer-else gl16
@@ -3834,14 +3881,29 @@ index 28ad7d0..f8d0f9d 100644
 -    //~ @Shadow
 -    //~ @Final
 -    //~ private VertexFormat format;
- 
+-
 -    //~ @Unique
 -    //~ private boolean aetherium$terrain;
--
+ 
 -    //~ /** What the last upload stored: 0 vanilla as built, 1 compact, 2 vanilla sorted into face groups. */
 -    //~ @Unique
 -    //~ private int aetherium$format;
--
++    /**
++     * Whether the builder still holds a finished mesh. {@code popNextBuffer} on an empty builder
++     * throws and, worse, leaves its read index past the end, which breaks the next renderer that
++     * draws with that builder (in 1.16.5 the render thread's chunk builders are shared with the
++     * entity and held-item renderers).
++     */
++    @Unique
++    private static boolean aetherium$hasMesh(final BufferBuilder builder) {
++        final Object raw = builder;
++        if (raw instanceof BufferBuilderAccessor) {
++            final BufferBuilderAccessor access = (BufferBuilderAccessor) raw;
++            return access.aetherium$nextDrawState() < access.aetherium$drawStates().size();
++        }
++        return true;
++    }
+ 
 -    //~ @Unique
 -    //~ private CompactTerrain.Layout aetherium$layout;
 +    /** Uploads a mesh the worker already converted: only the GL calls remain for the render thread. */
@@ -3853,7 +3915,7 @@ index 28ad7d0..f8d0f9d 100644
 +        int format = prepared.format;
 +        // The pipeline was switched off after this mesh was converted: vanilla cannot draw the
 +        // converted bytes, so the buffer is left empty (switching rebuilds every section anyway).
-+        final boolean unusable = mode == ChunkRenderer.MODE_OFF && format != 0;
++        final boolean unusable = prepared.data == null || (mode == ChunkRenderer.MODE_OFF && format != 0);
 +        if (this.id != -1) {
 +            if (unusable) {
 +                this.vertexCount = 0;
@@ -3894,6 +3956,16 @@ index 28ad7d0..f8d0f9d 100644
 +        if (prepared != null) {
 +            ci.cancel();
 +            this.aetherium$uploadPrepared(prepared, mode);
++            return;
++        }
++        if (!aetherium$hasMesh(builder)) {
++            // Should never happen; if it does, an empty section (rebuilt later) beats a crash.
++            ci.cancel();
++            if (this.id != -1) {
++                this.vertexCount = 0;
++            }
++            this.aetherium$format = 0;
++            ChunkRenderer.noteEmptyUpload();
 +            return;
 +        }
 +        if (mode == ChunkRenderer.MODE_OFF) {
@@ -3987,8 +4059,29 @@ index 28ad7d0..f8d0f9d 100644
 -            //~ return;
 -        //~ }
 -        //~ final BufferBuilder builder = (BufferBuilder) source;
+-        //~ if (!aetherium$hasMesh(builder)) {
+-            //~ return; // nothing to take out; the upload sees the same and leaves the section empty
+-        //~ }
 -        //~ final ByteBuffer data = builder.popNextBuffer().getSecond();
+-        //~ // From here on the mesh exists only in this record: it must reach the upload whatever
+-        //~ // happens (prepare never throws; a failed conversion parks an empty placeholder).
 -        //~ PreparedUploads.put(builder, PreparedUploads.prepare(data, mode == ChunkRenderer.MODE_SHADER));
+-    //~ }
+-
+-    //~ /**
+-     //~ * Whether the builder still holds a finished mesh. {@code popNextBuffer} on an empty builder
+-     //~ * throws and, worse, leaves its read index past the end, which breaks the next renderer that
+-     //~ * draws with that builder (in 1.16.5 the render thread's chunk builders are shared with the
+-     //~ * entity and held-item renderers).
+-     //~ */
+-    //~ @Unique
+-    //~ private static boolean aetherium$hasMesh(final BufferBuilder builder) {
+-        //~ final Object raw = builder;
+-        //~ if (raw instanceof BufferBuilderAccessor) {
+-            //~ final BufferBuilderAccessor access = (BufferBuilderAccessor) raw;
+-            //~ return access.aetherium$nextDrawState() < access.aetherium$drawStates().size();
+-        //~ }
+-        //~ return true;
 -    //~ }
 -
 -    //~ /** Uploads a mesh the worker already converted: only the GL calls remain for the render thread. */
@@ -4000,7 +4093,7 @@ index 28ad7d0..f8d0f9d 100644
 -        //~ int format = prepared.format;
 -        //~ // The pipeline was switched off after this mesh was converted: vanilla cannot draw the
 -        //~ // converted bytes, so the buffer is left empty (switching rebuilds every section anyway).
--        //~ final boolean unusable = mode == ChunkRenderer.MODE_OFF && format != 0;
+-        //~ final boolean unusable = prepared.data == null || (mode == ChunkRenderer.MODE_OFF && format != 0);
 -        //~ if (this.id != -1) {
 -            //~ if (unusable) {
 -                //~ this.vertexCount = 0;
@@ -4041,6 +4134,16 @@ index 28ad7d0..f8d0f9d 100644
 -        //~ if (prepared != null) {
 -            //~ ci.cancel();
 -            //~ this.aetherium$uploadPrepared(prepared, mode);
+-            //~ return;
+-        //~ }
+-        //~ if (!aetherium$hasMesh(builder)) {
+-            //~ // Should never happen; if it does, an empty section (rebuilt later) beats a crash.
+-            //~ ci.cancel();
+-            //~ if (this.id != -1) {
+-                //~ this.vertexCount = 0;
+-            //~ }
+-            //~ this.aetherium$format = 0;
+-            //~ ChunkRenderer.noteEmptyUpload();
 -            //~ return;
 -        //~ }
 -        //~ if (mode == ChunkRenderer.MODE_OFF) {
@@ -4361,7 +4464,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index cfa7c77..042eb9a 100644
+index 7f49981..44c5cc0 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -4374,7 +4477,7 @@ index cfa7c77..042eb9a 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 4d9425d..619dc4f 100644
+index f4eb615..f705060 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

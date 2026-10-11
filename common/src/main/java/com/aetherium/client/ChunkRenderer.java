@@ -561,6 +561,17 @@ public final class ChunkRenderer {
         return uploadMode;
     }
 
+    private static boolean loggedEmptyUpload;
+
+    /** A chunk upload found its vertex builder empty and left the section empty instead of crashing. */
+    public static void noteEmptyUpload() {
+        if (!loggedEmptyUpload) {
+            loggedEmptyUpload = true;
+            LOG.warn("Aetherium pipeline: a chunk upload found its vertex builder empty; that section stays "
+                    + "empty until it is rebuilt (reported once)");
+        }
+    }
+
     /** The upload mixin stored a compact buffer: from now on, turning the pipeline off needs a rebuild. */
     public static void noteCompactUpload(final int quads) {
         compactUploaded = true;

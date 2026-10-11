@@ -579,3 +579,29 @@ Gates run for 1.5.3: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_delt
 (32 patches); `check.py` clean; `check_refs.py` clean.
 CI: `ship` run 38130796347 for commit b3927bb passed and published `v1.5.3+1.16.5`
 (`aetherium-fabric-1.5.3+1.16.5.jar`, 947105 bytes).
+
+## 21. 1.5.4: worker-prepared meshes survive the first tick in a world (1.16.5)
+
+User crash report (Aetherium 1.5.3, Mali-G57, gl4es): "Rendering chunk",
+`IndexOutOfBoundsException: Index 0 out of bounds for length 0` in `BufferBuilder.popNextBuffer`,
+called from the `upload_` handler of `VertexBufferMixin` inside `UploadBudget.drain`. The upload found
+no `PreparedUploads` record for its builder and popped the builder, which the worker had already
+emptied. Cause: `ClientHooks.onClientTick` calls `QolHooks.onLevelChange()` on the first tick after
+joining (and on every dimension change), and that called `PreparedUploads.clear()` while uploads of
+already-prepared meshes were still queued.
+
+Changes:
+- `QolHooks.onLevelChange` no longer clears prepared meshes (it still trims `DirectPool`). They are
+  cleared only when the dispatcher is disposed (`ChunkPrepareMixin`), after which its queued uploads
+  never run.
+- `PreparedUploads.prepare` catches any `Throwable` and returns a record with no data and an error,
+  so the upload still finds its record (`StreamingTest`).
+- New `BufferBuilderAccessor` (1.16.5, applied with the pipeline mixins). The worker skips builders
+  with no pending mesh, and an upload with no record and no pending mesh leaves the section empty
+  (vertex count 0) and logs one warning, instead of crashing.
+
+**Not established:** in-game confirmation (no GPU here). The level-change path is inferred from the
+code and the trace, and the crash report does not show when in the session the crash happened.
+
+Gates run for 1.5.4: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_deltas --all --verify`
+(32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.

@@ -5,6 +5,15 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
+Version **1.5.4** fixes a "Rendering chunk" crash (`IndexOutOfBoundsException` in
+`BufferBuilder.popNextBuffer`) with the experimental pipeline on 1.16.5. On the first tick in a
+world, Aetherium threw away the chunk meshes its workers had already converted while their uploads
+were still queued. Those uploads then went back to builders that were already empty. Converted meshes
+are now kept until each upload uses them (or until the chunk dispatcher is disposed). As a backstop,
+an upload that finds an empty builder now leaves that section empty until its next rebuild instead
+of crashing, and a conversion that fails (for example out of direct memory) no longer leaves its
+upload without a record.
+
 Version **1.5.3** fixes a native crash on GL4ES when the pipeline's shader mode drew chunk
 sections that were not in the compact format yet (for example right after switching from compatible
 mode): those sections now go through vanilla's own GL path instead of the shader. Version **1.5.2** recognises NG-GL4ES forks such as Krypton Wrapper, never reports a memory
@@ -332,7 +341,7 @@ a feature is off.
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.5.3+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
+Releases are published per Minecraft version as `v1.5.4+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -369,7 +378,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.5.3 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.5.4 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.

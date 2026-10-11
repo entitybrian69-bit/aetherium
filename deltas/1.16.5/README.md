@@ -82,6 +82,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java`
+- `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`

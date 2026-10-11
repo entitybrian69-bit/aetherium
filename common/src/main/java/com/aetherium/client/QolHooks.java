@@ -7,7 +7,6 @@ import com.aetherium.mixin.AetheriumMixinPlugin;
 import com.aetherium.perf.ChunkBuildExecutor;
 import com.aetherium.perf.DirectPool;
 import com.aetherium.perf.PacketBudget;
-import com.aetherium.perf.PreparedUploads;
 import com.aetherium.perf.RebuildCoalescer;
 import com.aetherium.perf.StutterRecorder;
 import com.aetherium.perf.UploadBudget;
@@ -122,9 +121,13 @@ public final class QolHooks {
         return prepareUploads;
     }
 
-    /** World change / disconnect. */
+    /**
+     * World change / disconnect. Prepared meshes are not dropped here: their uploads may still be
+     * queued (the first client tick of a world runs after its first chunk builds), and each one
+     * needs its record. They are dropped with the dispatcher ({@code ChunkPrepareMixin} on
+     * {@code dispose}), when no queued upload can run any more.
+     */
     public static void onLevelChange() {
-        PreparedUploads.clear();
         DirectPool.trim();
         // @era:qol16-begin none
         // @era:qol16-else v16

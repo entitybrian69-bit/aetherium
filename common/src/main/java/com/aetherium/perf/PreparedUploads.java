@@ -58,6 +58,17 @@ public final class PreparedUploads {
      *               vertices reordered into face groups)
      */
     public static Prepared prepare(final ByteBuffer data, final boolean shader) {
+        try {
+            return prepareOrThrow(data, shader);
+        } catch (final Throwable error) {
+            // Out of direct memory or worse: the mesh is lost, but the upload still gets its
+            // record (no data: the section stays empty until rebuilt) instead of re-reading the
+            // builder it was already taken from.
+            return new Prepared(null, 0, null, 0, "chunk encode failed: " + error);
+        }
+    }
+
+    private static Prepared prepareOrThrow(final ByteBuffer data, final boolean shader) {
         final CompactTerrain.Layout layout = new CompactTerrain.Layout();
         try {
             final CompactTerrain.Scratch scratch = CompactTerrain.scratch();

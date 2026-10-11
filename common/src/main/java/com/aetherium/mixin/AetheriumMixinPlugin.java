@@ -120,7 +120,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
                 || "StreamingLevelMixin".equals(simpleName) || "RenderChunkDirtyMixin".equals(simpleName)) {
             return Capabilities.STREAMING;
         }
-        if ("ChunkPrepareMixin".equals(simpleName)) {
+        if ("ChunkPrepareMixin".equals(simpleName) || "BufferBuilderAccessor".equals(simpleName)) {
             // Converts meshes for the Aetherium pipeline, so it needs the pipeline's buffer hooks.
             return Capabilities.STREAMING && Capabilities.EXPERIMENTAL_CHUNK_RENDERER;
         }

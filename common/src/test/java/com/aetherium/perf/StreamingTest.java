@@ -183,6 +183,13 @@ final class StreamingTest {
         assertEquals(odd.remaining(), raw.data.remaining());
         assertEquals(0, odd.position(), "the source buffer is not consumed");
 
+        // A conversion that fails outright still yields a record (no data, an error), so the
+        // upload never goes back to the builder the mesh was already taken from.
+        final PreparedUploads.Prepared lost = PreparedUploads.prepare(null, true);
+        assertNull(lost.data);
+        assertNotNull(lost.error);
+        PreparedUploads.done(lost);
+
         final Object builderA = new Object();
         final Object builderB = new Object();
         PreparedUploads.put(builderA, shader);

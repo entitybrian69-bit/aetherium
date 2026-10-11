@@ -137,8 +137,29 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
             //~ return;
         //~ }
         //~ final BufferBuilder builder = (BufferBuilder) source;
+        //~ if (!aetherium$hasMesh(builder)) {
+            //~ return; // nothing to take out; the upload sees the same and leaves the section empty
+        //~ }
         //~ final ByteBuffer data = builder.popNextBuffer().getSecond();
+        //~ // From here on the mesh exists only in this record: it must reach the upload whatever
+        //~ // happens (prepare never throws; a failed conversion parks an empty placeholder).
         //~ PreparedUploads.put(builder, PreparedUploads.prepare(data, mode == ChunkRenderer.MODE_SHADER));
+    //~ }
+
+    //~ /**
+     //~ * Whether the builder still holds a finished mesh. {@code popNextBuffer} on an empty builder
+     //~ * throws and, worse, leaves its read index past the end, which breaks the next renderer that
+     //~ * draws with that builder (in 1.16.5 the render thread's chunk builders are shared with the
+     //~ * entity and held-item renderers).
+     //~ */
+    //~ @Unique
+    //~ private static boolean aetherium$hasMesh(final BufferBuilder builder) {
+        //~ final Object raw = builder;
+        //~ if (raw instanceof BufferBuilderAccessor) {
+            //~ final BufferBuilderAccessor access = (BufferBuilderAccessor) raw;
+            //~ return access.aetherium$nextDrawState() < access.aetherium$drawStates().size();
+        //~ }
+        //~ return true;
     //~ }
 
     //~ /** Uploads a mesh the worker already converted: only the GL calls remain for the render thread. */
@@ -150,7 +171,7 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
         //~ int format = prepared.format;
         //~ // The pipeline was switched off after this mesh was converted: vanilla cannot draw the
         //~ // converted bytes, so the buffer is left empty (switching rebuilds every section anyway).
-        //~ final boolean unusable = mode == ChunkRenderer.MODE_OFF && format != 0;
+        //~ final boolean unusable = prepared.data == null || (mode == ChunkRenderer.MODE_OFF && format != 0);
         //~ if (this.id != -1) {
             //~ if (unusable) {
                 //~ this.vertexCount = 0;
@@ -191,6 +212,16 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
         //~ if (prepared != null) {
             //~ ci.cancel();
             //~ this.aetherium$uploadPrepared(prepared, mode);
+            //~ return;
+        //~ }
+        //~ if (!aetherium$hasMesh(builder)) {
+            //~ // Should never happen; if it does, an empty section (rebuilt later) beats a crash.
+            //~ ci.cancel();
+            //~ if (this.id != -1) {
+                //~ this.vertexCount = 0;
+            //~ }
+            //~ this.aetherium$format = 0;
+            //~ ChunkRenderer.noteEmptyUpload();
             //~ return;
         //~ }
         //~ if (mode == ChunkRenderer.MODE_OFF) {
