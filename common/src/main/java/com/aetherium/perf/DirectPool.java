@@ -22,7 +22,8 @@ public final class DirectPool {
     /** Buffers kept per bucket. */
     static final int PER_BUCKET = 6;
     /** Total bytes kept idle across all buckets. */
-    static final long MAX_IDLE_BYTES = 48L << 20;
+    static final long MAX_IDLE_BYTES = idleCap(Runtime.getRuntime().maxMemory(),
+            System.getProperty("os.arch", ""));
 
     private static final int BUCKETS = MAX_SHIFT - MIN_SHIFT + 1;
     @SuppressWarnings("unchecked")
@@ -39,6 +40,19 @@ public final class DirectPool {
     }
 
     private DirectPool() {
+    }
+
+    /**
+     * Idle cap for the device: 1/16 of the heap within 8-48 MiB, and at most 16 MiB in a 32-bit
+     * process, whose whole address space is shared by the heap, the GL driver and native code.
+     */
+    static long idleCap(final long maxHeapBytes, final String osArch) {
+        long cap = Math.max(8L << 20, Math.min(48L << 20, maxHeapBytes / 16L));
+        final String arch = osArch == null ? "" : osArch.toLowerCase(java.util.Locale.ROOT);
+        if (!arch.contains("64")) {
+            cap = Math.min(cap, 16L << 20);
+        }
+        return cap;
     }
 
     static int bucketFor(final int bytes) {

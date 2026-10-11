@@ -111,6 +111,11 @@ final class StreamingTest {
     @Test
     @DisplayName("direct pool: power-of-two buckets, reuse, and foreign buffers are ignored")
     void directPool() {
+        assertEquals(48L << 20, DirectPool.idleCap(4096L << 20, "aarch64"), "large 64-bit heap");
+        assertEquals(48L << 20, DirectPool.idleCap(788L << 20, "aarch64"), "1/16 of 788 MB, capped at 48");
+        assertEquals(32L << 20, DirectPool.idleCap(512L << 20, "aarch64"), "1/16 of the heap");
+        assertEquals(16L << 20, DirectPool.idleCap(788L << 20, "arm"), "32-bit process");
+        assertEquals(8L << 20, DirectPool.idleCap(64L << 20, "aarch64"), "floor");
         DirectPool.trim();
         final ByteBuffer a = DirectPool.acquire(100_000);
         assertEquals(131_072, a.capacity());

@@ -165,8 +165,10 @@ public enum AndroidRenderer {
         if (value.contains("vulkan") || value.equals("native_vulkan")) {
             return NATIVE_VULKAN;
         }
-        // Pojav's naming: "opengles2" is gl4es, "opengles3" is the NGGL4ES path.
-        if (value.startsWith("opengles3")) {
+        // Pojav's naming: "opengles2" is gl4es, "opengles3" is the NGGL4ES path. Forks name the
+        // NG-GL4ES build directly ("opengles_nggl4es"; Krypton Wrapper is an NG-GL4ES fork).
+        if (value.startsWith("opengles3") || value.contains("nggl4es") || value.contains("ng_gl4es")
+                || value.contains("krypton")) {
             return NGGL4ES;
         }
         if (value.startsWith("opengles2")) {

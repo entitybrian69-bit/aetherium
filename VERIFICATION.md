@@ -540,3 +540,18 @@ Gates run for 1.5.1: `stubcheck --all` 33/33; `testrun.py` 146 passed; `gen_delt
 (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.
 CI: `ship` run 38128138939 for commit 0a33ac1 passed and published `v1.5.1+1.16.5`
 (`aetherium-fabric-1.5.1+1.16.5.jar`, 946576 bytes).
+
+## 19. 1.5.2: NG-GL4ES fork detection, memory caps (1.16.5)
+
+From a user log (TECNO BB4k, 32-bit ARM, 816 MB heap, PowerVR GE8300, Krypton Wrapper 0.4.5,
+`POJAV_RENDERER` reported as `opengles_nggl4es`): the probe printed "Unrecognised Android renderer"
+and `budget=1024MB heap=788MB`.
+
+| Change | Check |
+| --- | --- |
+| `opengles_nggl4es`, `ng_gl4es`, `krypton*` parse as NGGL4ES | `AndroidRendererTest.parse` |
+| Reported memory budget never exceeds the heap | code review (`AndroidEnvironment`; the value is only logged) |
+| `DirectPool` idle cap: heap/16 within 8-48 MiB, at most 16 MiB on 32-bit | `StreamingTest.directPool` |
+
+Gates run for 1.5.2: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_deltas --all --verify`
+(32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.

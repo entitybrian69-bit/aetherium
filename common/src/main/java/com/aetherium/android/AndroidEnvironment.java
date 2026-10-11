@@ -118,6 +118,8 @@ public final class AndroidEnvironment {
         final long cgroupLimitMb = readCgroupMemoryLimitMb();
         final int configuredBudget = config.memoryBudgetMb.get();
         long budgetMb = configuredBudget > 0 ? configuredBudget : MathUtil.clamp(maxHeap / (1024L * 1024L) / 2L, 256L, 4096L);
+        // Never report more than the heap the JVM really has (a 1024 MB default on a 788 MB heap).
+        budgetMb = Math.min(budgetMb, Math.max(1L, maxHeap / (1024L * 1024L)));
         if (cgroupLimitMb > 0) {
             budgetMb = Math.min(budgetMb, Math.max(256L, cgroupLimitMb * 3L / 4L));
         }
