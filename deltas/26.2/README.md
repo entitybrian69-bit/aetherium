@@ -39,6 +39,7 @@ neoforge_version=26.2.0.89
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`
+- `pacing=none`
 - `qol16=none`
 - `reload=invalidate`
 - `remapJar-block-removed`
@@ -90,6 +91,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`

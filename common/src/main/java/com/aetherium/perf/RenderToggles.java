@@ -19,7 +19,7 @@ public final class RenderToggles {
     /** Latched when the visible-list walker failed; occlusion culling stays off for the session. */
     private static volatile boolean occlusionBroken;
     /** The opt-in 1.16.5 terrain renderer (ChunkRenderer); false on every other version. */
-    public static volatile boolean experimentalChunkRenderer;
+    public static volatile boolean aetheriumRenderer;
     /** Batch the pipeline's terrain into shared region buffers (TerrainRegions). */
     public static volatile boolean regionBatching = true;
     /** Percentage of particles kept, 0..100. */
@@ -50,8 +50,8 @@ public final class RenderToggles {
         entityCulling = isActive && config.entityCulling.get().booleanValue();
         occlusionCulling = isActive && Capabilities.ENTITY_OCCLUSION && !occlusionBroken
                 && config.occlusionCulling.get().booleanValue();
-        experimentalChunkRenderer = isActive && Capabilities.EXPERIMENTAL_CHUNK_RENDERER
-                && config.experimentalChunkRenderer.get().booleanValue();
+        aetheriumRenderer = isActive && Capabilities.AETHERIUM_RENDERER
+                && config.aetheriumRenderer.get().booleanValue();
         regionBatching = config.regionBatching.get().booleanValue();
         final double distance = config.entityCullDistance.get().intValue();
         entityCullDistanceSq = distance * distance;
@@ -62,7 +62,7 @@ public final class RenderToggles {
         smartChunkCulling = isActive && Capabilities.STREAMING && config.smartChunkCulling.get().booleanValue();
         fastParticles = isActive && Capabilities.STREAMING && config.fastParticles.get().booleanValue();
         fastModels = isActive && Capabilities.STREAMING && !fastModelsBroken && config.fastModels.get().booleanValue();
-        framePacing = isActive && Capabilities.STREAMING && config.framePacing.get().booleanValue();
+        framePacing = isActive && Capabilities.FRAME_PACING && config.framePacing.get().booleanValue();
         SpriteActivity.setEnabled(isActive && Capabilities.STREAMING && config.visibleAnimations.get().booleanValue());
         UploadBudget.setEnabled(isActive && config.smoothChunkLoading.get().booleanValue());
         BlockEntityCull.setDistance(isActive ? config.blockEntityDistance.get().intValue() : BlockEntityCull.VANILLA);

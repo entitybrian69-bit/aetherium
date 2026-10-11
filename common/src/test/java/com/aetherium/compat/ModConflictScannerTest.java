@@ -109,7 +109,7 @@ final class ModConflictScannerTest {
                 "Sodium meshes chunks itself, so our light hook would never be read");
         assertTrue(config.entityCulling.get(), "distance culling is independent of the renderer and stays on");
         assertFalse(config.occlusionCulling.get(), "Sodium culls entities itself and replaces vanilla's visible list");
-        assertFalse(config.experimentalChunkRenderer.get(), "Sodium owns the chunk renderer");
+        assertFalse(config.aetheriumRenderer.get(), "Sodium owns the chunk renderer");
         assertFalse(scanner.adviceForUser().isPresent(), "a delegate needs no user action");
         assertTrue(scanner.asReport().contains("Sodium"), "the crash-report section must name the mod");
     }

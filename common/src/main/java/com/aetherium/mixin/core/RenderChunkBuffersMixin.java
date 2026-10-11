@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
  *
  * <p>Also frees a section's batched meshes when the section is reset (see {@code TerrainRegions}).</p>
  *
- * <p>Applied only where {@code Capabilities.EXPERIMENTAL_CHUNK_RENDERER} is true. Runs once per
+ * <p>Applied only where {@code Capabilities.AETHERIUM_RENDERER} is true. Runs once per
  * section object (they are pooled by the view area), not per frame.</p>
  */
 @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")

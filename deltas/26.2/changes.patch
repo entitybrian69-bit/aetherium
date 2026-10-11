@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 5ccfae7..60df37e 100644
+index 1854743..19d6119 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -16,24 +16,24 @@ package com.aetherium;
@@ -79,6 +79,21 @@ index 5ccfae7..60df37e 100644
      // @era:chunk-upload-end
  
      /** Atlas texture animation can be paused ({@code TextureAtlas.tick} exists on every version). */
+@@ -132,10 +132,10 @@ public final class Capabilities {
+     // @era:qol16-end
+ 
+     /** Even frame pacing replaces {@code RenderSystem.limitDisplayFPS} (1.16.5-1.21.11). */
+-    // @era:pacing-begin rs
+-    public static final boolean FRAME_PACING = true;
+-    // @era:pacing-else none
+-    //~ public static final boolean FRAME_PACING = false;
++    // @era:pacing-begin none
++    public static final boolean FRAME_PACING = false;
++    // @era:pacing-else rs
++    //~ public static final boolean FRAME_PACING = true;
+     // @era:pacing-end
+ 
+     /** Weather can be hidden on every supported version. */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 index e5e224a..903075d 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
@@ -731,6 +746,53 @@ index ad232af..291433f 100644
              //~ cir.setReturnValue(Boolean.FALSE);
          //~ }
      //~ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java b/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
+index 1c40237..b668cbd 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:pacing-begin rs
+-import com.aetherium.perf.FramePacer;
+-import com.aetherium.perf.RenderToggles;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:pacing-else none
++// @era:pacing-begin none
++// @era:pacing-else rs
++//~ import com.aetherium.perf.FramePacer;
++//~ import com.aetherium.perf.RenderToggles;
++//~ import org.spongepowered.asm.mixin.injection.At;
++//~ import org.spongepowered.asm.mixin.injection.Inject;
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:pacing-end
+ 
+ /**
+@@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  */
+ @Mixin(targets = "com.mojang.blaze3d.systems.RenderSystem")
+ public abstract class FramePacingMixin {
+-    // @era:pacing-begin rs
+-    @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
+-    private static void aetherium$pace(final int fps, final CallbackInfo ci) {
+-        if (RenderToggles.framePacing && FramePacer.pace(fps)) {
+-            ci.cancel();
+-        }
+-    }
+-    // @era:pacing-else none
++    // @era:pacing-begin none
++    // @era:pacing-else rs
++    //~ @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
++    //~ private static void aetherium$pace(final int fps, final CallbackInfo ci) {
++        //~ if (RenderToggles.framePacing && FramePacer.pace(fps)) {
++            //~ ci.cancel();
++        //~ }
++    //~ }
+     // @era:pacing-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..815c08b 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -978,7 +1040,7 @@ index a2a8bd6..151bd9f 100644
  neoforge-moddev = { id = "net.neoforged.moddev", version.ref = "moddev" }
  gitversion = { id = "com.palantir.git-version", version.ref = "gitversion" }
 diff --git a/gradle.properties b/gradle.properties
-index ab3731c..22a63a6 100644
+index 072c719..215cc9d 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

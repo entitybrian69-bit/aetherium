@@ -35,7 +35,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     private static final Set<String> STREAMING_1_7 = Collections.unmodifiableSet(new java.util.HashSet<String>(
             java.util.Arrays.asList("FastParticleMixin", "SpriteActivityMixin", "BakedQuadAccessor",
                     "BlockSpriteUseMixin", "ItemSpriteUseMixin", "SectionSpritesMixin", "CompiledChunkSpritesMixin",
-                    "ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin", "Matrix3fAccessor", "FramePacingMixin",
+                    "ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin", "Matrix3fAccessor",
                     "DefaultedVertexAccessor", "FastModelMixin")));
 
     /** Simple names of mixins that were actually applied (render thread reads, loader writes). */
@@ -109,11 +109,11 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
             // Its target, LevelRenderer$RenderChunkInfo, only exists on 1.16.5-1.20.1; the
             // experimental 1.16.5 renderer reaches the sections through it as well.
             return Capabilities.CHUNK_INFO_LIST
-                    && (Capabilities.ENTITY_OCCLUSION || Capabilities.EXPERIMENTAL_CHUNK_RENDERER);
+                    && (Capabilities.ENTITY_OCCLUSION || Capabilities.AETHERIUM_RENDERER);
         }
         if ("ChunkRendererMixin".equals(simpleName) || "VertexBufferMixin".equals(simpleName)
                 || "RenderChunkBuffersMixin".equals(simpleName) || "FogStateMixin".equals(simpleName)) {
-            return Capabilities.EXPERIMENTAL_CHUNK_RENDERER;
+            return Capabilities.AETHERIUM_RENDERER;
         }
         if ("KeyMappingAccessor".equals(simpleName) || "ZoomFovMixin".equals(simpleName)
                 || "ZoomMouseMixin".equals(simpleName) || "ZoomCameraMixin".equals(simpleName)) {
@@ -127,13 +127,16 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
                 || "MeshAllocMixin".equals(simpleName) || "AoFaceAllocMixin".equals(simpleName)) {
             return Capabilities.STREAMING;
         }
+        if ("FramePacingMixin".equals(simpleName)) {
+            return Capabilities.FRAME_PACING;
+        }
         if (STREAMING_1_7.contains(simpleName)) {
             // 1.7.0: smarter culling, fast particles, visible-only animations, fast models.
             return Capabilities.STREAMING;
         }
         if ("ChunkPrepareMixin".equals(simpleName) || "BufferBuilderAccessor".equals(simpleName)) {
             // Converts meshes for the Aetherium pipeline, so it needs the pipeline's buffer hooks.
-            return Capabilities.STREAMING && Capabilities.EXPERIMENTAL_CHUNK_RENDERER;
+            return Capabilities.STREAMING && Capabilities.AETHERIUM_RENDERER;
         }
         if ("FogControlMixin".equals(simpleName) || "SkyMixin".equals(simpleName)
                 || "ParticleTypeMixin".equals(simpleName)) {

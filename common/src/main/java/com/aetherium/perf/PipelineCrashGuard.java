@@ -61,7 +61,7 @@ public final class PipelineCrashGuard {
         }
         final String content = readQuietly(marker);
         deleteQuietly(marker);
-        if (!config.experimentalChunkRenderer.get().booleanValue()) {
+        if (!config.aetheriumRenderer.get().booleanValue()) {
             return false;
         }
         if (content.contains("mode=" + MODE_REGIONS) && config.regionBatching.get().booleanValue()) {
@@ -74,7 +74,7 @@ public final class PipelineCrashGuard {
         }
         if (content.contains("mode=" + MODE_REGIONS)) {
             // Batching already off (the user turned it off since): treat as a compatible-mode crash.
-            config.experimentalChunkRenderer.set(Boolean.FALSE);
+            config.aetheriumRenderer.set(Boolean.FALSE);
             tripped = true;
             LOG.warn("The last session ended while the Aetherium pipeline was drawing. The pipeline has been turned "
                     + "off; turn it back on in Video Settings > Backend to try again.");
@@ -87,7 +87,7 @@ public final class PipelineCrashGuard {
                     + "has been removed; the pipeline stays on in compatible mode.");
             return false;
         }
-        config.experimentalChunkRenderer.set(Boolean.FALSE);
+        config.aetheriumRenderer.set(Boolean.FALSE);
         tripped = true;
         LOG.warn("The last session ended while the Aetherium pipeline was drawing (most likely a crash in the "
                 + "graphics driver or GL translator). The pipeline has been turned off; turn it back on in "

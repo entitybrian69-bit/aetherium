@@ -239,7 +239,7 @@ public final class AetheriumPages {
                 VanillaOptions.UNLIMITED_FPS, 10, v -> v >= VanillaOptions.UNLIMITED_FPS ? "Unlimited" : v + " FPS",
                 VanillaOptions::getFramerateLimit, VanillaOptions::setFramerateLimit));
         page.add(bool("perf.frame_pacing", "Even frame pacing", config.framePacing)
-                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.FRAME_PACING, NOT_ON_THIS_VERSION));
         page.add(flag("perf.vsync", "VSync", "Sync to the display refresh rate. Removes tearing, adds latency.",
                 VanillaOptions::getVsync, VanillaOptions::setVsync));
         page.add(bool("perf.entity_culling", "Entity culling", config.entityCulling));
@@ -289,8 +289,8 @@ public final class AetheriumPages {
     private Page backend() {
         final Page page = new Page("Backend", "Backend", "Renderer and runtime", PixelArt.CUBE);
         page.add(Setting.info("backend.api", "Rendering API",
-                "Vanilla draws everything unless the experimental chunk renderer (1.16.5) is on; Aetherium only removes work.",
-                () -> Aetherium.RENDERING_API + (ChunkRenderer.isDrawing() ? " (Aetherium terrain shader)" : " (vanilla pipeline)")));
+                "Solid and cutout terrain is drawn by the Aetherium renderer when it is on; everything else is vanilla's pipeline with work removed.",
+                () -> Aetherium.RENDERING_API + (ChunkRenderer.isDrawing() ? " (Aetherium renderer)" : " (vanilla pipeline)")));
         page.add(Setting.info("backend.gpu", "GPU", "Reported by the driver.", GlInfo::renderer));
         page.add(Setting.info("backend.vendor", "Vendor", "Reported by the driver.", GlInfo::vendor));
         page.add(Setting.info("backend.driver", "Driver", "GL version string reported by the driver.", GlInfo::version));
@@ -309,10 +309,10 @@ public final class AetheriumPages {
                     }
                     return cap + " FPS" + (ClientHooks.isThermalCapped() ? " (thermal)" : "");
                 }));
-        page.add(bool("backend.chunk_renderer", "Aetherium pipeline (experimental)", config.experimentalChunkRenderer)
-                .availableWhen(() -> Capabilities.EXPERIMENTAL_CHUNK_RENDERER, "Minecraft 1.16.5 only for now"));
+        page.add(bool("backend.chunk_renderer", "Aetherium renderer", config.aetheriumRenderer)
+                .availableWhen(() -> Capabilities.AETHERIUM_RENDERER, "Minecraft 1.16.5 only for now"));
         page.add(bool("backend.region_batching", "Batched terrain", config.regionBatching)
-                .availableWhen(() -> Capabilities.EXPERIMENTAL_CHUNK_RENDERER, "Minecraft 1.16.5 only for now"));
+                .availableWhen(() -> Capabilities.AETHERIUM_RENDERER, "Minecraft 1.16.5 only for now"));
         page.add(Setting.info("backend.chunk_renderer_state", "Chunk renderer",
                 "Which path draws solid and cutout terrain right now.", ChunkRenderer::statusText));
         page.add(bool("backend.debug", "Debug logging", config.debugLogging));

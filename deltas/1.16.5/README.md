@@ -33,6 +33,7 @@ neoforge_version=unavailable (module disabled)
 - `logger=log4j`
 - `near-build=v16`
 - `options=fields`
+- `pacing=rs`
 - `qol16=v16`
 - `reload=all-changed`
 - `screen-owner=minecraft`
@@ -95,7 +96,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookMouseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`

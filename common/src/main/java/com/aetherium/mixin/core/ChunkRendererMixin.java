@@ -48,7 +48,7 @@ import org.spongepowered.asm.mixin.Mixin;
  * a section sorted by face direction is drawn as the ranges that can face the camera.</p>
  *
  * <p>Off unless the user enables it; applied only on versions with
- * {@code Capabilities.EXPERIMENTAL_CHUNK_RENDERER}. Any failure falls back to vanilla for the
+ * {@code Capabilities.AETHERIUM_RENDERER}. Any failure falls back to vanilla for the
  * rest of the session. One CallbackInfo per layer per frame (five calls) plus one per frame for
  * the pipeline switch; not a hot path.</p>
  */
@@ -73,7 +73,7 @@ public abstract class ChunkRendererMixin {
         //~ // fixed-function state, which GL translators may not track.
         //~ projection.store(ChunkRenderer.projectionBuffer());
         //~ ChunkRenderer.projectionStored();
-        //~ final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, false);
+        //~ final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.aetheriumRenderer, false);
         //~ final boolean pipelineOn = ChunkRenderer.uploadMode() == ChunkRenderer.MODE_COMPATIBLE;
         //~ final boolean regions = TerrainRegions.configure(pipelineOn && RenderToggles.regionBatching, pipelineOn);
         //~ if (switched || regions) {
@@ -92,7 +92,7 @@ public abstract class ChunkRendererMixin {
         //~ } else {
             //~ return;
         //~ }
-        //~ final int mode = ChunkRenderer.drawMode(RenderToggles.experimentalChunkRenderer);
+        //~ final int mode = ChunkRenderer.drawMode(RenderToggles.aetheriumRenderer);
         //~ if (mode == ChunkRenderer.MODE_OFF) {
             //~ if (ChunkRenderer.hasCompactBuffers()) {
                 //~ ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame

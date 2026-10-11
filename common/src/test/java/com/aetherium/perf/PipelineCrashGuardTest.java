@@ -21,7 +21,7 @@ final class PipelineCrashGuardTest {
         final Path dir = Files.createTempDirectory("aetherium-guard");
         final Path marker = dir.resolve(PipelineCrashGuard.MARKER_NAME);
         final AetheriumConfig config = AetheriumConfig.createDefaults();
-        config.experimentalChunkRenderer.set(Boolean.TRUE);
+        config.aetheriumRenderer.set(Boolean.TRUE);
 
         // Session 1: starts clean, draws, then dies natively (no disarm).
         assertFalse(PipelineCrashGuard.checkAtStartup(dir, config));
@@ -31,12 +31,12 @@ final class PipelineCrashGuardTest {
 
         // Session 2: the marker is found, the option goes off, the marker is gone.
         assertTrue(PipelineCrashGuard.checkAtStartup(dir, config));
-        assertEquals(Boolean.FALSE, config.experimentalChunkRenderer.get());
+        assertEquals(Boolean.FALSE, config.aetheriumRenderer.get());
         assertTrue(PipelineCrashGuard.wasTripped());
         assertFalse(Files.exists(marker));
 
         // The user turns it back on and it draws: the "tripped" note clears; a clean exit removes the marker.
-        config.experimentalChunkRenderer.set(Boolean.TRUE);
+        config.aetheriumRenderer.set(Boolean.TRUE);
         PipelineCrashGuard.arm(PipelineCrashGuard.MODE_COMPATIBLE);
         assertFalse(PipelineCrashGuard.wasTripped());
         PipelineCrashGuard.disarm();
@@ -44,7 +44,7 @@ final class PipelineCrashGuardTest {
 
         // Session 3: clean start, nothing changes.
         assertFalse(PipelineCrashGuard.checkAtStartup(dir, config));
-        assertEquals(Boolean.TRUE, config.experimentalChunkRenderer.get());
+        assertEquals(Boolean.TRUE, config.aetheriumRenderer.get());
     }
 
     @Test
@@ -53,7 +53,7 @@ final class PipelineCrashGuardTest {
         final Path dir = Files.createTempDirectory("aetherium-guard");
         final Path marker = dir.resolve(PipelineCrashGuard.MARKER_NAME);
         final AetheriumConfig config = AetheriumConfig.createDefaults();
-        config.experimentalChunkRenderer.set(Boolean.TRUE);
+        config.aetheriumRenderer.set(Boolean.TRUE);
 
         // Markers from 1.3.1/1.3.2 (no mode) and from shader mode (removed in 1.5.5): nothing changes.
         for (final String old : new String[] {"pipeline drawing since 1\n", "mode=shader\npipeline drawing since 1\n",
@@ -61,7 +61,7 @@ final class PipelineCrashGuardTest {
             Files.write(marker, old.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             assertFalse(PipelineCrashGuard.checkAtStartup(dir, config), old);
             assertFalse(PipelineCrashGuard.wasTripped());
-            assertEquals(Boolean.TRUE, config.experimentalChunkRenderer.get());
+            assertEquals(Boolean.TRUE, config.aetheriumRenderer.get());
             assertFalse(Files.exists(marker));
         }
 
@@ -70,7 +70,7 @@ final class PipelineCrashGuardTest {
         PipelineCrashGuard.arm(PipelineCrashGuard.MODE_COMPATIBLE); // a mode switch rewrites the marker
         assertTrue(new String(Files.readAllBytes(marker), java.nio.charset.StandardCharsets.UTF_8).contains("mode=compatible"));
         assertTrue(PipelineCrashGuard.checkAtStartup(dir, config));
-        assertEquals(Boolean.FALSE, config.experimentalChunkRenderer.get());
+        assertEquals(Boolean.FALSE, config.aetheriumRenderer.get());
         assertTrue(PipelineCrashGuard.wasTripped());
     }
 
@@ -80,7 +80,7 @@ final class PipelineCrashGuardTest {
         final Path dir = Files.createTempDirectory("aetherium-guard");
         final Path marker = dir.resolve(PipelineCrashGuard.MARKER_NAME);
         final AetheriumConfig config = AetheriumConfig.createDefaults();
-        config.experimentalChunkRenderer.set(Boolean.TRUE);
+        config.aetheriumRenderer.set(Boolean.TRUE);
         assertEquals(Boolean.TRUE, config.regionBatching.get(), "batching is the default");
         assertFalse(PipelineCrashGuard.checkAtStartup(dir, config));
 
@@ -88,14 +88,14 @@ final class PipelineCrashGuardTest {
         assertTrue(new String(Files.readAllBytes(marker), java.nio.charset.StandardCharsets.UTF_8).contains("mode=regions"));
         assertTrue(PipelineCrashGuard.checkAtStartup(dir, config));
         assertEquals(Boolean.FALSE, config.regionBatching.get());
-        assertEquals(Boolean.TRUE, config.experimentalChunkRenderer.get(), "the pipeline stays on");
+        assertEquals(Boolean.TRUE, config.aetheriumRenderer.get(), "the pipeline stays on");
         assertTrue(PipelineCrashGuard.wasBatchingTurnedOff());
         assertFalse(PipelineCrashGuard.wasTripped());
 
         // The pipeline then crashes in plain compatible mode: off.
         PipelineCrashGuard.arm(PipelineCrashGuard.MODE_COMPATIBLE);
         assertTrue(PipelineCrashGuard.checkAtStartup(dir, config));
-        assertEquals(Boolean.FALSE, config.experimentalChunkRenderer.get());
+        assertEquals(Boolean.FALSE, config.aetheriumRenderer.get());
         assertTrue(PipelineCrashGuard.wasTripped());
         assertFalse(PipelineCrashGuard.wasBatchingTurnedOff());
     }

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
  * pipeline's shader, so it never queries fixed-function fog from GL (Android GL translators may
  * not implement those queries). A handful of calls per frame, each a field store.
  *
- * <p>Applied only where {@code Capabilities.EXPERIMENTAL_CHUNK_RENDERER} is true; targeted by name
+ * <p>Applied only where {@code Capabilities.AETHERIUM_RENDERER} is true; targeted by name
  * because the fog methods are gone from 1.17 on.</p>
  */
 @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")

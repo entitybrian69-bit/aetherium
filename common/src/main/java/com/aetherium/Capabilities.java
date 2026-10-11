@@ -83,11 +83,11 @@ public final class Capabilities {
     //~ public static final boolean CHUNK_INFO_LIST = true;
     // @era:section-vis-end
 
-    /** Aetherium's own opt-in terrain renderer exists for this version (1.16.5 only, experimental). */
+    /** Aetherium's own terrain renderer exists for this version. */
     // @era:chunk-renderer-begin none
-    public static final boolean EXPERIMENTAL_CHUNK_RENDERER = false;
+    public static final boolean AETHERIUM_RENDERER = false;
     // @era:chunk-renderer-else gl16
-    //~ public static final boolean EXPERIMENTAL_CHUNK_RENDERER = true;
+    //~ public static final boolean AETHERIUM_RENDERER = true;
     // @era:chunk-renderer-end
 
     /** Zume-style zoom with rebindable keys (1.16.5 first; other versions follow). */
@@ -130,6 +130,13 @@ public final class Capabilities {
     // @era:qol16-else v16
     //~ public static final boolean FREELOOK = true;
     // @era:qol16-end
+
+    /** Even frame pacing replaces {@code RenderSystem.limitDisplayFPS} (1.16.5-1.21.11). */
+    // @era:pacing-begin rs
+    public static final boolean FRAME_PACING = true;
+    // @era:pacing-else none
+    //~ public static final boolean FRAME_PACING = false;
+    // @era:pacing-end
 
     /** Weather can be hidden on every supported version. */
     public static final boolean WEATHER = true;

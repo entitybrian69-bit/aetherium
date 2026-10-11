@@ -29,7 +29,7 @@ import org.spongepowered.asm.mixin.Mixin;
  * again before anything else draws with them.</p>
  *
  * <p>Applied only where {@code Capabilities.STREAMING} and
- * {@code Capabilities.EXPERIMENTAL_CHUNK_RENDERER} are true.</p>
+ * {@code Capabilities.AETHERIUM_RENDERER} are true.</p>
  */
 @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
 public abstract class ChunkPrepareMixin {

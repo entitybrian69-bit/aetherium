@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.Shadow;
  * does not fit is uploaded unchanged. Only {@code ChunkRenderer} draws these layers while compact
  * buffers exist, and switching the pipeline off rebuilds every section first.</p>
  *
- * <p>Applied only where {@code Capabilities.EXPERIMENTAL_CHUNK_RENDERER} is true; targeted by name
+ * <p>Applied only where {@code Capabilities.AETHERIUM_RENDERER} is true; targeted by name
  * because the class changes shape (or disappears) on later versions. One CallbackInfo per buffer
  * upload (not per frame).</p>
  */

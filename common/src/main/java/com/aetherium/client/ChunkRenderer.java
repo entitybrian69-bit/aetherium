@@ -564,7 +564,7 @@ public final class ChunkRenderer {
         }
         failed = true;
         failure = reason.length() > 80 ? reason.substring(0, 80) : reason;
-        LOG.warn("Experimental chunk renderer disabled, vanilla draws terrain: {}", reason);
+        LOG.warn("Aetherium renderer disabled, vanilla draws terrain: {}", reason);
         PipelineCrashGuard.disarm();
     }
 

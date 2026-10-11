@@ -141,13 +141,13 @@ public final class ModConflictScanner {
     private static final KnownConflict[] KNOWN = {
             new KnownConflict("sodium", "Sodium", new String[]{}, Severity.DELEGATE,
                     Ownership.OTHER_RENDERER,
-                    "Sodium replaces the chunk renderer and culls entities itself, so Aetherium's dynamic lights, entity occlusion culling and experimental chunk renderer are turned off; distance culling, particles and the menu keep working."),
+                    "Sodium replaces the chunk renderer and culls entities itself, so Aetherium's dynamic lights, entity occlusion culling and Aetherium renderer are turned off; distance culling, particles and the menu keep working."),
             new KnownConflict("embeddium", "Embeddium", new String[]{"rubidium"}, Severity.DELEGATE,
                     Ownership.OTHER_RENDERER,
-                    "Embeddium is a Sodium fork: Aetherium's dynamic lights, entity occlusion culling and experimental chunk renderer are turned off, everything else keeps working."),
+                    "Embeddium is a Sodium fork: Aetherium's dynamic lights, entity occlusion culling and Aetherium renderer are turned off, everything else keeps working."),
             new KnownConflict("magnesium", "Magnesium", new String[]{"radium"}, Severity.DELEGATE,
                     Ownership.OTHER_RENDERER,
-                    "Magnesium/Radium replace the chunk renderer: Aetherium's dynamic lights, entity occlusion culling and experimental chunk renderer are turned off."),
+                    "Magnesium/Radium replace the chunk renderer: Aetherium's dynamic lights, entity occlusion culling and Aetherium renderer are turned off."),
             new KnownConflict("vulkanmod", "VulkanMod", new String[]{}, Severity.HARD,
                     Ownership.OTHER_RENDERER,
                     "VulkanMod replaces the OpenGL renderer Aetherium hooks; remove one of the two."),
@@ -255,7 +255,7 @@ public final class ModConflictScanner {
                     // an empty list) and cull entities themselves, also during Iris shadow passes.
                     config.dynamicLights.set(AetheriumConfig.LightMode.OFF);
                     config.occlusionCulling.set(Boolean.FALSE);
-                    config.experimentalChunkRenderer.set(Boolean.FALSE);
+                    config.aetheriumRenderer.set(Boolean.FALSE);
                     break;
                 case "dynamiclights":
                     config.dynamicLights.set(AetheriumConfig.LightMode.OFF);

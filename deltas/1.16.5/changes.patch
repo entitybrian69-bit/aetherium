@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 5ccfae7..c942ae6 100644
+index 1854743..b3529dd 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -76,15 +76,15 @@ index 5ccfae7..c942ae6 100644
 +    //~ public static final boolean CHUNK_INFO_LIST = false;
      // @era:section-vis-end
  
-     /** Aetherium's own opt-in terrain renderer exists for this version (1.16.5 only, experimental). */
+     /** Aetherium's own terrain renderer exists for this version. */
 -    // @era:chunk-renderer-begin none
--    public static final boolean EXPERIMENTAL_CHUNK_RENDERER = false;
+-    public static final boolean AETHERIUM_RENDERER = false;
 -    // @era:chunk-renderer-else gl16
--    //~ public static final boolean EXPERIMENTAL_CHUNK_RENDERER = true;
+-    //~ public static final boolean AETHERIUM_RENDERER = true;
 +    // @era:chunk-renderer-begin gl16
-+    public static final boolean EXPERIMENTAL_CHUNK_RENDERER = true;
++    public static final boolean AETHERIUM_RENDERER = true;
 +    // @era:chunk-renderer-else none
-+    //~ public static final boolean EXPERIMENTAL_CHUNK_RENDERER = false;
++    //~ public static final boolean AETHERIUM_RENDERER = false;
      // @era:chunk-renderer-end
  
      /** Zume-style zoom with rebindable keys (1.16.5 first; other versions follow). */
@@ -148,7 +148,7 @@ index 5ccfae7..c942ae6 100644
 +    //~ public static final boolean FREELOOK = false;
      // @era:qol16-end
  
-     /** Weather can be hidden on every supported version. */
+     /** Even frame pacing replaces {@code RenderSystem.limitDisplayFPS} (1.16.5-1.21.11). */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 index e5e224a..a041b7e 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
@@ -2303,7 +2303,7 @@ index 5094fdb..57b7daf 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
-index 7da2c77..22b5e36 100644
+index 59c83cc..3a85d0c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
 @@ -1,20 +1,20 @@
@@ -2389,7 +2389,7 @@ index 7da2c77..22b5e36 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-index 3426e85..00990d7 100644
+index 153e3f4..8862e06 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 @@ -1,33 +1,33 @@
@@ -2480,7 +2480,7 @@ index 3426e85..00990d7 100644
 -        //~ // fixed-function state, which GL translators may not track.
 -        //~ projection.store(ChunkRenderer.projectionBuffer());
 -        //~ ChunkRenderer.projectionStored();
--        //~ final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, false);
+-        //~ final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.aetheriumRenderer, false);
 -        //~ final boolean pipelineOn = ChunkRenderer.uploadMode() == ChunkRenderer.MODE_COMPATIBLE;
 -        //~ final boolean regions = TerrainRegions.configure(pipelineOn && RenderToggles.regionBatching, pipelineOn);
 -        //~ if (switched || regions) {
@@ -2499,7 +2499,7 @@ index 3426e85..00990d7 100644
 +        // fixed-function state, which GL translators may not track.
 +        projection.store(ChunkRenderer.projectionBuffer());
 +        ChunkRenderer.projectionStored();
-+        final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, false);
++        final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.aetheriumRenderer, false);
 +        final boolean pipelineOn = ChunkRenderer.uploadMode() == ChunkRenderer.MODE_COMPATIBLE;
 +        final boolean regions = TerrainRegions.configure(pipelineOn && RenderToggles.regionBatching, pipelineOn);
 +        if (switched || regions) {
@@ -2518,7 +2518,7 @@ index 3426e85..00990d7 100644
 -        //~ } else {
 -            //~ return;
 -        //~ }
--        //~ final int mode = ChunkRenderer.drawMode(RenderToggles.experimentalChunkRenderer);
+-        //~ final int mode = ChunkRenderer.drawMode(RenderToggles.aetheriumRenderer);
 -        //~ if (mode == ChunkRenderer.MODE_OFF) {
 -            //~ if (ChunkRenderer.hasCompactBuffers()) {
 -                //~ ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame
@@ -2598,7 +2598,7 @@ index 3426e85..00990d7 100644
 +        } else {
 +            return;
 +        }
-+        final int mode = ChunkRenderer.drawMode(RenderToggles.experimentalChunkRenderer);
++        final int mode = ChunkRenderer.drawMode(RenderToggles.aetheriumRenderer);
 +        if (mode == ChunkRenderer.MODE_OFF) {
 +            if (ChunkRenderer.hasCompactBuffers()) {
 +                ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame
@@ -3521,7 +3521,7 @@ index 7607824..ffa245c 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java
-index 7680693..4dfdea6 100644
+index 47d147c..61cbafd 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java
 @@ -1,11 +1,11 @@
@@ -3619,53 +3619,6 @@ index 7680693..4dfdea6 100644
 +    }
 +    // @era:chunk-renderer-else none
      // @era:chunk-renderer-end
- }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java b/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
-index 6028e6b..26d8530 100644
---- a/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
-@@ -1,13 +1,13 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
--//~ import com.aetherium.perf.FramePacer;
--//~ import com.aetherium.perf.RenderToggles;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
-+import com.aetherium.perf.FramePacer;
-+import com.aetherium.perf.RenderToggles;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
- 
- /**
-@@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "com.mojang.blaze3d.systems.RenderSystem")
- public abstract class FramePacingMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
--    //~ @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
--    //~ private static void aetherium$pace(final int fps, final CallbackInfo ci) {
--        //~ if (RenderToggles.framePacing && FramePacer.pace(fps)) {
--            //~ ci.cancel();
--        //~ }
--    //~ }
-+    // @era:qol16-begin v16
-+    @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
-+    private static void aetherium$pace(final int fps, final CallbackInfo ci) {
-+        if (RenderToggles.framePacing && FramePacer.pace(fps)) {
-+            ci.cancel();
-+        }
-+    }
-+    // @era:qol16-else none
-     // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
 index 1e5f51b..6ce0643 100644
@@ -4657,7 +4610,7 @@ index 51342cf..19bc655 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
-index 59dd843..11a0c2b 100644
+index 6d8460a..4341c30 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
 @@ -1,15 +1,15 @@
@@ -5728,7 +5681,7 @@ index 57d589e..7b779e9 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-index d753655..1f32b50 100644
+index 0d59602..15c8f18 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 @@ -4,22 +4,22 @@ import com.aetherium.client.TerrainRegions;
@@ -6635,7 +6588,7 @@ index 7ae771c..0c59d38 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index ab3731c..4284b4d 100644
+index 072c719..5178666 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
