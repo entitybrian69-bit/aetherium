@@ -444,3 +444,5 @@ mode trips GL4ES. The trace lines and the crash guard's step down to compatible 
 
 Gates run for 1.3.4: `stubcheck --all` 33/33; `testrun.py --bench` 132 passed (125 unit + 7
 benchmarks); `gen_deltas --all --verify` (32 patches); `check.py` clean; `check_refs.py` clean.
+CI: `ship` run 38111557998 for commit 417084e passed all 35 jobs and published 33 releases
+`v1.3.4+<mc>`.
