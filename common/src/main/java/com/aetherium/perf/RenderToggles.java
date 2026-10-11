@@ -34,6 +34,8 @@ public final class RenderToggles {
     public static volatile boolean fastParticles = true;
     /** 1.7.0 (1.16.5): direct model vertex writes. */
     public static volatile boolean fastModels = true;
+    /** 1.7.2 (1.16.5): the frame-rate limit keeps a fixed cadence ({@link FramePacer}). */
+    public static volatile boolean framePacing = true;
     /** Fast models failed once: vanilla for the rest of the session. */
     private static volatile boolean fastModelsBroken;
 
@@ -60,6 +62,7 @@ public final class RenderToggles {
         smartChunkCulling = isActive && Capabilities.STREAMING && config.smartChunkCulling.get().booleanValue();
         fastParticles = isActive && Capabilities.STREAMING && config.fastParticles.get().booleanValue();
         fastModels = isActive && Capabilities.STREAMING && !fastModelsBroken && config.fastModels.get().booleanValue();
+        framePacing = isActive && Capabilities.STREAMING && config.framePacing.get().booleanValue();
         SpriteActivity.setEnabled(isActive && Capabilities.STREAMING && config.visibleAnimations.get().booleanValue());
         UploadBudget.setEnabled(isActive && config.smoothChunkLoading.get().booleanValue());
         BlockEntityCull.setDistance(isActive ? config.blockEntityDistance.get().intValue() : BlockEntityCull.VANILLA);

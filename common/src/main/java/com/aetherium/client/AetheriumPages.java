@@ -238,6 +238,8 @@ public final class AetheriumPages {
         page.add(Setting.slider("perf.max_fps", "Max framerate", "Vanilla frame-rate limit.", 10,
                 VanillaOptions.UNLIMITED_FPS, 10, v -> v >= VanillaOptions.UNLIMITED_FPS ? "Unlimited" : v + " FPS",
                 VanillaOptions::getFramerateLimit, VanillaOptions::setFramerateLimit));
+        page.add(bool("perf.frame_pacing", "Even frame pacing", config.framePacing)
+                .availableWhen(() -> Capabilities.STREAMING, "Minecraft 1.16.5 only for now"));
         page.add(flag("perf.vsync", "VSync", "Sync to the display refresh rate. Removes tearing, adds latency.",
                 VanillaOptions::getVsync, VanillaOptions::setVsync));
         page.add(bool("perf.entity_culling", "Entity culling", config.entityCulling));

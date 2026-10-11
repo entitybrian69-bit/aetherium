@@ -783,3 +783,37 @@ Gates run for 1.7.1: `testrun.py` 163 passed; `stubcheck --all` 33/33; `gen_delt
 `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean on the 1.16.5 sources.
 CI: `ship` run 38144789068 for commit 49d393f passed and published `v1.7.1+1.16.5`
 (`aetherium-fabric-1.7.1+1.16.5.jar`, 1000071 bytes).
+
+## 26. 1.7.2: even frame pacing and an honest frame-time HUD (1.16.5)
+
+Report: in five screenshots looking at the sky (Device A), the HUD FPS went 160, 166, 138, 147, 225,
+the average frame time 4.5-7.3 ms, and the p99 read 8.2 ms every time.
+
+**HUD (`FrameStats`):**
+- The histogram had 8192 buckets of 1 us, so it ended at 8.192 ms. Longer frames went into the last
+  bucket, so a p99 above 8.19 ms always printed as 8.2 ms. It now has 16384 buckets of 10 us (up to
+  163.84 ms; `FrameStatsTest.longFramesReachThePercentiles`: a 25 ms p99 reads 25 ms).
+- FPS and frame time were recomputed every 32 frames, about 0.2 s at 160 FPS. They now cover one
+  second. The first readout after a reset still comes after 32 frames (`windowIsOneSecond`).
+- `isStale` allows 2.5 s.
+
+**Frame pacing (`FramePacer`, `FramePacingMixin`):**
+- Target: `RenderSystem.limitDisplayFPS(I)V`, which is `public static` in `tools/probe/1.16.5.txt`,
+  next to the `private static double lastDrawTime` field.
+- Vanilla waits with `glfwWaitEventsTimeout` until `lastDrawTime + 1/fps`, then stores the time it
+  woke up, so oversleeps add up.
+- The HEAD inject (cancellable, static) keeps a fixed cadence instead: deadline = previous deadline
+  + period. A frame more than one period late restarts the cadence.
+- It sleeps with `LockSupport.parkNanos` until 0.3 ms before the deadline, then yields.
+- Vanilla calls the limiter only when a limit below "Unlimited" is set. With Unlimited nothing
+  changes.
+- Option `performance.frame_pacing` (default on); gated with the other STREAMING mixins.
+- `FramePacerTest`: cadence, hitch restart, 20 real waits at 200 FPS take 100 ms (-1 ms / +40 ms),
+  and a limit outside 1-1000 is left to vanilla.
+
+**Not established:** frame-time variance on Device A with a limit set. The swings in the screenshots
+(4.5-7.3 ms per second on average, uncapped) come from the scene and the phone's clocks, which no
+mod controls.
+
+Gates run for 1.7.2: `testrun.py` 169 passed; `stubcheck --all` 33/33; `gen_deltas --all --verify`;
+`check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.

@@ -64,7 +64,7 @@ final class FrameStatsTest {
     }
 
     @Test
-    @DisplayName("the cached readouts refresh every 32 frames, and the mean is exact")
+    @DisplayName("the first readout comes after 32 frames, and the mean is exact")
     void cachedReadoutsRefresh() {
         record(this.stats, 40, 16_000_000L); // 16 ms each, 40 frames >= the 32-frame period
         assertEquals(16.0d, this.stats.getFrameMs(), 1.0E-6, "the window mean must be exact");
@@ -72,6 +72,25 @@ final class FrameStatsTest {
         assertTrue(this.stats.getP50Ms() > 0.0, "the percentile readouts are cached and must have been computed");
         assertEquals(this.stats.getP50Ms(), this.stats.getP99Ms(), 1.0E-9, "identical frames have identical percentiles");
         assertFalse(this.stats.isStale(), "a stats object that just recomputed is not stale");
+    }
+
+    @Test
+    @DisplayName("1.7.2: p99 above 8.2 ms is reported, not clamped to the old histogram end")
+    void longFramesReachThePercentiles() {
+        record(this.stats, 90, 5_000_000L);   // 5 ms
+        record(this.stats, 10, 25_000_000L);  // 25 ms: the slowest 10 %
+        assertEquals(25.0d, this.stats.percentile(0.99), 0.01d, "a 25 ms p99 used to read 8.2 ms");
+        assertEquals(5.0d, this.stats.percentile(0.50), 0.01d);
+    }
+
+    @Test
+    @DisplayName("1.7.2: after the first readout, FPS is averaged over a whole second, not 32 frames")
+    void windowIsOneSecond() {
+        record(this.stats, 40, 16_000_000L);
+        final double first = this.stats.getFrameMs();
+        assertEquals(16.0d, first, 1.0E-6);
+        record(this.stats, 40, 4_000_000L); // recorded instantly: well inside one second
+        assertEquals(first, this.stats.getFrameMs(), 1.0E-9, "no new readout before the window ends");
     }
 
     @Test

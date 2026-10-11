@@ -35,7 +35,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     private static final Set<String> STREAMING_1_7 = Collections.unmodifiableSet(new java.util.HashSet<String>(
             java.util.Arrays.asList("FastParticleMixin", "SpriteActivityMixin", "BakedQuadAccessor",
                     "BlockSpriteUseMixin", "ItemSpriteUseMixin", "SectionSpritesMixin", "CompiledChunkSpritesMixin",
-                    "ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin", "Matrix3fAccessor",
+                    "ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin", "Matrix3fAccessor", "FramePacingMixin",
                     "DefaultedVertexAccessor", "FastModelMixin")));
 
     /** Simple names of mixins that were actually applied (render thread reads, loader writes). */

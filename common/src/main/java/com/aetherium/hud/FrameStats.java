@@ -28,9 +28,16 @@ public final class FrameStats {
     /** 16384 frames ~ 68 s at 240 fps, 5 min at 60 fps. */
     public static final int SAMPLE_CAPACITY = 16384;
     private static final int SAMPLE_MASK = SAMPLE_CAPACITY - 1;
-    private static final int HISTOGRAM_BUCKETS = 8192;
-    /** 1 us per bucket, so the histogram tops out at 8.192 ms; longer frames go in the last bucket. */
-    private static final long BUCKET_NANOS = 1_000L;
+    private static final int HISTOGRAM_BUCKETS = 16384;
+    /**
+     * 10 us per bucket, so the histogram reaches 163.84 ms (1.7.2). It used to stop at 8.192 ms, so
+     * every p99 above that read "8.2 ms" whatever the real value was.
+     */
+    private static final long BUCKET_NANOS = 10_000L;
+    /** FPS and frame time are averaged over this long (1.7.2; was 32 frames, a fifth of a second at 160 FPS). */
+    static final long WINDOW_NANOS = 1_000_000_000L;
+    /** The first readout after a reset comes after this many frames instead of a whole window. */
+    private static final int FIRST_READOUT_FRAMES = 32;
 
     private final long[] samples = new long[SAMPLE_CAPACITY];
     private final int[] histogram = new int[HISTOGRAM_BUCKETS];
@@ -91,9 +98,11 @@ public final class FrameStats {
             this.spikesOver100ms++;
         }
 
-        // Recompute at most ~4 times a second. Percentile search over 8k buckets
-        // is cheap but not free, and the HUD does not need 240 updates a second.
-        if (++this.recalculationCounter >= 32) {
+        // Recompute once per window (a steady readout, like vanilla's once-a-second FPS); the first
+        // readout after a reset comes after a few frames so the HUD is not blank for a second.
+        ++this.recalculationCounter;
+        if (this.lastUpdateNanos == 0L ? this.recalculationCounter >= FIRST_READOUT_FRAMES
+                : System.nanoTime() - this.windowStartNanos >= WINDOW_NANOS) {
             this.recalculationCounter = 0;
             recompute();
         }
@@ -131,7 +140,7 @@ public final class FrameStats {
         for (int bucket = 0; bucket < HISTOGRAM_BUCKETS; bucket++) {
             running += this.histogram[bucket];
             if (running >= target) {
-                // Bucket midpoint: a 1 us granularity is far below measurement noise.
+                // Bucket midpoint: a 10 us granularity is far below measurement noise.
                 return (bucket + 0.5) * BUCKET_NANOS / 1_000_000.0;
             }
         }
@@ -201,6 +210,8 @@ public final class FrameStats {
         this.windowSamples = 0;
         this.windowNanos = 0L;
         this.windowStartNanos = System.nanoTime();
+        this.recalculationCounter = 0;
+        this.lastUpdateNanos = 0L; // the next readout comes after a few frames again
         // Window-derived display state: after a world change the HUD must not show the
         // previous world's frame time for one more frame, so the last-frame value and
         // the percentiles/fps computed from the (now empty) window go to zero too.
@@ -241,6 +252,6 @@ public final class FrameStats {
     }
 
     public boolean isStale() {
-        return System.nanoTime() - this.lastUpdateNanos > 1_000_000_000L;
+        return this.lastUpdateNanos == 0L || System.nanoTime() - this.lastUpdateNanos > 2 * WINDOW_NANOS + 500_000_000L;
     }
 }

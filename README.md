@@ -5,6 +5,18 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
+Version **1.7.2** (1.16.5) makes frame pacing steadier and the frame-time readout honest:
+- **Even frame pacing** (Performance page, on by default): with a **Max framerate** set, every frame
+  ends one frame-length after the previous one was due. Vanilla's limiter measures from when it actually
+  woke up, so each oversleep pushes every later frame back and the spacing wanders. This is worst on
+  Android launchers, which emulate GLFW's waiting. A frame that ran late is now made up by a shorter
+  wait; one more than a whole frame late starts a new cadence instead of a burst. For the steadiest
+  picture, set Max framerate to your screen's refresh rate (60, 90 or 120). Uncapped, the frame rate
+  always swings with the scene and with the phone's clock speeds.
+- **Frame-time HUD:** FPS and frame time are averaged over one second (it was 32 frames, a fifth of a
+  second at 160 FPS, so the number jumped). The p99 used to stop at 8.2 ms, the end of its histogram,
+  so any slower p99 still read "8.2 ms". It now reaches 164 ms.
+
 Version **1.7.1** (1.16.5) fixes the Aetherium pipeline (**Experimental chunk renderer**) and
 **Batched terrain** being slower than vanilla on phones. Through GL4ES every terrain draw call is turned
 into indexed triangles and goes through its fixed-function emulation, so a phone spends more time per

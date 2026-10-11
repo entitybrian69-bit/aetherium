@@ -3620,6 +3620,53 @@ index 7680693..4dfdea6 100644
 +    // @era:chunk-renderer-else none
      // @era:chunk-renderer-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java b/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
+index 6028e6b..26d8530 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.FramePacer;
+-//~ import com.aetherium.perf.RenderToggles;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.perf.FramePacer;
++import com.aetherium.perf.RenderToggles;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "com.mojang.blaze3d.systems.RenderSystem")
+ public abstract class FramePacingMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private static void aetherium$pace(final int fps, final CallbackInfo ci) {
+-        //~ if (RenderToggles.framePacing && FramePacer.pace(fps)) {
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
++    // @era:qol16-begin v16
++    @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
++    private static void aetherium$pace(final int fps, final CallbackInfo ci) {
++        if (RenderToggles.framePacing && FramePacer.pace(fps)) {
++            ci.cancel();
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
 index 1e5f51b..6ce0643 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
@@ -6575,7 +6622,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index c2c4934..c2e10e1 100644
+index 7ae771c..0c59d38 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -6588,7 +6635,7 @@ index c2c4934..c2e10e1 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 3343831..8287b05 100644
+index ab3731c..4284b4d 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
