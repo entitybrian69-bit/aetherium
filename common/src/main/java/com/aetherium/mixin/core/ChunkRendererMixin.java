@@ -221,9 +221,12 @@ public abstract class ChunkRendererMixin {
                 //~ RenderSystem.multMatrix(poseStack.last().pose());
                 //~ if (runs < 0) {
                     //~ RenderSystem.drawArrays(7, 0, access.aetheriumVertexCount()); // GL_QUADS, as vanilla
+                    //~ ChunkRenderer.compatibleDraws(1);
                 //~ } else {
+                    //~ // One span per section since 1.7.1 (never more draws than vanilla).
                     //~ for (int r = 0; r < runs; r++) {
-                        //~ aetherium$drawQuads(ChunkRenderer.runFirstVertex(r), ChunkRenderer.runVertexCount(r));
+                        //~ ChunkRenderer.compatibleDraws(
+                                //~ aetherium$drawQuads(ChunkRenderer.runFirstVertex(r), ChunkRenderer.runVertexCount(r)));
                     //~ }
                 //~ }
                 //~ RenderSystem.popMatrix();
@@ -263,10 +266,13 @@ public abstract class ChunkRendererMixin {
      //~ * GL4ES splits longer quad draws itself but restarts each piece at vertex 0.
      //~ */
     //~ @Unique
-    //~ private static void aetherium$drawQuads(final int first, final int count) {
+    //~ private static int aetherium$drawQuads(final int first, final int count) {
+        //~ int draws = 0;
         //~ for (int done = 0; done < count; done += TerrainRegions.DRAW_MAX_VERTICES) {
             //~ RenderSystem.drawArrays(7, first + done, Math.min(TerrainRegions.DRAW_MAX_VERTICES, count - done));
+            //~ draws++;
         //~ }
+        //~ return draws;
     //~ }
     // @era:chunk-renderer-end
 }

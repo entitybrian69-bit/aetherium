@@ -190,4 +190,28 @@ final class ChunkRendererTest {
         assertFalse(ChunkRenderer.isDrawing());
         assertTrue(ChunkRenderer.statusText().startsWith("Vanilla"));
     }
+
+    @Test
+    @DisplayName("chunk renderer: compatible mode draws a section as one span, never more draws than vanilla")
+    void compatibleSpan() {
+        final com.aetherium.render.CompactTerrain.Layout layout = new com.aetherium.render.CompactTerrain.Layout();
+        for (int g = 0; g <= com.aetherium.render.CompactTerrain.GROUPS; g++) {
+            layout.start[g] = g * 10; // 10 quads in each of the 7 groups
+        }
+        layout.plane[com.aetherium.render.CompactTerrain.UP] = 16.0f;
+        layout.plane[com.aetherium.render.CompactTerrain.DOWN] = 0.0f;
+        layout.plane[com.aetherium.render.CompactTerrain.EAST] = 16.0f;
+        layout.plane[com.aetherium.render.CompactTerrain.WEST] = 0.0f;
+        layout.plane[com.aetherium.render.CompactTerrain.SOUTH] = 16.0f;
+        layout.plane[com.aetherium.render.CompactTerrain.NORTH] = 0.0f;
+        // Camera above, east and north of the section: up, north, any, east face it. Those groups
+        // (0, 1, 3, 4) are two runs apart (west, group 2, is hidden); one span covers them.
+        assertEquals(1, ChunkRenderer.compatibleRuns(layout, -100.0f, -100.0f, 100.0f));
+        assertEquals(0, ChunkRenderer.runFirstVertex(0));
+        assertEquals(50 * 4, ChunkRenderer.runVertexCount(0));
+        // Camera below, west and south: west, any, south, down (2, 3, 5, 6); up and north are left out.
+        assertEquals(1, ChunkRenderer.compatibleRuns(layout, 100.0f, 100.0f, -100.0f));
+        assertEquals(20 * 4, ChunkRenderer.runFirstVertex(0));
+        assertEquals(50 * 4, ChunkRenderer.runVertexCount(0));
+    }
 }

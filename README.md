@@ -5,6 +5,16 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
+Version **1.7.1** (1.16.5) fixes the Aetherium pipeline (**Experimental chunk renderer**) and
+**Batched terrain** being slower than vanilla on phones. Through GL4ES every terrain draw call is turned
+into indexed triangles and goes through its fixed-function emulation, so a phone spends more time per
+draw call than on the vertices. The pipeline drew each chunk section as up to three ranges (one per
+group of faces pointing at you), and batched terrain split ranges at hidden face groups, so a frame
+took about two to three times vanilla's draw calls. Now each section is drawn as one range that leaves
+out the face groups at either end (never more draw calls than vanilla), and batched terrain draws
+through gaps of up to 512 hidden quads instead of splitting. The Backend page shows how many draw calls
+the last frame took, next to how many vanilla would use.
+
 Version **1.7.0** (1.16.5) adds four options on the **Performance** page, all on by default:
 - **Smart chunk culling.** Chunk sections that lie completely inside the distance fog are treated as
   outside the view: they are not drawn or meshed, and the visible-chunk search stops at them. Vanilla

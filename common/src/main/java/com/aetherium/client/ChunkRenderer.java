@@ -99,6 +99,22 @@ public final class ChunkRenderer {
     /** Hidden quads drawn anyway to save a draw call (see {@link CompactTerrain#mergeRuns}). */
     static final int MERGE_GAP_QUADS = 256;
 
+    /**
+     * Compatible mode joins every visible run of a section into one span (1.7.1): through GL4ES
+     * each draw call is converted to indexed triangles and goes through its fixed-function
+     * emulation, which costs far more on a phone than shading the hidden face groups between two
+     * visible ones (the GPU culls back faces anyway). A section is therefore never more draws than
+     * vanilla's one; the face-group order (up, north, west, any, east, south, down) still lets the
+     * span leave out the groups at either end.
+     */
+    static final int COMPATIBLE_GAP_QUADS = Integer.MAX_VALUE;
+
+    private static long statsFrame = -1L;
+    private static int frameSections;
+    private static int frameDraws;
+    private static int shownSections;
+    private static int shownDraws;
+
     /** Fog mode uniform values. */
     static final int FOG_NONE = -1;
     static final int FOG_LINEAR = 0;
@@ -334,8 +350,12 @@ public final class ChunkRenderer {
             } else if (PipelineCrashGuard.wasBatchingTurnedOff()) {
                 why = "; batched terrain turned off: the game closed while drawing it last time";
             }
+            final String frameStats = compatible
+                    ? "; last frame " + shownSections + " section layers in " + shownDraws + " draws, vanilla: "
+                            + shownSections
+                    : "";
             return "Aetherium pipeline, " + (compatible ? "compatible mode" : "shader mode") + " (" + sectionsLastLayer
-                    + " sections in the last layer" + lastStats + TerrainRegions.status() + why + ")";
+                    + " sections in the last layer" + lastStats + frameStats + TerrainRegions.status() + why + ")";
         }
         return "Vanilla";
     }
@@ -640,6 +660,13 @@ public final class ChunkRenderer {
             logGlInfo();
         }
         PipelineCrashGuard.arm(regions ? PipelineCrashGuard.MODE_REGIONS : PipelineCrashGuard.MODE_COMPATIBLE);
+        if (statsFrame != frame) {
+            shownSections = frameSections;
+            shownDraws = frameDraws;
+            frameSections = 0;
+            frameDraws = 0;
+            statsFrame = frame;
+        }
         sectionsLastLayer = 0;
         compactSectionsLastLayer = 0;
     }
@@ -662,7 +689,7 @@ public final class ChunkRenderer {
         final int mask = CompactTerrain.visibleGroups(layout.plane, -dx, -dy, -dz);
         int runs = CompactTerrain.runs(layout, mask, RUN_FIRST, RUN_COUNT);
         if (runs > 0) {
-            runs = CompactTerrain.mergeRuns(RUN_FIRST, RUN_COUNT, runs, MERGE_GAP_QUADS);
+            runs = CompactTerrain.mergeRuns(RUN_FIRST, RUN_COUNT, runs, COMPATIBLE_GAP_QUADS);
         }
         for (int r = 0; r < runs; r++) {
             compactQuadsDrawn += RUN_COUNT[r];
@@ -683,6 +710,12 @@ public final class ChunkRenderer {
 
     public static void compatibleSectionDrawn() {
         sectionsLastLayer++;
+        frameSections++;
+    }
+
+    /** Draw calls compatible mode issued (vanilla issues one per section and layer). */
+    public static void compatibleDraws(final int draws) {
+        frameDraws += draws;
     }
 
     public static void endCompatible() {

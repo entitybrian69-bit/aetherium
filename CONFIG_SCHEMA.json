@@ -41,7 +41,7 @@
             "advanced.experimental_chunk_renderer": {
               "type": "boolean",
               "default": false,
-              "description": "Experimental, Minecraft 1.16.5 only: Aetherium's own terrain pipeline. Solid and cutout chunks are grouped by face direction so faces pointing away from you are never sent to the GPU; they keep vanilla's vertex format and are drawn with vanilla's own GL calls. Translucent blocks stay vanilla. Switching it rebuilds the loaded chunks once; it turns itself off and falls back to vanilla if anything fails.",
+              "description": "Experimental, Minecraft 1.16.5 only: Aetherium's own terrain pipeline. Solid and cutout chunks are grouped by face direction, and each chunk section is drawn as one range that leaves out the face groups pointing away from you: never more draw calls than vanilla. They keep vanilla's vertex format and vanilla's own GL calls. The Backend page shows how many draw calls the last frame took. Translucent blocks stay vanilla. Switching it rebuilds the loaded chunks once; it turns itself off and falls back to vanilla if anything fails.",
               "x-java-field": "experimentalChunkRenderer"
             },
             "advanced.region_batching": {

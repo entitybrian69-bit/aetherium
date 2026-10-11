@@ -47,8 +47,11 @@ public final class TerrainRegions {
     static final int PAGE_MAX_VERTICES = 16384;
     static final int PAGE_MIN_VERTICES = 2048;
     public static final int DRAW_MAX_VERTICES = 32000;
-    /** Gap of live (other sections') vertices drawn through to save a draw call: 128 quads. */
-    static final int MERGE_GAP_VERTICES = 512;
+    /**
+     * Gap of live vertices (hidden face groups or other sections) drawn through to save a draw call:
+     * 512 quads (1.7.1, was 128). Through GL4ES a draw call costs more than shading that many vertices.
+     */
+    static final int MERGE_GAP_VERTICES = 2048;
 
     /** GL buffer calls; replaced in unit tests. */
     public interface Buffers {
@@ -416,6 +419,7 @@ public final class TerrainRegions {
         }
         drawsLastLayer = draws;
         pagesLastLayer = QUEUED.size();
+        ChunkRenderer.compatibleDraws(draws);
         return QUEUED.size();
     }
 

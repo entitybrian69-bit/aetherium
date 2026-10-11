@@ -746,3 +746,38 @@ depth, billboard, sprites, model vertices, cubes, visibility search, fog cull);
 clean on the 1.16.5 sources.
 CI: `ship` run 38141966344 for commit e51884e passed and published `v1.7.0+1.16.5`
 (`aetherium-fabric-1.7.0+1.16.5.jar`, 999515 bytes).
+
+## 25. 1.7.1: the pipeline never issues more draw calls than vanilla (1.16.5)
+
+Report: on Device A (Pojav, GL4ES, Mali-G57), turning on the Aetherium pipeline and batched terrain
+(1.6.0) lowered the FPS.
+
+**Cause (from the GL4ES source, `ptitSeb/gl4es` `src/gl/drawing.c` and `fpe.c`):**
+- `glDrawArrays(GL_QUADS)` builds a client-side `GLushort` index array, then calls
+  `glDrawElementsCommon(GL_TRIANGLES, …)`.
+- On GLES 2 that goes through `fpe_glDrawElements` → `realize_glenv`, which checks the emulated
+  fixed-function state and every vertex attribute, uploads changed uniforms (the matrix), and draws with
+  client-side indices that the driver copies.
+- With a buffer bound, vertex data stays on the GPU (`real_buffer`), so the cost is per draw call, not
+  per vertex.
+
+Compatible mode drew each sorted section as up to three runs (the visible face groups,
+`MERGE_GAP_QUADS = 256`). Batched terrain split a page's ranges at any gap over 512 vertices, which a
+hidden face group usually is. So a frame took about 2-3x vanilla's one draw per section and layer, to
+save vertex work the GPU culls anyway (back faces).
+
+**Change:**
+- `ChunkRenderer.compatibleRuns` joins all visible runs of a section into one span
+  (`COMPATIBLE_GAP_QUADS = Integer.MAX_VALUE`). The group order (up, north, west, any, east, south,
+  down) still leaves out the hidden groups at either end.
+- `TerrainRegions.MERGE_GAP_VERTICES` goes from 512 to 2048 (512 quads of live data).
+- The Backend status reports the last frame's section layers and draw calls.
+- `ChunkRendererTest.compatibleSpan`: two non-contiguous visible group sets each give one range with
+  the expected first vertex and count.
+
+**Not established:** whether the pipeline is now faster than vanilla on Device A. It issues at most
+vanilla's draw calls (fewer with batched terrain) and fewer vertices; the user's FPS comparison and the
+Backend status line will show it.
+
+Gates run for 1.7.1: `testrun.py` 163 passed; `stubcheck --all` 33/33; `gen_deltas --all --verify`;
+`check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean on the 1.16.5 sources.
