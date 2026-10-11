@@ -2142,7 +2142,7 @@ index 7da2c77..22b5e36 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-index 93ae6d3..5c2b16f 100644
+index be8b8e4..425b095 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 @@ -1,31 +1,31 @@
@@ -2203,7 +2203,7 @@ index 93ae6d3..5c2b16f 100644
  // @era:chunk-renderer-end
  import net.minecraft.client.renderer.LevelRenderer;
  
-@@ -53,160 +53,160 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -53,169 +53,169 @@ import org.spongepowered.asm.mixin.Mixin;
  @Mixin(LevelRenderer.class)
  public abstract class ChunkRendererMixin {
  
@@ -2285,6 +2285,7 @@ index 93ae6d3..5c2b16f 100644
 -                //~ return;
 -            //~ }
 -            //~ begun = true;
+-            //~ int notCompact = 0;
 -            //~ final ObjectList<?> list = this.renderChunks;
 -            //~ for (int i = 0, n = list.size(); i < n; i++) {
 -                //~ final ChunkRenderDispatcher.RenderChunk chunk =
@@ -2301,11 +2302,19 @@ index 93ae6d3..5c2b16f 100644
 -                //~ if (layout != null) {
 -                    //~ ChunkRenderer.drawCompact(buffer.aetheriumId(), layout, dx, dy, dz);
 -                //~ } else {
--                    //~ ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), dx, dy, dz);
+-                    //~ // Still in vanilla's format (built before the switch to shader mode, or not
+-                    //~ // encodable): never fed to the shader. Vanilla's 32-byte vertices drawn as
+-                    //~ // GL_QUADS from generic attributes make GL4ES convert them on the CPU from the
+-                    //~ // buffer offset as if it were an address, a native crash.
+-                    //~ notCompact++;
 -                //~ }
 -            //~ }
 -            //~ begun = false;
 -            //~ ChunkRenderer.end();
+-            //~ if (notCompact > 0) {
+-                //~ // The same vanilla GL path compatible mode uses (it skips the compact sections).
+-                //~ this.aetherium$drawCompatible(type, poseStack, camX, camY, camZ);
+-            //~ }
 -            //~ ci.cancel();
 -        //~ } catch (final RuntimeException | LinkageError error) {
 -            //~ // The renderer is off now. Vanilla draws this layer unless compact buffers exist (then the
@@ -2356,6 +2365,7 @@ index 93ae6d3..5c2b16f 100644
 +                return;
 +            }
 +            begun = true;
++            int notCompact = 0;
 +            final ObjectList<?> list = this.renderChunks;
 +            for (int i = 0, n = list.size(); i < n; i++) {
 +                final ChunkRenderDispatcher.RenderChunk chunk =
@@ -2372,11 +2382,19 @@ index 93ae6d3..5c2b16f 100644
 +                if (layout != null) {
 +                    ChunkRenderer.drawCompact(buffer.aetheriumId(), layout, dx, dy, dz);
 +                } else {
-+                    ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), dx, dy, dz);
++                    // Still in vanilla's format (built before the switch to shader mode, or not
++                    // encodable): never fed to the shader. Vanilla's 32-byte vertices drawn as
++                    // GL_QUADS from generic attributes make GL4ES convert them on the CPU from the
++                    // buffer offset as if it were an address, a native crash.
++                    notCompact++;
 +                }
 +            }
 +            begun = false;
 +            ChunkRenderer.end();
++            if (notCompact > 0) {
++                // The same vanilla GL path compatible mode uses (it skips the compact sections).
++                this.aetherium$drawCompatible(type, poseStack, camX, camY, camZ);
++            }
 +            ci.cancel();
 +        } catch (final RuntimeException | LinkageError error) {
 +            // The renderer is off now. Vanilla draws this layer unless compact buffers exist (then the
@@ -4356,7 +4374,7 @@ index cfa7c77..042eb9a 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index d779dd1..2aa5860 100644
+index 4d9425d..619dc4f 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

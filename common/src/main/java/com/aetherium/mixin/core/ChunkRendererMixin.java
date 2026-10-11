@@ -111,6 +111,7 @@ public abstract class ChunkRendererMixin {
                 //~ return;
             //~ }
             //~ begun = true;
+            //~ int notCompact = 0;
             //~ final ObjectList<?> list = this.renderChunks;
             //~ for (int i = 0, n = list.size(); i < n; i++) {
                 //~ final ChunkRenderDispatcher.RenderChunk chunk =
@@ -127,11 +128,19 @@ public abstract class ChunkRendererMixin {
                 //~ if (layout != null) {
                     //~ ChunkRenderer.drawCompact(buffer.aetheriumId(), layout, dx, dy, dz);
                 //~ } else {
-                    //~ ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), dx, dy, dz);
+                    //~ // Still in vanilla's format (built before the switch to shader mode, or not
+                    //~ // encodable): never fed to the shader. Vanilla's 32-byte vertices drawn as
+                    //~ // GL_QUADS from generic attributes make GL4ES convert them on the CPU from the
+                    //~ // buffer offset as if it were an address, a native crash.
+                    //~ notCompact++;
                 //~ }
             //~ }
             //~ begun = false;
             //~ ChunkRenderer.end();
+            //~ if (notCompact > 0) {
+                //~ // The same vanilla GL path compatible mode uses (it skips the compact sections).
+                //~ this.aetherium$drawCompatible(type, poseStack, camX, camY, camZ);
+            //~ }
             //~ ci.cancel();
         //~ } catch (final RuntimeException | LinkageError error) {
             //~ // The renderer is off now. Vanilla draws this layer unless compact buffers exist (then the

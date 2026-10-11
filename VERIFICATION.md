@@ -557,3 +557,23 @@ Gates run for 1.5.2: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_delt
 (32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.
 CI: `ship` run 38128995655 for commit 0108aaa passed and published `v1.5.2+1.16.5`
 (`aetherium-fabric-1.5.2+1.16.5.jar`, 947080 bytes).
+
+## 20. 1.5.3: shader mode never draws non-compact sections (1.16.5)
+
+User log (Mali-G57, gl4es 1.1.7 via LTW legacy): compatible mode on, then shader mode on 9 s later;
+the solid layer drew 3 compact sections ("no GL error"), and the game died in the first cutout layer
+after that. Sections whose buffer was still in vanilla's format (built before the switch; since
+1.5.0 a worker-prepared mesh can also arrive in the old format after a switch) were drawn by
+`ChunkRenderer.draw`: vanilla's 32-byte vertices from generic attributes in a VBO as `GL_QUADS`,
+which GL4ES converts on the CPU (`copy_gl_pointer_raw` reads `pointer + real_pointer`, the buffer
+offset, as an address; see section 15).
+
+Change: in shader mode only compact sections are drawn with the shader; if a layer has any other
+section, the compatible-mode pass (vanilla's `setupBufferState` + `drawArrays(GL_QUADS)`, which skips
+compact sections) draws them right after. `ChunkRenderer.draw` is no longer called.
+
+**Not established:** in-game confirmation (no GPU here); the hs_err file was not available, so the
+crash site is inferred from the trace and from the GL4ES source read for section 15.
+
+Gates run for 1.5.3: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_deltas --all --verify`
+(32 patches); `check.py` clean; `check_refs.py` clean.

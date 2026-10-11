@@ -5,7 +5,9 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **1.5.2** recognises NG-GL4ES forks such as Krypton Wrapper, never reports a memory
+Version **1.5.3** fixes a native crash on GL4ES when the pipeline's shader mode drew chunk
+sections that were not in the compact format yet (for example right after switching from compatible
+mode): those sections now go through vanilla's own GL path instead of the shader. Version **1.5.2** recognises NG-GL4ES forks such as Krypton Wrapper, never reports a memory
 budget larger than the heap, and keeps fewer spare direct buffers on small heaps and 32-bit
 devices (1/16 of the heap, 8 to 48 MB; at most 16 MB on 32-bit). Version **1.5.1** fixes a crash in 1.5.0 when holding a block after editing terrain with the
 Aetherium pipeline on (see [1.5.1](#151-held-block-crash-fix-1165)). Version **1.5.0** (1.16.5 first) attacks the stutter and frame-rate drop when you walk into
@@ -330,7 +332,7 @@ a feature is off.
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.5.2+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
+Releases are published per Minecraft version as `v1.5.3+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -367,7 +369,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.5.2 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.5.3 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.
