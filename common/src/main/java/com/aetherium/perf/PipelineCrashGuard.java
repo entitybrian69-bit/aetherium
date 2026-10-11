@@ -21,6 +21,10 @@ import java.nio.file.Path;
  * marker from 1.3.1/1.3.2, which only had shader mode) switches to compatible mode, which uses
  * vanilla's own GL calls, and keeps the pipeline on. A crash in compatible mode turns it off.</p>
  *
+ * <p>Markers also record {@link #SHADER_FIX}. A shader-mode marker written before 1.3.4 (no fix
+ * level) comes from the GL4ES attribute crash that 1.3.4 fixed, so shader mode is kept for one more
+ * try; if that crashes too, the marker carries the fix level and the normal step down applies.</p>
+ *
  * <p>Closing the app from the task switcher also skips the normal exit, so it can trip the guard.
  * Turning the option back on clears it.</p>
  */
@@ -39,6 +43,9 @@ public final class PipelineCrashGuard {
     /** Marker modes. */
     public static final String MODE_SHADER = "shader";
     public static final String MODE_COMPATIBLE = "compatible";
+    /** Bumped when a shader-mode crash cause is fixed: 2 = 1.3.4, GL_SHORT position attribute for GL4ES. */
+    static final int SHADER_FIX = 2;
+    private static volatile boolean retriedAfterFix;
 
     private PipelineCrashGuard() {
     }
@@ -53,6 +60,7 @@ public final class PipelineCrashGuard {
         armedMode = "";
         tripped = false;
         downgraded = false;
+        retriedAfterFix = false;
         if (!Files.exists(marker)) {
             return false;
         }
@@ -61,7 +69,15 @@ public final class PipelineCrashGuard {
         if (!config.experimentalChunkRenderer.get().booleanValue()) {
             return false;
         }
-        if (!content.contains("mode=" + MODE_COMPATIBLE) && config.pipelineShader.get().booleanValue()) {
+        final boolean shaderCrash = !content.contains("mode=" + MODE_COMPATIBLE);
+        if (shaderCrash && config.pipelineShader.get().booleanValue() && !content.contains("shaderfix=" + SHADER_FIX)) {
+            retriedAfterFix = true;
+            LOG.warn("The last session ended while the Aetherium pipeline was drawing in shader mode, in a version "
+                    + "before the GL4ES vertex-attribute fix (1.3.4). Shader mode stays on for one more try; if it "
+                    + "crashes again, compatible mode takes over at the next start.");
+            return false;
+        }
+        if (shaderCrash && config.pipelineShader.get().booleanValue()) {
             config.pipelineShader.set(Boolean.FALSE);
             downgraded = true;
             LOG.warn("The last session ended while the Aetherium pipeline was drawing in shader mode (most likely a "
@@ -90,7 +106,7 @@ public final class PipelineCrashGuard {
         armedMode = mode;
         tripped = false;
         try {
-            Files.write(file, ("mode=" + mode + "\npipeline drawing since " + System.currentTimeMillis() + "\n")
+            Files.write(file, ("mode=" + mode + "\nshaderfix=" + SHADER_FIX + "\npipeline drawing since " + System.currentTimeMillis() + "\n")
                     .getBytes(StandardCharsets.UTF_8));
         } catch (final IOException | RuntimeException error) {
             LOG.warn("Could not write the pipeline crash marker {}: {}", file, error.toString());
@@ -115,6 +131,11 @@ public final class PipelineCrashGuard {
     /** True when this session started with the pipeline switched off by the guard. */
     public static boolean wasTripped() {
         return tripped;
+    }
+
+    /** True when an old (pre-fix) shader-mode crash marker was found and shader mode was kept. */
+    public static boolean wasRetriedAfterFix() {
+        return retriedAfterFix;
     }
 
     /** True when this session started in compatible mode because shader mode crashed last time. */

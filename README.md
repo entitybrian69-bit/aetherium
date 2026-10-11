@@ -5,7 +5,8 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **1.3.3** adds a **compatible mode** to the 1.16.5 pipeline for GL translators that crash on
+Version **1.3.4** fixes the actual cause of the 1.16.5 pipeline crash on GL4ES / LTW, found in the
+crash's hs_err file (see [1.3.4: the crash, found](#134-the-crash-found-1165)). Version **1.3.3** added a **compatible mode** to the 1.16.5 pipeline for GL translators that crash on
 its shader, and switches to it automatically after such a crash (see
 [1.3.3: compatible mode](#133-compatible-mode-for-the-pipeline-1165)). Version **1.3.2** removed the
 index buffer from the 1.16.5 pipeline (see
@@ -24,6 +25,27 @@ added smooth chunk loading, an animated-texture switch, a block-entity distance,
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
 either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
 OpenGL calls of its own unless you turn on the experimental 1.16.5 Aetherium pipeline.
+
+## 1.3.4: the crash, found (1.16.5)
+
+1.3.3's step-by-step trace plus the hs_err file pinned the crash down. The last trace line was
+`compact section: buffer 23124; glDrawArrays(GL_TRIANGLES, 0, 1056)`. The native stack was
+`gl4es_glDrawArrays → arrays_to_renderlist → copy_gl_pointer_raw → copy_gl_array`, a SIGSEGV
+reading an unsigned short at address `0x18`. The renderer string was `GL4ES using Mali-G57`,
+`2.1 gl4es wrapper 1.1.7` (LTW's legacy renderer is GL4ES).
+
+From gl4es's source: generic attribute 0 is also its fixed-function vertex position. When that
+attribute's type is not one of `UNSIGNED_BYTE / BYTE / FIXED / FLOAT / SHORT` (`valid_vertex_type`),
+gl4es converts all arrays to floats on the CPU. For a generic attribute sourced from a VBO, that
+conversion reads from the bare buffer offset, which is a null-based address. The compact position
+attribute was `GL_UNSIGNED_SHORT` from 1.3.0 to 1.3.3: every pipeline crash on this device.
+
+- **The position/light attribute is now `GL_SHORT`.** Values are stored minus 32768 and the shader
+  adds it back, so the format, precision and size (16-byte vertices) are unchanged. A unit test
+  keeps attribute 0's type within gl4es's accepted list.
+- **Crash markers carry a fix level.** A shader-mode marker from before 1.3.4 (the bug above) keeps
+  shader mode for one more try instead of switching to compatible mode. If 1.3.4 crashes in shader
+  mode, the next start uses compatible mode as in 1.3.3.
 
 ## 1.3.3: compatible mode for the pipeline (1.16.5)
 
@@ -193,12 +215,12 @@ a feature is off.
 
 | | |
 | --- | --- |
-| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874; 1.3.2: 38108163083; 1.3.3: see VERIFICATION §14 (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
-| Tests | 124 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
+| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874; 1.3.2: 38108163083; 1.3.3: 38110414122; 1.3.4: see VERIFICATION §15 (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
+| Tests | 125 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.3.3+<mcversion>`, and only for versions whose
+Releases are published per Minecraft version as `v1.3.4+<mcversion>`, and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -235,7 +257,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.3.3 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.3.4 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.

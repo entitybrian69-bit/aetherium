@@ -10,8 +10,8 @@ import java.nio.ByteOrder;
  *
  * <h2>Vertex (16 bytes, every attribute 4-byte aligned)</h2>
  * <pre>
- *  0  u16 x, y, z   position * 1024 + 8192  (-8 .. 56 blocks around the section origin, 1/1024 steps)
- *  6  u16 light     block light | sky light << 8 (vanilla's lightmap coordinates, 0..240 each)
+ *  0  s16 x, y, z   (position + 8) * 1024 - 32768  (-8 .. 56 blocks around the section origin, 1/1024 steps)
+ *  6  s16 light     (block light | sky light << 8) - 32768 (vanilla's lightmap coordinates, 0..240 each)
  *  8  u8  r, g, b, a  colour with baked ambient occlusion, as vanilla wrote it
  * 12  u16 u, v      atlas coordinates * 65535
  * </pre>
@@ -30,6 +30,13 @@ import java.nio.ByteOrder;
  * <p>Anything the format cannot hold exactly enough (positions outside -8..56, UVs outside 0..1,
  * light values above 255, a non-quad vertex count) makes {@link #encode} return null and the
  * caller uploads vanilla's data unchanged.</p>
+ *
+ * <h2>Signed position attribute (1.3.4)</h2>
+ * The position/light attribute is sent as {@code GL_SHORT}, biased by -32768, and the shader adds
+ * 32768 back. GL4ES (also inside LTW's legacy renderer) treats generic attribute 0 as the vertex
+ * position; for a type it does not accept there ({@code GL_UNSIGNED_SHORT}, used up to 1.3.3) it
+ * converts the arrays on the CPU, reading a VBO-backed generic attribute from its bare offset, a
+ * null-based address. That was the 1.3.0-1.3.3 crash ({@code copy_gl_array} in hs_err).
  *
  * <h2>Plain triangles, no index buffer (1.3.2)</h2>
  * Each quad is written as two triangles, vertices 0, 1, 2 and 2, 3, 0 (vanilla's winding), so
@@ -53,6 +60,8 @@ public final class CompactTerrain {
 
     public static final float POSITION_SCALE = 1024.0f;
     public static final float POSITION_BIAS = 8.0f;
+    /** Position and light are stored minus this so they fit a signed {@code GL_SHORT}. */
+    public static final int ATTRIBUTE_BIAS = 32768;
 
     public static final int UP = 0;
     public static final int NORTH = 1;
@@ -240,7 +249,8 @@ public final class CompactTerrain {
                 out.putShort(to, quantisePosition(src.getFloat(at + SRC_POS)));
                 out.putShort(to + 2, quantisePosition(src.getFloat(at + SRC_POS + 4)));
                 out.putShort(to + 4, quantisePosition(src.getFloat(at + SRC_POS + 8)));
-                out.putShort(to + 6, (short) ((src.getShort(at + SRC_UV2) & 0xFF) | ((src.getShort(at + SRC_UV2 + 2) & 0xFF) << 8)));
+                out.putShort(to + 6, (short) (((src.getShort(at + SRC_UV2) & 0xFF) | ((src.getShort(at + SRC_UV2 + 2) & 0xFF) << 8))
+                        - ATTRIBUTE_BIAS));
                 out.putInt(to + OFFSET_COLOR, src.getInt(at + SRC_COLOR));
                 out.putShort(to + OFFSET_UV, quantiseUv(src.getFloat(at + SRC_UV0)));
                 out.putShort(to + OFFSET_UV + 2, quantiseUv(src.getFloat(at + SRC_UV0 + 4)));
@@ -423,11 +433,16 @@ public final class CompactTerrain {
     }
 
     static short quantisePosition(final float p) {
-        return (short) Math.round((p + POSITION_BIAS) * POSITION_SCALE);
+        return (short) (Math.round((p + POSITION_BIAS) * POSITION_SCALE) - ATTRIBUTE_BIAS);
     }
 
     static float dequantisePosition(final short s) {
-        return (s & 0xFFFF) / POSITION_SCALE - POSITION_BIAS;
+        return (s + ATTRIBUTE_BIAS) / POSITION_SCALE - POSITION_BIAS;
+    }
+
+    /** Light word as written: block | sky << 8. */
+    static int decodeLight(final short s) {
+        return s + ATTRIBUTE_BIAS;
     }
 
     static short quantiseUv(final float uv) {

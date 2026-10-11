@@ -77,7 +77,9 @@ final class ChunkRendererTest {
         assertTrue(vs.startsWith("#version 120\n"));
         assertTrue(vs.contains("attribute vec4 a_pos;") && vs.contains("attribute vec4 a_color;") && vs.contains("attribute vec2 a_uv0;"));
         assertFalse(vs.contains("a_uv2"), "light rides in a_pos.w");
-        assertTrue(vs.contains("a_pos.xyz / 1024.0 - vec3(8.0)"), vs);
+        assertTrue(vs.contains("vec4 raw = a_pos + vec4(32768.0);"), vs);
+        assertTrue(vs.contains("raw.xyz / 1024.0 - vec3(8.0)"), vs);
+        assertFalse(vs.contains("a_pos.w"), "light is decoded from the unbiased value");
         for (final String banned : new String[] {"in ", "out ", "texture(", "layout", "E-", "gl_ModelView"}) {
             assertFalse(vs.contains(banned), banned);
         }
@@ -141,6 +143,21 @@ final class ChunkRendererTest {
         assertEquals(ChunkRenderer.MODE_OFF, ChunkRenderer.drawMode(true));
         assertTrue(ChunkRenderer.updatePipeline(true, true), "off: compact leftovers need a vanilla rebuild");
         ChunkRenderer.resetForTests();
+    }
+
+    @Test
+    @DisplayName("gl4es: attribute 0 (gl4es' vertex position) uses a type gl4es passes through, never UNSIGNED_SHORT")
+    void attributeZeroTypeIsGl4esSafe() {
+        // gl4es valid_vertex_type(): UNSIGNED_BYTE, BYTE, FIXED, FLOAT, SHORT. Anything else is converted on
+        // the CPU from the bare VBO offset and crashes natively (1.3.0-1.3.3, copy_gl_array).
+        final int[] accepted = {0x1401, 0x1400, 0x140C, 0x1406, 0x1402};
+        boolean ok = false;
+        for (final int type : accepted) {
+            ok |= ChunkRenderer.COMPACT_POS_TYPE == type;
+        }
+        assertTrue(ok, "compact position type 0x" + Integer.toHexString(ChunkRenderer.COMPACT_POS_TYPE));
+        assertEquals(0, ChunkRenderer.ATTR_COMPACT_POS);
+        assertEquals(0, ChunkRenderer.ATTR_POS);
     }
 
     @Test

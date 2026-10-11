@@ -48,7 +48,7 @@ final class PipelineCrashGuardTest {
     }
 
     @Test
-    @DisplayName("pipeline crash guard: a crash in shader mode (or a 1.3.1/1.3.2 marker) switches to compatible mode, then off")
+    @DisplayName("pipeline crash guard: pre-fix shader markers retry shader mode once; a shader crash switches to compatible mode, then off")
     void shaderCrashDowngradesFirst() throws Exception {
         final Path dir = Files.createTempDirectory("aetherium-guard");
         final Path marker = dir.resolve(PipelineCrashGuard.MARKER_NAME);
@@ -56,9 +56,23 @@ final class PipelineCrashGuardTest {
         config.experimentalChunkRenderer.set(Boolean.TRUE);
         assertEquals(Boolean.TRUE, config.pipelineShader.get(), "shader mode is the default");
 
-        // A marker written by 1.3.2 (no mode line): that was shader mode.
-        Files.write(marker, "pipeline drawing since 1\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        // Markers from 1.3.1/1.3.2 (no mode) and 1.3.3 (mode, no fix level) are the GL4ES attribute crash
+        // fixed in 1.3.4: shader mode gets one more try, nothing changes in the config.
+        for (final String old : new String[] {"pipeline drawing since 1\n", "mode=shader\npipeline drawing since 1\n"}) {
+            Files.write(marker, old.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            assertFalse(PipelineCrashGuard.checkAtStartup(dir, config), old);
+            assertTrue(PipelineCrashGuard.wasRetriedAfterFix());
+            assertEquals(Boolean.TRUE, config.pipelineShader.get());
+            assertEquals(Boolean.TRUE, config.experimentalChunkRenderer.get());
+            assertFalse(Files.exists(marker));
+        }
+
+        // A shader-mode crash with the fix: compatible mode.
+        PipelineCrashGuard.arm(PipelineCrashGuard.MODE_SHADER);
+        assertTrue(new String(Files.readAllBytes(marker), java.nio.charset.StandardCharsets.UTF_8)
+                .contains("shaderfix=" + PipelineCrashGuard.SHADER_FIX));
         assertTrue(PipelineCrashGuard.checkAtStartup(dir, config));
+        assertFalse(PipelineCrashGuard.wasRetriedAfterFix());
         assertEquals(Boolean.TRUE, config.experimentalChunkRenderer.get(), "the pipeline stays on");
         assertEquals(Boolean.FALSE, config.pipelineShader.get(), "in compatible mode");
         assertTrue(PipelineCrashGuard.wasDowngraded());

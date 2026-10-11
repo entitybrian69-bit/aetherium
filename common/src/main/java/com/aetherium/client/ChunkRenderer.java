@@ -91,6 +91,8 @@ public final class ChunkRenderer {
 
 
     static final int ATTR_COMPACT_POS = 0;
+    /** Type of attribute 0 in the compact layout; must be one GL4ES accepts as a vertex position. */
+    static final int COMPACT_POS_TYPE = GL_SHORT;
     static final int ATTR_COMPACT_COLOR = 1;
     static final int ATTR_COMPACT_UV = 2;
 
@@ -144,14 +146,15 @@ public final class ChunkRenderer {
             "varying vec2 v_uv2;",
             "varying float v_distance;",
             "void main() {",
-            "    vec3 local = a_pos.xyz / " + glslFloat(CompactTerrain.POSITION_SCALE) + " - vec3("
+            "    vec4 raw = a_pos + vec4(" + glslFloat(CompactTerrain.ATTRIBUTE_BIAS) + ");",
+            "    vec3 local = raw.xyz / " + glslFloat(CompactTerrain.POSITION_SCALE) + " - vec3("
                     + glslFloat(CompactTerrain.POSITION_BIAS) + ");",
             "    vec4 view = u_modelView * vec4(local + u_offset, 1.0);",
             "    gl_Position = u_projection * view;",
             "    v_color = a_color;",
             "    v_uv0 = a_uv0;",
-            "    float sky = floor(a_pos.w / 256.0);",
-            "    v_uv2 = (vec2(a_pos.w - sky * 256.0, sky) + vec2(8.0)) / 256.0;",
+            "    float sky = floor(raw.w / 256.0);",
+            "    v_uv2 = (vec2(raw.w - sky * 256.0, sky) + vec2(8.0)) / 256.0;",
             "    v_distance = length(view.xyz);",
             "}",
             "");
@@ -294,6 +297,8 @@ public final class ChunkRenderer {
                 why = "; shader mode failed: " + shaderFailure;
             } else if (compatible && PipelineCrashGuard.wasDowngraded()) {
                 why = "; shader mode crashed last time";
+            } else if (!compatible && PipelineCrashGuard.wasRetriedAfterFix()) {
+                why = "; retrying after the 1.3.4 GL4ES fix";
             }
             return "Aetherium pipeline, " + (compatible ? "compatible mode" : "shader mode") + " (" + sectionsLastLayer
                     + " sections in the last layer" + lastStats + why + ")";
@@ -673,7 +678,9 @@ public final class ChunkRenderer {
     }
 
     private static void pointCompactAttributes(final long base) {
-        GL20.glVertexAttribPointer(ATTR_COMPACT_POS, 4, GL_UNSIGNED_SHORT, false, CompactTerrain.STRIDE,
+        // GL_SHORT, not GL_UNSIGNED_SHORT: GL4ES only passes attribute 0 through for byte, short,
+        // fixed and float (see CompactTerrain); anything else takes a CPU path that crashes on VBOs.
+        GL20.glVertexAttribPointer(ATTR_COMPACT_POS, 4, COMPACT_POS_TYPE, false, CompactTerrain.STRIDE,
                 base + CompactTerrain.OFFSET_POS);
         GL20.glVertexAttribPointer(ATTR_COMPACT_COLOR, 4, GL_UNSIGNED_BYTE, true, CompactTerrain.STRIDE,
                 base + CompactTerrain.OFFSET_COLOR);

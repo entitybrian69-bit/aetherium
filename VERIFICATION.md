@@ -1,4 +1,4 @@
-# Aetherium 1.3.3: verification report
+# Aetherium 1.3.4: verification report
 
 What was checked, how it was checked, and what was **not** checked. The audit trail for the
 0.1.0 line (CI compile reports 1–6, the old renderer's defects) is in git history at
@@ -407,3 +407,40 @@ vanilla there. Its saving is the skipped back-facing groups, not a smaller verte
 Gates run for 1.3.3: `stubcheck --all` 33/33; `testrun.py --bench` 131 passed (124 unit + 7
 benchmarks); `gen_resources`; `gen_deltas --all --verify` (32 patches); `check.py` clean (337
 files); `check_refs.py` clean.
+CI: `ship` run 38110414122 for commit 51c7295 passed all 35 jobs.
+
+## 15. 1.3.4: GL4ES vertex attribute fix (1.16.5)
+
+Fourth report, with 1.3.3 in shader mode, including the hs_err file:
+
+- `Aetherium pipeline GL: renderer 'GL4ES using Mali-G57 MC2', version '2.1 gl4es wrapper 1.1.7', GLSL '1.20 via gl4es'`
+- last trace line: `compact section: buffer 23124; glDrawArrays(GL_TRIANGLES, 0, 1056)`
+- `SIGSEGV (SEGV_MAPERR) si_addr 0x18` in `libltwlegacy.so copy_gl_array+0x1784`, called from
+  `copy_gl_pointer_raw ← arrays_to_renderlist ← gl4es_glDrawArrays ← ChunkRenderer.drawCompact`.
+  The faulting instruction is `ldrh w8, [x8]` followed by `ucvtf s0, w8`, an unsigned-short-to-float
+  conversion. Registers include count 0x420 (= 1056), stride 0x10 (= 16, the compact stride),
+  size 4 and GL_FLOAT (0x1406, the conversion target).
+
+gl4es source (github.com/ptitSeb/gl4es; LTW's legacy renderer is a GL4ES build):
+
+- `should_intercept_render` (drawing.c) sends a draw through `arrays_to_renderlist` when attribute
+  `ATT_VERTEX` (= generic attribute 0 with more than 8 attributes) is enabled with a type
+  `valid_vertex_type` (enum_info.h) rejects. That function accepts only UNSIGNED_BYTE, BYTE, FIXED,
+  FLOAT and SHORT.
+- `gl4es_glVertexAttribPointer` (vertexattrib.c) stores the raw offset as `pointer` for a
+  VBO-backed attribute, unlike `glVertexPointer`, which adds the buffer's CPU copy. The CPU
+  conversion `copy_gl_pointer_raw` (array.c) reads `pointer + real_pointer`: a null-based address.
+
+**Established:** the 1.3.3 crash is this path, triggered by the compact position attribute being
+`GL_UNSIGNED_SHORT`. **Inferred:** the 1.3.0–1.3.2 crashes on the same device had the same cause
+(same attribute type; same point in the frame). **Not established:** that nothing else in shader
+mode trips GL4ES. The trace lines and the crash guard's step down to compatible mode remain.
+
+| Change | Check |
+| --- | --- |
+| Compact position/light stored minus 32768, sent as `GL_SHORT`; shader adds 32768 | `CompactTerrainTest.positionPrecision` (-8 → -32768, 56 - 1/1024 → 32767, round trips), `cubeRoundTrip` (light decode), `ChunkRendererTest.compactShader` (shader decode) |
+| Attribute 0 type within gl4es's accepted list | `ChunkRendererTest.attributeZeroTypeIsGl4esSafe` |
+| Pre-fix shader markers keep shader mode once; markers carry `shaderfix=2` | `PipelineCrashGuardTest.shaderCrashDowngradesFirst` |
+
+Gates run for 1.3.4: `stubcheck --all` 33/33; `testrun.py --bench` 132 passed (125 unit + 7
+benchmarks); `gen_deltas --all --verify` (32 patches); `check.py` clean; `check_refs.py` clean.

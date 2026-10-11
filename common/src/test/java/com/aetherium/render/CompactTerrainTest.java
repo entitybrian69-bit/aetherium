@@ -72,7 +72,7 @@ final class CompactTerrainTest {
         assertEquals(3.0f, CompactTerrain.dequantisePosition(out.getShort(up)), 0.0f);
         assertEquals(5.0f, CompactTerrain.dequantisePosition(out.getShort(up + 2)), 0.0f);
         assertEquals(5.0f, CompactTerrain.dequantisePosition(out.getShort(up + 4)), 0.0f);
-        final int light = out.getShort(up + 6) & 0xFFFF;
+        final int light = CompactTerrain.decodeLight(out.getShort(up + 6));
         assertEquals(240, light & 0xFF);
         assertEquals(128, light >> 8);
         assertEquals((byte) 200, out.get(up + CompactTerrain.OFFSET_COLOR));
@@ -149,6 +149,10 @@ final class CompactTerrainTest {
             assertEquals(p, CompactTerrain.dequantisePosition(CompactTerrain.quantisePosition(p)), 0.5f / 1024.0f + 1e-5f);
         }
         assertEquals(CompactTerrain.quantisePosition(16.0f), CompactTerrain.quantisePosition(15.0f + 1.0f));
+        // Signed GL_SHORT (1.3.4): the full range maps onto -32768 .. 32767 without wrapping.
+        assertEquals(Short.MIN_VALUE, CompactTerrain.quantisePosition(-8.0f));
+        assertEquals(Short.MAX_VALUE, CompactTerrain.quantisePosition(56.0f - 1.0f / 1024.0f));
+        assertEquals(-8.0f, CompactTerrain.dequantisePosition(Short.MIN_VALUE), 0.0f);
     }
 
     @Test
