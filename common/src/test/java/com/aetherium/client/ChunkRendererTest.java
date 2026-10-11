@@ -88,6 +88,47 @@ final class ChunkRendererTest {
     }
 
     @Test
+    @DisplayName("aetherium pipeline: the compact shader is GLSL 1.20 and decodes exactly what CompactTerrain encodes")
+    void compactShader() {
+        final String vs = ChunkRenderer.COMPACT_VERTEX_SHADER;
+        assertTrue(vs.startsWith("#version 120\n"));
+        assertTrue(vs.contains("attribute vec4 a_pos;") && vs.contains("attribute vec4 a_color;") && vs.contains("attribute vec2 a_uv0;"));
+        assertFalse(vs.contains("a_uv2"), "light rides in a_pos.w");
+        assertTrue(vs.contains("a_pos.xyz / 1024.0 - vec3(8.0)"), vs);
+        for (final String banned : new String[] {"in ", "out ", "texture(", "layout", "E-", "gl_ModelView"}) {
+            assertFalse(vs.contains(banned), banned);
+        }
+        // CPU mirror of the shader's light decode for every packed value.
+        for (int block = 0; block < 256; block += 15) {
+            for (int sky = 0; sky < 256; sky += 15) {
+                final float w = (float) (block | sky << 8);
+                final float decodedSky = (float) Math.floor(w / 256.0f);
+                assertEquals(sky, decodedSky, 0.0f);
+                assertEquals(block, w - decodedSky * 256.0f, 0.0f);
+            }
+        }
+        assertEquals("1024.0", ChunkRenderer.glslFloat(1024.0f));
+        assertEquals("0.5", ChunkRenderer.glslFloat(0.5f));
+    }
+
+    @Test
+    @DisplayName("aetherium pipeline: chunks are rebuilt once when it turns on, and when it turns off only if compact buffers exist")
+    void pipelineSwitching() {
+        assertFalse(ChunkRenderer.updatePipeline(false), "off -> off");
+        assertTrue(ChunkRenderer.updatePipeline(true), "turning on converts loaded sections now");
+        assertTrue(ChunkRenderer.compactUploadsWanted());
+        assertFalse(ChunkRenderer.updatePipeline(true), "no rebuild every frame");
+        assertFalse(ChunkRenderer.updatePipeline(false), "no compact buffer was ever stored: nothing to undo");
+        assertFalse(ChunkRenderer.compactUploadsWanted());
+        assertTrue(ChunkRenderer.updatePipeline(true));
+        ChunkRenderer.noteCompactUpload();
+        assertTrue(ChunkRenderer.hasCompactBuffers());
+        assertTrue(ChunkRenderer.updatePipeline(false), "vanilla cannot draw compact buffers: rebuild");
+        assertFalse(ChunkRenderer.hasCompactBuffers());
+        assertFalse(ChunkRenderer.updatePipeline(false));
+    }
+
+    @Test
     @DisplayName("chunk renderer: off until it draws, and a failure is reported in the status")
     void statusText() {
         assertFalse(ChunkRenderer.isDrawing());

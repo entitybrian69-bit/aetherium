@@ -86,7 +86,7 @@ public final class AetheriumConfig {
     // ---------------------------------------------------------------- advanced
     public final ConfigValue<Boolean> debugLogging = ConfigValue.bool("advanced.debug_logging", false, "Enable dev-level logging (hot-path cost: near zero when off).");
     public final ConfigValue<Boolean> experimentalChunkRenderer = ConfigValue.bool(
-            "advanced.experimental_chunk_renderer", false, "Experimental, Minecraft 1.16.5 only: draw solid and cutout terrain with Aetherium's own shader and a shared index buffer instead of vanilla's fixed-function path. Translucent blocks stay vanilla. Turns itself off and falls back to vanilla if the shader fails.");
+            "advanced.experimental_chunk_renderer", false, "Experimental, Minecraft 1.16.5 only: Aetherium's own terrain pipeline. Solid and cutout chunks are stored in a compact 16-byte vertex format (half of vanilla's), grouped by face direction so faces pointing away from you are never sent to the GPU, and drawn with Aetherium's own shader. Translucent blocks stay vanilla. Switching it rebuilds the loaded chunks once; it turns itself off and falls back to vanilla if anything fails.");
     public final ConfigValue<Boolean> conflictAutoDelegate = ConfigValue.bool("advanced.conflict_auto_delegate", true, "Hand features back to a conflicting mod instead of double-applying them.");
 
     // ------------------------------------------------------------------- lookup

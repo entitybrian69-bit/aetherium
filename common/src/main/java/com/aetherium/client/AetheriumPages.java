@@ -262,7 +262,7 @@ public final class AetheriumPages {
                     }
                     return cap + " FPS" + (ClientHooks.isThermalCapped() ? " (thermal)" : "");
                 }));
-        page.add(bool("backend.chunk_renderer", "Experimental chunk renderer", config.experimentalChunkRenderer)
+        page.add(bool("backend.chunk_renderer", "Aetherium pipeline (experimental)", config.experimentalChunkRenderer)
                 .availableWhen(() -> Capabilities.EXPERIMENTAL_CHUNK_RENDERER, "Minecraft 1.16.5 only for now"));
         page.add(Setting.info("backend.chunk_renderer_state", "Chunk renderer",
                 "Which path draws solid and cutout terrain right now.", ChunkRenderer::statusText));

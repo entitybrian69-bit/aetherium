@@ -5,8 +5,11 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **1.2.0** adds **entity occlusion culling** on all 33 versions and an **experimental chunk
-renderer** for 1.16.5, off by default (see
+Version **1.3.0** turns the experimental 1.16.5 chunk renderer into **Aetherium's own terrain
+pipeline**: a compact 16-byte vertex format, chunk meshes grouped by face direction, and back-face
+groups that are never drawn (see [1.3.0: the Aetherium pipeline](#130-the-aetherium-pipeline-1165)).
+It is still 1.16.5 only and off by default. Version 1.2.0 added **entity occlusion culling** on all
+33 versions and the first experimental chunk renderer (see
 [1.2.0: occlusion culling and the experimental chunk renderer](#120-occlusion-culling-and-the-experimental-chunk-renderer)).
 Version 1.1.0 fixed the frame-rate drops reported on 1.0.0 (see
 [1.1.0: the frame-rate fixes](#110-the-frame-rate-fixes)) and removed the shader-mod page and
@@ -15,7 +18,42 @@ installed cost a flag check, or a distance compare for culling, per call. 1.0.0
 added smooth chunk loading, an animated-texture switch, a block-entity distance, worker-thread
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
 either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
-OpenGL calls of its own unless you turn on the experimental 1.16.5 chunk renderer.
+OpenGL calls of its own unless you turn on the experimental 1.16.5 Aetherium pipeline.
+
+## 1.3.0: the Aetherium pipeline (1.16.5)
+
+The setting is *Aetherium pipeline (experimental)* on the Backend tab (config key
+`advanced.experimental_chunk_renderer`, unchanged). 1.2.0 drew vanilla's own vertex buffers with
+a shader. 1.3.0 also owns how terrain is **stored** and **which faces are sent to the GPU**:
+
+- **Compact vertices, 16 bytes instead of 32.** When a chunk section's solid, cutout-mipped or
+  cutout layer is uploaded, Aetherium re-encodes it. Positions become three unsigned 16-bit values
+  (1/1024-block steps, exact on the 1/16 grid block models use). Block and sky light are packed into
+  a fourth 16-bit value. Colour stays 4 bytes and texture coordinates become two 16-bit values. The
+  normal is dropped (the 1.16.5 terrain path never reads it). Video memory and vertex bandwidth for
+  terrain are halved.
+- **Face-direction groups.** Each section's quads are sorted into seven groups: up, down, north,
+  south, east, west, and *any* for everything else. A quad joins a direction group only if it is
+  flat on that axis and wound to face that way. Diagonal plants and fluids' back-to-back faces
+  (which vanilla labels with misleading normals) go to *any*.
+- **Back-face groups are skipped before the GPU sees them.** Per section, per frame, a direction
+  group is drawn only if the camera is in front of the group's outermost face plane, with a 1/16
+  block margin. Looking at a hillside from above skips every down-facing quad. Visible groups become
+  one to three index ranges. Ranges separated by fewer than 256 hidden quads are merged, because an
+  extra draw call costs more than shading a few culled back faces, especially on GL4ES. Sections
+  over 16 384 quads are split as before. The *Chunk renderer* row on the Backend tab shows the share
+  of faces skipped.
+- **Safe fallbacks.** Data that does not fit the format exactly (anything outside the section's
+  range, out-of-range light or texture coordinates) is uploaded unchanged, and drawn by the 1.2.0
+  shader. Switching the pipeline on rebuilds the loaded chunks once, so the whole view converts at
+  once. Switching it off, or any failure, also rebuilds them once, because vanilla cannot read
+  compact buffers. Until that rebuild, those layers are skipped for at most one frame rather than
+  drawn wrong. Translucent blocks and tripwire stay on vanilla's path (they are re-sorted).
+- **Not tested on a GPU.** The encoder, classification, culling planes, range merging, shader
+  decode and switching rules are covered by unit tests, and the hooks were checked against the
+  bytecode CI extracted from the 1.16.5 jar. Nothing here has run in a real game yet. It stays
+  1.16.5 only until someone confirms it works there. Porting it to 1.17+ means new hooks for each
+  of those renderer generations.
 
 ## 1.2.0: occlusion culling and the experimental chunk renderer
 
@@ -42,8 +80,8 @@ written independently (Sodium's current code is not open source).
   ever fails, it turns itself off for the session and logs why. With Sodium or Embeddium installed
   it is handed off, because they cull entities themselves.
 
-**Experimental chunk renderer (1.16.5 only, off by default).** The setting is *Experimental chunk
-renderer* on the Backend tab. Vanilla 1.16.5 draws each chunk section's solid and cutout layers with
+**Experimental chunk renderer (1.16.5 only, off by default).** The setting (renamed *Aetherium
+pipeline (experimental)* in 1.3.0) is on the Backend tab. Vanilla 1.16.5 draws each chunk section's solid and cutout layers with
 the fixed-function pipeline. Per section it sets client-state pointers, pushes, loads and multiplies
 the GL matrix stack, and issues `glDrawArrays(GL_QUADS)`. On Android's GL4ES each of those is
 emulated, and every quad list is converted to triangles on the CPU, per section, per frame. When
@@ -86,12 +124,12 @@ a feature is off.
 
 | | |
 | --- | --- |
-| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.2.0 in run 38102357434 (1.1.0: 38078947462; 1.0.0: 38065183797). |
-| Tests | 109 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
+| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.2.0 in run 38102357434 (1.1.0: 38078947462; 1.0.0: 38065183797). 1.3.0: see the latest `ship` run and `DOWNLOADS.md`. |
+| Tests | 118 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.2.0+<mcversion>`, and only for versions whose
+Releases are published per Minecraft version as `v1.3.0+<mcversion>`, and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -128,7 +166,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.2.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.3.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.
@@ -139,7 +177,7 @@ and no shaders. It costs less to draw than the vanilla screen it replaces.
 | --- | --- | --- |
 | Entity culling | Skips entities beyond a configurable distance before vanilla's frustum test. | Performance |
 | Hide entities behind walls | Skips entities in sections vanilla's occlusion graph found hidden (caves, behind hills, other buildings). Players, named and glowing entities are exempt. All 33 versions. | Performance |
-| Experimental chunk renderer | 1.16.5 only, opt-in: solid and cutout terrain drawn with one shader and a shared index buffer instead of the fixed-function path. Falls back to vanilla on any error. | Backend |
+| Aetherium pipeline (experimental) | 1.16.5 only, opt-in: solid and cutout terrain stored as 16-byte compact vertices grouped by face direction, back-facing groups skipped per section, drawn with Aetherium's own shader and a shared index buffer. Falls back to vanilla on any error. | Backend |
 | Particle density | Drops a share of new particles at spawn, so they never tick or render. | Performance |
 | Adaptive render distance | Opt-in. Lowers the render distance one chunk after 10 s under the target FPS, raises it after 30 s of headroom, and waits 30 s between changes (each change reloads all chunks). | Performance |
 | Smooth chunk loading | Vanilla uploads every finished chunk mesh in the frame it finishes. Joining a world, flying or world generation then causes one long frame. Aetherium uploads at least 8 meshes per frame (so block edits show at once), then stops when 3 ms are used, and leaves the rest for the next frames. Not on 26.x, where uploads moved into the new GPU layer. | Performance |

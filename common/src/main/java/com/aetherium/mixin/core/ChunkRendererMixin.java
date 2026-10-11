@@ -6,6 +6,7 @@ package com.aetherium.mixin.core;
 //~ import com.aetherium.client.ChunkRenderer;
 //~ import com.aetherium.client.VertexBufferAccess;
 //~ import com.aetherium.perf.RenderToggles;
+//~ import com.aetherium.render.CompactTerrain;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
 //~ import it.unimi.dsi.fastutil.objects.ObjectList;
 //~ import java.nio.FloatBuffer;
@@ -28,9 +29,13 @@ import org.spongepowered.asm.mixin.Mixin;
  * fixed-function draws. Vanilla still builds, uploads, culls and orders the sections and sets up
  * each layer's render state; translucent and tripwire stay entirely vanilla (they need sorting).
  *
+ * <p>Sections uploaded in the Aetherium pipeline's compact format are drawn face-group by
+ * face-group (only the directions that can face the camera); see {@code VertexBufferMixin}.</p>
+ *
  * <p>Off unless the user enables it; applied only on versions with
  * {@code Capabilities.EXPERIMENTAL_CHUNK_RENDERER}. Any failure falls back to vanilla for the
- * rest of the session. One CallbackInfo per layer per frame (five calls), not a hot path.</p>
+ * rest of the session. One CallbackInfo per layer per frame (five calls) plus one per frame for
+ * the pipeline switch; not a hot path.</p>
  */
 @Mixin(LevelRenderer.class)
 public abstract class ChunkRendererMixin {
@@ -41,12 +46,20 @@ public abstract class ChunkRendererMixin {
     //~ @Final
     //~ private ObjectList<?> renderChunks;
 
+    //~ /**
+     //~ * Once per frame, before anything is drawn: rebuilds every section when the pipeline turns on
+     //~ * (so the whole view converts at once) or turns off / fails while compact buffers exist.
+     //~ */
+    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
+    //~ private void aetherium$pipelineSwitch(final CallbackInfo ci) {
+        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
+            //~ ((LevelRenderer) (Object) this).allChanged();
+        //~ }
+    //~ }
+
     //~ @Inject(method = "renderChunkLayer", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$renderLayer(final RenderType type, final PoseStack poseStack, final double camX,
                                        //~ final double camY, final double camZ, final CallbackInfo ci) {
-        //~ if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
-            //~ return;
-        //~ }
         //~ final boolean cutout;
         //~ if (type == RenderType.solid()) {
             //~ cutout = false;
@@ -55,12 +68,21 @@ public abstract class ChunkRendererMixin {
         //~ } else {
             //~ return;
         //~ }
+        //~ if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
+            //~ if (ChunkRenderer.hasCompactBuffers()) {
+                //~ ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame
+            //~ }
+            //~ return;
+        //~ }
         //~ type.setupRenderState();
         //~ boolean begun = false;
         //~ try {
             //~ final FloatBuffer pose = ChunkRenderer.poseBuffer();
             //~ poseStack.last().pose().store(pose);
             //~ if (!ChunkRenderer.begin(pose, cutout)) {
+                //~ if (ChunkRenderer.hasCompactBuffers()) {
+                    //~ ci.cancel(); // first frame: buffers were already uploaded compact; the rebuild follows
+                //~ }
                 //~ return;
             //~ }
             //~ begun = true;
@@ -73,17 +95,28 @@ public abstract class ChunkRendererMixin {
                 //~ }
                 //~ final VertexBufferAccess buffer = (VertexBufferAccess) chunk.getBuffer(type);
                 //~ final BlockPos origin = chunk.getOrigin();
-                //~ ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), (float) (origin.getX() - camX),
-                        //~ (float) (origin.getY() - camY), (float) (origin.getZ() - camZ));
+                //~ final float dx = (float) (origin.getX() - camX);
+                //~ final float dy = (float) (origin.getY() - camY);
+                //~ final float dz = (float) (origin.getZ() - camZ);
+                //~ final CompactTerrain.Layout layout = buffer.aetheriumCompactLayout();
+                //~ if (layout != null) {
+                    //~ ChunkRenderer.drawCompact(buffer.aetheriumId(), layout, dx, dy, dz);
+                //~ } else {
+                    //~ ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), dx, dy, dz);
+                //~ }
             //~ }
             //~ begun = false;
             //~ ChunkRenderer.end();
             //~ ci.cancel();
         //~ } catch (final RuntimeException | LinkageError error) {
-            //~ // Not cancelled: vanilla draws this layer, and every later frame (the renderer is off now).
+            //~ // The renderer is off now. Vanilla draws this layer unless compact buffers exist (then the
+            //~ // layer is skipped until next frame's rebuild has replaced them).
             //~ ChunkRenderer.fail(error.toString());
             //~ if (begun) {
                 //~ ChunkRenderer.end();
+            //~ }
+            //~ if (ChunkRenderer.hasCompactBuffers()) {
+                //~ ci.cancel();
             //~ }
         //~ } finally {
             //~ type.clearRenderState();

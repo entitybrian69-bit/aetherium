@@ -1,5 +1,6 @@
 package com.aetherium.client;
 
+import com.aetherium.render.CompactTerrain;
 import com.aetherium.util.AetheriumLog;
 
 import java.nio.ByteBuffer;
@@ -27,8 +28,15 @@ import org.lwjgl.opengl.GL20;
  * meshing, uploading, culling, sorting and the render-state setup (textures, lightmap, blend,
  * depth) exactly as before.</p>
  *
- * <p>Failure policy: if the shader does not compile or link, or anything throws, the renderer
- * turns itself off for the session, logs once, and vanilla draws the frame.</p>
+ * <p><b>Aetherium pipeline (1.3.0).</b> Sections uploaded through {@code VertexBufferUploadMixin}
+ * are in {@link CompactTerrain}'s 16-byte format, sorted into face-direction groups. They are drawn
+ * by a second program that decodes the packed attributes, and only the groups that can face the
+ * camera are drawn (in one or two index ranges per section). Buffers that did not fit the format
+ * keep vanilla's layout and are drawn by the original program.</p>
+ *
+ * <p>Failure policy: if a shader does not compile or link, or anything throws, the renderer
+ * turns itself off for the session, logs once, asks for one chunk rebuild (vanilla cannot read
+ * compact buffers) and vanilla draws from then on.</p>
  *
  * <p>Render thread only.</p>
  */
@@ -74,6 +82,13 @@ public final class ChunkRenderer {
     static final int MAX_QUADS_PER_DRAW = 16384;
     static final int MAX_VERTICES_PER_DRAW = MAX_QUADS_PER_DRAW * 4;
 
+    static final int ATTR_COMPACT_POS = 0;
+    static final int ATTR_COMPACT_COLOR = 1;
+    static final int ATTR_COMPACT_UV = 2;
+
+    /** Hidden quads drawn anyway to save a draw call (see {@link CompactTerrain#mergeRuns}). */
+    static final int MERGE_GAP_QUADS = 256;
+
     /** Fog mode uniform values. */
     static final int FOG_NONE = -1;
     static final int FOG_LINEAR = 0;
@@ -100,6 +115,35 @@ public final class ChunkRenderer {
             "    v_uv0 = a_uv0;",
             // Vanilla's lightmap texture matrix: scale 1/256, translate 8 texels.
             "    v_uv2 = (a_uv2 + vec2(8.0)) / 256.0;",
+            "    v_distance = length(view.xyz);",
+            "}",
+            "");
+
+    /**
+     * Compact vertices: x, y, z, light as four unsigned shorts (not normalised, so exact), colour
+     * as normalised bytes, uv as normalised unsigned shorts. Light packs block | sky << 8.
+     */
+    static final String COMPACT_VERTEX_SHADER = String.join("\n",
+            "#version 120",
+            "attribute vec4 a_pos;",
+            "attribute vec4 a_color;",
+            "attribute vec2 a_uv0;",
+            "uniform mat4 u_projection;",
+            "uniform mat4 u_modelView;",
+            "uniform vec3 u_offset;",
+            "varying vec4 v_color;",
+            "varying vec2 v_uv0;",
+            "varying vec2 v_uv2;",
+            "varying float v_distance;",
+            "void main() {",
+            "    vec3 local = a_pos.xyz / " + glslFloat(CompactTerrain.POSITION_SCALE) + " - vec3("
+                    + glslFloat(CompactTerrain.POSITION_BIAS) + ");",
+            "    vec4 view = u_modelView * vec4(local + u_offset, 1.0);",
+            "    gl_Position = u_projection * view;",
+            "    v_color = a_color;",
+            "    v_uv0 = a_uv0;",
+            "    float sky = floor(a_pos.w / 256.0);",
+            "    v_uv2 = (vec2(a_pos.w - sky * 256.0, sky) + vec2(8.0)) / 256.0;",
             "    v_distance = length(view.xyz);",
             "}",
             "");
@@ -148,17 +192,48 @@ public final class ChunkRenderer {
     private static long frame;
     private static int sectionsLastLayer;
 
-    private static int program;
+    private static long compactQuadsTotal;
+    private static long compactQuadsDrawn;
+    private static int compactSectionsLastLayer;
+    private static String lastStats = "";
+
+    /** One linked program and its uniform locations. */
+    private static final class Program {
+        final String name;
+        int id;
+        int uProjection = -1;
+        int uModelView = -1;
+        int uOffset = -1;
+        int uAlphaCutoff = -1;
+        int uFogMode = -1;
+        int uFog = -1;
+        int uFogColor = -1;
+
+        Program(final String name) {
+            this.name = name;
+        }
+    }
+
+    private static final Program LEGACY = new Program("legacy");
+    private static final Program COMPACT = new Program("compact");
+    private static boolean programsReady;
     private static int indexBuffer;
-    private static int uProjection = -1;
-    private static int uModelView = -1;
-    private static int uOffset = -1;
-    private static int uAlphaCutoff = -1;
-    private static int uFogMode = -1;
-    private static int uFog = -1;
-    private static int uFogColor = -1;
-    private static int uBlocks = -1;
-    private static int uLightmap = -1;
+
+    // Per-layer state captured in begin(), uploaded to whichever program is switched to.
+    private static Program current;
+    private static final FloatBuffer MODEL_VIEW = directFloats(16);
+    private static boolean layerCutout;
+    private static int fogMode = FOG_NONE;
+    private static float fogStart;
+    private static float fogEnd;
+    private static float fogDensity;
+
+    private static final int[] RUN_FIRST = new int[4];
+    private static final int[] RUN_COUNT = new int[4];
+
+    // Pipeline switch tracking (render thread).
+    private static boolean compactWanted;
+    private static boolean compactUploaded;
 
     private ChunkRenderer() {
     }
@@ -179,7 +254,7 @@ public final class ChunkRenderer {
             return "Vanilla (fell back: " + failure + ")";
         }
         if (isDrawing()) {
-            return "Aetherium shader (" + sectionsLastLayer + " sections in the last layer)";
+            return "Aetherium pipeline (" + sectionsLastLayer + " sections in the last layer" + lastStats + ")";
         }
         return "Vanilla";
     }
@@ -210,24 +285,24 @@ public final class ChunkRenderer {
             return false;
         }
         try {
-            if (program == 0 && !createProgram()) {
+            if (!programsReady && !createPrograms()) {
                 return false;
             }
-            GL20.glUseProgram(program);
             MATRIX.clear();
             GL11.glGetFloatv(GL_PROJECTION_MATRIX, MATRIX);
             MATRIX.rewind();
-            GL20.glUniformMatrix4fv(uProjection, false, MATRIX);
+            MODEL_VIEW.clear();
             modelView.rewind();
-            GL20.glUniformMatrix4fv(uModelView, false, modelView);
-            GL20.glUniform1f(uAlphaCutoff, cutout ? 0.5f : -1.0f);
-            uploadFog();
+            MODEL_VIEW.put(modelView).flip();
+            layerCutout = cutout;
+            readFog();
+            current = null;
             GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
             GL20.glEnableVertexAttribArray(ATTR_POS);
             GL20.glEnableVertexAttribArray(ATTR_COLOR);
             GL20.glEnableVertexAttribArray(ATTR_UV0);
-            GL20.glEnableVertexAttribArray(ATTR_UV2);
             sectionsLastLayer = 0;
+            compactSectionsLastLayer = 0;
             return true;
         } catch (final RuntimeException | LinkageError error) {
             fail("setup failed: " + error);
@@ -244,7 +319,8 @@ public final class ChunkRenderer {
         if (vertexBuffer <= 0 || vertexCount < 4) {
             return;
         }
-        GL20.glUniform3f(uOffset, dx, dy, dz);
+        use(LEGACY);
+        GL20.glUniform3f(LEGACY.uOffset, dx, dy, dz);
         GL15.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         int first = 0;
         while (first < vertexCount) {
@@ -253,6 +329,50 @@ public final class ChunkRenderer {
             GL11.glDrawElements(GL_TRIANGLES, indexCountFor(count), GL_UNSIGNED_SHORT, 0L);
             first += count;
         }
+        sectionsLastLayer++;
+    }
+
+    /**
+     * Draws one compact section: only the face groups that can face the camera, merged into as
+     * few index ranges as possible.
+     */
+    public static void drawCompact(final int vertexBuffer, final CompactTerrain.Layout layout, final float dx, final float dy,
+                                   final float dz) {
+        final int quads = layout.quads();
+        if (vertexBuffer <= 0 || quads == 0) {
+            return;
+        }
+        final int mask = CompactTerrain.visibleGroups(layout.plane, -dx, -dy, -dz);
+        int runs = CompactTerrain.runs(layout, mask, RUN_FIRST, RUN_COUNT);
+        if (runs == 0) {
+            return;
+        }
+        runs = CompactTerrain.mergeRuns(RUN_FIRST, RUN_COUNT, runs, MERGE_GAP_QUADS);
+        use(COMPACT);
+        GL20.glUniform3f(COMPACT.uOffset, dx, dy, dz);
+        GL15.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        if (quads <= MAX_QUADS_PER_DRAW) {
+            pointCompactAttributes(0L);
+            for (int r = 0; r < runs; r++) {
+                // Quad q's six indices start at index 6q (12q bytes) of the shared buffer.
+                GL11.glDrawElements(GL_TRIANGLES, RUN_COUNT[r] * 6, GL_UNSIGNED_SHORT, RUN_FIRST[r] * 12L);
+                compactQuadsDrawn += RUN_COUNT[r];
+            }
+        } else {
+            for (int r = 0; r < runs; r++) {
+                int at = RUN_FIRST[r];
+                final int end = at + RUN_COUNT[r];
+                while (at < end) {
+                    final int count = Math.min(end - at, MAX_QUADS_PER_DRAW);
+                    pointCompactAttributes((long) at * CompactTerrain.QUAD_BYTES);
+                    GL11.glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_SHORT, 0L);
+                    compactQuadsDrawn += count;
+                    at += count;
+                }
+            }
+        }
+        compactQuadsTotal += quads;
+        compactSectionsLastLayer++;
         sectionsLastLayer++;
     }
 
@@ -269,8 +389,15 @@ public final class ChunkRenderer {
         } catch (final RuntimeException | LinkageError error) {
             fail("cleanup failed: " + error);
         }
+        current = null;
         drawingThisFrame = !failed;
         lastDrawFrame = frame;
+        if (compactQuadsTotal > 2_000_000L) {
+            compactQuadsTotal >>= 1;
+            compactQuadsDrawn >>= 1;
+        }
+        lastStats = compactSectionsLastLayer == 0 || compactQuadsTotal == 0 ? ""
+                : ", " + (100 - (int) (compactQuadsDrawn * 100 / compactQuadsTotal)) + "% of faces skipped";
     }
 
     /** Called by the mixin when something outside this class threw mid-layer. */
@@ -280,6 +407,45 @@ public final class ChunkRenderer {
             failure = reason.length() > 80 ? reason.substring(0, 80) : reason;
             LOG.warn("Experimental chunk renderer disabled, vanilla draws terrain: {}", reason);
         }
+    }
+
+    // ------------------------------------------------------------------ pipeline switching
+
+    /**
+     * Whether chunk uploads should use the compact format right now. Called by the upload mixin
+     * on the render thread; remembers that compact buffers exist.
+     */
+    public static boolean compactUploadsWanted() {
+        return compactWanted;
+    }
+
+    /** The upload mixin stored a compact buffer: from now on, turning the pipeline off needs a rebuild. */
+    public static void noteCompactUpload() {
+        compactUploaded = true;
+    }
+
+    /**
+     * Once per frame before the world renders. Returns true when every chunk must be rebuilt
+     * ({@code LevelRenderer.allChanged()}): the pipeline was switched on (so sections convert now
+     * instead of trickling in) or off/failed while compact buffers exist (vanilla cannot draw them).
+     */
+    public static boolean updatePipeline(final boolean enabled) {
+        final boolean wanted = enabled && !failed;
+        if (wanted == compactWanted) {
+            return false;
+        }
+        compactWanted = wanted;
+        if (wanted) {
+            return true;
+        }
+        final boolean rebuild = compactUploaded;
+        compactUploaded = false;
+        return rebuild;
+    }
+
+    /** Whether any compact buffers may still be live (then vanilla must not draw these layers). */
+    public static boolean hasCompactBuffers() {
+        return compactUploaded;
     }
 
     // ------------------------------------------------------------------ helpers
@@ -325,20 +491,83 @@ public final class ChunkRenderer {
         GL20.glVertexAttribPointer(ATTR_UV2, 2, GL_SHORT, false, STRIDE, base + OFFSET_UV2);
     }
 
-    private static void uploadFog() {
-        final int mode = fogModeFor(GL11.glIsEnabled(GL_FOG), GL11.glGetInteger(GL_FOG_MODE));
-        GL20.glUniform1i(uFogMode, mode);
-        if (mode == FOG_NONE) {
-            return;
-        }
-        GL20.glUniform3f(uFog, GL11.glGetFloat(GL_FOG_START), GL11.glGetFloat(GL_FOG_END), GL11.glGetFloat(GL_FOG_DENSITY));
-        FOG_COLOR.clear();
-        GL11.glGetFloatv(GL_FOG_COLOR, FOG_COLOR);
-        GL20.glUniform4f(uFogColor, FOG_COLOR.get(0), FOG_COLOR.get(1), FOG_COLOR.get(2), FOG_COLOR.get(3));
+    private static void pointCompactAttributes(final long base) {
+        GL20.glVertexAttribPointer(ATTR_COMPACT_POS, 4, GL_UNSIGNED_SHORT, false, CompactTerrain.STRIDE,
+                base + CompactTerrain.OFFSET_POS);
+        GL20.glVertexAttribPointer(ATTR_COMPACT_COLOR, 4, GL_UNSIGNED_BYTE, true, CompactTerrain.STRIDE,
+                base + CompactTerrain.OFFSET_COLOR);
+        GL20.glVertexAttribPointer(ATTR_COMPACT_UV, 2, GL_UNSIGNED_SHORT, true, CompactTerrain.STRIDE,
+                base + CompactTerrain.OFFSET_UV);
     }
 
-    private static boolean createProgram() {
-        final int vertex = compile(GL_VERTEX_SHADER, VERTEX_SHADER);
+    /** Switches program within a layer, uploading the layer's uniforms to it. */
+    private static void use(final Program program) {
+        if (current == program) {
+            return;
+        }
+        current = program;
+        GL20.glUseProgram(program.id);
+        GL20.glUniformMatrix4fv(program.uProjection, false, MATRIX);
+        MATRIX.rewind();
+        GL20.glUniformMatrix4fv(program.uModelView, false, MODEL_VIEW);
+        MODEL_VIEW.rewind();
+        GL20.glUniform1f(program.uAlphaCutoff, layerCutout ? 0.5f : -1.0f);
+        GL20.glUniform1i(program.uFogMode, fogMode);
+        if (fogMode != FOG_NONE) {
+            GL20.glUniform3f(program.uFog, fogStart, fogEnd, fogDensity);
+            GL20.glUniform4f(program.uFogColor, FOG_COLOR.get(0), FOG_COLOR.get(1), FOG_COLOR.get(2), FOG_COLOR.get(3));
+        }
+        // Attribute 3 (lightmap uv) exists only in vanilla's layout.
+        if (program == LEGACY) {
+            GL20.glEnableVertexAttribArray(ATTR_UV2);
+        } else {
+            GL20.glDisableVertexAttribArray(ATTR_UV2);
+        }
+    }
+
+    private static void readFog() {
+        fogMode = fogModeFor(GL11.glIsEnabled(GL_FOG), GL11.glGetInteger(GL_FOG_MODE));
+        if (fogMode == FOG_NONE) {
+            return;
+        }
+        fogStart = GL11.glGetFloat(GL_FOG_START);
+        fogEnd = GL11.glGetFloat(GL_FOG_END);
+        fogDensity = GL11.glGetFloat(GL_FOG_DENSITY);
+        FOG_COLOR.clear();
+        GL11.glGetFloatv(GL_FOG_COLOR, FOG_COLOR);
+    }
+
+    /** GLSL float literal (always has a decimal point). */
+    static String glslFloat(final float value) {
+        final String text = Float.toString(value);
+        return text.indexOf('.') >= 0 || text.indexOf('E') >= 0 ? text : text + ".0";
+    }
+
+    private static boolean createPrograms() {
+        if (!link(LEGACY, VERTEX_SHADER, "a_pos", "a_color", "a_uv0", "a_uv2")
+                || !link(COMPACT, COMPACT_VERTEX_SHADER, "a_pos", "a_color", "a_uv0", null)) {
+            if (LEGACY.id != 0) {
+                GL20.glDeleteProgram(LEGACY.id);
+                LEGACY.id = 0;
+            }
+            return false;
+        }
+        final short[] indices = quadIndices(MAX_QUADS_PER_DRAW);
+        final ShortBuffer data = ByteBuffer.allocateDirect(indices.length * 2).order(ByteOrder.nativeOrder()).asShortBuffer();
+        data.put(indices).flip();
+        indexBuffer = GL15.glGenBuffers();
+        GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+        GL15.glBufferData(GL_ELEMENT_ARRAY_BUFFER, data, GL_STATIC_DRAW);
+        GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        programsReady = true;
+        LOG.info("Aetherium pipeline ready (GLSL 1.20, 16-byte compact vertices, shared index buffer of {} quads)",
+                MAX_QUADS_PER_DRAW);
+        return true;
+    }
+
+    private static boolean link(final Program program, final String vertexSource, final String pos, final String color,
+                                final String uv0, final String uv2) {
+        final int vertex = compile(GL_VERTEX_SHADER, vertexSource);
         final int fragment = vertex == 0 ? 0 : compile(GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
         if (vertex == 0 || fragment == 0) {
             if (vertex != 0) {
@@ -349,46 +578,37 @@ public final class ChunkRenderer {
         final int linked = GL20.glCreateProgram();
         GL20.glAttachShader(linked, vertex);
         GL20.glAttachShader(linked, fragment);
-        GL20.glBindAttribLocation(linked, ATTR_POS, "a_pos");
-        GL20.glBindAttribLocation(linked, ATTR_COLOR, "a_color");
-        GL20.glBindAttribLocation(linked, ATTR_UV0, "a_uv0");
-        GL20.glBindAttribLocation(linked, ATTR_UV2, "a_uv2");
+        GL20.glBindAttribLocation(linked, ATTR_POS, pos);
+        GL20.glBindAttribLocation(linked, ATTR_COLOR, color);
+        GL20.glBindAttribLocation(linked, ATTR_UV0, uv0);
+        if (uv2 != null) {
+            GL20.glBindAttribLocation(linked, ATTR_UV2, uv2);
+        }
         GL20.glLinkProgram(linked);
         GL20.glDeleteShader(vertex);
         GL20.glDeleteShader(fragment);
         if (GL20.glGetProgrami(linked, GL_LINK_STATUS) == 0) {
-            fail("link: " + GL20.glGetProgramInfoLog(linked).trim());
+            fail(program.name + " link: " + GL20.glGetProgramInfoLog(linked).trim());
             GL20.glDeleteProgram(linked);
             return false;
         }
-        uProjection = GL20.glGetUniformLocation(linked, "u_projection");
-        uModelView = GL20.glGetUniformLocation(linked, "u_modelView");
-        uOffset = GL20.glGetUniformLocation(linked, "u_offset");
-        uAlphaCutoff = GL20.glGetUniformLocation(linked, "u_alphaCutoff");
-        uFogMode = GL20.glGetUniformLocation(linked, "u_fogMode");
-        uFog = GL20.glGetUniformLocation(linked, "u_fog");
-        uFogColor = GL20.glGetUniformLocation(linked, "u_fogColor");
-        uBlocks = GL20.glGetUniformLocation(linked, "u_blocks");
-        uLightmap = GL20.glGetUniformLocation(linked, "u_lightmap");
-        if (uProjection < 0 || uModelView < 0 || uOffset < 0) {
-            fail("program is missing its matrix uniforms");
+        program.uProjection = GL20.glGetUniformLocation(linked, "u_projection");
+        program.uModelView = GL20.glGetUniformLocation(linked, "u_modelView");
+        program.uOffset = GL20.glGetUniformLocation(linked, "u_offset");
+        program.uAlphaCutoff = GL20.glGetUniformLocation(linked, "u_alphaCutoff");
+        program.uFogMode = GL20.glGetUniformLocation(linked, "u_fogMode");
+        program.uFog = GL20.glGetUniformLocation(linked, "u_fog");
+        program.uFogColor = GL20.glGetUniformLocation(linked, "u_fogColor");
+        if (program.uProjection < 0 || program.uModelView < 0 || program.uOffset < 0) {
+            fail(program.name + " program is missing its matrix uniforms");
             GL20.glDeleteProgram(linked);
             return false;
         }
         GL20.glUseProgram(linked);
-        GL20.glUniform1i(uBlocks, 0);     // block atlas: texture unit 0
-        GL20.glUniform1i(uLightmap, 2);   // lightmap: texture unit 2 (vanilla's LightTexture)
+        GL20.glUniform1i(GL20.glGetUniformLocation(linked, "u_blocks"), 0);     // block atlas: texture unit 0
+        GL20.glUniform1i(GL20.glGetUniformLocation(linked, "u_lightmap"), 2);   // lightmap: unit 2 (LightTexture)
         GL20.glUseProgram(0);
-
-        final short[] indices = quadIndices(MAX_QUADS_PER_DRAW);
-        final ShortBuffer data = ByteBuffer.allocateDirect(indices.length * 2).order(ByteOrder.nativeOrder()).asShortBuffer();
-        data.put(indices).flip();
-        indexBuffer = GL15.glGenBuffers();
-        GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        GL15.glBufferData(GL_ELEMENT_ARRAY_BUFFER, data, GL_STATIC_DRAW);
-        GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        program = linked;
-        LOG.info("Experimental chunk renderer ready (GLSL 1.20, shared index buffer of {} quads)", MAX_QUADS_PER_DRAW);
+        program.id = linked;
         return true;
     }
 

@@ -1148,10 +1148,10 @@ index a561e63..e5c6f9f 100644
      // @era:options-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-index 2e8516c..3631bcb 100644
+index ade3f08..aa1570b 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-@@ -1,22 +1,22 @@
+@@ -1,23 +1,23 @@
  package com.aetherium.mixin.core;
  
 -// @era:chunk-renderer-begin none
@@ -1160,6 +1160,7 @@ index 2e8516c..3631bcb 100644
 -//~ import com.aetherium.client.ChunkRenderer;
 -//~ import com.aetherium.client.VertexBufferAccess;
 -//~ import com.aetherium.perf.RenderToggles;
+-//~ import com.aetherium.render.CompactTerrain;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
 -//~ import it.unimi.dsi.fastutil.objects.ObjectList;
 -//~ import java.nio.FloatBuffer;
@@ -1176,6 +1177,7 @@ index 2e8516c..3631bcb 100644
 +import com.aetherium.client.ChunkRenderer;
 +import com.aetherium.client.VertexBufferAccess;
 +import com.aetherium.perf.RenderToggles;
++import com.aetherium.render.CompactTerrain;
 +import com.mojang.blaze3d.vertex.PoseStack;
 +import it.unimi.dsi.fastutil.objects.ObjectList;
 +import java.nio.FloatBuffer;
@@ -1191,7 +1193,7 @@ index 2e8516c..3631bcb 100644
  // @era:chunk-renderer-end
  import net.minecraft.client.renderer.LevelRenderer;
  
-@@ -35,59 +35,59 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -40,87 +40,87 @@ import org.spongepowered.asm.mixin.Mixin;
  @Mixin(LevelRenderer.class)
  public abstract class ChunkRendererMixin {
  
@@ -1205,12 +1207,30 @@ index 2e8516c..3631bcb 100644
 +    @Final
 +    private ObjectList<?> renderChunks;
  
+-    //~ /**
+-     //~ * Once per frame, before anything is drawn: rebuilds every section when the pipeline turns on
+-     //~ * (so the whole view converts at once) or turns off / fails while compact buffers exist.
+-     //~ */
+-    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$pipelineSwitch(final CallbackInfo ci) {
+-        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
+-            //~ ((LevelRenderer) (Object) this).allChanged();
+-        //~ }
+-    //~ }
++    /**
++     * Once per frame, before anything is drawn: rebuilds every section when the pipeline turns on
++     * (so the whole view converts at once) or turns off / fails while compact buffers exist.
++     */
++    @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
++    private void aetherium$pipelineSwitch(final CallbackInfo ci) {
++        if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
++            ((LevelRenderer) (Object) this).allChanged();
++        }
++    }
+ 
 -    //~ @Inject(method = "renderChunkLayer", at = @At("HEAD"), cancellable = true, require = 0)
 -    //~ private void aetherium$renderLayer(final RenderType type, final PoseStack poseStack, final double camX,
 -                                       //~ final double camY, final double camZ, final CallbackInfo ci) {
--        //~ if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
--            //~ return;
--        //~ }
 -        //~ final boolean cutout;
 -        //~ if (type == RenderType.solid()) {
 -            //~ cutout = false;
@@ -1219,12 +1239,21 @@ index 2e8516c..3631bcb 100644
 -        //~ } else {
 -            //~ return;
 -        //~ }
+-        //~ if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
+-            //~ if (ChunkRenderer.hasCompactBuffers()) {
+-                //~ ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame
+-            //~ }
+-            //~ return;
+-        //~ }
 -        //~ type.setupRenderState();
 -        //~ boolean begun = false;
 -        //~ try {
 -            //~ final FloatBuffer pose = ChunkRenderer.poseBuffer();
 -            //~ poseStack.last().pose().store(pose);
 -            //~ if (!ChunkRenderer.begin(pose, cutout)) {
+-                //~ if (ChunkRenderer.hasCompactBuffers()) {
+-                    //~ ci.cancel(); // first frame: buffers were already uploaded compact; the rebuild follows
+-                //~ }
 -                //~ return;
 -            //~ }
 -            //~ begun = true;
@@ -1237,17 +1266,28 @@ index 2e8516c..3631bcb 100644
 -                //~ }
 -                //~ final VertexBufferAccess buffer = (VertexBufferAccess) chunk.getBuffer(type);
 -                //~ final BlockPos origin = chunk.getOrigin();
--                //~ ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), (float) (origin.getX() - camX),
--                        //~ (float) (origin.getY() - camY), (float) (origin.getZ() - camZ));
+-                //~ final float dx = (float) (origin.getX() - camX);
+-                //~ final float dy = (float) (origin.getY() - camY);
+-                //~ final float dz = (float) (origin.getZ() - camZ);
+-                //~ final CompactTerrain.Layout layout = buffer.aetheriumCompactLayout();
+-                //~ if (layout != null) {
+-                    //~ ChunkRenderer.drawCompact(buffer.aetheriumId(), layout, dx, dy, dz);
+-                //~ } else {
+-                    //~ ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), dx, dy, dz);
+-                //~ }
 -            //~ }
 -            //~ begun = false;
 -            //~ ChunkRenderer.end();
 -            //~ ci.cancel();
 -        //~ } catch (final RuntimeException | LinkageError error) {
--            //~ // Not cancelled: vanilla draws this layer, and every later frame (the renderer is off now).
+-            //~ // The renderer is off now. Vanilla draws this layer unless compact buffers exist (then the
+-            //~ // layer is skipped until next frame's rebuild has replaced them).
 -            //~ ChunkRenderer.fail(error.toString());
 -            //~ if (begun) {
 -                //~ ChunkRenderer.end();
+-            //~ }
+-            //~ if (ChunkRenderer.hasCompactBuffers()) {
+-                //~ ci.cancel();
 -            //~ }
 -        //~ } finally {
 -            //~ type.clearRenderState();
@@ -1256,9 +1296,6 @@ index 2e8516c..3631bcb 100644
 +    @Inject(method = "renderChunkLayer", at = @At("HEAD"), cancellable = true, require = 0)
 +    private void aetherium$renderLayer(final RenderType type, final PoseStack poseStack, final double camX,
 +                                       final double camY, final double camZ, final CallbackInfo ci) {
-+        if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
-+            return;
-+        }
 +        final boolean cutout;
 +        if (type == RenderType.solid()) {
 +            cutout = false;
@@ -1267,12 +1304,21 @@ index 2e8516c..3631bcb 100644
 +        } else {
 +            return;
 +        }
++        if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
++            if (ChunkRenderer.hasCompactBuffers()) {
++                ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame
++            }
++            return;
++        }
 +        type.setupRenderState();
 +        boolean begun = false;
 +        try {
 +            final FloatBuffer pose = ChunkRenderer.poseBuffer();
 +            poseStack.last().pose().store(pose);
 +            if (!ChunkRenderer.begin(pose, cutout)) {
++                if (ChunkRenderer.hasCompactBuffers()) {
++                    ci.cancel(); // first frame: buffers were already uploaded compact; the rebuild follows
++                }
 +                return;
 +            }
 +            begun = true;
@@ -1285,17 +1331,28 @@ index 2e8516c..3631bcb 100644
 +                }
 +                final VertexBufferAccess buffer = (VertexBufferAccess) chunk.getBuffer(type);
 +                final BlockPos origin = chunk.getOrigin();
-+                ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), (float) (origin.getX() - camX),
-+                        (float) (origin.getY() - camY), (float) (origin.getZ() - camZ));
++                final float dx = (float) (origin.getX() - camX);
++                final float dy = (float) (origin.getY() - camY);
++                final float dz = (float) (origin.getZ() - camZ);
++                final CompactTerrain.Layout layout = buffer.aetheriumCompactLayout();
++                if (layout != null) {
++                    ChunkRenderer.drawCompact(buffer.aetheriumId(), layout, dx, dy, dz);
++                } else {
++                    ChunkRenderer.draw(buffer.aetheriumId(), buffer.aetheriumVertexCount(), dx, dy, dz);
++                }
 +            }
 +            begun = false;
 +            ChunkRenderer.end();
 +            ci.cancel();
 +        } catch (final RuntimeException | LinkageError error) {
-+            // Not cancelled: vanilla draws this layer, and every later frame (the renderer is off now).
++            // The renderer is off now. Vanilla draws this layer unless compact buffers exist (then the
++            // layer is skipped until next frame's rebuild has replaced them).
 +            ChunkRenderer.fail(error.toString());
 +            if (begun) {
 +                ChunkRenderer.end();
++            }
++            if (ChunkRenderer.hasCompactBuffers()) {
++                ci.cancel();
 +            }
 +        } finally {
 +            type.clearRenderState();
@@ -1485,6 +1542,61 @@ index 0bb9134..70f6233 100644
 +    //~ }
  //~ }
  // @era:options-end
+diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
+index e9806cb..3bafb42 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
+@@ -1,14 +1,14 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:chunk-renderer-begin none
+-// @era:chunk-renderer-else gl16
+-//~ import com.aetherium.client.VertexBufferAccess;
+-//~ import com.mojang.blaze3d.vertex.VertexBuffer;
+-//~ import net.minecraft.client.renderer.RenderType;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:chunk-renderer-begin gl16
++import com.aetherium.client.VertexBufferAccess;
++import com.mojang.blaze3d.vertex.VertexBuffer;
++import net.minecraft.client.renderer.RenderType;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:chunk-renderer-else none
+ // @era:chunk-renderer-end
+ import org.spongepowered.asm.mixin.Mixin;
+ 
+@@ -23,16 +23,16 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
+ public abstract class RenderChunkBuffersMixin {
+ 
+-    // @era:chunk-renderer-begin none
+-    // @era:chunk-renderer-else gl16
+-    //~ @Shadow
+-    //~ public abstract VertexBuffer getBuffer(RenderType type);
++    // @era:chunk-renderer-begin gl16
++    @Shadow
++    public abstract VertexBuffer getBuffer(RenderType type);
+ 
+-    //~ @Inject(method = "<init>", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$tagTerrainBuffers(final CallbackInfo ci) {
+-        //~ ((VertexBufferAccess) this.getBuffer(RenderType.solid())).aetheriumMarkTerrain();
+-        //~ ((VertexBufferAccess) this.getBuffer(RenderType.cutoutMipped())).aetheriumMarkTerrain();
+-        //~ ((VertexBufferAccess) this.getBuffer(RenderType.cutout())).aetheriumMarkTerrain();
+-    //~ }
++    @Inject(method = "<init>", at = @At("TAIL"), require = 0)
++    private void aetherium$tagTerrainBuffers(final CallbackInfo ci) {
++        ((VertexBufferAccess) this.getBuffer(RenderType.solid())).aetheriumMarkTerrain();
++        ((VertexBufferAccess) this.getBuffer(RenderType.cutoutMipped())).aetheriumMarkTerrain();
++        ((VertexBufferAccess) this.getBuffer(RenderType.cutout())).aetheriumMarkTerrain();
++    }
++    // @era:chunk-renderer-else none
+     // @era:chunk-renderer-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
 index 0c9cdbc..592d8eb 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
@@ -1543,10 +1655,41 @@ index 0c9cdbc..592d8eb 100644
      // @era:section-vis-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-index f049140..ed58a9a 100644
+index fc2af38..03d81ec 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-@@ -13,31 +13,31 @@ import org.spongepowered.asm.mixin.Shadow;
+@@ -3,18 +3,18 @@ package com.aetherium.mixin.core;
+ import com.aetherium.client.VertexBufferAccess;
+ import com.aetherium.render.CompactTerrain;
+ 
+-// @era:chunk-renderer-begin none
+-// @era:chunk-renderer-else gl16
+-//~ import com.aetherium.client.ChunkRenderer;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import java.nio.ByteBuffer;
+-//~ import org.lwjgl.opengl.GL15;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:chunk-renderer-begin gl16
++import com.aetherium.client.ChunkRenderer;
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import java.nio.ByteBuffer;
++import org.lwjgl.opengl.GL15;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:chunk-renderer-else none
+ // @era:chunk-renderer-end
+ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.Shadow;
+@@ -36,115 +36,115 @@ import org.spongepowered.asm.mixin.Shadow;
  @Mixin(targets = "com.mojang.blaze3d.vertex.VertexBuffer")
  public abstract class VertexBufferMixin implements VertexBufferAccess {
  
@@ -1557,6 +1700,19 @@ index f049140..ed58a9a 100644
 +
 +    @Shadow
 +    private int vertexCount;
++
++    @Shadow
++    @Final
++    private VertexFormat format;
++
++    @Unique
++    private boolean aetherium$terrain;
++
++    @Unique
++    private boolean aetherium$compact;
++
++    @Unique
++    private CompactTerrain.Layout aetherium$layout;
 +
      @Override
      public int aetheriumId() {
@@ -1569,6 +1725,23 @@ index f049140..ed58a9a 100644
 -        return 0;
 +        return this.vertexCount;
      }
+ 
+     @Override
+     public void aetheriumMarkTerrain() {
++        this.aetherium$terrain = true;
+     }
+ 
+     @Override
+     public boolean aetheriumTerrain() {
+-        return false;
++        return this.aetherium$terrain;
+     }
+ 
+     @Override
+     public CompactTerrain.Layout aetheriumCompactLayout() {
+-        return null;
++        return this.aetherium$compact ? this.aetherium$layout : null;
+     }
 -    // @era:chunk-renderer-else gl16
 -    //~ @Shadow
 -    //~ private int id;
@@ -1576,6 +1749,60 @@ index f049140..ed58a9a 100644
 -    //~ @Shadow
 -    //~ private int vertexCount;
 -
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private VertexFormat format;
+-
+-    //~ @Unique
+-    //~ private boolean aetherium$terrain;
+-
+-    //~ @Unique
+-    //~ private boolean aetherium$compact;
+-
+-    //~ @Unique
+-    //~ private CompactTerrain.Layout aetherium$layout;
+ 
++    /**
++     * Replaces vanilla's {@code upload_} for tagged buffers while the pipeline is on. Same steps as
++     * vanilla (pop the builder's next buffer; if the GL buffer is alive, set the vertex count and
++     * store the data), with the data re-encoded when it fits.
++     */
++    @Inject(method = "upload_", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$upload(final BufferBuilder builder, final CallbackInfo ci) {
++        if (!this.aetherium$terrain) {
++            return;
++        }
++        if (!ChunkRenderer.compactUploadsWanted()) {
++            this.aetherium$compact = false;
++            return;
++        }
++        ci.cancel();
++        final ByteBuffer data = builder.popNextBuffer().getSecond();
++        ByteBuffer upload = data;
++        boolean compact = false;
++        try {
++            if (this.aetherium$layout == null) {
++                this.aetherium$layout = new CompactTerrain.Layout();
++            }
++            final ByteBuffer encoded = CompactTerrain.encode(data, CompactTerrain.scratch(), this.aetherium$layout);
++            if (encoded != null) {
++                upload = encoded;
++                compact = true;
++            }
++        } catch (final RuntimeException error) {
++            ChunkRenderer.fail("compact encode failed: " + error);
++        }
++        if (this.id != -1) {
++            this.vertexCount = compact ? this.aetherium$layout.quads() * 4 : data.remaining() / this.format.getVertexSize();
++            GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
++            GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
++            GL15.glBindBuffer(0x8892, 0);
++        }
++        this.aetherium$compact = compact;
++        if (compact) {
++            ChunkRenderer.noteCompactUpload();
++        }
++    }
 +    // @era:chunk-renderer-else none
      //~ @Override
      //~ public int aetheriumId() {
@@ -1587,6 +1814,65 @@ index f049140..ed58a9a 100644
      //~ public int aetheriumVertexCount() {
 -        //~ return this.vertexCount;
 +        //~ return 0;
+     //~ }
+ 
+     //~ @Override
+     //~ public void aetheriumMarkTerrain() {
+-        //~ this.aetherium$terrain = true;
+     //~ }
+ 
+     //~ @Override
+     //~ public boolean aetheriumTerrain() {
+-        //~ return this.aetherium$terrain;
++        //~ return false;
+     //~ }
+ 
+     //~ @Override
+     //~ public CompactTerrain.Layout aetheriumCompactLayout() {
+-        //~ return this.aetherium$compact ? this.aetherium$layout : null;
+-    //~ }
+-
+-    //~ /**
+-     //~ * Replaces vanilla's {@code upload_} for tagged buffers while the pipeline is on. Same steps as
+-     //~ * vanilla (pop the builder's next buffer; if the GL buffer is alive, set the vertex count and
+-     //~ * store the data), with the data re-encoded when it fits.
+-     //~ */
+-    //~ @Inject(method = "upload_", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$upload(final BufferBuilder builder, final CallbackInfo ci) {
+-        //~ if (!this.aetherium$terrain) {
+-            //~ return;
+-        //~ }
+-        //~ if (!ChunkRenderer.compactUploadsWanted()) {
+-            //~ this.aetherium$compact = false;
+-            //~ return;
+-        //~ }
+-        //~ ci.cancel();
+-        //~ final ByteBuffer data = builder.popNextBuffer().getSecond();
+-        //~ ByteBuffer upload = data;
+-        //~ boolean compact = false;
+-        //~ try {
+-            //~ if (this.aetherium$layout == null) {
+-                //~ this.aetherium$layout = new CompactTerrain.Layout();
+-            //~ }
+-            //~ final ByteBuffer encoded = CompactTerrain.encode(data, CompactTerrain.scratch(), this.aetherium$layout);
+-            //~ if (encoded != null) {
+-                //~ upload = encoded;
+-                //~ compact = true;
+-            //~ }
+-        //~ } catch (final RuntimeException error) {
+-            //~ ChunkRenderer.fail("compact encode failed: " + error);
+-        //~ }
+-        //~ if (this.id != -1) {
+-            //~ this.vertexCount = compact ? this.aetherium$layout.quads() * 4 : data.remaining() / this.format.getVertexSize();
+-            //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
+-            //~ GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
+-            //~ GL15.glBindBuffer(0x8892, 0);
+-        //~ }
+-        //~ this.aetherium$compact = compact;
+-        //~ if (compact) {
+-            //~ ChunkRenderer.noteCompactUpload();
+-        //~ }
++        //~ return null;
      //~ }
      // @era:chunk-renderer-end
  }
@@ -1710,7 +1996,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index b31e664..b330bb2 100644
+index fbfb8d3..d749f5d 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -1723,7 +2009,7 @@ index b31e664..b330bb2 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 0151ad1..a68d4d9 100644
+index d3d56a5..9777da6 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

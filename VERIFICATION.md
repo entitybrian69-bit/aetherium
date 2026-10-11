@@ -1,4 +1,4 @@
-# Aetherium 1.2.0: verification report
+# Aetherium 1.3.0: verification report
 
 What was checked, how it was checked, and what was **not** checked. The audit trail for the
 0.1.0 line (CI compile reports 1–6, the old renderer's defects) is in git history at
@@ -290,4 +290,47 @@ Two probe runs added the classes the new hooks touch: `LevelRenderer$RenderChunk
 
 Gates run for 1.2.0: `stubcheck --all` 33/33 (Java 8 API lint on 1.16.5); `testrun.py --bench`
 116 passed, 0 failed (109 unit + 7 benchmarks); `gen_resources --check` (36 options, 97 lang keys);
+`gen_deltas --all --verify` (32 patches apply cleanly); `check.py` clean; `check_refs.py` clean.
+
+## 11. 1.3.0: the Aetherium pipeline (1.16.5)
+
+### Probe data
+
+Probe run 38103235990 added `BufferBuilder`, `BufferBuilder$DrawState`,
+`com.mojang.datafixers.util.Pair` and `ChunkRenderDispatcher`, plus code probes for the upload path.
+
+| Fact (1.16.5, from `tools/probe/1.16.5.txt`) | Used by |
+| --- | --- |
+| `VertexBuffer.upload_(BufferBuilder)` is `private void`. It pops `builder.popNextBuffer()` first, then checks `id`, then `vertexCount = getSecond().remaining() / format.getVertexSize()`, `bind()`, `RenderSystem.glBufferData(34962, data, 35044)`, `unbind()`. Both `upload` and `uploadLater` route to it | `VertexBufferMixin.aetherium$upload` repeats those steps, with the data re-encoded |
+| `VertexBuffer.format` is `private final VertexFormat`; `VertexFormat.getVertexSize()` | the legacy vertex count when encoding is refused |
+| `popNextBuffer()` returns `Pair<DrawState, ByteBuffer>`, a `slice()` of the builder's buffer | `CompactTerrain.encode` reads `position()`..`limit()` of a duplicate |
+| `RenderChunk(ChunkRenderDispatcher)` assigns `buffers` (one `VertexBuffer(DefaultVertexFormat.BLOCK)` per layer) in the constructor; `getBuffer(RenderType)` is public | `RenderChunkBuffersMixin` tags solid / cutout-mipped / cutout at constructor TAIL |
+| `ChunkRenderDispatcher.uploadChunkLayer` queues the upload on `toUpload`, drained by `uploadAllPendingUploads()` from `LevelRenderer.compileChunksUntil` (render thread) | the encoder's scratch buffers are per thread anyway (`ThreadLocal`) |
+| `LevelRenderer.allChanged()` and `renderLevel(PoseStack, float, long, boolean, Camera, GameRenderer, LightTexture, Matrix4f)` are public | `ChunkRendererMixin.aetherium$pipelineSwitch` rebuilds at the start of a frame |
+
+### Checks
+
+| Piece | Check |
+| --- | --- |
+| `render/CompactTerrain` encoder | `CompactTerrainTest`: a cube's six faces (vanilla `FaceInfo` vertex order) land in their six groups with exact position, light, colour and uv; positions on the 1/16 grid round-trip exactly and others within 1/2048 across the whole range; the stored planes are the outermost faces |
+| Classification | diagonal plant quads with a cardinal normal, a reversed-winding top face with an up normal, a side face labelled up, and an off-axis normal all go to *any* |
+| Refusal | x beyond 56 or below -8, light above 255, and a partial quad all return null (vanilla data is uploaded); the scratch stays usable |
+| Culling planes | camera above/south-east draws exactly up/south/east/any, below/north-west draws down/north/west/any; edge-on keeps the face; inside a closed cube only *any*; between two cubes both facing groups stay; empty groups are never selected |
+| Ranges | `runs` produces contiguous ranges across empty groups; `mergeRuns` merges gaps up to the limit and keeps larger ones |
+| Shader | `ChunkRendererTest.compactShader`: GLSL 1.20, decodes `a_pos.xyz / 1024.0 - vec3(8.0)`, light unpacking mirrored on the CPU for the whole range, no exponent literals |
+| Switching | `ChunkRendererTest.pipelineSwitching`: rebuild once on enable; on disable only if a compact buffer was stored; never every frame |
+
+### Not established
+
+- Nothing ran on a GPU. The compact program's output was not compared with vanilla's on screen.
+  Unsigned-short attributes read as unnormalised floats (`glVertexAttribPointer`, normalised =
+  false) are core GL 2.0 behaviour, but GL4ES's handling of them was not observed.
+- The frame-rate effect. Expected: half the terrain vertex memory and bandwidth, plus skipping
+  roughly a third to a half of terrain quads per frame (the back-facing groups), at the cost of one
+  to three draw calls per section instead of one.
+- Interaction with other 1.16.5 mods that read terrain vertex buffers directly. Sodium-family mods
+  already switch the pipeline off.
+
+Gates run for 1.3.0: `stubcheck --all` 33/33 (Java 8 API lint on the new 1.16.5 sources);
+`testrun.py` 118 unit tests passed; `gen_resources --check` (36 options, 97 lang keys);
 `gen_deltas --all --verify` (32 patches apply cleanly); `check.py` clean; `check_refs.py` clean.

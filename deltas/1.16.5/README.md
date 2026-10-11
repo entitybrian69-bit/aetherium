@@ -80,6 +80,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
