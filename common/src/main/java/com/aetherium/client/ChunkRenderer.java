@@ -39,6 +39,13 @@ import org.lwjgl.opengl.GL20;
  * camera are drawn (in one or two index ranges per section). Buffers that did not fit the format
  * keep vanilla's layout and are drawn by the original program.</p>
  *
+ * <p><b>Two modes (1.3.3).</b> Shader mode is the above. Compatible mode keeps vanilla's 32-byte
+ * vertices and vanilla's own GL calls (the version mixin replays vanilla's {@code renderChunkLayer}
+ * through {@code RenderSystem}); the quads are only reordered into the same face groups
+ * ({@link CompactTerrain#sortQuads}) so the groups facing away are skipped. No shader, no generic
+ * attributes: it runs wherever vanilla runs. A Java-side failure in shader mode, or a native crash
+ * caught by {@link PipelineCrashGuard} at the next start, switches to compatible mode.</p>
+ *
  * <p>Failure policy: if a shader does not compile or link, or anything throws, the renderer
  * turns itself off for the session, logs once, asks for one chunk rebuild (vanilla cannot read
  * compact buffers) and vanilla draws from then on.</p>
@@ -231,9 +238,23 @@ public final class ChunkRenderer {
     private static final int[] RUN_FIRST = new int[4];
     private static final int[] RUN_COUNT = new int[4];
 
+    // Pipeline modes.
+    public static final int MODE_OFF = 0;
+    public static final int MODE_SHADER = 1;
+    public static final int MODE_COMPATIBLE = 2;
+
     // Pipeline switch tracking (render thread).
-    private static boolean compactWanted;
+    private static int uploadMode = MODE_OFF;
     private static boolean compactUploaded;
+    private static boolean shaderFailed;
+    private static String shaderFailure = "";
+
+    // Step-by-step log of the first shader-mode draws: a native crash leaves no Java stack trace,
+    // so the last trace line in latest.log names the GL call that crashed.
+    static final int TRACE_STEPS = 24;
+    private static int traceLeft;
+    private static boolean loggedGlInfo;
+    private static boolean loggedFirstCompatibleLayer;
 
     // Projection captured from LevelRenderer.renderLevel's argument (no fixed-function query needed).
     private static final FloatBuffer PROJECTION = directFloats(16);
@@ -267,9 +288,28 @@ public final class ChunkRenderer {
             return "Vanilla (turned off: the game closed while the pipeline was drawing last time)";
         }
         if (isDrawing()) {
-            return "Aetherium pipeline (" + sectionsLastLayer + " sections in the last layer" + lastStats + ")";
+            final boolean compatible = uploadMode == MODE_COMPATIBLE;
+            String why = "";
+            if (compatible && shaderFailed) {
+                why = "; shader mode failed: " + shaderFailure;
+            } else if (compatible && PipelineCrashGuard.wasDowngraded()) {
+                why = "; shader mode crashed last time";
+            }
+            return "Aetherium pipeline, " + (compatible ? "compatible mode" : "shader mode") + " (" + sectionsLastLayer
+                    + " sections in the last layer" + lastStats + why + ")";
         }
         return "Vanilla";
+    }
+
+    /**
+     * How {@code renderChunkLayer} should draw this frame: {@link #MODE_OFF} (vanilla, or skip the
+     * layer while compact buffers exist), {@link #MODE_SHADER} or {@link #MODE_COMPATIBLE}.
+     */
+    public static int drawMode(final boolean enabled) {
+        if (!enabled || failed || uploadMode == MODE_SHADER && shaderFailed) {
+            return MODE_OFF; // a failed shader mode switches to compatible at the next frame's rebuild
+        }
+        return uploadMode;
     }
 
     /** Scratch buffer the mixin stores the camera pose into (render thread only). */
@@ -307,7 +347,7 @@ public final class ChunkRenderer {
      * @return false when the renderer is unavailable: the caller lets vanilla draw the layer
      */
     public static boolean begin(final FloatBuffer modelView, final boolean cutout) {
-        if (failed) {
+        if (failed || shaderFailed) {
             return false;
         }
         try {
@@ -331,12 +371,17 @@ public final class ChunkRenderer {
             layerCutout = cutout;
             readFog();
             current = null;
+            if (traceLeft > 0) {
+                trace("begin layer (cutout " + cutout + ", fog mode " + fogMode + ", projection from renderLevel "
+                        + projectionCaptured + ")");
+            }
+            PipelineCrashGuard.arm(PipelineCrashGuard.MODE_SHADER);
             GL20.glEnableVertexAttribArray(ATTR_POS);
             GL20.glEnableVertexAttribArray(ATTR_COLOR);
             GL20.glEnableVertexAttribArray(ATTR_UV0);
+            trace("vertex attribute arrays 0-2 enabled");
             sectionsLastLayer = 0;
             compactSectionsLastLayer = 0;
-            PipelineCrashGuard.arm();
             return true;
         } catch (final RuntimeException | LinkageError error) {
             fail("setup failed: " + error);
@@ -357,8 +402,13 @@ public final class ChunkRenderer {
         GL20.glUniform3f(LEGACY.uOffset, dx, dy, dz);
         GL15.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         pointAttributes(0L);
+        if (traceLeft > 0) {
+            trace("legacy section: buffer " + vertexBuffer + " bound, attribute pointers set; glDrawArrays(GL_QUADS, 0, "
+                    + (vertexCount & ~3) + ")");
+        }
         // The same draw call vanilla uses for these buffers: every GL layer that runs 1.16.5 supports it.
         GL11.glDrawArrays(GL_QUADS, 0, vertexCount & ~3);
+        trace("legacy draw returned");
         sectionsLastLayer++;
     }
 
@@ -383,10 +433,16 @@ public final class ChunkRenderer {
         GL15.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         pointCompactAttributes(0L);
         for (int r = 0; r < runs; r++) {
+            if (traceLeft > 0) {
+                trace("compact section: buffer " + vertexBuffer + "; glDrawArrays(GL_TRIANGLES, "
+                        + RUN_FIRST[r] * CompactTerrain.VERTICES_PER_QUAD + ", "
+                        + RUN_COUNT[r] * CompactTerrain.VERTICES_PER_QUAD + ")");
+            }
             // Plain triangles, no element buffer: quad q is vertices 6q .. 6q + 5.
             GL11.glDrawArrays(GL_TRIANGLES, RUN_FIRST[r] * CompactTerrain.VERTICES_PER_QUAD,
                     RUN_COUNT[r] * CompactTerrain.VERTICES_PER_QUAD);
             compactQuadsDrawn += RUN_COUNT[r];
+            trace("compact draw returned");
         }
         compactQuadsTotal += quads;
         compactSectionsLastLayer++;
@@ -402,6 +458,7 @@ public final class ChunkRenderer {
             GL20.glDisableVertexAttribArray(ATTR_UV2);
             GL15.glBindBuffer(GL_ARRAY_BUFFER, 0);
             GL20.glUseProgram(0);
+            trace("layer cleanup done");
         } catch (final RuntimeException | LinkageError error) {
             fail("cleanup failed: " + error);
         }
@@ -417,8 +474,12 @@ public final class ChunkRenderer {
                         compactSectionsLastLayer);
             }
         }
-        drawingThisFrame = !failed;
+        drawingThisFrame = !failed && !shaderFailed;
         lastDrawFrame = frame;
+        updateStats();
+    }
+
+    private static void updateStats() {
         if (compactQuadsTotal > 2_000_000L) {
             compactQuadsTotal >>= 1;
             compactQuadsDrawn >>= 1;
@@ -429,22 +490,32 @@ public final class ChunkRenderer {
 
     /** Called by the mixin when something outside this class threw mid-layer. */
     public static void fail(final String reason) {
-        if (!failed) {
-            failed = true;
-            failure = reason.length() > 80 ? reason.substring(0, 80) : reason;
-            LOG.warn("Experimental chunk renderer disabled, vanilla draws terrain: {}", reason);
-            PipelineCrashGuard.disarm();
+        if (failed) {
+            return;
         }
+        if (uploadMode == MODE_SHADER && !shaderFailed) {
+            // Shader mode only: the next frame rebuilds the chunks for compatible mode.
+            shaderFailed = true;
+            shaderFailure = reason.length() > 80 ? reason.substring(0, 80) : reason;
+            LOG.warn("Aetherium pipeline shader mode failed, switching to compatible mode: {}", reason);
+            PipelineCrashGuard.disarm();
+            return;
+        }
+        failed = true;
+        failure = reason.length() > 80 ? reason.substring(0, 80) : reason;
+        LOG.warn("Experimental chunk renderer disabled, vanilla draws terrain: {}", reason);
+        PipelineCrashGuard.disarm();
     }
 
     // ------------------------------------------------------------------ pipeline switching
 
     /**
-     * Whether chunk uploads should use the compact format right now. Called by the upload mixin
-     * on the render thread; remembers that compact buffers exist.
+     * Format for chunk uploads right now: {@link #MODE_OFF} (vanilla), {@link #MODE_SHADER}
+     * (compact) or {@link #MODE_COMPATIBLE} (vanilla vertices sorted into face groups). Called by
+     * the upload mixin on the render thread.
      */
-    public static boolean compactUploadsWanted() {
-        return compactWanted;
+    public static int uploadMode() {
+        return uploadMode;
     }
 
     /** The upload mixin stored a compact buffer: from now on, turning the pipeline off needs a rebuild. */
@@ -463,24 +534,114 @@ public final class ChunkRenderer {
      * ({@code LevelRenderer.allChanged()}): the pipeline was switched on (so sections convert now
      * instead of trickling in) or off/failed while compact buffers exist (vanilla cannot draw them).
      */
-    public static boolean updatePipeline(final boolean enabled) {
-        final boolean wanted = enabled && !failed;
-        if (wanted == compactWanted) {
+    public static boolean updatePipeline(final boolean enabled, final boolean shader) {
+        final int wanted = wantedMode(enabled, shader, failed, shaderFailed);
+        if (wanted == uploadMode) {
             return false;
         }
-        compactWanted = wanted;
-        if (wanted) {
+        uploadMode = wanted;
+        PipelineCrashGuard.disarm(); // the next draw arms it again with the new mode
+        if (wanted == MODE_SHADER) {
             errorChecksLeft = ERROR_CHECK_LAYERS;
-            LOG.info("Aetherium pipeline on: rebuilding the loaded chunks in the compact format");
+            traceLeft = TRACE_STEPS;
+            LOG.info("Aetherium pipeline on (shader mode): rebuilding the loaded chunks in the compact format");
             return true;
         }
-        PipelineCrashGuard.disarm();
+        if (wanted == MODE_COMPATIBLE) {
+            // Compact buffers may stay until their section is rebuilt: compatible mode skips them.
+            LOG.info("Aetherium pipeline on (compatible mode: vanilla vertex format and GL calls): rebuilding the "
+                    + "loaded chunks sorted by face direction");
+            return true;
+        }
         final boolean rebuild = compactUploaded;
         compactUploaded = false;
         if (rebuild) {
             LOG.info("Aetherium pipeline off: rebuilding the loaded chunks for vanilla");
         }
         return rebuild;
+    }
+
+    /** Unit tests: back to a fresh session. */
+    static void resetForTests() {
+        failed = false;
+        failure = "";
+        shaderFailed = false;
+        shaderFailure = "";
+        uploadMode = MODE_OFF;
+        compactUploaded = false;
+        traceLeft = 0;
+    }
+
+    static int wantedMode(final boolean enabled, final boolean shader, final boolean anyFailed,
+                          final boolean shaderBroken) {
+        if (!enabled || anyFailed) {
+            return MODE_OFF;
+        }
+        return shader && !shaderBroken ? MODE_SHADER : MODE_COMPATIBLE;
+    }
+
+    // ------------------------------------------------------------------ compatible mode
+
+    /** A compatible-mode layer starts (the mixin then replays vanilla's draw calls). */
+    public static void beginCompatible() {
+        if (!loggedGlInfo) {
+            logGlInfo();
+        }
+        PipelineCrashGuard.arm(PipelineCrashGuard.MODE_COMPATIBLE);
+        sectionsLastLayer = 0;
+        compactSectionsLastLayer = 0;
+    }
+
+    /**
+     * Visible quad ranges of one sorted section, read back with {@link #runFirstVertex} and
+     * {@link #runVertexCount}. {@code dx, dy, dz} is the section origin minus the camera.
+     *
+     * @return the number of ranges (0 = nothing faces the camera), or -1 for an unsorted buffer
+     *         (draw all of it)
+     */
+    public static int compatibleRuns(final CompactTerrain.Layout layout, final float dx, final float dy, final float dz) {
+        if (layout == null) {
+            return -1;
+        }
+        final int quads = layout.quads();
+        if (quads == 0) {
+            return 0;
+        }
+        final int mask = CompactTerrain.visibleGroups(layout.plane, -dx, -dy, -dz);
+        int runs = CompactTerrain.runs(layout, mask, RUN_FIRST, RUN_COUNT);
+        if (runs > 0) {
+            runs = CompactTerrain.mergeRuns(RUN_FIRST, RUN_COUNT, runs, MERGE_GAP_QUADS);
+        }
+        for (int r = 0; r < runs; r++) {
+            compactQuadsDrawn += RUN_COUNT[r];
+        }
+        compactQuadsTotal += quads;
+        compactSectionsLastLayer++;
+        return runs;
+    }
+
+    /** First vertex of range {@code r} (vanilla quads: 4 vertices each). */
+    public static int runFirstVertex(final int r) {
+        return RUN_FIRST[r] * 4;
+    }
+
+    public static int runVertexCount(final int r) {
+        return RUN_COUNT[r] * 4;
+    }
+
+    public static void compatibleSectionDrawn() {
+        sectionsLastLayer++;
+    }
+
+    public static void endCompatible() {
+        drawingThisFrame = true;
+        lastDrawFrame = frame;
+        updateStats();
+        if (!loggedFirstCompatibleLayer && sectionsLastLayer > 0) {
+            loggedFirstCompatibleLayer = true;
+            LOG.info("Aetherium pipeline: first compatible-mode terrain layer drawn ({} sections, {} sorted by face)",
+                    sectionsLastLayer, compactSectionsLastLayer);
+        }
     }
 
     /** Whether any compact buffers may still be live (then vanilla must not draw these layers). */
@@ -526,6 +687,9 @@ public final class ChunkRenderer {
             return;
         }
         current = program;
+        if (traceLeft > 0) {
+            trace("glUseProgram(" + program.name + " " + program.id + ")");
+        }
         GL20.glUseProgram(program.id);
         GL20.glUniformMatrix4fv(program.uProjection, false, MATRIX);
         MATRIX.rewind();
@@ -543,6 +707,7 @@ public final class ChunkRenderer {
         } else {
             GL20.glDisableVertexAttribArray(ATTR_UV2);
         }
+        trace("uniforms uploaded");
     }
 
     private static void readFog() {
@@ -566,6 +731,23 @@ public final class ChunkRenderer {
         GL11.glGetFloatv(GL_FOG_COLOR, FOG_COLOR);
     }
 
+    private static void trace(final String step) {
+        if (traceLeft > 0) {
+            traceLeft--;
+            LOG.info("Aetherium pipeline trace: {}", step);
+        }
+    }
+
+    private static void logGlInfo() {
+        loggedGlInfo = true;
+        try {
+            LOG.info("Aetherium pipeline GL: renderer '{}', version '{}', GLSL '{}'", GL11.glGetString(0x1F01),
+                    GL11.glGetString(0x1F02), GL11.glGetString(0x8B8C)); // GL_RENDERER, GL_VERSION, GLSL version
+        } catch (final RuntimeException | LinkageError error) {
+            // diagnostics only
+        }
+    }
+
     private static void drainGlErrors() {
         for (int i = 0; i < 16 && GL11.glGetError() != 0; i++) {
             // errors left by earlier (vanilla or other mods') calls are not ours
@@ -579,6 +761,10 @@ public final class ChunkRenderer {
     }
 
     private static boolean createPrograms() {
+        if (!loggedGlInfo) {
+            logGlInfo();
+        }
+        trace("compiling and linking the GLSL 1.20 programs");
         if (!link(LEGACY, VERTEX_SHADER, "a_pos", "a_color", "a_uv0", "a_uv2")
                 || !link(COMPACT, COMPACT_VERTEX_SHADER, "a_pos", "a_color", "a_uv0", null)) {
             if (LEGACY.id != 0) {

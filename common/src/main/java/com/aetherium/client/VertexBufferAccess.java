@@ -20,4 +20,10 @@ public interface VertexBufferAccess {
 
     /** Group layout when the last upload stored {@link CompactTerrain} vertices, otherwise null (vanilla layout). */
     CompactTerrain.Layout aetheriumCompactLayout();
+
+    /**
+     * Group layout when the last upload stored vanilla vertices sorted into face groups (compatible
+     * mode, {@link CompactTerrain#sortQuads}), otherwise null.
+     */
+    CompactTerrain.Layout aetheriumSortedLayout();
 }

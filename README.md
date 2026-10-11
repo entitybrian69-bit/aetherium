@@ -5,7 +5,10 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **1.3.2** fixes the 1.16.5 pipeline crash on Android GL translators (see
+Version **1.3.3** adds a **compatible mode** to the 1.16.5 pipeline for GL translators that crash on
+its shader, and switches to it automatically after such a crash (see
+[1.3.3: compatible mode](#133-compatible-mode-for-the-pipeline-1165)). Version **1.3.2** removed the
+index buffer from the 1.16.5 pipeline (see
 [1.3.2: no index buffer](#132-no-index-buffer-no-fixed-function-queries-1165)). Version **1.3.1** made the pipeline safe to try after a crash report on 1.16.5 (see
 [1.3.1: crash guard](#131-crash-guard-for-the-pipeline)). Version **1.3.0** turned the experimental 1.16.5 chunk renderer into **Aetherium's own terrain
 pipeline**: a compact 16-byte vertex format, chunk meshes grouped by face direction, and back-face
@@ -21,6 +24,28 @@ added smooth chunk loading, an animated-texture switch, a block-entity distance,
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
 either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
 OpenGL calls of its own unless you turn on the experimental 1.16.5 Aetherium pipeline.
+
+## 1.3.3: compatible mode for the pipeline (1.16.5)
+
+1.3.2 still crashed on LTW at the first terrain draw, so the index buffer was not the (only) cause.
+What is left between `pipeline ready` and the crash is the pipeline's own GLSL 1.20 program and its
+generic vertex attributes, which LTW translates to GL 3.3 core. 1.3.3 adds a mode that has neither.
+
+- **Backend > Pipeline shader** (new, on by default). On: shader mode, as in 1.3.2. Off:
+  **compatible mode**. Chunks keep vanilla's 32-byte vertices and are drawn with vanilla's own calls
+  (`VertexBuffer.bind`, `DefaultVertexFormat.BLOCK.setupBufferState`, the matrix push/load/mult/pop,
+  `RenderSystem.drawArrays(GL_QUADS)`), in the same order vanilla makes them. The only change is
+  that each section's quads are sorted by face direction at upload, so the groups facing away from
+  the camera are not drawn. No shader, no generic attributes, no new GL features. It runs wherever
+  vanilla runs.
+- **The crash guard steps down instead of giving up.** The marker file now records the mode. A
+  crash in shader mode (or a marker left by 1.3.1/1.3.2) switches to compatible mode at the next
+  start and keeps the pipeline on. A crash in compatible mode turns the pipeline off. A Java-side
+  shader failure (compile, link, GL error) switches to compatible mode during the session.
+- **Diagnostics.** The log names the GL implementation
+  (`Aetherium pipeline GL: renderer ..., version ..., GLSL ...`). In shader mode, the first draws
+  log each GL step (`Aetherium pipeline trace: ...`), so the last line before a native crash names
+  the call. Compatible mode logs `first compatible-mode terrain layer drawn`.
 
 ## 1.3.2: no index buffer, no fixed-function queries (1.16.5)
 
@@ -168,12 +193,12 @@ a feature is off.
 
 | | |
 | --- | --- |
-| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874; 1.3.2: 38108163083 (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
-| Tests | 120 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
+| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874; 1.3.2: 38108163083; 1.3.3: see VERIFICATION §14 (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
+| Tests | 124 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.3.2+<mcversion>`, and only for versions whose
+Releases are published per Minecraft version as `v1.3.3+<mcversion>`, and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -210,7 +235,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.3.2 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.3.3 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.

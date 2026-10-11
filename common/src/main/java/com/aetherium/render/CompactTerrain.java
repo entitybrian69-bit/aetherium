@@ -132,6 +132,80 @@ public final class CompactTerrain {
     }
 
     /**
+     * Compatible mode (1.3.3): vanilla's own 32-byte vertices, unchanged, with the quads reordered
+     * into the same face-direction groups. Vanilla's fixed-function draw path can draw any range of
+     * it, so the visible groups can be drawn with vanilla's exact GL calls.
+     *
+     * @return the reordered vertices (position 0, limit = bytes) or null for a partial quad
+     */
+    public static ByteBuffer sortQuads(final ByteBuffer source, final Scratch scratch, final Layout layout) {
+        final ByteBuffer src = source.duplicate().order(ByteOrder.nativeOrder());
+        final int base = src.position();
+        final int bytes = src.remaining();
+        final int quadBytes = SOURCE_STRIDE * 4;
+        if (bytes % quadBytes != 0) {
+            return null;
+        }
+        final int quads = bytes / quadBytes;
+        final byte[] groupOf = scratch.groups(quads);
+        classifyAll(src, base, quads, groupOf, layout, false);
+        final int[] cursor = new int[GROUPS];
+        System.arraycopy(layout.start, 0, cursor, 0, GROUPS);
+        final ByteBuffer out = scratch.output(bytes);
+        for (int q = 0; q < quads; q++) {
+            final int from = base + q * quadBytes;
+            final int to = cursor[groupOf[q]]++ * quadBytes;
+            for (int i = 0; i < quadBytes; i += 8) {
+                out.putLong(to + i, src.getLong(from + i));
+            }
+        }
+        out.position(0);
+        out.limit(bytes);
+        return out;
+    }
+
+    /**
+     * Pass 1 shared by both formats: classify every quad, count groups, record planes, fill
+     * {@code layout.start}. With {@code validate}, returns false as soon as a value does not fit the
+     * compact format.
+     */
+    private static boolean classifyAll(final ByteBuffer src, final int base, final int quads, final byte[] groupOf,
+                                       final Layout layout, final boolean validate) {
+        final int[] count = new int[GROUPS];
+        final float[] plane = layout.plane;
+        for (int g = 0; g < GROUPS; g++) {
+            plane[g] = isMinPlane(g) ? Float.POSITIVE_INFINITY : Float.NEGATIVE_INFINITY;
+        }
+        for (int q = 0; q < quads; q++) {
+            final int quad = base + q * SOURCE_STRIDE * 4;
+            if (validate) {
+                for (int v = 0; v < 4; v++) {
+                    final int at = quad + v * SOURCE_STRIDE;
+                    if (!fitsPosition(src.getFloat(at + SRC_POS)) || !fitsPosition(src.getFloat(at + SRC_POS + 4))
+                            || !fitsPosition(src.getFloat(at + SRC_POS + 8)) || !fitsUv(src.getFloat(at + SRC_UV0))
+                            || !fitsUv(src.getFloat(at + SRC_UV0 + 4)) || (src.getShort(at + SRC_UV2) & 0xFFFF) > 255
+                            || (src.getShort(at + SRC_UV2 + 2) & 0xFFFF) > 255) {
+                        return false;
+                    }
+                }
+            }
+            final int group = classify(src, quad);
+            groupOf[q] = (byte) group;
+            count[group]++;
+            if (group != ANY) {
+                final float p = src.getFloat(quad + SRC_POS + 4 * axisOf(group));
+                plane[group] = isMinPlane(group) ? Math.min(plane[group], p) : Math.max(plane[group], p);
+            }
+        }
+        final int[] start = layout.start;
+        start[0] = 0;
+        for (int g = 0; g < GROUPS; g++) {
+            start[g + 1] = start[g] + count[g];
+        }
+        return true;
+    }
+
+    /**
      * Encodes vanilla BLOCK vertices.
      *
      * @param source  vertex data from {@code source.position()} to {@code limit()}, native order
@@ -148,38 +222,10 @@ public final class CompactTerrain {
         }
         final int quads = bytes / (SOURCE_STRIDE * 4);
         final byte[] groupOf = scratch.groups(quads);
-        final int[] count = new int[GROUPS];
-        final float[] plane = layout.plane;
-        for (int g = 0; g < GROUPS; g++) {
-            plane[g] = isMinPlane(g) ? Float.POSITIVE_INFINITY : Float.NEGATIVE_INFINITY;
+        if (!classifyAll(src, base, quads, groupOf, layout, true)) {
+            return null;
         }
-
-        // Pass 1: validate, classify, count, track planes.
-        for (int q = 0; q < quads; q++) {
-            final int quad = base + q * SOURCE_STRIDE * 4;
-            for (int v = 0; v < 4; v++) {
-                final int at = quad + v * SOURCE_STRIDE;
-                if (!fitsPosition(src.getFloat(at + SRC_POS)) || !fitsPosition(src.getFloat(at + SRC_POS + 4))
-                        || !fitsPosition(src.getFloat(at + SRC_POS + 8)) || !fitsUv(src.getFloat(at + SRC_UV0))
-                        || !fitsUv(src.getFloat(at + SRC_UV0 + 4)) || (src.getShort(at + SRC_UV2) & 0xFFFF) > 255
-                        || (src.getShort(at + SRC_UV2 + 2) & 0xFFFF) > 255) {
-                    return null;
-                }
-            }
-            final int group = classify(src, quad);
-            groupOf[q] = (byte) group;
-            count[group]++;
-            if (group != ANY) {
-                final float p = src.getFloat(quad + SRC_POS + 4 * axisOf(group));
-                plane[group] = isMinPlane(group) ? Math.min(plane[group], p) : Math.max(plane[group], p);
-            }
-        }
-
         final int[] start = layout.start;
-        start[0] = 0;
-        for (int g = 0; g < GROUPS; g++) {
-            start[g + 1] = start[g] + count[g];
-        }
         final int[] cursor = new int[GROUPS];
         System.arraycopy(start, 0, cursor, 0, GROUPS);
 

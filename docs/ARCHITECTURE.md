@@ -152,8 +152,10 @@ project will do is show a plausible number it did not measure.
 
 Native crashes (inside a GL driver or translator) cannot be caught. The experimental 1.16.5
 terrain pipeline therefore keeps a marker file (`config/aetherium-pipeline.running`) while it
-draws; if a session ends without removing it, `PipelineCrashGuard` switches the pipeline off at
-the next start and the Backend tab says why, so a driver crash never becomes a crash loop.
+draws, recording which mode was drawing. If a session ends without removing it, `PipelineCrashGuard`
+steps down at the next start: a crash in shader mode switches to compatible mode (vanilla's vertex
+format and vanilla's own GL calls, only the back-facing groups skipped); a crash in compatible mode
+switches the pipeline off. The Backend tab says why, so a driver crash never becomes a crash loop.
 
 `fabric.mod.json` has no `breaks` block on purpose: Aetherium degrades instead of refusing to
 start. `ModConflictScanner` detects Sodium, Embeddium, VulkanMod and other renderer mods and hands

@@ -7,6 +7,9 @@ package com.aetherium.mixin.core;
 //~ import com.aetherium.client.VertexBufferAccess;
 //~ import com.aetherium.perf.RenderToggles;
 //~ import com.aetherium.render.CompactTerrain;
+//~ import com.mojang.blaze3d.systems.RenderSystem;
+//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+//~ import com.mojang.blaze3d.vertex.VertexBuffer;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
 //~ import com.mojang.math.Matrix4f;
 //~ import net.minecraft.client.Camera;
@@ -19,6 +22,7 @@ package com.aetherium.mixin.core;
 //~ import net.minecraft.core.BlockPos;
 //~ import org.spongepowered.asm.mixin.Final;
 //~ import org.spongepowered.asm.mixin.Shadow;
+//~ import org.spongepowered.asm.mixin.Unique;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -35,6 +39,11 @@ import org.spongepowered.asm.mixin.Mixin;
  *
  * <p>Sections uploaded in the Aetherium pipeline's compact format are drawn face-group by
  * face-group (only the directions that can face the camera); see {@code VertexBufferMixin}.</p>
+ *
+ * <p>Compatible mode (1.3.3) replays vanilla's own layer loop with the same calls (bind,
+ * {@code BLOCK.setupBufferState}, the push/load/mult/pop of {@code VertexBuffer.draw},
+ * {@code RenderSystem.drawArrays(GL_QUADS)}, unbind, clearBufferState); the only difference is that
+ * a section sorted by face direction is drawn as the ranges that can face the camera.</p>
  *
  * <p>Off unless the user enables it; applied only on versions with
  * {@code Capabilities.EXPERIMENTAL_CHUNK_RENDERER}. Any failure falls back to vanilla for the
@@ -62,7 +71,7 @@ public abstract class ChunkRendererMixin {
         //~ // fixed-function state, which GL translators may not track.
         //~ projection.store(ChunkRenderer.projectionBuffer());
         //~ ChunkRenderer.projectionStored();
-        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
+        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, RenderToggles.pipelineShader)) {
             //~ ((LevelRenderer) (Object) this).allChanged();
         //~ }
     //~ }
@@ -78,10 +87,16 @@ public abstract class ChunkRendererMixin {
         //~ } else {
             //~ return;
         //~ }
-        //~ if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
+        //~ final int mode = ChunkRenderer.drawMode(RenderToggles.experimentalChunkRenderer);
+        //~ if (mode == ChunkRenderer.MODE_OFF) {
             //~ if (ChunkRenderer.hasCompactBuffers()) {
                 //~ ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame
             //~ }
+            //~ return;
+        //~ }
+        //~ if (mode == ChunkRenderer.MODE_COMPATIBLE) {
+            //~ this.aetherium$drawCompatible(type, poseStack, camX, camY, camZ);
+            //~ ci.cancel();
             //~ return;
         //~ }
         //~ type.setupRenderState();
@@ -128,6 +143,67 @@ public abstract class ChunkRendererMixin {
             //~ if (ChunkRenderer.hasCompactBuffers()) {
                 //~ ci.cancel();
             //~ }
+        //~ } finally {
+            //~ type.clearRenderState();
+        //~ }
+    //~ }
+
+    //~ /**
+     //~ * Compatible mode: vanilla's renderChunkLayer, call for call (same GL path vanilla takes, so it
+     //~ * runs wherever vanilla runs), drawing only the face groups of sorted sections that can face the
+     //~ * camera. Compact buffers left from shader mode are skipped until their rebuild replaces them.
+     //~ */
+    //~ @Unique
+    //~ private void aetherium$drawCompatible(final RenderType type, final PoseStack poseStack, final double camX,
+                                          //~ final double camY, final double camZ) {
+        //~ type.setupRenderState();
+        //~ ChunkRenderer.beginCompatible();
+        //~ try {
+            //~ final ObjectList<?> list = this.renderChunks;
+            //~ for (int i = 0, n = list.size(); i < n; i++) {
+                //~ final ChunkRenderDispatcher.RenderChunk chunk =
+                        //~ (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
+                //~ if (chunk.getCompiledChunk().isEmpty(type)) {
+                    //~ continue;
+                //~ }
+                //~ final VertexBuffer buffer = chunk.getBuffer(type);
+                //~ final VertexBufferAccess access = (VertexBufferAccess) buffer;
+                //~ if (access.aetheriumCompactLayout() != null) {
+                    //~ continue;
+                //~ }
+                //~ final BlockPos origin = chunk.getOrigin();
+                //~ final double ox = origin.getX() - camX;
+                //~ final double oy = origin.getY() - camY;
+                //~ final double oz = origin.getZ() - camZ;
+                //~ final int runs = ChunkRenderer.compatibleRuns(access.aetheriumSortedLayout(), (float) ox, (float) oy,
+                        //~ (float) oz);
+                //~ if (runs == 0) {
+                    //~ continue;
+                //~ }
+                //~ poseStack.pushPose();
+                //~ poseStack.translate(ox, oy, oz);
+                //~ buffer.bind();
+                //~ DefaultVertexFormat.BLOCK.setupBufferState(0L);
+                //~ RenderSystem.pushMatrix();
+                //~ RenderSystem.loadIdentity();
+                //~ RenderSystem.multMatrix(poseStack.last().pose());
+                //~ if (runs < 0) {
+                    //~ RenderSystem.drawArrays(7, 0, access.aetheriumVertexCount()); // GL_QUADS, as vanilla
+                //~ } else {
+                    //~ for (int r = 0; r < runs; r++) {
+                        //~ RenderSystem.drawArrays(7, ChunkRenderer.runFirstVertex(r), ChunkRenderer.runVertexCount(r));
+                    //~ }
+                //~ }
+                //~ RenderSystem.popMatrix();
+                //~ poseStack.popPose();
+                //~ ChunkRenderer.compatibleSectionDrawn();
+            //~ }
+            //~ VertexBuffer.unbind();
+            //~ RenderSystem.clearCurrentColor();
+            //~ DefaultVertexFormat.BLOCK.clearBufferState();
+            //~ ChunkRenderer.endCompatible();
+        //~ } catch (final RuntimeException | LinkageError error) {
+            //~ ChunkRenderer.fail("compatible mode: " + error);
         //~ } finally {
             //~ type.clearRenderState();
         //~ }

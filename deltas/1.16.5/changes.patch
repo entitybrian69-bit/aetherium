@@ -1148,10 +1148,10 @@ index a561e63..e5c6f9f 100644
      // @era:options-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-index daa9da9..53cd742 100644
+index 93ae6d3..5c2b16f 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-@@ -1,27 +1,27 @@
+@@ -1,31 +1,31 @@
  package com.aetherium.mixin.core;
  
 -// @era:chunk-renderer-begin none
@@ -1161,6 +1161,9 @@ index daa9da9..53cd742 100644
 -//~ import com.aetherium.client.VertexBufferAccess;
 -//~ import com.aetherium.perf.RenderToggles;
 -//~ import com.aetherium.render.CompactTerrain;
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
+-//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+-//~ import com.mojang.blaze3d.vertex.VertexBuffer;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
 -//~ import com.mojang.math.Matrix4f;
 -//~ import net.minecraft.client.Camera;
@@ -1173,6 +1176,7 @@ index daa9da9..53cd742 100644
 -//~ import net.minecraft.core.BlockPos;
 -//~ import org.spongepowered.asm.mixin.Final;
 -//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -1182,6 +1186,9 @@ index daa9da9..53cd742 100644
 +import com.aetherium.client.VertexBufferAccess;
 +import com.aetherium.perf.RenderToggles;
 +import com.aetherium.render.CompactTerrain;
++import com.mojang.blaze3d.systems.RenderSystem;
++import com.mojang.blaze3d.vertex.DefaultVertexFormat;
++import com.mojang.blaze3d.vertex.VertexBuffer;
 +import com.mojang.blaze3d.vertex.PoseStack;
 +import com.mojang.math.Matrix4f;
 +import net.minecraft.client.Camera;
@@ -1194,6 +1201,7 @@ index daa9da9..53cd742 100644
 +import net.minecraft.core.BlockPos;
 +import org.spongepowered.asm.mixin.Final;
 +import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -1201,7 +1209,7 @@ index daa9da9..53cd742 100644
  // @era:chunk-renderer-end
  import net.minecraft.client.renderer.LevelRenderer;
  
-@@ -44,93 +44,93 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -53,160 +53,160 @@ import org.spongepowered.asm.mixin.Mixin;
  @Mixin(LevelRenderer.class)
  public abstract class ChunkRendererMixin {
  
@@ -1227,7 +1235,7 @@ index daa9da9..53cd742 100644
 -        //~ // fixed-function state, which GL translators may not track.
 -        //~ projection.store(ChunkRenderer.projectionBuffer());
 -        //~ ChunkRenderer.projectionStored();
--        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
+-        //~ if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, RenderToggles.pipelineShader)) {
 -            //~ ((LevelRenderer) (Object) this).allChanged();
 -        //~ }
 -    //~ }
@@ -1243,7 +1251,7 @@ index daa9da9..53cd742 100644
 +        // fixed-function state, which GL translators may not track.
 +        projection.store(ChunkRenderer.projectionBuffer());
 +        ChunkRenderer.projectionStored();
-+        if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer)) {
++        if (ChunkRenderer.updatePipeline(RenderToggles.experimentalChunkRenderer, RenderToggles.pipelineShader)) {
 +            ((LevelRenderer) (Object) this).allChanged();
 +        }
 +    }
@@ -1259,10 +1267,16 @@ index daa9da9..53cd742 100644
 -        //~ } else {
 -            //~ return;
 -        //~ }
--        //~ if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
+-        //~ final int mode = ChunkRenderer.drawMode(RenderToggles.experimentalChunkRenderer);
+-        //~ if (mode == ChunkRenderer.MODE_OFF) {
 -            //~ if (ChunkRenderer.hasCompactBuffers()) {
 -                //~ ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame
 -            //~ }
+-            //~ return;
+-        //~ }
+-        //~ if (mode == ChunkRenderer.MODE_COMPATIBLE) {
+-            //~ this.aetherium$drawCompatible(type, poseStack, camX, camY, camZ);
+-            //~ ci.cancel();
 -            //~ return;
 -        //~ }
 -        //~ type.setupRenderState();
@@ -1324,10 +1338,16 @@ index daa9da9..53cd742 100644
 +        } else {
 +            return;
 +        }
-+        if (!RenderToggles.experimentalChunkRenderer || ChunkRenderer.hasFailed()) {
++        final int mode = ChunkRenderer.drawMode(RenderToggles.experimentalChunkRenderer);
++        if (mode == ChunkRenderer.MODE_OFF) {
 +            if (ChunkRenderer.hasCompactBuffers()) {
 +                ci.cancel(); // vanilla cannot read compact buffers; the rebuild is queued for the next frame
 +            }
++            return;
++        }
++        if (mode == ChunkRenderer.MODE_COMPATIBLE) {
++            this.aetherium$drawCompatible(type, poseStack, camX, camY, camZ);
++            ci.cancel();
 +            return;
 +        }
 +        type.setupRenderState();
@@ -1374,6 +1394,127 @@ index daa9da9..53cd742 100644
 +            if (ChunkRenderer.hasCompactBuffers()) {
 +                ci.cancel();
 +            }
++        } finally {
++            type.clearRenderState();
++        }
++    }
+ 
+-    //~ /**
+-     //~ * Compatible mode: vanilla's renderChunkLayer, call for call (same GL path vanilla takes, so it
+-     //~ * runs wherever vanilla runs), drawing only the face groups of sorted sections that can face the
+-     //~ * camera. Compact buffers left from shader mode are skipped until their rebuild replaces them.
+-     //~ */
+-    //~ @Unique
+-    //~ private void aetherium$drawCompatible(final RenderType type, final PoseStack poseStack, final double camX,
+-                                          //~ final double camY, final double camZ) {
+-        //~ type.setupRenderState();
+-        //~ ChunkRenderer.beginCompatible();
+-        //~ try {
+-            //~ final ObjectList<?> list = this.renderChunks;
+-            //~ for (int i = 0, n = list.size(); i < n; i++) {
+-                //~ final ChunkRenderDispatcher.RenderChunk chunk =
+-                        //~ (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
+-                //~ if (chunk.getCompiledChunk().isEmpty(type)) {
+-                    //~ continue;
+-                //~ }
+-                //~ final VertexBuffer buffer = chunk.getBuffer(type);
+-                //~ final VertexBufferAccess access = (VertexBufferAccess) buffer;
+-                //~ if (access.aetheriumCompactLayout() != null) {
+-                    //~ continue;
+-                //~ }
+-                //~ final BlockPos origin = chunk.getOrigin();
+-                //~ final double ox = origin.getX() - camX;
+-                //~ final double oy = origin.getY() - camY;
+-                //~ final double oz = origin.getZ() - camZ;
+-                //~ final int runs = ChunkRenderer.compatibleRuns(access.aetheriumSortedLayout(), (float) ox, (float) oy,
+-                        //~ (float) oz);
+-                //~ if (runs == 0) {
+-                    //~ continue;
+-                //~ }
+-                //~ poseStack.pushPose();
+-                //~ poseStack.translate(ox, oy, oz);
+-                //~ buffer.bind();
+-                //~ DefaultVertexFormat.BLOCK.setupBufferState(0L);
+-                //~ RenderSystem.pushMatrix();
+-                //~ RenderSystem.loadIdentity();
+-                //~ RenderSystem.multMatrix(poseStack.last().pose());
+-                //~ if (runs < 0) {
+-                    //~ RenderSystem.drawArrays(7, 0, access.aetheriumVertexCount()); // GL_QUADS, as vanilla
+-                //~ } else {
+-                    //~ for (int r = 0; r < runs; r++) {
+-                        //~ RenderSystem.drawArrays(7, ChunkRenderer.runFirstVertex(r), ChunkRenderer.runVertexCount(r));
+-                    //~ }
+-                //~ }
+-                //~ RenderSystem.popMatrix();
+-                //~ poseStack.popPose();
+-                //~ ChunkRenderer.compatibleSectionDrawn();
+-            //~ }
+-            //~ VertexBuffer.unbind();
+-            //~ RenderSystem.clearCurrentColor();
+-            //~ DefaultVertexFormat.BLOCK.clearBufferState();
+-            //~ ChunkRenderer.endCompatible();
+-        //~ } catch (final RuntimeException | LinkageError error) {
+-            //~ ChunkRenderer.fail("compatible mode: " + error);
+-        //~ } finally {
+-            //~ type.clearRenderState();
+-        //~ }
+-    //~ }
++    /**
++     * Compatible mode: vanilla's renderChunkLayer, call for call (same GL path vanilla takes, so it
++     * runs wherever vanilla runs), drawing only the face groups of sorted sections that can face the
++     * camera. Compact buffers left from shader mode are skipped until their rebuild replaces them.
++     */
++    @Unique
++    private void aetherium$drawCompatible(final RenderType type, final PoseStack poseStack, final double camX,
++                                          final double camY, final double camZ) {
++        type.setupRenderState();
++        ChunkRenderer.beginCompatible();
++        try {
++            final ObjectList<?> list = this.renderChunks;
++            for (int i = 0, n = list.size(); i < n; i++) {
++                final ChunkRenderDispatcher.RenderChunk chunk =
++                        (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
++                if (chunk.getCompiledChunk().isEmpty(type)) {
++                    continue;
++                }
++                final VertexBuffer buffer = chunk.getBuffer(type);
++                final VertexBufferAccess access = (VertexBufferAccess) buffer;
++                if (access.aetheriumCompactLayout() != null) {
++                    continue;
++                }
++                final BlockPos origin = chunk.getOrigin();
++                final double ox = origin.getX() - camX;
++                final double oy = origin.getY() - camY;
++                final double oz = origin.getZ() - camZ;
++                final int runs = ChunkRenderer.compatibleRuns(access.aetheriumSortedLayout(), (float) ox, (float) oy,
++                        (float) oz);
++                if (runs == 0) {
++                    continue;
++                }
++                poseStack.pushPose();
++                poseStack.translate(ox, oy, oz);
++                buffer.bind();
++                DefaultVertexFormat.BLOCK.setupBufferState(0L);
++                RenderSystem.pushMatrix();
++                RenderSystem.loadIdentity();
++                RenderSystem.multMatrix(poseStack.last().pose());
++                if (runs < 0) {
++                    RenderSystem.drawArrays(7, 0, access.aetheriumVertexCount()); // GL_QUADS, as vanilla
++                } else {
++                    for (int r = 0; r < runs; r++) {
++                        RenderSystem.drawArrays(7, ChunkRenderer.runFirstVertex(r), ChunkRenderer.runVertexCount(r));
++                    }
++                }
++                RenderSystem.popMatrix();
++                poseStack.popPose();
++                ChunkRenderer.compatibleSectionDrawn();
++            }
++            VertexBuffer.unbind();
++            RenderSystem.clearCurrentColor();
++            DefaultVertexFormat.BLOCK.clearBufferState();
++            ChunkRenderer.endCompatible();
++        } catch (final RuntimeException | LinkageError error) {
++            ChunkRenderer.fail("compatible mode: " + error);
 +        } finally {
 +            type.clearRenderState();
 +        }
@@ -1775,7 +1916,7 @@ index 0c9cdbc..592d8eb 100644
      // @era:section-vis-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-index 158ea2c..5d6f7d2 100644
+index e02598d..4f21302 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 @@ -3,18 +3,18 @@ package com.aetherium.mixin.core;
@@ -1809,7 +1950,7 @@ index 158ea2c..5d6f7d2 100644
  // @era:chunk-renderer-end
  import org.spongepowered.asm.mixin.Mixin;
  import org.spongepowered.asm.mixin.Shadow;
-@@ -36,115 +36,115 @@ import org.spongepowered.asm.mixin.Shadow;
+@@ -36,136 +36,136 @@ import org.spongepowered.asm.mixin.Shadow;
  @Mixin(targets = "com.mojang.blaze3d.vertex.VertexBuffer")
  public abstract class VertexBufferMixin implements VertexBufferAccess {
  
@@ -1828,8 +1969,9 @@ index 158ea2c..5d6f7d2 100644
 +    @Unique
 +    private boolean aetherium$terrain;
 +
++    /** What the last upload stored: 0 vanilla as built, 1 compact, 2 vanilla sorted into face groups. */
 +    @Unique
-+    private boolean aetherium$compact;
++    private int aetherium$format;
 +
 +    @Unique
 +    private CompactTerrain.Layout aetherium$layout;
@@ -1860,7 +2002,13 @@ index 158ea2c..5d6f7d2 100644
      @Override
      public CompactTerrain.Layout aetheriumCompactLayout() {
 -        return null;
-+        return this.aetherium$compact ? this.aetherium$layout : null;
++        return this.aetherium$format == 1 ? this.aetherium$layout : null;
+     }
+ 
+     @Override
+     public CompactTerrain.Layout aetheriumSortedLayout() {
+-        return null;
++        return this.aetherium$format == 2 ? this.aetherium$layout : null;
      }
 -    // @era:chunk-renderer-else gl16
 -    //~ @Shadow
@@ -1876,8 +2024,9 @@ index 158ea2c..5d6f7d2 100644
 -    //~ @Unique
 -    //~ private boolean aetherium$terrain;
 -
+-    //~ /** What the last upload stored: 0 vanilla as built, 1 compact, 2 vanilla sorted into face groups. */
 -    //~ @Unique
--    //~ private boolean aetherium$compact;
+-    //~ private int aetherium$format;
 -
 -    //~ @Unique
 -    //~ private CompactTerrain.Layout aetherium$layout;
@@ -1892,34 +2041,44 @@ index 158ea2c..5d6f7d2 100644
 +        if (!this.aetherium$terrain) {
 +            return;
 +        }
-+        if (!ChunkRenderer.compactUploadsWanted()) {
-+            this.aetherium$compact = false;
++        final int mode = ChunkRenderer.uploadMode();
++        if (mode == ChunkRenderer.MODE_OFF) {
++            this.aetherium$format = 0;
 +            return;
 +        }
 +        ci.cancel();
 +        final ByteBuffer data = builder.popNextBuffer().getSecond();
 +        ByteBuffer upload = data;
-+        boolean compact = false;
++        int format = 0;
 +        try {
 +            if (this.aetherium$layout == null) {
 +                this.aetherium$layout = new CompactTerrain.Layout();
 +            }
-+            final ByteBuffer encoded = CompactTerrain.encode(data, CompactTerrain.scratch(), this.aetherium$layout);
-+            if (encoded != null) {
-+                upload = encoded;
-+                compact = true;
++            if (mode == ChunkRenderer.MODE_SHADER) {
++                final ByteBuffer encoded = CompactTerrain.encode(data, CompactTerrain.scratch(), this.aetherium$layout);
++                if (encoded != null) {
++                    upload = encoded;
++                    format = 1;
++                }
++            } else {
++                // Compatible mode: the same vanilla bytes, only reordered by face direction.
++                final ByteBuffer sorted = CompactTerrain.sortQuads(data, CompactTerrain.scratch(), this.aetherium$layout);
++                if (sorted != null) {
++                    upload = sorted;
++                    format = 2;
++                }
 +            }
 +        } catch (final RuntimeException error) {
-+            ChunkRenderer.fail("compact encode failed: " + error);
++            ChunkRenderer.fail("chunk encode failed: " + error);
 +        }
 +        if (this.id != -1) {
-+            this.vertexCount = compact ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
++            this.vertexCount = format == 1 ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
 +            GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
 +            GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
 +            GL15.glBindBuffer(0x8892, 0);
 +        }
-+        this.aetherium$compact = compact;
-+        if (compact) {
++        this.aetherium$format = format;
++        if (format == 1) {
 +            ChunkRenderer.noteCompactUpload(this.aetherium$layout.quads());
 +        }
 +    }
@@ -1949,7 +2108,13 @@ index 158ea2c..5d6f7d2 100644
  
      //~ @Override
      //~ public CompactTerrain.Layout aetheriumCompactLayout() {
--        //~ return this.aetherium$compact ? this.aetherium$layout : null;
+-        //~ return this.aetherium$format == 1 ? this.aetherium$layout : null;
++        //~ return null;
+     //~ }
+ 
+     //~ @Override
+     //~ public CompactTerrain.Layout aetheriumSortedLayout() {
+-        //~ return this.aetherium$format == 2 ? this.aetherium$layout : null;
 -    //~ }
 -
 -    //~ /**
@@ -1962,34 +2127,44 @@ index 158ea2c..5d6f7d2 100644
 -        //~ if (!this.aetherium$terrain) {
 -            //~ return;
 -        //~ }
--        //~ if (!ChunkRenderer.compactUploadsWanted()) {
--            //~ this.aetherium$compact = false;
+-        //~ final int mode = ChunkRenderer.uploadMode();
+-        //~ if (mode == ChunkRenderer.MODE_OFF) {
+-            //~ this.aetherium$format = 0;
 -            //~ return;
 -        //~ }
 -        //~ ci.cancel();
 -        //~ final ByteBuffer data = builder.popNextBuffer().getSecond();
 -        //~ ByteBuffer upload = data;
--        //~ boolean compact = false;
+-        //~ int format = 0;
 -        //~ try {
 -            //~ if (this.aetherium$layout == null) {
 -                //~ this.aetherium$layout = new CompactTerrain.Layout();
 -            //~ }
--            //~ final ByteBuffer encoded = CompactTerrain.encode(data, CompactTerrain.scratch(), this.aetherium$layout);
--            //~ if (encoded != null) {
--                //~ upload = encoded;
--                //~ compact = true;
+-            //~ if (mode == ChunkRenderer.MODE_SHADER) {
+-                //~ final ByteBuffer encoded = CompactTerrain.encode(data, CompactTerrain.scratch(), this.aetherium$layout);
+-                //~ if (encoded != null) {
+-                    //~ upload = encoded;
+-                    //~ format = 1;
+-                //~ }
+-            //~ } else {
+-                //~ // Compatible mode: the same vanilla bytes, only reordered by face direction.
+-                //~ final ByteBuffer sorted = CompactTerrain.sortQuads(data, CompactTerrain.scratch(), this.aetherium$layout);
+-                //~ if (sorted != null) {
+-                    //~ upload = sorted;
+-                    //~ format = 2;
+-                //~ }
 -            //~ }
 -        //~ } catch (final RuntimeException error) {
--            //~ ChunkRenderer.fail("compact encode failed: " + error);
+-            //~ ChunkRenderer.fail("chunk encode failed: " + error);
 -        //~ }
 -        //~ if (this.id != -1) {
--            //~ this.vertexCount = compact ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
+-            //~ this.vertexCount = format == 1 ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
 -            //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
 -            //~ GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
 -            //~ GL15.glBindBuffer(0x8892, 0);
 -        //~ }
--        //~ this.aetherium$compact = compact;
--        //~ if (compact) {
+-        //~ this.aetherium$format = format;
+-        //~ if (format == 1) {
 -            //~ ChunkRenderer.noteCompactUpload(this.aetherium$layout.quads());
 -        //~ }
 +        //~ return null;
@@ -2129,7 +2304,7 @@ index 3b828a7..fd7ebcf 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 74402e4..dc8e9ab 100644
+index fbada9f..d42880d 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

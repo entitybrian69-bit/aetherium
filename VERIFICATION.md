@@ -1,4 +1,4 @@
-# Aetherium 1.3.2: verification report
+# Aetherium 1.3.3: verification report
 
 What was checked, how it was checked, and what was **not** checked. The audit trail for the
 0.1.0 line (CI compile reports 1–6, the old renderer's defects) is in git history at
@@ -379,3 +379,31 @@ benchmarks); `gen_resources --check`; `gen_deltas --all --verify` (32 patches); 
 files); `check_refs.py` clean.
 CI: `ship` run 38108163083 for commit 960afb8 passed all 35 jobs and published 33 releases
 `v1.3.2+<mc>`.
+
+## 14. 1.3.3: compatible mode (1.16.5)
+
+Third report, with 1.3.2 on LTW: the crash guard worked (at the next start it logged its warning
+and turned the pipeline off). After the user turned it back on, the log showed
+`first compact chunk upload (208 quads, 20 KB instead of 26 KB)` and
+`pipeline ready (GLSL 1.20, 16-byte compact vertices, plain triangles, no index buffer)`, and then
+the process died again at the first draw. With the index buffer gone, the remaining suspects are
+the GLSL 1.20 program and the generic `u16` / normalised vertex attributes. **Not established:**
+which call crashes. No native crash log (hs_err) has been seen. 1.3.3 therefore adds a path
+without either, and per-step trace logging for the shader path.
+
+| Change | Check |
+| --- | --- |
+| `CompactTerrain.sortQuads`: vanilla's 32-byte quads reordered by face group, byte for byte; refuses only partial quads | `CompactTerrainTest.sortedVanilla`: every byte of 7 quads lands in its group slot, a quad the compact format refuses is accepted, plane and group starts correct |
+| Compatible-mode draw replays vanilla's `renderChunkLayer` with the same calls: `VertexBuffer.bind`, `DefaultVertexFormat.BLOCK.setupBufferState(0L)`, `RenderSystem.pushMatrix/loadIdentity/multMatrix/drawArrays(7, …)/popMatrix`, `VertexBuffer.unbind`, `RenderSystem.clearCurrentColor`, `clearBufferState` | All members present in the 1.16.5 probe; vanilla's call order read from the probe's `renderChunkLayer` bytecode listing; `stubcheck 1.16.5` |
+| Mode state machine (off / shader / compatible); rebuild on every mode change; compact leftovers skipped in compatible mode | `ChunkRendererTest.pipelineSwitching`, `wantedMode` |
+| Java-side shader failure switches to compatible mode; a compatible-mode failure turns the pipeline off | `ChunkRendererTest.shaderFailureDowngrades` |
+| Crash marker records the mode; shader-mode or old-format marker sets `advanced.pipeline_shader=false` and keeps the pipeline on; compatible-mode marker turns it off | `PipelineCrashGuardTest.shaderCrashDowngradesFirst` |
+| GL renderer/version/GLSL logged once; first 24 shader-mode GL steps logged | Code review |
+
+**Not established:** that compatible mode runs on LTW (it makes only calls vanilla makes, in
+vanilla's order, so it should work wherever vanilla terrain works), and how much faster it is than
+vanilla there. Its saving is the skipped back-facing groups, not a smaller vertex format.
+
+Gates run for 1.3.3: `stubcheck --all` 33/33; `testrun.py --bench` 131 passed (124 unit + 7
+benchmarks); `gen_resources`; `gen_deltas --all --verify` (32 patches); `check.py` clean (337
+files); `check_refs.py` clean.

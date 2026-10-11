@@ -97,18 +97,60 @@ final class ChunkRendererTest {
     @Test
     @DisplayName("aetherium pipeline: chunks are rebuilt once when it turns on, and when it turns off only if compact buffers exist")
     void pipelineSwitching() {
-        assertFalse(ChunkRenderer.updatePipeline(false), "off -> off");
-        assertTrue(ChunkRenderer.updatePipeline(true), "turning on converts loaded sections now");
-        assertTrue(ChunkRenderer.compactUploadsWanted());
-        assertFalse(ChunkRenderer.updatePipeline(true), "no rebuild every frame");
-        assertFalse(ChunkRenderer.updatePipeline(false), "no compact buffer was ever stored: nothing to undo");
-        assertFalse(ChunkRenderer.compactUploadsWanted());
-        assertTrue(ChunkRenderer.updatePipeline(true));
+        ChunkRenderer.resetForTests();
+        assertFalse(ChunkRenderer.updatePipeline(false, true), "off -> off");
+        assertTrue(ChunkRenderer.updatePipeline(true, true), "turning on converts loaded sections now");
+        assertEquals(ChunkRenderer.MODE_SHADER, ChunkRenderer.uploadMode());
+        assertEquals(ChunkRenderer.MODE_SHADER, ChunkRenderer.drawMode(true));
+        assertEquals(ChunkRenderer.MODE_OFF, ChunkRenderer.drawMode(false));
+        assertFalse(ChunkRenderer.updatePipeline(true, true), "no rebuild every frame");
+        assertFalse(ChunkRenderer.updatePipeline(false, true), "no compact buffer was ever stored: nothing to undo");
+        assertEquals(ChunkRenderer.MODE_OFF, ChunkRenderer.uploadMode());
+        assertTrue(ChunkRenderer.updatePipeline(true, true));
         ChunkRenderer.noteCompactUpload(10);
         assertTrue(ChunkRenderer.hasCompactBuffers());
-        assertTrue(ChunkRenderer.updatePipeline(false), "vanilla cannot draw compact buffers: rebuild");
+        assertTrue(ChunkRenderer.updatePipeline(false, true), "vanilla cannot draw compact buffers: rebuild");
         assertFalse(ChunkRenderer.hasCompactBuffers());
-        assertFalse(ChunkRenderer.updatePipeline(false));
+        assertFalse(ChunkRenderer.updatePipeline(false, true));
+
+        // Compatible mode: its own rebuild (sorted uploads); switching modes rebuilds too.
+        assertTrue(ChunkRenderer.updatePipeline(true, false));
+        assertEquals(ChunkRenderer.MODE_COMPATIBLE, ChunkRenderer.uploadMode());
+        assertEquals(ChunkRenderer.MODE_COMPATIBLE, ChunkRenderer.drawMode(true));
+        assertTrue(ChunkRenderer.updatePipeline(true, true), "compatible -> shader");
+        assertTrue(ChunkRenderer.updatePipeline(true, false), "shader -> compatible");
+        assertFalse(ChunkRenderer.updatePipeline(false, false), "sorted buffers are vanilla's format: no rebuild");
+        ChunkRenderer.resetForTests();
+    }
+
+    @Test
+    @DisplayName("aetherium pipeline: a shader-mode failure switches to compatible mode; a compatible-mode failure turns it off")
+    void shaderFailureDowngrades() {
+        ChunkRenderer.resetForTests();
+        assertTrue(ChunkRenderer.updatePipeline(true, true));
+        ChunkRenderer.noteCompactUpload(10);
+        ChunkRenderer.fail("test: shader link failed");
+        assertFalse(ChunkRenderer.hasFailed(), "the pipeline itself stays on");
+        assertEquals(ChunkRenderer.MODE_OFF, ChunkRenderer.drawMode(true), "nothing draws until the rebuild");
+        assertTrue(ChunkRenderer.updatePipeline(true, true), "next frame: rebuild in compatible mode");
+        assertEquals(ChunkRenderer.MODE_COMPATIBLE, ChunkRenderer.uploadMode(), "even though the option still says shader");
+        assertEquals(ChunkRenderer.MODE_COMPATIBLE, ChunkRenderer.drawMode(true));
+        assertTrue(ChunkRenderer.hasCompactBuffers(), "compact leftovers are skipped until rebuilt");
+        ChunkRenderer.fail("test: compatible mode failed");
+        assertTrue(ChunkRenderer.hasFailed());
+        assertEquals(ChunkRenderer.MODE_OFF, ChunkRenderer.drawMode(true));
+        assertTrue(ChunkRenderer.updatePipeline(true, true), "off: compact leftovers need a vanilla rebuild");
+        ChunkRenderer.resetForTests();
+    }
+
+    @Test
+    @DisplayName("aetherium pipeline: mode choice")
+    void wantedMode() {
+        assertEquals(ChunkRenderer.MODE_OFF, ChunkRenderer.wantedMode(false, true, false, false));
+        assertEquals(ChunkRenderer.MODE_OFF, ChunkRenderer.wantedMode(true, true, true, false));
+        assertEquals(ChunkRenderer.MODE_SHADER, ChunkRenderer.wantedMode(true, true, false, false));
+        assertEquals(ChunkRenderer.MODE_COMPATIBLE, ChunkRenderer.wantedMode(true, false, false, false));
+        assertEquals(ChunkRenderer.MODE_COMPATIBLE, ChunkRenderer.wantedMode(true, true, false, true));
     }
 
     @Test

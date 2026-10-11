@@ -109,6 +109,37 @@ final class CompactTerrainTest {
     }
 
     @Test
+    @DisplayName("compatible mode: vanilla's 32-byte quads are only reordered by face group, byte for byte, and nothing is refused")
+    void sortedVanilla() {
+        // A cube plus one quad the compact format would refuse (x = 60, light 300): sorting takes it.
+        final Mesh mesh = cube(3, 4, 5).quad(UP_FACE, 60, 0, 0, 0, 127, 0, 300, 0);
+        final ByteBuffer source = mesh.done();
+        final CompactTerrain.Layout layout = new CompactTerrain.Layout();
+        final ByteBuffer out = CompactTerrain.sortQuads(source, new CompactTerrain.Scratch(), layout);
+        assertNotNull(out);
+        assertEquals(source.remaining(), out.remaining(), "same size: vanilla's own format");
+        assertEquals(7, layout.quads());
+        assertEquals(2, layout.quadsIn(CompactTerrain.UP));
+        assertEquals(0, layout.start[CompactTerrain.UP]);
+        assertEquals(6, layout.start[CompactTerrain.DOWN], "groups in order: DOWN is last");
+        assertEquals(1.0f, layout.plane[CompactTerrain.UP], 0.0f, "lowest up face: the one at y = 1 (x = 60)");
+        final int quadBytes = 4 * CompactTerrain.SOURCE_STRIDE;
+        // Source order: UP, DOWN, NORTH, SOUTH, WEST, EAST, UP(60). Destination slot of each source quad:
+        final int[] slot = {
+            0, layout.start[CompactTerrain.DOWN], layout.start[CompactTerrain.NORTH], layout.start[CompactTerrain.SOUTH],
+            layout.start[CompactTerrain.WEST], layout.start[CompactTerrain.EAST], 1};
+        for (int q = 0; q < 7; q++) {
+            for (int b = 0; b < quadBytes; b++) {
+                assertEquals(source.get(source.position() + q * quadBytes + b), out.get(slot[q] * quadBytes + b),
+                        "quad " + q + " byte " + b);
+            }
+        }
+        final ByteBuffer three = new Mesh().quad(UP_FACE, 0, 0, 0, 0, 127, 0, 0, 0).done();
+        three.limit(three.limit() - CompactTerrain.SOURCE_STRIDE);
+        assertNull(CompactTerrain.sortQuads(three, new CompactTerrain.Scratch(), layout), "not whole quads");
+    }
+
+    @Test
     @DisplayName("compact terrain: positions keep 1/1024-block precision across the whole range, shared vertices stay shared")
     void positionPrecision() {
         for (float p = -8.0f; p < 55.99f; p += 0.0625f) {

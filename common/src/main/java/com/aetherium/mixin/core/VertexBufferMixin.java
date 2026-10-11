@@ -60,6 +60,11 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
     public CompactTerrain.Layout aetheriumCompactLayout() {
         return null;
     }
+
+    @Override
+    public CompactTerrain.Layout aetheriumSortedLayout() {
+        return null;
+    }
     // @era:chunk-renderer-else gl16
     //~ @Shadow
     //~ private int id;
@@ -74,8 +79,9 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
     //~ @Unique
     //~ private boolean aetherium$terrain;
 
+    //~ /** What the last upload stored: 0 vanilla as built, 1 compact, 2 vanilla sorted into face groups. */
     //~ @Unique
-    //~ private boolean aetherium$compact;
+    //~ private int aetherium$format;
 
     //~ @Unique
     //~ private CompactTerrain.Layout aetherium$layout;
@@ -102,7 +108,12 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
 
     //~ @Override
     //~ public CompactTerrain.Layout aetheriumCompactLayout() {
-        //~ return this.aetherium$compact ? this.aetherium$layout : null;
+        //~ return this.aetherium$format == 1 ? this.aetherium$layout : null;
+    //~ }
+
+    //~ @Override
+    //~ public CompactTerrain.Layout aetheriumSortedLayout() {
+        //~ return this.aetherium$format == 2 ? this.aetherium$layout : null;
     //~ }
 
     //~ /**
@@ -115,34 +126,44 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
         //~ if (!this.aetherium$terrain) {
             //~ return;
         //~ }
-        //~ if (!ChunkRenderer.compactUploadsWanted()) {
-            //~ this.aetherium$compact = false;
+        //~ final int mode = ChunkRenderer.uploadMode();
+        //~ if (mode == ChunkRenderer.MODE_OFF) {
+            //~ this.aetherium$format = 0;
             //~ return;
         //~ }
         //~ ci.cancel();
         //~ final ByteBuffer data = builder.popNextBuffer().getSecond();
         //~ ByteBuffer upload = data;
-        //~ boolean compact = false;
+        //~ int format = 0;
         //~ try {
             //~ if (this.aetherium$layout == null) {
                 //~ this.aetherium$layout = new CompactTerrain.Layout();
             //~ }
-            //~ final ByteBuffer encoded = CompactTerrain.encode(data, CompactTerrain.scratch(), this.aetherium$layout);
-            //~ if (encoded != null) {
-                //~ upload = encoded;
-                //~ compact = true;
+            //~ if (mode == ChunkRenderer.MODE_SHADER) {
+                //~ final ByteBuffer encoded = CompactTerrain.encode(data, CompactTerrain.scratch(), this.aetherium$layout);
+                //~ if (encoded != null) {
+                    //~ upload = encoded;
+                    //~ format = 1;
+                //~ }
+            //~ } else {
+                //~ // Compatible mode: the same vanilla bytes, only reordered by face direction.
+                //~ final ByteBuffer sorted = CompactTerrain.sortQuads(data, CompactTerrain.scratch(), this.aetherium$layout);
+                //~ if (sorted != null) {
+                    //~ upload = sorted;
+                    //~ format = 2;
+                //~ }
             //~ }
         //~ } catch (final RuntimeException error) {
-            //~ ChunkRenderer.fail("compact encode failed: " + error);
+            //~ ChunkRenderer.fail("chunk encode failed: " + error);
         //~ }
         //~ if (this.id != -1) {
-            //~ this.vertexCount = compact ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
+            //~ this.vertexCount = format == 1 ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
             //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
             //~ GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
             //~ GL15.glBindBuffer(0x8892, 0);
         //~ }
-        //~ this.aetherium$compact = compact;
-        //~ if (compact) {
+        //~ this.aetherium$format = format;
+        //~ if (format == 1) {
             //~ ChunkRenderer.noteCompactUpload(this.aetherium$layout.quads());
         //~ }
     //~ }
