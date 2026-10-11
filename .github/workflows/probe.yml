@@ -119,8 +119,8 @@ jobs:
                 $0 ~ rx {sub(/^ +/, "", $0); print m " :: " $0}' | head -300 >> "$file" || true
             done
           fi
-          echo "=== package listing (client.gui.screens, client.input, client)" >> "$file"
-          unzip -l "$jar" | awk '{print $4}' | grep -E '^net/minecraft/client/(gui/screens/[A-Za-z]+Screen|input/|[A-Za-z]+Status|[A-Za-z]+Preset)\.class$' >> "$file" || true
+          echo "=== package listing (client.gui.screens, client.input, client, renderer, particle, model.geom, blaze3d)" >> "$file"
+          unzip -l "$jar" | awk '{print $4}' | grep -E '^(net/minecraft/client/(gui/screens/[A-Za-z]+Screen|input/|[A-Za-z]+Status|[A-Za-z]+Preset|[A-Za-z]+|renderer/[A-Za-z$]+|renderer/(fog|fog/environment|chunk|state|state/level)/[A-Za-z$]+|particle/[A-Za-z$]+|model/geom/[A-Za-z$]+|player/[A-Za-z]+)|com/mojang/blaze3d/(platform|systems|vertex)/[A-Za-z$]+)\.class$' | grep -v '\$[0-9]' >> "$file" || true
           if [ -f tools/probe_grep.txt ] && grep -qx "${{ matrix.version }}" <(sed -n '2,$p' tools/probe_grep.txt); then
             rx=$(sed -n 1p tools/probe_grep.txt)
             echo "=== grep $rx" >> "$file"
