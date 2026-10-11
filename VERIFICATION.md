@@ -577,3 +577,5 @@ crash site is inferred from the trace and from the GL4ES source read for section
 
 Gates run for 1.5.3: `stubcheck --all` 33/33; `testrun.py` 147 passed; `gen_deltas --all --verify`
 (32 patches); `check.py` clean; `check_refs.py` clean.
+CI: `ship` run 38130796347 for commit b3927bb passed and published `v1.5.3+1.16.5`
+(`aetherium-fabric-1.5.3+1.16.5.jar`, 947105 bytes).
