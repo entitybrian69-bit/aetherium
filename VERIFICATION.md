@@ -518,3 +518,23 @@ benchmarks); `gen_deltas --all --verify` (32 patches); `gen_resources --check`; 
 `check_refs.py` clean; `java_api_lint 8` clean.
 CI: `ship` run 38126263750 for commit 310d9cf passed (plan, 1.16.5 java 8, downloads) and published
 `v1.5.0+1.16.5` (`aetherium-fabric-1.5.0+1.16.5.jar`, 946133 bytes).
+
+## 18. 1.5.1: held-block crash fix (1.16.5)
+
+Crash report from the user (1.5.0, Mali-G57, gl4es 1.1.5): `IndexOutOfBoundsException: Index 1 out
+of bounds for length 1` in `BufferBuilder.popNextBuffer` from `RenderType.end` from
+`ItemInHandRenderer.renderHandsWithItems`. Cause: `popNextBuffer` increments
+`lastRenderedCountIndex` before `List.get`, so an extra pop on an empty builder throws (swallowed
+inside the chunk upload's `CompletableFuture`) and leaves the index past the end; the next
+`end()` + pop on that builder (the held block's `Sheets.cutoutBlockSheet`, which is the render
+thread's fixed chunk builder in 1.16.5) fails. The extra pop came from `PreparedUploads` keeping one
+record per builder: several render-thread rebuilds in one frame overwrote each other's record.
+
+| Change | Check |
+| --- | --- |
+| No preparation on the render thread (`RenderSystem.isOnRenderThread()`, present in the probe) | code review; `ChunkPrepareMixin` |
+| Records are a FIFO per builder; none replaced or dropped | `StreamingTest.preparedUploads` |
+| A render-thread rebuild makes the next upload drain run the whole queue, once | `StreamingTest.drainAllAfterRenderThreadBuild` |
+
+Gates run for 1.5.1: `stubcheck --all` 33/33; `testrun.py` 146 passed; `gen_deltas --all --verify`
+(32 patches); `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.

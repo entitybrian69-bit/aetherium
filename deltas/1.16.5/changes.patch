@@ -2056,10 +2056,10 @@ index 84ade47..3b93da7 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
-index 8e5689c..039f6de 100644
+index 7da2c77..22b5e36 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java
-@@ -1,18 +1,18 @@
+@@ -1,20 +1,20 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
@@ -2068,6 +2068,8 @@ index 8e5689c..039f6de 100644
 -//~ import com.aetherium.client.QolHooks;
 -//~ import com.aetherium.client.VertexBufferAccess;
 -//~ import com.aetherium.perf.PreparedUploads;
+-//~ import com.aetherium.perf.UploadBudget;
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
 -//~ import com.mojang.blaze3d.vertex.BufferBuilder;
 -//~ import com.mojang.blaze3d.vertex.VertexBuffer;
 -//~ import java.util.concurrent.CompletableFuture;
@@ -2079,6 +2081,8 @@ index 8e5689c..039f6de 100644
 +import com.aetherium.client.QolHooks;
 +import com.aetherium.client.VertexBufferAccess;
 +import com.aetherium.perf.PreparedUploads;
++import com.aetherium.perf.UploadBudget;
++import com.mojang.blaze3d.systems.RenderSystem;
 +import com.mojang.blaze3d.vertex.BufferBuilder;
 +import com.mojang.blaze3d.vertex.VertexBuffer;
 +import java.util.concurrent.CompletableFuture;
@@ -2090,7 +2094,7 @@ index 8e5689c..039f6de 100644
  // @era:qol16-end
  
  /**
-@@ -23,19 +23,19 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -33,26 +33,26 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher")
  public abstract class ChunkPrepareMixin {
@@ -2099,6 +2103,13 @@ index 8e5689c..039f6de 100644
 -    //~ @Inject(method = "uploadChunkLayer", at = @At("HEAD"), require = 0)
 -    //~ private void aetherium$prepare(final BufferBuilder builder, final VertexBuffer buffer,
 -                                   //~ final CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+-        //~ if (RenderSystem.isOnRenderThread()) {
+-            //~ // A block edit rebuilt on the render thread, in the builders vanilla shares with the
+-            //~ // entity and held-item renderers: leave it to vanilla's in-order upload, and run that
+-            //~ // upload this frame, before those renderers use the builders again.
+-            //~ UploadBudget.requestDrainAll();
+-            //~ return;
+-        //~ }
 -        //~ if (QolHooks.prepareUploads() && (Object) buffer instanceof VertexBufferAccess) {
 -            //~ ((VertexBufferAccess) (Object) buffer).aetheriumPrepare(builder);
 -        //~ }
@@ -2107,6 +2118,13 @@ index 8e5689c..039f6de 100644
 +    @Inject(method = "uploadChunkLayer", at = @At("HEAD"), require = 0)
 +    private void aetherium$prepare(final BufferBuilder builder, final VertexBuffer buffer,
 +                                   final CallbackInfoReturnable<CompletableFuture<Void>> cir) {
++        if (RenderSystem.isOnRenderThread()) {
++            // A block edit rebuilt on the render thread, in the builders vanilla shares with the
++            // entity and held-item renderers: leave it to vanilla's in-order upload, and run that
++            // upload this frame, before those renderers use the builders again.
++            UploadBudget.requestDrainAll();
++            return;
++        }
 +        if (QolHooks.prepareUploads() && (Object) buffer instanceof VertexBufferAccess) {
 +            ((VertexBufferAccess) (Object) buffer).aetheriumPrepare(builder);
 +        }
@@ -4338,7 +4356,7 @@ index cfa7c77..042eb9a 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 1433cd3..0fdf283 100644
+index 7530e78..47ceabf 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

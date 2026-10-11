@@ -187,11 +187,51 @@ final class StreamingTest {
         assertTrue(PreparedUploads.take(builderB) == compat);
         assertNull(PreparedUploads.take(builderB), "taken once");
         PreparedUploads.done(compat);
+        // Several builds through one builder before their uploads run (the render thread's shared
+        // builders): every mesh is kept and handed out in pop order, none is replaced.
         PreparedUploads.put(builderA, raw);
-        assertEquals(1, PreparedUploads.pending(), "a newer build of the same builder replaces the old record");
+        assertEquals(2, PreparedUploads.pending(), "a second mesh of the same builder is kept");
+        assertTrue(PreparedUploads.take(builderA) == shader, "oldest first");
+        assertEquals(1, PreparedUploads.pending());
+        assertTrue(PreparedUploads.take(builderA) == raw, "then the newer one");
+        assertNull(PreparedUploads.take(builderA));
+        assertEquals(0, PreparedUploads.pending());
+        PreparedUploads.put(builderA, shader);
         PreparedUploads.clear();
         assertEquals(0, PreparedUploads.pending());
         DirectPool.trim();
+    }
+
+    @Test
+    @DisplayName("a render-thread rebuild makes the next upload drain run the whole queue, once")
+    void drainAllAfterRenderThreadBuild() {
+        final java.util.concurrent.ConcurrentLinkedQueue<Runnable> queue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
+        final int[] ran = new int[1];
+        final Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                ran[0]++;
+            }
+        };
+        for (int i = 0; i < 100; i++) {
+            queue.add(task);
+        }
+        final long[] now = new long[1];
+        final UploadBudget.Clock clock = new UploadBudget.Clock() {
+            @Override
+            public long nanoTime() {
+                return now[0] += 1_000_000L; // every upload "takes" 1 ms
+            }
+        };
+        assertEquals(UploadBudget.MIN_PER_FRAME, UploadBudget.drain(queue, clock, 1_000_000L), "budgeted");
+        UploadBudget.requestDrainAll();
+        assertEquals(100 - UploadBudget.MIN_PER_FRAME, UploadBudget.drain(queue, clock, 1_000_000L), "everything, in order");
+        assertEquals(100, ran[0]);
+        for (int i = 0; i < 100; i++) {
+            queue.add(task);
+        }
+        assertEquals(UploadBudget.MIN_PER_FRAME, UploadBudget.drain(queue, clock, 1_000_000L), "only once");
+        queue.clear();
     }
 
     @Test

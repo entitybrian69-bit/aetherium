@@ -28,6 +28,8 @@ public final class UploadBudget {
 
     private static volatile boolean enabled = true;
     private static volatile long budgetNanos = BUDGET_NANOS;
+    /** Set when a mesh was built on the render thread: the next drain runs the whole queue. */
+    private static volatile boolean drainAllOnce;
 
     private UploadBudget() {
     }
@@ -67,6 +69,16 @@ public final class UploadBudget {
         return budgetNanos;
     }
 
+    /**
+     * A chunk section was rebuilt on the render thread (a block edit next to the player). In
+     * 1.16.5 those meshes are built in the vertex builders the entity and held-item renderers
+     * draw with too, so their uploads must run in this frame, before anything else uses those
+     * builders: the next drain runs the whole queue, in order.
+     */
+    public static void requestDrainAll() {
+        drainAllOnce = true;
+    }
+
     /** Runs queued uploads within this frame's budget; the rest stay queued for the next frame. */
     public static int drain(final Queue<Runnable> queue) {
         return drain(queue, SYSTEM, budgetNanos);
@@ -87,7 +99,8 @@ public final class UploadBudget {
     }
 
     public static int drain(final Queue<Runnable> queue, final Clock clock, final long budgetNanos) {
-        final boolean all = fewerThan(queue, DRAIN_ALL_BELOW);
+        final boolean all = drainAllOnce || fewerThan(queue, DRAIN_ALL_BELOW);
+        drainAllOnce = false;
         final long start = clock.nanoTime();
         int ran = 0;
         Runnable task;

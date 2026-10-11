@@ -5,7 +5,8 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **1.5.0** (1.16.5 first) attacks the stutter and frame-rate drop when you walk into
+Version **1.5.1** fixes a crash in 1.5.0 when holding a block after editing terrain with the
+Aetherium pipeline on (see [1.5.1](#151-held-block-crash-fix-1165)). Version **1.5.0** (1.16.5 first) attacks the stutter and frame-rate drop when you walk into
 unloaded chunks, and adds **fog controls**, **sky toggles**, **per-type particle switches** and
 **freelook** (see [1.5.0: smooth chunk streaming, fog, sky, particles, freelook](#150-smooth-chunk-streaming-fog-sky-particles-freelook-1165)).
 Version **1.4.0** (1.16.5 first) adds a **Zume-style zoom** with rebindable Zoom / Zoom In / Zoom Out
@@ -32,6 +33,22 @@ added smooth chunk loading, an animated-texture switch, a block-entity distance,
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
 either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
 OpenGL calls of its own unless you turn on the experimental 1.16.5 Aetherium pipeline.
+
+## 1.5.1: held-block crash fix (1.16.5)
+
+1.5.0 could crash with `IndexOutOfBoundsException: Index 1 out of bounds for length 1` in the
+held-item renderer. In 1.16.5 the chunk sections rebuilt on the render thread (your own block
+edits) are built in the same vertex builders that entities and the item in your hand draw with.
+Each mesh must leave those builders through exactly one upload, in order. 1.5.0 took those meshes
+out early for the pipeline, and kept only one per builder. When one edit rebuilt several sections
+in the same frame, a later upload read the builder a second time. That failed read left the
+builder's read position past its end, and the next held block drawn with it crashed.
+
+- Render-thread meshes are no longer touched. They take vanilla's in-order upload path, and that
+  frame's upload queue is drained in full, so the shared builders are empty before entities and
+  your hand are drawn. This also closes an older gap where a delayed upload could show a chunk
+  mesh in place of the held item for one frame.
+- Worker-thread meshes are kept oldest first, per builder, and none is ever dropped.
 
 ## 1.5.0: smooth chunk streaming, fog, sky, particles, freelook (1.16.5)
 
@@ -311,7 +328,7 @@ a feature is off.
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.5.0+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
+Releases are published per Minecraft version as `v1.5.1+<mcversion>` (1.16.5; the other 32 versions are at `v1.3.4+<mcversion>`), and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -348,7 +365,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.5.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.5.1 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.

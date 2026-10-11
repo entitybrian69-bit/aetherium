@@ -2,6 +2,7 @@ package com.aetherium.perf;
 
 import com.aetherium.render.CompactTerrain;
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -41,7 +42,9 @@ public final class PreparedUploads {
         }
     }
 
-    private static final Map<Object, Prepared> BY_BUILDER = new IdentityHashMap<Object, Prepared>();
+    // Oldest first per builder: a builder's meshes are uploaded in the order they were popped.
+    private static final Map<Object, ArrayDeque<Prepared>> BY_BUILDER = new IdentityHashMap<Object, ArrayDeque<Prepared>>();
+    private static int pendingCount;
     private static long preparedCount;
 
     private PreparedUploads() {
@@ -69,24 +72,43 @@ public final class PreparedUploads {
         }
     }
 
+    /**
+     * Parks a mesh popped from {@code builder}. Several meshes of one builder may wait at once;
+     * they are handed out oldest first, in the order of their uploads. None is ever dropped: every
+     * popped mesh must be consumed by exactly one upload, or that upload would pop the builder a
+     * second time (and a failed pop leaves the builder's read index past its end).
+     */
     public static void put(final Object builder, final Prepared prepared) {
-        final Prepared old;
         synchronized (BY_BUILDER) {
-            old = BY_BUILDER.put(builder, prepared);
+            ArrayDeque<Prepared> queue = BY_BUILDER.get(builder);
+            if (queue == null) {
+                queue = new ArrayDeque<Prepared>(2);
+                BY_BUILDER.put(builder, queue);
+            }
+            queue.addLast(prepared);
+            pendingCount++;
             preparedCount++;
-        }
-        if (old != null) {
-            DirectPool.release(old.data);
         }
     }
 
-    /** The record for this builder, removed; null when the upload was not prepared. */
+    /** The oldest mesh parked for this builder, removed; null when its next upload was not prepared. */
     public static Prepared take(final Object builder) {
         synchronized (BY_BUILDER) {
-            if (BY_BUILDER.isEmpty()) {
+            if (pendingCount == 0) {
                 return null;
             }
-            return BY_BUILDER.remove(builder);
+            final ArrayDeque<Prepared> queue = BY_BUILDER.get(builder);
+            if (queue == null) {
+                return null;
+            }
+            final Prepared prepared = queue.pollFirst();
+            if (queue.isEmpty()) {
+                BY_BUILDER.remove(builder);
+            }
+            if (prepared != null) {
+                pendingCount--;
+            }
+            return prepared;
         }
     }
 
@@ -100,16 +122,19 @@ public final class PreparedUploads {
     /** World unload / renderer reload: drop anything that will never be uploaded. */
     public static void clear() {
         synchronized (BY_BUILDER) {
-            for (final Prepared p : BY_BUILDER.values()) {
-                DirectPool.release(p.data);
+            for (final ArrayDeque<Prepared> queue : BY_BUILDER.values()) {
+                for (final Prepared p : queue) {
+                    DirectPool.release(p.data);
+                }
             }
             BY_BUILDER.clear();
+            pendingCount = 0;
         }
     }
 
     public static int pending() {
         synchronized (BY_BUILDER) {
-            return BY_BUILDER.size();
+            return pendingCount;
         }
     }
 
