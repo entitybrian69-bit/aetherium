@@ -33,7 +33,6 @@ neoforge_version=unavailable (module disabled)
 - `logger=log4j`
 - `near-build=v16`
 - `options=fields`
-- `pacing=rs`
 - `qol16=v16`
 - `reload=all-changed`
 - `rot=fields`
@@ -87,7 +86,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java`
 - `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java`
@@ -107,7 +105,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/NearBuildMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`

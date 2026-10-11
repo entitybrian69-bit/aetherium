@@ -16,7 +16,7 @@ public interface KeyMappingAccessor {
         throw new AssertionError("mixin not applied");
     }
 }
-// @era:keys-else category
+// @era:keys-else category-rl|category-id
 //~ import net.minecraft.client.KeyMapping;
 
 //~ import org.spongepowered.asm.mixin.Mixin;

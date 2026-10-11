@@ -32,7 +32,7 @@ neoforge_version=26.2.0.89
 - `gui=extractor`
 - `hud=none`
 - `input=events`
-- `keys=category`
+- `keys=category-id`
 - `light-hook=none`
 - `loom-plugin-id->no-remap`
 - `mappings-line-removed`
@@ -41,7 +41,7 @@ neoforge_version=26.2.0.89
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`
-- `pacing=none`
+- `pacing=limiter`
 - `qol16=none`
 - `reload=invalidate`
 - `remapJar-block-removed`

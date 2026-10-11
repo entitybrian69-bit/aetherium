@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 3118b81..1a833c4 100644
+index 5dd5f18..19ca691 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -88,7 +88,7 @@ index 3118b81..1a833c4 100644
      // @era:chunk-renderer-end
  
      /** Zume-style zoom with rebindable keys (every version). */
-@@ -101,27 +101,27 @@ public final class Capabilities {
+@@ -101,20 +101,20 @@ public final class Capabilities {
       * Dirty sections near the camera are rebuilt on worker threads instead of the render thread,
       * and client light updates get a per-frame time budget (1.16.5's "build near" path).
       */
@@ -114,6 +114,21 @@ index 3118b81..1a833c4 100644
 +    public static final boolean STREAMING = true;
 +    // @era:qol16-else none
 +    //~ public static final boolean STREAMING = false;
+     // @era:qol16-end
+ 
+     /** Per-frame budget for queued packet tasks ({@code Minecraft.runTick}); every version. */
+@@ -124,17 +124,17 @@ public final class Capabilities {
+     public static final boolean STUTTER_LOG = true;
+ 
+     /** Chunk meshes built on Aetherium's own threads (the dispatcher's executor). */
+-    // @era:qol16-begin none
+-    public static final boolean MESH_THREADS = false;
+-    // @era:qol16-else v16
+-    //~ public static final boolean MESH_THREADS = true;
++    // @era:qol16-begin v16
++    public static final boolean MESH_THREADS = true;
++    // @era:qol16-else none
++    //~ public static final boolean MESH_THREADS = false;
      // @era:qol16-end
  
      /** Fog controls, sky toggles and per-type particle toggles (1.16.5 first). */
@@ -250,11 +265,11 @@ index 50a1e9b..a7c94df 100644
      }
  }
 diff --git a/common/src/main/java/com/aetherium/client/FreelookHooks.java b/common/src/main/java/com/aetherium/client/FreelookHooks.java
-index 38eb19b..2098c31 100644
+index 33b0e53..0e6e7db 100644
 --- a/common/src/main/java/com/aetherium/client/FreelookHooks.java
 +++ b/common/src/main/java/com/aetherium/client/FreelookHooks.java
 @@ -61,10 +61,10 @@ public final class FreelookHooks {
-         final boolean down = mc.screen == null && key.isDown() && Aetherium.isActive();
+         final boolean down = ClientHooks.currentScreen(mc) == null && key.isDown() && Aetherium.isActive();
          final int change = FREELOOK.update(down, toggle);
          if (change == Freelook.STARTED) {
 -            // @era:rot-begin getters
@@ -420,16 +435,15 @@ index afb236d..ffe04fe 100644
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
-index 892fa91..ef06f9f 100644
+index 2b08416..940fdd1 100644
 --- a/common/src/main/java/com/aetherium/client/QolHooks.java
 +++ b/common/src/main/java/com/aetherium/client/QolHooks.java
-@@ -14,31 +14,31 @@ import com.aetherium.perf.VisibilitySearch;
- import com.aetherium.qol.ParticleFilter;
- import com.aetherium.qol.Scenery;
+@@ -18,29 +18,29 @@ import com.aetherium.mixin.core.BlockableEventLoopInvoker;
+ 
+ import net.minecraft.client.Minecraft;
  
 -// @era:qol16-begin none
 -// @era:qol16-else v16
--//~ import com.aetherium.mixin.core.BlockableEventLoopInvoker;
 -//~ import com.mojang.blaze3d.systems.RenderSystem;
 -
 -//~ import java.util.IdentityHashMap;
@@ -437,7 +451,6 @@ index 892fa91..ef06f9f 100644
 -//~ import java.util.concurrent.Executor;
 -
 -//~ import net.minecraft.client.Camera;
--//~ import net.minecraft.client.Minecraft;
 -//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 -//~ import net.minecraft.core.BlockPos;
 -//~ import net.minecraft.core.Registry;
@@ -453,7 +466,6 @@ index 892fa91..ef06f9f 100644
 -//~ import net.minecraft.world.level.material.FluidState;
 -//~ import net.minecraft.world.phys.Vec3;
 +// @era:qol16-begin v16
-+import com.aetherium.mixin.core.BlockableEventLoopInvoker;
 +import com.mojang.blaze3d.systems.RenderSystem;
 +
 +import java.util.IdentityHashMap;
@@ -461,7 +473,6 @@ index 892fa91..ef06f9f 100644
 +import java.util.concurrent.Executor;
 +
 +import net.minecraft.client.Camera;
-+import net.minecraft.client.Minecraft;
 +import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 +import net.minecraft.core.BlockPos;
 +import net.minecraft.core.Registry;
@@ -480,7 +491,7 @@ index 892fa91..ef06f9f 100644
  // @era:qol16-end
  
  /**
-@@ -53,9 +53,9 @@ public final class QolHooks {
+@@ -55,9 +55,9 @@ public final class QolHooks {
      private static volatile boolean prepareUploads;
      private static volatile boolean meshThreads;
  
@@ -493,51 +504,14 @@ index 892fa91..ef06f9f 100644
      // @era:qol16-end
  
      private QolHooks() {
-@@ -93,12 +93,12 @@ public final class QolHooks {
-         ParticleFilter.setBlockBreaking(!scenery || config.particlesBlockBreak.get().booleanValue());
- 
-         FreelookHooks.configure(config);
--        // @era:qol16-begin none
--        // @era:qol16-else v16
--        //~ final Minecraft mc = Minecraft.getInstance();
--        //~ if (mc != null && mc.gameDirectory != null) {
--            //~ StutterRecorder.configure(Capabilities.STREAMING && config.stutterLog.get().booleanValue(), mc.gameDirectory);
--        //~ }
-+        // @era:qol16-begin v16
-+        final Minecraft mc = Minecraft.getInstance();
-+        if (mc != null && mc.gameDirectory != null) {
-+            StutterRecorder.configure(Capabilities.STREAMING && config.stutterLog.get().booleanValue(), mc.gameDirectory);
-+        }
-+        // @era:qol16-else none
-         // @era:qol16-end
-     }
- 
-@@ -118,138 +118,138 @@ public final class QolHooks {
-         FreelookHooks.onLevelChange();
-     }
+@@ -149,106 +149,106 @@ public final class QolHooks {
+         }
+     };
  
 -    // @era:qol16-begin none
--    public static void frame(final net.minecraft.client.Minecraft mc) {
--    }
 -    // @era:qol16-else v16
--    //~ // ------------------------------------------------------------------ per frame
-+    // @era:qol16-begin v16
-+    // ------------------------------------------------------------------ per frame
- 
--    //~ /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
--    //~ public static void frame(final Minecraft mc) {
--        //~ StutterRecorder.frame(System.nanoTime(), null);
--        //~ UploadBudget.adapt(StutterRecorder.averageFrameNanos());
--    //~ }
-+    /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
-+    public static void frame(final Minecraft mc) {
-+        StutterRecorder.frame(System.nanoTime(), null);
-+        UploadBudget.adapt(StutterRecorder.averageFrameNanos());
-+    }
- 
 -    //~ // ------------------------------------------------------------------ streaming hooks
-+    // ------------------------------------------------------------------ streaming hooks
- 
+-
 -    //~ /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
 -    //~ public static Executor meshExecutor(final Executor vanilla) {
 -        //~ if (!meshThreads) {
@@ -547,50 +521,6 @@ index 892fa91..ef06f9f 100644
 -                //~ Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
 -        //~ return own != null ? own : vanilla;
 -    //~ }
-+    /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
-+    public static Executor meshExecutor(final Executor vanilla) {
-+        if (!meshThreads) {
-+            return vanilla;
-+        }
-+        final Executor own = ChunkBuildExecutor.get(Runtime.getRuntime().availableProcessors(),
-+                Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
-+        return own != null ? own : vanilla;
-+    }
- 
--    //~ /**
--     //~ * Minecraft.runTick, instead of {@code runAllTasks()}: runs queued packet tasks within the
--     //~ * frame budget. False when the budget is off (or no world is loaded) and vanilla should run.
--     //~ */
--    //~ public static boolean drainTasks(final Minecraft mc) {
--        //~ if (!PacketBudget.enabled() || mc.level == null || !((Object) mc instanceof BlockableEventLoopInvoker)) {
--            //~ return false;
--        //~ }
--        //~ taskLoop = (BlockableEventLoopInvoker) (Object) mc;
--        //~ StutterRecorder.packetTasks += PacketBudget.drain(POLLER, PacketBudget.SYSTEM);
--        //~ StutterRecorder.packetBacklog = PacketBudget.pressure();
--        //~ return true;
--    //~ }
-+    /**
-+     * Minecraft.runTick, instead of {@code runAllTasks()}: runs queued packet tasks within the
-+     * frame budget. False when the budget is off (or no world is loaded) and vanilla should run.
-+     */
-+    public static boolean drainTasks(final Minecraft mc) {
-+        if (!PacketBudget.enabled() || mc.level == null || !((Object) mc instanceof BlockableEventLoopInvoker)) {
-+            return false;
-+        }
-+        taskLoop = (BlockableEventLoopInvoker) (Object) mc;
-+        StutterRecorder.packetTasks += PacketBudget.drain(POLLER, PacketBudget.SYSTEM);
-+        StutterRecorder.packetBacklog = PacketBudget.pressure();
-+        return true;
-+    }
- 
--    //~ private static BlockableEventLoopInvoker taskLoop;
--    //~ private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
--        //~ @Override
--        //~ public boolean pollTask() {
--            //~ return taskLoop.aetherium$pollTask();
--        //~ }
--    //~ };
 -
 -    //~ private static double rebuildCamX;
 -    //~ private static double rebuildCamY;
@@ -603,26 +533,7 @@ index 892fa91..ef06f9f 100644
 -        //~ rebuildCamY = pos.y;
 -        //~ rebuildCamZ = pos.z;
 -    //~ }
-+    private static BlockableEventLoopInvoker taskLoop;
-+    private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
-+        @Override
-+        public boolean pollTask() {
-+            return taskLoop.aetherium$pollTask();
-+        }
-+    };
-+
-+    private static double rebuildCamX;
-+    private static double rebuildCamY;
-+    private static double rebuildCamZ;
-+
-+    /** LevelRenderer.setupRender HEAD. */
-+    public static void setRebuildCamera(final Camera camera) {
-+        final Vec3 pos = camera.getPosition();
-+        rebuildCamX = pos.x;
-+        rebuildCamY = pos.y;
-+        rebuildCamZ = pos.z;
-+    }
- 
+-
 -    //~ /** setupRender's dirty check, for a section that is dirty: true to leave it for a later frame. */
 -    //~ public static boolean deferRebuild(final ChunkRenderDispatcher.RenderChunk chunk) {
 -        //~ if (!RebuildCoalescer.enabled() || !((Object) chunk instanceof RenderChunkDirtyAccess)) {
@@ -637,21 +548,7 @@ index 892fa91..ef06f9f 100644
 -        //~ return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
 -                //~ chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
 -    //~ }
-+    /** setupRender's dirty check, for a section that is dirty: true to leave it for a later frame. */
-+    public static boolean deferRebuild(final ChunkRenderDispatcher.RenderChunk chunk) {
-+        if (!RebuildCoalescer.enabled() || !((Object) chunk instanceof RenderChunkDirtyAccess)) {
-+            return false;
-+        }
-+        final RenderChunkDirtyAccess times = (RenderChunkDirtyAccess) (Object) chunk;
-+        final BlockPos origin = chunk.getOrigin();
-+        final double dx = origin.getX() + 8.0 - rebuildCamX;
-+        final double dy = origin.getY() + 8.0 - rebuildCamY;
-+        final double dz = origin.getZ() + 8.0 - rebuildCamZ;
-+        final boolean compiled = chunk.getCompiledChunk() != ChunkRenderDispatcher.CompiledChunk.UNCOMPILED;
-+        return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
-+                chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
-+    }
- 
+-
 -    //~ /**
 -     //~ * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
 -     //~ * Sections already in the visible list draw their new mesh at once either way; the search only
@@ -664,33 +561,15 @@ index 892fa91..ef06f9f 100644
 -        //~ }
 -        //~ return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
 -    //~ }
-+    /**
-+     * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
-+     * Sections already in the visible list draw their new mesh at once either way; the search only
-+     * discovers sections behind them, so it is limited to 20 per second while uploads stream in
-+     * (shared with the other streaming triggers, see {@code VisibilitySearch}).
-+     */
-+    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
-+        if (!PacketBudget.enabled()) {
-+            return uploaded;
-+        }
-+        return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
-+    }
- 
+-
 -    //~ // ------------------------------------------------------------------ fog and sky
-+    // ------------------------------------------------------------------ fog and sky
- 
+-
 -    //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
 -    //~ @SuppressWarnings("unchecked")
 -    //~ private static Tag<Fluid> fluidTag(final Object named) {
 -        //~ return (Tag<Fluid>) named;
 -    //~ }
-+    /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
-+    @SuppressWarnings("unchecked")
-+    private static Tag<Fluid> fluidTag(final Object named) {
-+        return (Tag<Fluid>) named;
-+    }
- 
+-
 -    //~ /** FogRenderer.setupFog TAIL, terrain fog only. */
 -    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
 -        //~ if (Scenery.fogVanilla()) {
@@ -713,6 +592,84 @@ index 892fa91..ef06f9f 100644
 -            //~ RenderSystem.fogEnd(FOG[Scenery.END]);
 -        //~ }
 -    //~ }
+-
+-    //~ // ------------------------------------------------------------------ particles
+-
+-    //~ /** ParticleEngine.createParticle HEAD: true to drop this particle. */
+-    //~ public static boolean dropParticle(final ParticleOptions options) {
+-        //~ if (!ParticleFilter.anyDisabled() || options == null) {
+-            //~ return false;
+-        //~ }
+-        //~ final ParticleType<?> type = options.getType();
+-        //~ Integer category = CATEGORY.get(type);
+-        //~ if (category == null) {
+-            //~ final ResourceLocation id = Registry.PARTICLE_TYPE.getKey(type);
+-            //~ category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
+-            //~ CATEGORY.put(type, category);
+-        //~ }
+-        //~ return !ParticleFilter.allowed(category.intValue());
+-    //~ }
++    // @era:qol16-begin v16
++    // ------------------------------------------------------------------ streaming hooks
++
++    /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
++    public static Executor meshExecutor(final Executor vanilla) {
++        if (!meshThreads) {
++            return vanilla;
++        }
++        final Executor own = ChunkBuildExecutor.get(Runtime.getRuntime().availableProcessors(),
++                Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
++        return own != null ? own : vanilla;
++    }
++
++    private static double rebuildCamX;
++    private static double rebuildCamY;
++    private static double rebuildCamZ;
++
++    /** LevelRenderer.setupRender HEAD. */
++    public static void setRebuildCamera(final Camera camera) {
++        final Vec3 pos = camera.getPosition();
++        rebuildCamX = pos.x;
++        rebuildCamY = pos.y;
++        rebuildCamZ = pos.z;
++    }
++
++    /** setupRender's dirty check, for a section that is dirty: true to leave it for a later frame. */
++    public static boolean deferRebuild(final ChunkRenderDispatcher.RenderChunk chunk) {
++        if (!RebuildCoalescer.enabled() || !((Object) chunk instanceof RenderChunkDirtyAccess)) {
++            return false;
++        }
++        final RenderChunkDirtyAccess times = (RenderChunkDirtyAccess) (Object) chunk;
++        final BlockPos origin = chunk.getOrigin();
++        final double dx = origin.getX() + 8.0 - rebuildCamX;
++        final double dy = origin.getY() + 8.0 - rebuildCamY;
++        final double dz = origin.getZ() + 8.0 - rebuildCamZ;
++        final boolean compiled = chunk.getCompiledChunk() != ChunkRenderDispatcher.CompiledChunk.UNCOMPILED;
++        return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
++                chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
++    }
++
++    /**
++     * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
++     * Sections already in the visible list draw their new mesh at once either way; the search only
++     * discovers sections behind them, so it is limited to 20 per second while uploads stream in
++     * (shared with the other streaming triggers, see {@code VisibilitySearch}).
++     */
++    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
++        if (!PacketBudget.enabled()) {
++            return uploaded;
++        }
++        return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
++    }
++
++    // ------------------------------------------------------------------ fog and sky
++
++    /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
++    @SuppressWarnings("unchecked")
++    private static Tag<Fluid> fluidTag(final Object named) {
++        return (Tag<Fluid>) named;
++    }
++
 +    /** FogRenderer.setupFog TAIL, terrain fog only. */
 +    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
 +        if (Scenery.fogVanilla()) {
@@ -735,22 +692,7 @@ index 892fa91..ef06f9f 100644
 +            RenderSystem.fogEnd(FOG[Scenery.END]);
 +        }
 +    }
- 
--    //~ // ------------------------------------------------------------------ particles
--
--    //~ /** ParticleEngine.createParticle HEAD: true to drop this particle. */
--    //~ public static boolean dropParticle(final ParticleOptions options) {
--        //~ if (!ParticleFilter.anyDisabled() || options == null) {
--            //~ return false;
--        //~ }
--        //~ final ParticleType<?> type = options.getType();
--        //~ Integer category = CATEGORY.get(type);
--        //~ if (category == null) {
--            //~ final ResourceLocation id = Registry.PARTICLE_TYPE.getKey(type);
--            //~ category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
--            //~ CATEGORY.put(type, category);
--        //~ }
--        //~ return !ParticleFilter.allowed(category.intValue());
++
 +    // ------------------------------------------------------------------ particles
 +
 +    /** ParticleEngine.createParticle HEAD: true to drop this particle. */
@@ -768,8 +710,6 @@ index 892fa91..ef06f9f 100644
 +        return !ParticleFilter.allowed(category.intValue());
 +    }
 +    // @era:qol16-else none
-+    //~ public static void frame(final net.minecraft.client.Minecraft mc) {
-     //~ }
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/UiSounds.java b/common/src/main/java/com/aetherium/client/UiSounds.java
@@ -1730,37 +1670,6 @@ index 07f26df..f91f3af 100644
 +            SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
- }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java b/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java
-index 84ade47..3b93da7 100644
---- a/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/BlockableEventLoopInvoker.java
-@@ -1,9 +1,9 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
--//~ import org.spongepowered.asm.mixin.gen.Invoker;
-+// @era:qol16-begin v16
-+import org.spongepowered.asm.mixin.gen.Invoker;
-+// @era:qol16-else none
- // @era:qol16-end
- 
- /**
-@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.util.thread.BlockableEventLoop")
- public interface BlockableEventLoopInvoker {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
--    //~ @Invoker("pollTask")
--    //~ boolean aetherium$pollTask();
-+    // @era:qol16-begin v16
-+    @Invoker("pollTask")
-+    boolean aetherium$pollTask();
 +    // @era:qol16-else none
      // @era:qol16-end
  }
@@ -3823,53 +3732,6 @@ index 0bb9134..70f6233 100644
 +    //~ }
  //~ }
  // @era:options-end
-diff --git a/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java b/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java
-index 39c44b7..155bc42 100644
---- a/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/PacketBudgetMixin.java
-@@ -1,12 +1,12 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
--//~ import com.aetherium.client.QolHooks;
--//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
--//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
--//~ import org.spongepowered.asm.mixin.injection.At;
-+// @era:qol16-begin v16
-+import com.aetherium.client.QolHooks;
-+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-+import org.spongepowered.asm.mixin.injection.At;
-+// @era:qol16-else none
- // @era:qol16-end
- 
- /**
-@@ -17,14 +17,14 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.Minecraft")
- public abstract class PacketBudgetMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
--    //~ @WrapOperation(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;runAllTasks()V"),
--            //~ require = 0)
--    //~ private void aetherium$budgetTasks(final net.minecraft.client.Minecraft self, final Operation<Void> original) {
--        //~ if (!QolHooks.drainTasks(self)) {
--            //~ original.call(self);
--        //~ }
--    //~ }
-+    // @era:qol16-begin v16
-+    @WrapOperation(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;runAllTasks()V"),
-+            require = 0)
-+    private void aetherium$budgetTasks(final net.minecraft.client.Minecraft self, final Operation<Void> original) {
-+        if (!QolHooks.drainTasks(self)) {
-+            original.call(self);
-+        }
-+    }
-+    // @era:qol16-else none
-     // @era:qol16-end
- }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java b/common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java
 index 51342cf..19bc655 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ParticleTypeMixin.java

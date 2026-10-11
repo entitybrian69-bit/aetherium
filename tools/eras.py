@@ -68,7 +68,8 @@ ERAS = {
     "zoom": [("on", "..")],
     # KeyMapping(String, int, <category>): a String plus the CATEGORY_SORT_ORDER table until 1.21.8,
     # a registered KeyMapping$Category from 1.21.9 (probe dumps).
-    "keys": [("string", "..1.21.8"), ("category", "1.21.9..")],
+    # The category id is a ResourceLocation on 1.21.9-1.21.10 and an Identifier from 1.21.11.
+    "keys": [("string", "..1.21.8"), ("category-rl", "1.21.9..1.21.10"), ("category-id", "1.21.11..")],
     # The zoomed FOV: GameRenderer.getFov returns double until 1.21.1 and float until 1.21.11;
     # 26.x moved it to Camera.calculateFov(F)F.
     "zoom-fov": [("double", "..1.21.1"), ("float", "1.21.2..1.21.11"), ("camera", "26.1..")],
@@ -85,8 +86,9 @@ ERAS = {
     "freelook": [("v16", "..1.21.1"), ("minecart", "1.21.2..1.21.11"), ("align", "26.1..")],
     # 1.5.0 (1.16.5 first): streaming optimizations, fog/sky/particle controls.
     "qol16": [("v16", "..1.16.5"), ("none", "1.17..")],
-    # 1.7.2 even frame pacing: RenderSystem.limitDisplayFPS(I)V exists on 1.16.5-1.21.11 (probe dumps).
-    "pacing": [("rs", "..1.21.11"), ("none", "26.1..")],
+    # 1.7.2 even frame pacing: static limitDisplayFPS(I)V is in RenderSystem on 1.16.5-1.21.11 and in
+    # net.minecraft.client.FramerateLimiter on 26.x (probe dumps).
+    "pacing": [("rs", "..1.21.11"), ("limiter", "26.1..")],
     "be-render": [("render", "..1.21.8"), ("extract", "1.21.9..26.1"), ("extract-flag", "26.2..")],
     "bg-threads": [("clamp", "..1.17.1"), ("property", "1.18..")],
     "sound-click": [("event", "..1.19.2"), ("holder", "1.19.3..")],

@@ -58,7 +58,7 @@ public final class FreelookHooks {
             }
             return;
         }
-        final boolean down = mc.screen == null && key.isDown() && Aetherium.isActive();
+        final boolean down = ClientHooks.currentScreen(mc) == null && key.isDown() && Aetherium.isActive();
         final int change = FREELOOK.update(down, toggle);
         if (change == Freelook.STARTED) {
             // @era:rot-begin getters

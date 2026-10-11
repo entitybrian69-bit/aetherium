@@ -88,6 +88,34 @@ public final class Scenery {
     }
 
     /** Cloud height after the user's setting; NaN (no clouds in this dimension) is kept. */
+    /**
+     * 1.17+ (shader fog, always linear): like {@link #adjustFog}, except that water fog is linear
+     * as well, so the water setting moves its end instead of scaling a density. At p % the water
+     * fog spans 100/p times the vanilla distance; at 0 % there is none.
+     *
+     * @return true when anything changed ({@code out[DENSITY]} is unused)
+     */
+    public static boolean adjustLinearFog(final int medium, final boolean thick, final float renderDistance,
+                                          final float start, final float end, final float[] out) {
+        if (medium != WATER) {
+            return adjustFog(medium, thick, renderDistance, start, end, 0.0f, out);
+        }
+        out[START] = start;
+        out[END] = end;
+        out[DENSITY] = 0.0f;
+        final int pct = waterFogPercent;
+        if (pct >= 100) {
+            return false;
+        }
+        if (pct <= 0) {
+            out[START] = renderDistance * 4.0f + 64.0f;
+            out[END] = out[START] + 1.0f;
+            return true;
+        }
+        out[END] = start + (end - start) * 100.0f / pct;
+        return true;
+    }
+
     public static float cloudHeight(final float original) {
         final int h = cloudHeight;
         if (h <= 0 || Float.isNaN(original)) {

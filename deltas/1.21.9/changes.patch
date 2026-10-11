@@ -121,30 +121,30 @@ index afb236d..02a420e 100644
      }
      // @era:gui-else stack
 diff --git a/common/src/main/java/com/aetherium/client/ZoomKeys.java b/common/src/main/java/com/aetherium/client/ZoomKeys.java
-index 77f5477..5799669 100644
+index 14803b1..cf1aab7 100644
 --- a/common/src/main/java/com/aetherium/client/ZoomKeys.java
 +++ b/common/src/main/java/com/aetherium/client/ZoomKeys.java
-@@ -139,33 +139,33 @@ public final class ZoomKeys {
+@@ -139,53 +139,53 @@ public final class ZoomKeys {
          return out;
      }
  
 -    // @era:keys-begin string
--    /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
--    static KeyMapping newKey(final String name, final int code) {
++    // @era:keys-begin category-rl
++    private static KeyMapping.Category keyCategory;
++
+     /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+     static KeyMapping newKey(final String name, final int code) {
 -        return new KeyMapping(name, code, registerCategory());
--    }
-+    // @era:keys-begin category
-+    KEYS_CATEGORY_PLACEHOLDER
-+    // @era:keys-else string
-+    //~ /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
-+    //~ static KeyMapping newKey(final String name, final int code) {
-+        //~ return new KeyMapping(name, code, registerCategory());
-+    //~ }
++        return new KeyMapping(name, code, keyCategory());
+     }
  
--    /**
+     /**
 -     * The Controls screen sorts categories through a fixed table and throws on unknown names,
 -     * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
--     */
++     * The "Aetherium" category, named by the lang key {@code key.category.aetherium.main}.
++     * KeyMapping.Category.register throws for an id registered twice, so it runs once; if it
++     * fails anyway the keys go under Misc.
+      */
 -    private static String registerCategory() {
 -        try {
 -            final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
@@ -154,18 +154,42 @@ index 77f5477..5799669 100644
 -                    last = Math.max(last, value.intValue());
 -                }
 -                order.put(CATEGORY, Integer.valueOf(last + 1));
--            }
++    private static KeyMapping.Category keyCategory() {
++        if (keyCategory == null) {
++            try {
++                keyCategory = KeyMapping.Category.register(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("aetherium", "main"));
++            } catch (final Throwable error) {
++                keyCategory = KeyMapping.Category.MISC;
+             }
 -            return CATEGORY;
 -        } catch (final Throwable error) {
 -            return FALLBACK_CATEGORY;
--        }
--    }
--    // @era:keys-else category
--    //~ KEYS_CATEGORY_PLACEHOLDER
-+    //~ /**
+         }
++        return keyCategory;
+     }
+-    // @era:keys-else category-rl
+-    //~ private static KeyMapping.Category keyCategory;
+-
++    // @era:keys-else string
+     //~ /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+     //~ static KeyMapping newKey(final String name, final int code) {
+-        //~ return new KeyMapping(name, code, keyCategory());
++        //~ return new KeyMapping(name, code, registerCategory());
+     //~ }
+ 
+     //~ /**
+-     //~ * The "Aetherium" category, named by the lang key {@code key.category.aetherium.main}.
+-     //~ * KeyMapping.Category.register throws for an id registered twice, so it runs once; if it
+-     //~ * fails anyway the keys go under Misc.
 +     //~ * The Controls screen sorts categories through a fixed table and throws on unknown names,
 +     //~ * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
-+     //~ */
+      //~ */
+-    //~ private static KeyMapping.Category keyCategory() {
+-        //~ if (keyCategory == null) {
+-            //~ try {
+-                //~ keyCategory = KeyMapping.Category.register(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("aetherium", "main"));
+-            //~ } catch (final Throwable error) {
+-                //~ keyCategory = KeyMapping.Category.MISC;
 +    //~ private static String registerCategory() {
 +        //~ try {
 +            //~ final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
@@ -175,15 +199,15 @@ index 77f5477..5799669 100644
 +                    //~ last = Math.max(last, value.intValue());
 +                //~ }
 +                //~ order.put(CATEGORY, Integer.valueOf(last + 1));
-+            //~ }
+             //~ }
 +            //~ return CATEGORY;
 +        //~ } catch (final Throwable error) {
 +            //~ return FALLBACK_CATEGORY;
-+        //~ }
-+    //~ }
-     // @era:keys-end
- 
-     /** "Z / = / -" for the settings screen. */
+         //~ }
+-        //~ return keyCategory;
+     //~ }
+     // @era:keys-else category-id
+     //~ private static KeyMapping.Category keyCategory;
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
 index db3bdf9..01b0073 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
@@ -328,7 +352,7 @@ index cc1f564..1e90220 100644
      //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
              //~ target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 0), index = 0, require = 0)
 diff --git a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
-index 80c7f2e..fb7209f 100644
+index 1696686..d29c877 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
 @@ -1,28 +1,28 @@
@@ -337,7 +361,7 @@ index 80c7f2e..fb7209f 100644
 -// @era:keys-begin string
 -import java.util.Map;
 -
-+// @era:keys-begin category
++// @era:keys-begin category-rl|category-id
  import net.minecraft.client.KeyMapping;
  
  import org.spongepowered.asm.mixin.Mixin;
@@ -352,7 +376,7 @@ index 80c7f2e..fb7209f 100644
 -        throw new AssertionError("mixin not applied");
 -    }
  }
--// @era:keys-else category
+-// @era:keys-else category-rl|category-id
 +// @era:keys-else string
 +//~ import java.util.Map;
 +

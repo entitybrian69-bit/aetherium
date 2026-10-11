@@ -14,9 +14,12 @@ import com.aetherium.perf.VisibilitySearch;
 import com.aetherium.qol.ParticleFilter;
 import com.aetherium.qol.Scenery;
 
+import com.aetherium.mixin.core.BlockableEventLoopInvoker;
+
+import net.minecraft.client.Minecraft;
+
 // @era:qol16-begin none
 // @era:qol16-else v16
-//~ import com.aetherium.mixin.core.BlockableEventLoopInvoker;
 //~ import com.mojang.blaze3d.systems.RenderSystem;
 
 //~ import java.util.IdentityHashMap;
@@ -24,7 +27,6 @@ import com.aetherium.qol.Scenery;
 //~ import java.util.concurrent.Executor;
 
 //~ import net.minecraft.client.Camera;
-//~ import net.minecraft.client.Minecraft;
 //~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 //~ import net.minecraft.core.BlockPos;
 //~ import net.minecraft.core.Registry;
@@ -64,10 +66,10 @@ public final class QolHooks {
     /** After Apply and at startup. */
     public static void configure(final AetheriumConfig config) {
         final boolean active = Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive();
-        final boolean streaming = active && Capabilities.STREAMING && config.smoothStreaming.get().booleanValue();
-        PacketBudget.setEnabled(streaming);
-        prepareUploads = streaming;
-        meshThreads = Capabilities.STREAMING && config.smoothStreaming.get().booleanValue();
+        final boolean smooth = config.smoothStreaming.get().booleanValue();
+        PacketBudget.setEnabled(active && Capabilities.PACKET_BUDGET && smooth);
+        prepareUploads = active && Capabilities.STREAMING && smooth;
+        meshThreads = Capabilities.MESH_THREADS && smooth;
         RebuildCoalescer.setEnabled(active && Capabilities.STREAMING && config.coalesceRebuilds.get().booleanValue());
 
         final boolean scenery = active && Capabilities.SCENERY_CONTROLS;
@@ -93,13 +95,10 @@ public final class QolHooks {
         ParticleFilter.setBlockBreaking(!scenery || config.particlesBlockBreak.get().booleanValue());
 
         FreelookHooks.configure(config);
-        // @era:qol16-begin none
-        // @era:qol16-else v16
-        //~ final Minecraft mc = Minecraft.getInstance();
-        //~ if (mc != null && mc.gameDirectory != null) {
-            //~ StutterRecorder.configure(Capabilities.STREAMING && config.stutterLog.get().booleanValue(), mc.gameDirectory);
-        //~ }
-        // @era:qol16-end
+        final Minecraft mc = Minecraft.getInstance();
+        if (mc != null && mc.gameDirectory != null) {
+            StutterRecorder.configure(Capabilities.STUTTER_LOG && config.stutterLog.get().booleanValue(), mc.gameDirectory);
+        }
     }
 
     /** True while queued chunk uploads should be converted on the worker threads. */
@@ -118,18 +117,40 @@ public final class QolHooks {
         FreelookHooks.onLevelChange();
     }
 
-    // @era:qol16-begin none
-    public static void frame(final net.minecraft.client.Minecraft mc) {
+    // ------------------------------------------------------------------ per frame
+
+    /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
+    public static void frame(final Minecraft mc) {
+        StutterRecorder.frame(System.nanoTime(), null);
+        UploadBudget.adapt(StutterRecorder.averageFrameNanos());
     }
+
+    // ------------------------------------------------------------------ packet budget
+
+    /**
+     * Minecraft.runTick, instead of {@code runAllTasks()}: runs queued packet tasks within the
+     * frame budget. False when the budget is off (or no world is loaded) and vanilla should run.
+     */
+    public static boolean drainTasks(final Minecraft mc) {
+        if (!PacketBudget.enabled() || mc.level == null || !((Object) mc instanceof BlockableEventLoopInvoker)) {
+            return false;
+        }
+        taskLoop = (BlockableEventLoopInvoker) (Object) mc;
+        StutterRecorder.packetTasks += PacketBudget.drain(POLLER, PacketBudget.SYSTEM);
+        StutterRecorder.packetBacklog = PacketBudget.pressure();
+        return true;
+    }
+
+    private static BlockableEventLoopInvoker taskLoop;
+    private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
+        @Override
+        public boolean pollTask() {
+            return taskLoop.aetherium$pollTask();
+        }
+    };
+
+    // @era:qol16-begin none
     // @era:qol16-else v16
-    //~ // ------------------------------------------------------------------ per frame
-
-    //~ /** GameRenderer.render HEAD (via ClientHooks), before the camera is set up. */
-    //~ public static void frame(final Minecraft mc) {
-        //~ StutterRecorder.frame(System.nanoTime(), null);
-        //~ UploadBudget.adapt(StutterRecorder.averageFrameNanos());
-    //~ }
-
     //~ // ------------------------------------------------------------------ streaming hooks
 
     //~ /** LevelRenderer.allChanged: the executor the new chunk dispatcher builds meshes on. */
@@ -141,28 +162,6 @@ public final class QolHooks {
                 //~ Aetherium.subsystemsOrNull() != null && Aetherium.subsystemsOrNull().android.isAndroid());
         //~ return own != null ? own : vanilla;
     //~ }
-
-    //~ /**
-     //~ * Minecraft.runTick, instead of {@code runAllTasks()}: runs queued packet tasks within the
-     //~ * frame budget. False when the budget is off (or no world is loaded) and vanilla should run.
-     //~ */
-    //~ public static boolean drainTasks(final Minecraft mc) {
-        //~ if (!PacketBudget.enabled() || mc.level == null || !((Object) mc instanceof BlockableEventLoopInvoker)) {
-            //~ return false;
-        //~ }
-        //~ taskLoop = (BlockableEventLoopInvoker) (Object) mc;
-        //~ StutterRecorder.packetTasks += PacketBudget.drain(POLLER, PacketBudget.SYSTEM);
-        //~ StutterRecorder.packetBacklog = PacketBudget.pressure();
-        //~ return true;
-    //~ }
-
-    //~ private static BlockableEventLoopInvoker taskLoop;
-    //~ private static final PacketBudget.Poller POLLER = new PacketBudget.Poller() {
-        //~ @Override
-        //~ public boolean pollTask() {
-            //~ return taskLoop.aetherium$pollTask();
-        //~ }
-    //~ };
 
     //~ private static double rebuildCamX;
     //~ private static double rebuildCamY;

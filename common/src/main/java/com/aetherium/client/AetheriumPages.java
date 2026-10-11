@@ -268,7 +268,7 @@ public final class AetheriumPages {
                 .presetMember()
                 .availableWhen(() -> Capabilities.BLOCK_ENTITY_CULL, NOT_ON_THIS_VERSION));
         page.add(bool("perf.smooth_streaming", "Smooth terrain streaming", config.smoothStreaming)
-                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
+                .availableWhen(() -> Capabilities.PACKET_BUDGET || Capabilities.MESH_THREADS, NOT_ON_THIS_VERSION));
         page.add(bool("perf.coalesce_rebuilds", "Merge chunk rebuilds", config.coalesceRebuilds)
                 .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(bool("perf.smart_chunk_culling", "Smarter chunk culling", config.smartChunkCulling)
@@ -317,7 +317,7 @@ public final class AetheriumPages {
                 "Which path draws solid and cutout terrain right now.", ChunkRenderer::statusText));
         page.add(bool("backend.debug", "Debug logging", config.debugLogging));
         page.add(bool("backend.stutter_log", "Stutter log", config.stutterLog)
-                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
+                .availableWhen(() -> Capabilities.STUTTER_LOG, NOT_ON_THIS_VERSION));
         page.add(bool("backend.delegate", "Hand off to conflicting mods", config.conflictAutoDelegate));
         return page;
     }

@@ -10,6 +10,31 @@ import org.junit.jupiter.api.Test;
 /** 1.5.0 fog/sky settings, particle categories and freelook. */
 final class QolLogicTest {
 
+    @Test
+    @DisplayName("linear fog (1.17+): water moves its end; air and lava match the 1.16.5 rules")
+    void linearFog() {
+        vanillaScenery();
+        final float[] out = new float[3];
+        assertFalse(Scenery.adjustLinearFog(Scenery.WATER, false, 80f, -8f, 96f, out), "100 % is vanilla");
+        Scenery.waterFogPercent = 50;
+        assertTrue(Scenery.adjustLinearFog(Scenery.WATER, false, 80f, -8f, 96f, out));
+        assertEquals(-8f, out[Scenery.START], 1e-4f);
+        assertEquals(200f, out[Scenery.END], 1e-4f, "half the fog = twice the distance");
+        Scenery.waterFogPercent = 0;
+        assertTrue(Scenery.adjustLinearFog(Scenery.WATER, false, 80f, -8f, 96f, out));
+        assertTrue(out[Scenery.START] > 80f * 4f && out[Scenery.END] > out[Scenery.START], "0 % = no water fog");
+        vanillaScenery();
+        Scenery.fogStartPercent = 90;
+        assertTrue(Scenery.adjustLinearFog(Scenery.AIR, false, 80f, 60f, 80f, out));
+        assertEquals(72f, out[Scenery.START], 1e-4f);
+        assertEquals(80f, out[Scenery.END], 1e-4f);
+        vanillaScenery();
+        Scenery.clearLava = true;
+        assertTrue(Scenery.adjustLinearFog(Scenery.LAVA, false, 80f, 0.25f, 1f, out));
+        assertEquals(0f, out[Scenery.START], 1e-4f);
+        vanillaScenery();
+    }
+
     private static void vanillaScenery() {
         Scenery.distanceFog = true;
         Scenery.fogStartPercent = Scenery.VANILLA_FOG_START;

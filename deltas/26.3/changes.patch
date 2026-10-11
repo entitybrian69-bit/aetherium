@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 3118b81..d010806 100644
+index 5dd5f18..117aff7 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -16,24 +16,24 @@ package com.aetherium;
@@ -79,21 +79,6 @@ index 3118b81..d010806 100644
      // @era:chunk-upload-end
  
      /** Atlas texture animation can be paused ({@code TextureAtlas.tick} exists on every version). */
-@@ -128,10 +128,10 @@ public final class Capabilities {
-     public static final boolean FREELOOK = true;
- 
-     /** Even frame pacing replaces {@code RenderSystem.limitDisplayFPS} (1.16.5-1.21.11). */
--    // @era:pacing-begin rs
--    public static final boolean FRAME_PACING = true;
--    // @era:pacing-else none
--    //~ public static final boolean FRAME_PACING = false;
-+    // @era:pacing-begin none
-+    public static final boolean FRAME_PACING = false;
-+    // @era:pacing-else rs
-+    //~ public static final boolean FRAME_PACING = true;
-     // @era:pacing-end
- 
-     /** Weather can be hidden on every supported version. */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 index e5e224a..903075d 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
@@ -533,30 +518,30 @@ index a561e63..e9738c5 100644
          }
      }
 diff --git a/common/src/main/java/com/aetherium/client/ZoomKeys.java b/common/src/main/java/com/aetherium/client/ZoomKeys.java
-index 77f5477..5799669 100644
+index 14803b1..04c9c4d 100644
 --- a/common/src/main/java/com/aetherium/client/ZoomKeys.java
 +++ b/common/src/main/java/com/aetherium/client/ZoomKeys.java
-@@ -139,33 +139,33 @@ public final class ZoomKeys {
+@@ -139,55 +139,55 @@ public final class ZoomKeys {
          return out;
      }
  
 -    // @era:keys-begin string
--    /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
--    static KeyMapping newKey(final String name, final int code) {
++    // @era:keys-begin category-id
++    private static KeyMapping.Category keyCategory;
++
+     /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+     static KeyMapping newKey(final String name, final int code) {
 -        return new KeyMapping(name, code, registerCategory());
--    }
-+    // @era:keys-begin category
-+    KEYS_CATEGORY_PLACEHOLDER
-+    // @era:keys-else string
-+    //~ /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
-+    //~ static KeyMapping newKey(final String name, final int code) {
-+        //~ return new KeyMapping(name, code, registerCategory());
-+    //~ }
++        return new KeyMapping(name, code, keyCategory());
+     }
  
--    /**
+     /**
 -     * The Controls screen sorts categories through a fixed table and throws on unknown names,
 -     * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
--     */
++     * The "Aetherium" category, named by the lang key {@code key.category.aetherium.main}.
++     * KeyMapping.Category.register throws for an id registered twice, so it runs once; if it
++     * fails anyway the keys go under Misc.
+      */
 -    private static String registerCategory() {
 -        try {
 -            final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
@@ -566,18 +551,42 @@ index 77f5477..5799669 100644
 -                    last = Math.max(last, value.intValue());
 -                }
 -                order.put(CATEGORY, Integer.valueOf(last + 1));
--            }
++    private static KeyMapping.Category keyCategory() {
++        if (keyCategory == null) {
++            try {
++                keyCategory = KeyMapping.Category.register(net.minecraft.resources.Identifier.fromNamespaceAndPath("aetherium", "main"));
++            } catch (final Throwable error) {
++                keyCategory = KeyMapping.Category.MISC;
+             }
 -            return CATEGORY;
 -        } catch (final Throwable error) {
 -            return FALLBACK_CATEGORY;
--        }
--    }
--    // @era:keys-else category
--    //~ KEYS_CATEGORY_PLACEHOLDER
-+    //~ /**
+         }
++        return keyCategory;
+     }
+-    // @era:keys-else category-rl
+-    //~ private static KeyMapping.Category keyCategory;
+-
++    // @era:keys-else string
+     //~ /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+     //~ static KeyMapping newKey(final String name, final int code) {
+-        //~ return new KeyMapping(name, code, keyCategory());
++        //~ return new KeyMapping(name, code, registerCategory());
+     //~ }
+ 
+     //~ /**
+-     //~ * The "Aetherium" category, named by the lang key {@code key.category.aetherium.main}.
+-     //~ * KeyMapping.Category.register throws for an id registered twice, so it runs once; if it
+-     //~ * fails anyway the keys go under Misc.
 +     //~ * The Controls screen sorts categories through a fixed table and throws on unknown names,
 +     //~ * so the Aetherium category is added to it; if that is impossible the keys go under Misc.
-+     //~ */
+      //~ */
+-    //~ private static KeyMapping.Category keyCategory() {
+-        //~ if (keyCategory == null) {
+-            //~ try {
+-                //~ keyCategory = KeyMapping.Category.register(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("aetherium", "main"));
+-            //~ } catch (final Throwable error) {
+-                //~ keyCategory = KeyMapping.Category.MISC;
 +    //~ private static String registerCategory() {
 +        //~ try {
 +            //~ final Map<String, Integer> order = KeyMappingAccessor.aetherium$categorySortOrder();
@@ -587,15 +596,27 @@ index 77f5477..5799669 100644
 +                    //~ last = Math.max(last, value.intValue());
 +                //~ }
 +                //~ order.put(CATEGORY, Integer.valueOf(last + 1));
-+            //~ }
+             //~ }
 +            //~ return CATEGORY;
 +        //~ } catch (final Throwable error) {
 +            //~ return FALLBACK_CATEGORY;
-+        //~ }
-+    //~ }
-     // @era:keys-end
+         //~ }
+-        //~ return keyCategory;
+     //~ }
+-    // @era:keys-else category-id
++    // @era:keys-else category-rl
+     //~ private static KeyMapping.Category keyCategory;
  
-     /** "Z / = / -" for the settings screen. */
+     //~ /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+@@ -203,7 +203,7 @@ public final class ZoomKeys {
+     //~ private static KeyMapping.Category keyCategory() {
+         //~ if (keyCategory == null) {
+             //~ try {
+-                //~ keyCategory = KeyMapping.Category.register(net.minecraft.resources.Identifier.fromNamespaceAndPath("aetherium", "main"));
++                //~ keyCategory = KeyMapping.Category.register(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("aetherium", "main"));
+             //~ } catch (final Throwable error) {
+                 //~ keyCategory = KeyMapping.Category.MISC;
+             //~ }
 diff --git a/common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java b/common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java
 index 18f3db9..22b6079 100644
 --- a/common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java
@@ -860,52 +881,24 @@ index ad232af..9c87f10 100644
          //~ }
      //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java b/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
-index 1c40237..b668cbd 100644
+index b7ff1a7..f2730d6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java
-@@ -1,13 +1,13 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:pacing-begin rs
--import com.aetherium.perf.FramePacer;
--import com.aetherium.perf.RenderToggles;
--import org.spongepowered.asm.mixin.injection.At;
--import org.spongepowered.asm.mixin.injection.Inject;
--import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
--// @era:pacing-else none
-+// @era:pacing-begin none
-+// @era:pacing-else rs
-+//~ import com.aetherium.perf.FramePacer;
-+//~ import com.aetherium.perf.RenderToggles;
-+//~ import org.spongepowered.asm.mixin.injection.At;
-+//~ import org.spongepowered.asm.mixin.injection.Inject;
-+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
- // @era:pacing-end
- 
- /**
-@@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -14,10 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  * in {@code RenderSystem} on 1.16.5-1.21.11 and in {@code net.minecraft.client.FramerateLimiter} on
+  * 26.x (probe dumps). Applied where {@code Capabilities.FRAME_PACING} is true.
   */
- @Mixin(targets = "com.mojang.blaze3d.systems.RenderSystem")
+-// @era:pacing-begin rs
+-@Mixin(targets = "com.mojang.blaze3d.systems.RenderSystem")
+-// @era:pacing-else limiter
+-//~ @Mixin(targets = "net.minecraft.client.FramerateLimiter")
++// @era:pacing-begin limiter
++@Mixin(targets = "net.minecraft.client.FramerateLimiter")
++// @era:pacing-else rs
++//~ @Mixin(targets = "com.mojang.blaze3d.systems.RenderSystem")
+ // @era:pacing-end
  public abstract class FramePacingMixin {
--    // @era:pacing-begin rs
--    @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
--    private static void aetherium$pace(final int fps, final CallbackInfo ci) {
--        if (RenderToggles.framePacing && FramePacer.pace(fps)) {
--            ci.cancel();
--        }
--    }
--    // @era:pacing-else none
-+    // @era:pacing-begin none
-+    // @era:pacing-else rs
-+    //~ @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
-+    //~ private static void aetherium$pace(final int fps, final CallbackInfo ci) {
-+        //~ if (RenderToggles.framePacing && FramePacer.pace(fps)) {
-+            //~ ci.cancel();
-+        //~ }
-+    //~ }
-     // @era:pacing-end
- }
+     @Inject(method = "limitDisplayFPS(I)V", at = @At("HEAD"), cancellable = true, require = 0)
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
 index cc1f564..6ea537d 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
@@ -1041,7 +1034,7 @@ index 0b2c6b1..815c08b 100644
      private void aetherium$vignette(final CallbackInfo ci) {
          if (ClientHooks.hideVignette()) {
 diff --git a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
-index 80c7f2e..fb7209f 100644
+index 1696686..d29c877 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
 @@ -1,28 +1,28 @@
@@ -1050,7 +1043,7 @@ index 80c7f2e..fb7209f 100644
 -// @era:keys-begin string
 -import java.util.Map;
 -
-+// @era:keys-begin category
++// @era:keys-begin category-rl|category-id
  import net.minecraft.client.KeyMapping;
  
  import org.spongepowered.asm.mixin.Mixin;
@@ -1065,7 +1058,7 @@ index 80c7f2e..fb7209f 100644
 -        throw new AssertionError("mixin not applied");
 -    }
  }
--// @era:keys-else category
+-// @era:keys-else category-rl|category-id
 +// @era:keys-else string
 +//~ import java.util.Map;
 +

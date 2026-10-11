@@ -32,7 +32,6 @@ neoforge_version=unavailable (module disabled)
 - `light-hook=color`
 - `near-build=none`
 - `options=fields`
-- `pacing=rs`
 - `qol16=none`
 - `reload=all-changed`
 - `screen-owner=minecraft`

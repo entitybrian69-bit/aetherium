@@ -74,7 +74,7 @@ public final class WorkerThreads {
             final boolean android = AndroidLauncher.detect(System::getenv, System.getProperty("user.home"),
                     System.getProperty("sun.java.command")).isAndroid();
             final int threads = decide(readConfigured(configFile), Runtime.getRuntime().availableProcessors(), android,
-                    com.aetherium.Capabilities.STREAMING);
+                    com.aetherium.Capabilities.MESH_THREADS);
             if (threads > 0) {
                 System.setProperty(PROPERTY, Integer.toString(threads));
                 applied = threads;

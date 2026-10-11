@@ -117,6 +117,19 @@ public final class Capabilities {
     //~ public static final boolean STREAMING = true;
     // @era:qol16-end
 
+    /** Per-frame budget for queued packet tasks ({@code Minecraft.runTick}); every version. */
+    public static final boolean PACKET_BUDGET = true;
+
+    /** The stutter log (frame-time spikes with their streaming counters); every version. */
+    public static final boolean STUTTER_LOG = true;
+
+    /** Chunk meshes built on Aetherium's own threads (the dispatcher's executor). */
+    // @era:qol16-begin none
+    public static final boolean MESH_THREADS = false;
+    // @era:qol16-else v16
+    //~ public static final boolean MESH_THREADS = true;
+    // @era:qol16-end
+
     /** Fog controls, sky toggles and per-type particle toggles (1.16.5 first). */
     // @era:qol16-begin none
     public static final boolean SCENERY_CONTROLS = false;
@@ -127,12 +140,8 @@ public final class Capabilities {
     /** Freelook: look around without turning the player (every version). */
     public static final boolean FREELOOK = true;
 
-    /** Even frame pacing replaces {@code RenderSystem.limitDisplayFPS} (1.16.5-1.21.11). */
-    // @era:pacing-begin rs
+    /** Even frame pacing replaces vanilla's {@code limitDisplayFPS} wait (every version). */
     public static final boolean FRAME_PACING = true;
-    // @era:pacing-else none
-    //~ public static final boolean FRAME_PACING = false;
-    // @era:pacing-end
 
     /** Weather can be hidden on every supported version. */
     public static final boolean WEATHER = true;

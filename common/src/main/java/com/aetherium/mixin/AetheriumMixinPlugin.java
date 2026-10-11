@@ -122,8 +122,10 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("NearBuildMixin".equals(simpleName)) {
             return Capabilities.THREADED_NEAR_BUILDS;
         }
-        if ("PacketBudgetMixin".equals(simpleName) || "BlockableEventLoopInvoker".equals(simpleName)
-                || "StreamingLevelMixin".equals(simpleName) || "RenderChunkDirtyMixin".equals(simpleName)
+        if ("PacketBudgetMixin".equals(simpleName) || "BlockableEventLoopInvoker".equals(simpleName)) {
+            return Capabilities.PACKET_BUDGET;
+        }
+        if ("StreamingLevelMixin".equals(simpleName) || "RenderChunkDirtyMixin".equals(simpleName)
                 || "MeshAllocMixin".equals(simpleName) || "AoFaceAllocMixin".equals(simpleName)) {
             return Capabilities.STREAMING;
         }

@@ -91,7 +91,7 @@ public final class ZoomKeys {
     /** Mouse wheel; true = consumed by zoom (the hotbar must not scroll). */
     public static boolean onScroll(final double delta) {
         final Minecraft mc = Minecraft.getInstance();
-        return mc != null && mc.screen == null && CONTROLLER.scroll(delta);
+        return mc != null && ClientHooks.currentScreen(mc) == null && CONTROLLER.scroll(delta);
     }
 
     /** Once per frame, before the camera and the FOV are computed. */
@@ -105,7 +105,7 @@ public final class ZoomKeys {
             }
             return;
         }
-        final boolean held = mc.screen == null && zoom.isDown();
+        final boolean held = ClientHooks.currentScreen(mc) == null && zoom.isDown();
         final ZoomController.View view;
         if (mc.options.getCameraType().isFirstPerson()) {
             view = ZoomController.View.FIRST_PERSON;
@@ -164,8 +164,52 @@ public final class ZoomKeys {
             return FALLBACK_CATEGORY;
         }
     }
-    // @era:keys-else category
-    //~ KEYS_CATEGORY_PLACEHOLDER
+    // @era:keys-else category-rl
+    //~ private static KeyMapping.Category keyCategory;
+
+    //~ /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+    //~ static KeyMapping newKey(final String name, final int code) {
+        //~ return new KeyMapping(name, code, keyCategory());
+    //~ }
+
+    //~ /**
+     //~ * The "Aetherium" category, named by the lang key {@code key.category.aetherium.main}.
+     //~ * KeyMapping.Category.register throws for an id registered twice, so it runs once; if it
+     //~ * fails anyway the keys go under Misc.
+     //~ */
+    //~ private static KeyMapping.Category keyCategory() {
+        //~ if (keyCategory == null) {
+            //~ try {
+                //~ keyCategory = KeyMapping.Category.register(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("aetherium", "main"));
+            //~ } catch (final Throwable error) {
+                //~ keyCategory = KeyMapping.Category.MISC;
+            //~ }
+        //~ }
+        //~ return keyCategory;
+    //~ }
+    // @era:keys-else category-id
+    //~ private static KeyMapping.Category keyCategory;
+
+    //~ /** A key in the Aetherium category (registered on first use); shared with the Freelook key. */
+    //~ static KeyMapping newKey(final String name, final int code) {
+        //~ return new KeyMapping(name, code, keyCategory());
+    //~ }
+
+    //~ /**
+     //~ * The "Aetherium" category, named by the lang key {@code key.category.aetherium.main}.
+     //~ * KeyMapping.Category.register throws for an id registered twice, so it runs once; if it
+     //~ * fails anyway the keys go under Misc.
+     //~ */
+    //~ private static KeyMapping.Category keyCategory() {
+        //~ if (keyCategory == null) {
+            //~ try {
+                //~ keyCategory = KeyMapping.Category.register(net.minecraft.resources.Identifier.fromNamespaceAndPath("aetherium", "main"));
+            //~ } catch (final Throwable error) {
+                //~ keyCategory = KeyMapping.Category.MISC;
+            //~ }
+        //~ }
+        //~ return keyCategory;
+    //~ }
     // @era:keys-end
 
     /** "Z / = / -" for the settings screen. */
