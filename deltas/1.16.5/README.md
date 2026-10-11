@@ -23,6 +23,7 @@ neoforge_version=unavailable (module disabled)
 
 - `background=none`
 - `bg-threads=clamp`
+- `chunk-renderer=gl16`
 - `chunk-upload=crdbool`
 - `graphics=status`
 - `gui=stack`
@@ -35,6 +36,7 @@ neoforge_version=unavailable (module disabled)
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`
+- `section-vis=list16`
 - `simdist=none`
 - `sound-click=event`
 - `vignette=render`
@@ -74,9 +76,13 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 
 ## Verifying this row before shipping it

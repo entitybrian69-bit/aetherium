@@ -37,6 +37,8 @@ public final class AetheriumConfig {
 
     // ------------------------------------------------------------ performance
     public final ConfigValue<Boolean> entityCulling = ConfigValue.bool("performance.entity_culling", true, "Skip rendering entities beyond the cull distance (bosses, vehicles and the camera entity are exempt).");
+    public final ConfigValue<Boolean> occlusionCulling = ConfigValue.bool(
+            "performance.occlusion_culling", true, "Skip entities hidden behind terrain, using the chunk visibility vanilla already computes for blocks. Players, named and glowing entities are never hidden.");
     public final ConfigValue<Integer> entityCullDistance = ConfigValue.intRange(
             "performance.entity_cull_distance", 64, 16, 256, false, "Entities farther than this many blocks are not rendered.");
     public final ConfigValue<Integer> particleDensity = ConfigValue.intRange(
@@ -83,6 +85,8 @@ public final class AetheriumConfig {
 
     // ---------------------------------------------------------------- advanced
     public final ConfigValue<Boolean> debugLogging = ConfigValue.bool("advanced.debug_logging", false, "Enable dev-level logging (hot-path cost: near zero when off).");
+    public final ConfigValue<Boolean> experimentalChunkRenderer = ConfigValue.bool(
+            "advanced.experimental_chunk_renderer", false, "Experimental, Minecraft 1.16.5 only: draw solid and cutout terrain with Aetherium's own shader and a shared index buffer instead of vanilla's fixed-function path. Translucent blocks stay vanilla. Turns itself off and falls back to vanilla if the shader fails.");
     public final ConfigValue<Boolean> conflictAutoDelegate = ConfigValue.bool("advanced.conflict_auto_delegate", true, "Hand features back to a conflicting mod instead of double-applying them.");
 
     // ------------------------------------------------------------------- lookup

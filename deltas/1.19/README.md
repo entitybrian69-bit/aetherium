@@ -22,13 +22,19 @@ neoforge_version=unavailable (module disabled)
 ### Era transforms applied by the generated patch
 
 - `background=none`
+- `bg-threads=property`
+- `chunk-renderer=none`
 - `chunk-upload=crd`
 - `gui=stack`
 - `hud=stack`
 - `input=doubles`
+- `light-hook=color`
+- `options=instances`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`
+- `section-vis=list18`
+- `simdist=sim`
 - `sound-click=event`
 - `vignette=render`
 
@@ -61,12 +67,15 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.19.txt
 - `settings.gradle.kts`
 - `build.gradle.kts`
 - `common/src/main/resources/aetherium-common.mixins.json`
+- `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 
 ## Verifying this row before shipping it
 

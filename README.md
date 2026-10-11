@@ -5,14 +5,62 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **1.1.0** fixes the frame-rate drops reported on 1.0.0 (see
-[1.1.0: the frame-rate fixes](#110-the-frame-rate-fixes)). It also removes the shader-mod page and
+Version **1.2.0** adds **entity occlusion culling** on all 33 versions and an **experimental chunk
+renderer** for 1.16.5, off by default (see
+[1.2.0: occlusion culling and the experimental chunk renderer](#120-occlusion-culling-and-the-experimental-chunk-renderer)).
+Version 1.1.0 fixed the frame-rate drops reported on 1.0.0 (see
+[1.1.0: the frame-rate fixes](#110-the-frame-rate-fixes)) and removed the shader-mod page and
 integration. Nothing on vanilla's chunk-meshing path allocates any more. The hooks that stay
 installed cost a flag check, or a distance compare for culling, per call. 1.0.0
 added smooth chunk loading, an animated-texture switch, a block-entity distance, worker-thread
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
-either removes work vanilla would have done or changes a vanilla setting, and Aetherium makes no
-OpenGL calls of its own.
+either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
+OpenGL calls of its own unless you turn on the experimental 1.16.5 chunk renderer.
+
+## 1.2.0: occlusion culling and the experimental chunk renderer
+
+**Entity occlusion culling (all 33 versions, on by default).** Every frame, vanilla works out which
+16×16×16 sections of the world are visible: its occlusion graph walks from the camera through open
+section faces, then the frustum is applied. Only those sections get their terrain drawn. Entities
+never used that list. Vanilla only checks them against the frustum (1.21.11+ also waits for a
+section's fade-in), so mobs in caves under you, behind hills or inside other buildings were still
+animated and drawn. Aetherium now copies vanilla's list into a bit grid around the camera once per
+frame (about 38 KB cleared, one bit per visible section). It then skips an entity when every
+section its culling box touches is missing from the list. This is the same idea Sodium uses,
+written independently (Sodium's current code is not open source).
+
+- It only reads vanilla's list and never hides a section vanilla would draw. Anything uncertain
+  counts as visible: sections outside the grid, entities above or below every visible section,
+  boxes spanning 4+ sections, and frames before the world has a list.
+- These are never hidden: other players (their name tags show through walls), entities with a
+  visible name, glowing entities, the camera entity, and anything whose renderer opts out of
+  culling. Renderers that extend the visibility test, such as leashes and guardian beams, still run
+  their own checks.
+- Cost: the grid is built once per frame and is one bit lookup per entity. The exemption checks run
+  only for entities that would be hidden.
+- The setting is *Hide entities behind walls* on the Performance tab. If reading vanilla's list
+  ever fails, it turns itself off for the session and logs why. With Sodium or Embeddium installed
+  it is handed off, because they cull entities themselves.
+
+**Experimental chunk renderer (1.16.5 only, off by default).** The setting is *Experimental chunk
+renderer* on the Backend tab. Vanilla 1.16.5 draws each chunk section's solid and cutout layers with
+the fixed-function pipeline. Per section it sets client-state pointers, pushes, loads and multiplies
+the GL matrix stack, and issues `glDrawArrays(GL_QUADS)`. On Android's GL4ES each of those is
+emulated, and every quad list is converted to triangles on the CPU, per section, per frame. When
+the switch is on, Aetherium draws the **same vertex buffers** with one GLSL 1.20 program: generic
+attributes, a single shared quad-to-triangle index buffer (16-bit, larger sections are split), and
+one uniform per section for its offset. It reproduces vanilla's lightmap lookup, alpha cutout
+(0.5) and linear/exp/exp2 fog. Vanilla still builds, uploads, culls and sorts the sections and sets
+up each layer's textures, blending and depth. Translucent blocks (water, glass) and tripwire stay
+on vanilla's path because they need sorting.
+
+- If the shader fails to compile or link, or anything throws, the renderer turns itself off for the
+  session and vanilla draws the frame. The Backend tab's *Chunk renderer* row shows which path is
+  drawing, or why it fell back.
+- **It has not been run on a GPU yet**: this repository's tooling has none. Expect the largest
+  gain on Android/GL4ES and a small one on desktop drivers, which handle the fixed-function path
+  well. Please send a screenshot and `latest.log` with it on and off. It will be ported to the
+  other versions after it is confirmed to work on 1.16.5.
 
 ## 1.1.0: the frame-rate fixes
 
@@ -29,21 +77,21 @@ Config files from 1.0.0 and earlier are migrated once (schema v5): the thermal g
 distance and dynamic lights go back to off, and an untouched 68 °C ceiling becomes 75 °C. Every
 other setting is kept.
 
-Aetherium does not replace the chunk renderer the way Sodium does, and it does not switch
-renderers the way VulkanMod does. Either would mean a separate renderer for each of the 33
-versions. Its gains come from removing work inside vanilla's renderer (see the table below) and
-from staying out of the way when a feature is off.
+Aetherium does not switch renderers the way VulkanMod does. Apart from the opt-in 1.16.5 chunk
+renderer above, it does not replace vanilla's renderer the way Sodium does. Its gains come from
+removing work inside vanilla's renderer (see the table below) and from staying out of the way when
+a feature is off.
 
 ## Status (read this first)
 
 | | |
 | --- | --- |
 | Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.1.0 in run 38078947462 (and for 1.0.0 in 38065183797). |
-| Tests | 99 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
+| Tests | 109 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.1.0+<mcversion>`, and only for versions whose
+Releases are published per Minecraft version as `v1.2.0+<mcversion>`, and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -80,7 +128,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.1.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.2.0 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.
@@ -90,6 +138,8 @@ and no shaders. It costs less to draw than the vanilla screen it replaces.
 | Feature | What it saves | Where |
 | --- | --- | --- |
 | Entity culling | Skips entities beyond a configurable distance before vanilla's frustum test. | Performance |
+| Hide entities behind walls | Skips entities in sections vanilla's occlusion graph found hidden (caves, behind hills, other buildings). Players, named and glowing entities are exempt. All 33 versions. | Performance |
+| Experimental chunk renderer | 1.16.5 only, opt-in: solid and cutout terrain drawn with one shader and a shared index buffer instead of the fixed-function path. Falls back to vanilla on any error. | Backend |
 | Particle density | Drops a share of new particles at spawn, so they never tick or render. | Performance |
 | Adaptive render distance | Opt-in. Lowers the render distance one chunk after 10 s under the target FPS, raises it after 30 s of headroom, and waits 30 s between changes (each change reloads all chunks). | Performance |
 | Smooth chunk loading | Vanilla uploads every finished chunk mesh in the frame it finishes. Joining a world, flying or world generation then causes one long frame. Aetherium uploads at least 8 meshes per frame (so block edits show at once), then stops when 3 ms are used, and leaves the rest for the next frames. Not on 26.x, where uploads moved into the new GPU layer. | Performance |
@@ -114,9 +164,11 @@ it would without the mod, apart from the replaced settings screen.
 
 ## OpenGL
 
-Aetherium needs nothing beyond what the game itself needs. It issues no GL calls, compiles no
-shaders and creates no buffers. Everything goes through vanilla's renderer, which is why it runs on
-the same devices as the game. The *Rendering API: OpenGL 3.0* footer states the mod's own
+Aetherium needs nothing beyond what the game itself needs. By default it issues no GL calls,
+compiles no shaders and creates no buffers. Everything goes through vanilla's renderer, which is
+why it runs on the same devices as the game. The one exception is the opt-in 1.16.5 chunk renderer.
+It uses a GLSL **1.20** program (OpenGL 2.1, below the 3.0 baseline, and safe for GL4ES) and one
+index buffer, and falls back to vanilla if the driver rejects them. The *Rendering API: OpenGL 3.0* footer states the mod's own
 baseline.
 
 The game's own requirement is unchanged. Minecraft 1.17+ creates an OpenGL **3.2** core context

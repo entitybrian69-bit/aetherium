@@ -13,14 +13,18 @@ import com.aetherium.perf.AdaptiveDistance;
 import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.FrameLimiter;
 import com.aetherium.perf.RenderToggles;
+import com.aetherium.perf.SectionVisibility;
+import com.aetherium.util.AetheriumLog;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Everything the mixins call, in one place. Every entry point is render-thread
@@ -30,6 +34,7 @@ import net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity;
  */
 public final class ClientHooks {
 
+    private static final AetheriumLog LOG = AetheriumLog.of(ClientHooks.class);
     private static final FrameLimiter LIMITER = new FrameLimiter();
     private static final AdaptiveDistance ADAPTIVE = new AdaptiveDistance();
 
@@ -40,6 +45,10 @@ public final class ClientHooks {
 
     /** Entities this large stay visible at any distance (dragons, withers, ghasts). */
     private static final float HUGE_ENTITY = 3.0f;
+
+    /** Vanilla's visible sections, re-read on the first entity test of each frame. */
+    private static final SectionVisibility VISIBLE = new SectionVisibility();
+    private static boolean visibilityFrameDirty = true;
 
     private static DynamicLightTracker tracker;
     private static boolean initialised;
@@ -63,6 +72,8 @@ public final class ClientHooks {
 
     /** GameRenderer.render HEAD: frame pacing (battery/thermal caps) and frame-time stats. */
     public static void onFrameStart() {
+        visibilityFrameDirty = true;
+        ChunkRenderer.onFrame();
         if (Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive()) {
             LIMITER.beforeFrame();
         }
@@ -110,6 +121,52 @@ public final class ClientHooks {
             return false;
         }
         return true;
+    }
+
+    /**
+     * EntityRenderer.shouldRender RETURN, only when vanilla said "visible": true when every section
+     * the entity's culling box touches is absent from vanilla's visible-section list, i.e. the
+     * entity is behind terrain. Players (name tags show through walls), named and glowing entities
+     * are never hidden; neither is anything the grid is unsure about (see SectionVisibility).
+     */
+    public static boolean hiddenBehindTerrain(final Entity entity, final AABB box, final double camX,
+                                              final double camY, final double camZ) {
+        if (!RenderToggles.occlusionCulling || box == null) {
+            return false;
+        }
+        final Minecraft mc = Minecraft.getInstance();
+        if (visibilityFrameDirty) {
+            visibilityFrameDirty = false;
+            collectVisibleSections(mc, camX, camY, camZ);
+        }
+        // Half a block of slack matches vanilla's own frustum test and covers render offsets.
+        if (VISIBLE.isBoxVisible(box.minX - 0.5, box.minY - 0.5, box.minZ - 0.5,
+                box.maxX + 0.5, box.maxY + 0.5, box.maxZ + 0.5)) {
+            return false;
+        }
+        // Exemptions are only evaluated for entities that would be hidden (the cheap test runs first).
+        return !(entity instanceof Player) && !entity.isCustomNameVisible()
+                && entity != mc.getCameraEntity() && !mc.shouldEntityAppearGlowing(entity);
+    }
+
+    private static void collectVisibleSections(final Minecraft mc, final double camX, final double camY,
+                                               final double camZ) {
+        final Object renderer = mc.levelRenderer;
+        // Without the frame-start hook the grid would never be refreshed; stale data must not cull.
+        if (!(renderer instanceof VisibleSectionSource) || !AetheriumMixinPlugin.isApplied("FrameMixin")) {
+            VISIBLE.invalidate();
+            return;
+        }
+        try {
+            VISIBLE.begin(SectionVisibility.floorSection(camX), SectionVisibility.floorSection(camY),
+                    SectionVisibility.floorSection(camZ));
+            ((VisibleSectionSource) renderer).aetheriumCollectVisible(VISIBLE);
+        } catch (final RuntimeException | LinkageError error) {
+            // A changed vanilla list must cost a feature, never a frame: stand down for the session.
+            VISIBLE.invalidate();
+            RenderToggles.breakOcclusion();
+            LOG.warn("Entity occlusion culling disabled: {}", error.toString());
+        }
     }
 
     /** ParticleEngine.add HEAD: true to drop the particle. */

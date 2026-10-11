@@ -170,6 +170,46 @@ index db3bdf9..01b0073 100644
          //~ }
      //~ }
      // @era:be-render-else extract-flag
+diff --git a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java b/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
+index ad232af..291433f 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
+@@ -28,25 +28,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ @Mixin(EntityRenderer.class)
+ public abstract class EntityOcclusionMixin {
+ 
+-    // @era:occlusion-box-begin entity
++    // @era:occlusion-box-begin renderer
++    @Shadow
++    protected abstract boolean affectedByCulling(Entity entity);
++    @Shadow
++    protected abstract AABB getBoundingBoxForCulling(Entity entity);
+     @Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true, require = 0)
+     private void aetherium$occlusion(final Entity entity, final Frustum frustum, final double camX, final double camY,
+                                      final double camZ, final CallbackInfoReturnable<Boolean> cir) {
+-        if (Boolean.TRUE.equals(cir.getReturnValue()) && !entity.noCulling
+-                && ClientHooks.hiddenBehindTerrain(entity, entity.getBoundingBoxForCulling(), camX, camY, camZ)) {
++        if (Boolean.TRUE.equals(cir.getReturnValue()) && this.affectedByCulling(entity)
++                && ClientHooks.hiddenBehindTerrain(entity, this.getBoundingBoxForCulling(entity), camX, camY, camZ)) {
+             cir.setReturnValue(Boolean.FALSE);
+         }
+     }
+-    // @era:occlusion-box-else renderer
+-    //~ @Shadow
+-    //~ protected abstract boolean affectedByCulling(Entity entity);
+-    //~ @Shadow
+-    //~ protected abstract AABB getBoundingBoxForCulling(Entity entity);
++    // @era:occlusion-box-else entity
+     //~ @Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true, require = 0)
+     //~ private void aetherium$occlusion(final Entity entity, final Frustum frustum, final double camX, final double camY,
+                                      //~ final double camZ, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ if (Boolean.TRUE.equals(cir.getReturnValue()) && this.affectedByCulling(entity)
+-                //~ && ClientHooks.hiddenBehindTerrain(entity, this.getBoundingBoxForCulling(entity), camX, camY, camZ)) {
++        //~ if (Boolean.TRUE.equals(cir.getReturnValue()) && !entity.noCulling
++                //~ && ClientHooks.hiddenBehindTerrain(entity, entity.getBoundingBoxForCulling(), camX, camY, camZ)) {
+             //~ cir.setReturnValue(Boolean.FALSE);
+         //~ }
+     //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
 index fb558a9..dc12d6f 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java
@@ -199,6 +239,56 @@ index fb558a9..dc12d6f 100644
 +    //~ private static void aetherium$light(final net.minecraft.world.level.BlockAndTintGetter level, final BlockState state,
                                          //~ final BlockPos pos, final CallbackInfoReturnable<Integer> cir) {
          //~ adjust(pos, cir);
+     //~ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
+index f4b7685..56aed81 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
+@@ -3,11 +3,11 @@ package com.aetherium.mixin.core;
+ import com.aetherium.client.VisibleSectionSource;
+ import com.aetherium.perf.SectionVisibility;
+ 
+-// @era:section-vis-begin sections
++// @era:section-vis-begin render-origin
+ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+ import net.minecraft.core.BlockPos;
+-// @era:section-vis-else render-origin
++// @era:section-vis-else sections
+ //~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+ //~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+ //~ import net.minecraft.core.BlockPos;
+@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.Shadow;
+ @Mixin(LevelRenderer.class)
+ public abstract class VisibleSectionsMixin implements VisibleSectionSource {
+ 
+-    // @era:section-vis-begin sections
++    // @era:section-vis-begin render-origin
+     @Shadow
+     @Final
+     private ObjectArrayList<SectionRenderDispatcher.RenderSection> visibleSections;
+@@ -43,11 +43,11 @@ public abstract class VisibleSectionsMixin implements VisibleSectionSource {
+     public void aetheriumCollectVisible(final SectionVisibility out) {
+         final ObjectArrayList<SectionRenderDispatcher.RenderSection> list = this.visibleSections;
+         for (int i = 0, n = list.size(); i < n; i++) {
+-            final BlockPos origin = list.get(i).getOrigin();
++            final BlockPos origin = list.get(i).getRenderOrigin();
+             out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+         }
+     }
+-    // @era:section-vis-else render-origin
++    // @era:section-vis-else sections
+     //~ @Shadow
+     //~ @Final
+     //~ private ObjectArrayList<SectionRenderDispatcher.RenderSection> visibleSections;
+@@ -56,7 +56,7 @@ public abstract class VisibleSectionsMixin implements VisibleSectionSource {
+     //~ public void aetheriumCollectVisible(final SectionVisibility out) {
+         //~ final ObjectArrayList<SectionRenderDispatcher.RenderSection> list = this.visibleSections;
+         //~ for (int i = 0, n = list.size(); i < n; i++) {
+-            //~ final BlockPos origin = list.get(i).getRenderOrigin();
++            //~ final BlockPos origin = list.get(i).getOrigin();
+             //~ out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+         //~ }
      //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
 index dd489bc..090bb2c 100644
@@ -233,7 +323,7 @@ index dd489bc..090bb2c 100644
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
 diff --git a/gradle.properties b/gradle.properties
-index c2ab181..3bda0af 100644
+index 0151ad1..04f47a4 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@ org.gradle.daemon=true

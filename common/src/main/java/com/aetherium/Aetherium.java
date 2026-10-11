@@ -232,7 +232,7 @@ public final class Aetherium {
     private static String versionFromManifest() {
         final Package pack = Aetherium.class.getPackage();
         final String declared = pack == null ? null : pack.getImplementationVersion();
-        return declared == null || declared.isEmpty() ? "1.1.0" : declared;
+        return declared == null || declared.isEmpty() ? "1.2.0" : declared;
     }
 
     public static String describeRuntime() {

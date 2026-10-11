@@ -70,6 +70,26 @@ public final class Capabilities {
     //~ public static final boolean THREADS_BY_PROPERTY = false;
     // @era:bg-threads-end
 
+    /**
+     * Entities hidden behind terrain can be skipped using vanilla's visible-section list (every
+     * version; vanilla itself only frustum-tests entities, and 1.21.11+ adds a fade-in check).
+     */
+    public static final boolean ENTITY_OCCLUSION = true;
+
+    /** The visible list holds {@code LevelRenderer$RenderChunkInfo} (1.16.5-1.20.1) rather than sections. */
+    // @era:section-vis-begin sections|render-origin
+    public static final boolean CHUNK_INFO_LIST = false;
+    // @era:section-vis-else list16|list17|list18
+    //~ public static final boolean CHUNK_INFO_LIST = true;
+    // @era:section-vis-end
+
+    /** Aetherium's own opt-in terrain renderer exists for this version (1.16.5 only, experimental). */
+    // @era:chunk-renderer-begin none
+    public static final boolean EXPERIMENTAL_CHUNK_RENDERER = false;
+    // @era:chunk-renderer-else gl16
+    //~ public static final boolean EXPERIMENTAL_CHUNK_RENDERER = true;
+    // @era:chunk-renderer-end
+
     /** Weather can be hidden on every supported version. */
     public static final boolean WEATHER = true;
 

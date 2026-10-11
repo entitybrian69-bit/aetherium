@@ -98,6 +98,18 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("UtilThreadsMixin".equals(simpleName)) {
             return !Capabilities.THREADS_BY_PROPERTY;
         }
+        if ("EntityOcclusionMixin".equals(simpleName) || "VisibleSectionsMixin".equals(simpleName)) {
+            return Capabilities.ENTITY_OCCLUSION;
+        }
+        if ("RenderChunkInfoMixin".equals(simpleName)) {
+            // Its target, LevelRenderer$RenderChunkInfo, only exists on 1.16.5-1.20.1; the
+            // experimental 1.16.5 renderer reaches the sections through it as well.
+            return Capabilities.CHUNK_INFO_LIST
+                    && (Capabilities.ENTITY_OCCLUSION || Capabilities.EXPERIMENTAL_CHUNK_RENDERER);
+        }
+        if ("ChunkRendererMixin".equals(simpleName) || "VertexBufferMixin".equals(simpleName)) {
+            return Capabilities.EXPERIMENTAL_CHUNK_RENDERER;
+        }
         if ("GuiMixin".equals(simpleName)) {
             return Capabilities.HUD_OVERLAY || Capabilities.VIGNETTE_TOGGLE;
         }

@@ -22,6 +22,8 @@ neoforge_version=21.5.81
 ### Era transforms applied by the generated patch
 
 - `light-hook=brightness`
+- `occlusion-box=renderer`
+- `section-vis=render-origin`
 - `weather=effect`
 
 ### Where the per-version Java comes from
@@ -50,7 +52,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.5.t
 ## Files the generated patch touches
 
 - `gradle.properties`
+- `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 
 ## Verifying this row before shipping it

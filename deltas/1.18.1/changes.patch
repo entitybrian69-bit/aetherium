@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 336f6b7..6190fa6 100644
+index 23fa1c2..6a90611 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,10 +37,10 @@ public final class Capabilities {
@@ -36,6 +36,21 @@ index 336f6b7..6190fa6 100644
      // @era:options-end
  
      /** Vanilla has a separate simulation distance (1.18+). */
+@@ -77,10 +77,10 @@ public final class Capabilities {
+     public static final boolean ENTITY_OCCLUSION = true;
+ 
+     /** The visible list holds {@code LevelRenderer$RenderChunkInfo} (1.16.5-1.20.1) rather than sections. */
+-    // @era:section-vis-begin sections|render-origin
+-    public static final boolean CHUNK_INFO_LIST = false;
+-    // @era:section-vis-else list16|list17|list18
+-    //~ public static final boolean CHUNK_INFO_LIST = true;
++    // @era:section-vis-begin list16|list17|list18
++    public static final boolean CHUNK_INFO_LIST = true;
++    // @era:section-vis-else sections|render-origin
++    //~ public static final boolean CHUNK_INFO_LIST = false;
+     // @era:section-vis-end
+ 
+     /** Aetherium's own opt-in terrain renderer exists for this version (1.16.5 only, experimental). */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 index e5e224a..a041b7e 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
@@ -124,10 +139,10 @@ index e5e224a..a041b7e 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index a8b3222..cd4a6dc 100644
+index 7e8e640..dd41b1a 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -320,10 +320,10 @@ public final class ClientHooks {
+@@ -377,10 +377,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -142,7 +157,7 @@ index a8b3222..cd4a6dc 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -346,10 +346,10 @@ public final class ClientHooks {
+@@ -403,10 +403,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -1247,8 +1262,179 @@ index 0bb9134..70f6233 100644
 +    //~ }
  //~ }
  // @era:options-end
+diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
+index 0c9cdbc..592d8eb 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
+@@ -3,9 +3,9 @@ package com.aetherium.mixin.core;
+ import com.aetherium.client.ChunkInfoOrigin;
+ 
+ import net.minecraft.core.BlockPos;
+-// @era:section-vis-begin sections|render-origin
+-// @era:section-vis-else list16|list17|list18
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++// @era:section-vis-begin list16|list17|list18
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++// @era:section-vis-else sections|render-origin
+ // @era:section-vis-end
+ 
+ import org.spongepowered.asm.mixin.Final;
+@@ -21,29 +21,29 @@ import org.spongepowered.asm.mixin.Shadow;
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer$RenderChunkInfo")
+ public abstract class RenderChunkInfoMixin implements ChunkInfoOrigin {
+ 
+-    // @era:section-vis-begin sections|render-origin
++    // @era:section-vis-begin list16|list17|list18
++    @Shadow
++    @Final
++    private ChunkRenderDispatcher.RenderChunk chunk;
++
+     @Override
+     public BlockPos aetheriumOrigin() {
+-        return BlockPos.ZERO;
++        return this.chunk.getOrigin();
+     }
+ 
+     @Override
+     public Object aetheriumChunk() {
+-        return null;
++        return this.chunk;
+     }
+-    // @era:section-vis-else list16|list17|list18
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private ChunkRenderDispatcher.RenderChunk chunk;
+-
++    // @era:section-vis-else sections|render-origin
+     //~ @Override
+     //~ public BlockPos aetheriumOrigin() {
+-        //~ return this.chunk.getOrigin();
++        //~ return BlockPos.ZERO;
+     //~ }
+ 
+     //~ @Override
+     //~ public Object aetheriumChunk() {
+-        //~ return this.chunk;
++        //~ return null;
+     //~ }
+     // @era:section-vis-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
+index f4b7685..3186fc3 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
+@@ -3,10 +3,14 @@ package com.aetherium.mixin.core;
+ import com.aetherium.client.VisibleSectionSource;
+ import com.aetherium.perf.SectionVisibility;
+ 
+-// @era:section-vis-begin sections
++// @era:section-vis-begin list17|list18
++import com.aetherium.client.ChunkInfoOrigin;
+ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+-import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+ import net.minecraft.core.BlockPos;
++// @era:section-vis-else sections
++//~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
++//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
++//~ import net.minecraft.core.BlockPos;
+ // @era:section-vis-else render-origin
+ //~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+ //~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+@@ -15,10 +19,6 @@ import net.minecraft.core.BlockPos;
+ //~ import com.aetherium.client.ChunkInfoOrigin;
+ //~ import it.unimi.dsi.fastutil.objects.ObjectList;
+ //~ import net.minecraft.core.BlockPos;
+-// @era:section-vis-else list17|list18
+-//~ import com.aetherium.client.ChunkInfoOrigin;
+-//~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+-//~ import net.minecraft.core.BlockPos;
+ // @era:section-vis-end
+ import net.minecraft.client.renderer.LevelRenderer;
+ 
+@@ -34,20 +34,20 @@ import org.spongepowered.asm.mixin.Shadow;
+ @Mixin(LevelRenderer.class)
+ public abstract class VisibleSectionsMixin implements VisibleSectionSource {
+ 
+-    // @era:section-vis-begin sections
++    // @era:section-vis-begin list18
+     @Shadow
+     @Final
+-    private ObjectArrayList<SectionRenderDispatcher.RenderSection> visibleSections;
++    private ObjectArrayList<?> renderChunksInFrustum;
+ 
+     @Override
+     public void aetheriumCollectVisible(final SectionVisibility out) {
+-        final ObjectArrayList<SectionRenderDispatcher.RenderSection> list = this.visibleSections;
++        final ObjectArrayList<?> list = this.renderChunksInFrustum;
+         for (int i = 0, n = list.size(); i < n; i++) {
+-            final BlockPos origin = list.get(i).getOrigin();
++            final BlockPos origin = ((ChunkInfoOrigin) list.get(i)).aetheriumOrigin();
+             out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+         }
+     }
+-    // @era:section-vis-else render-origin
++    // @era:section-vis-else sections
+     //~ @Shadow
+     //~ @Final
+     //~ private ObjectArrayList<SectionRenderDispatcher.RenderSection> visibleSections;
+@@ -56,44 +56,44 @@ public abstract class VisibleSectionsMixin implements VisibleSectionSource {
+     //~ public void aetheriumCollectVisible(final SectionVisibility out) {
+         //~ final ObjectArrayList<SectionRenderDispatcher.RenderSection> list = this.visibleSections;
+         //~ for (int i = 0, n = list.size(); i < n; i++) {
+-            //~ final BlockPos origin = list.get(i).getRenderOrigin();
++            //~ final BlockPos origin = list.get(i).getOrigin();
+             //~ out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+         //~ }
+     //~ }
+-    // @era:section-vis-else list16
++    // @era:section-vis-else render-origin
+     //~ @Shadow
+     //~ @Final
+-    //~ private ObjectList<?> renderChunks;
++    //~ private ObjectArrayList<SectionRenderDispatcher.RenderSection> visibleSections;
+ 
+     //~ @Override
+     //~ public void aetheriumCollectVisible(final SectionVisibility out) {
+-        //~ final ObjectList<?> list = this.renderChunks;
++        //~ final ObjectArrayList<SectionRenderDispatcher.RenderSection> list = this.visibleSections;
+         //~ for (int i = 0, n = list.size(); i < n; i++) {
+-            //~ final BlockPos origin = ((ChunkInfoOrigin) list.get(i)).aetheriumOrigin();
++            //~ final BlockPos origin = list.get(i).getRenderOrigin();
+             //~ out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+         //~ }
+     //~ }
+-    // @era:section-vis-else list17
++    // @era:section-vis-else list16
+     //~ @Shadow
+     //~ @Final
+-    //~ private ObjectArrayList<?> renderChunks;
++    //~ private ObjectList<?> renderChunks;
+ 
+     //~ @Override
+     //~ public void aetheriumCollectVisible(final SectionVisibility out) {
+-        //~ final ObjectArrayList<?> list = this.renderChunks;
++        //~ final ObjectList<?> list = this.renderChunks;
+         //~ for (int i = 0, n = list.size(); i < n; i++) {
+             //~ final BlockPos origin = ((ChunkInfoOrigin) list.get(i)).aetheriumOrigin();
+             //~ out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+         //~ }
+     //~ }
+-    // @era:section-vis-else list18
++    // @era:section-vis-else list17
+     //~ @Shadow
+     //~ @Final
+-    //~ private ObjectArrayList<?> renderChunksInFrustum;
++    //~ private ObjectArrayList<?> renderChunks;
+ 
+     //~ @Override
+     //~ public void aetheriumCollectVisible(final SectionVisibility out) {
+-        //~ final ObjectArrayList<?> list = this.renderChunksInFrustum;
++        //~ final ObjectArrayList<?> list = this.renderChunks;
+         //~ for (int i = 0, n = list.size(); i < n; i++) {
+             //~ final BlockPos origin = ((ChunkInfoOrigin) list.get(i)).aetheriumOrigin();
+             //~ out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index dbdd789..d1d94a8 100644
+index b31e664..c5584a3 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -1261,7 +1447,7 @@ index dbdd789..d1d94a8 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index c2ab181..fd641f8 100644
+index 0151ad1..ba99def 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

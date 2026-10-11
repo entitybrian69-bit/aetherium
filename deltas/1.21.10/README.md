@@ -27,7 +27,9 @@ neoforge_version=21.10.64
 - `gui=graphics`
 - `input=events`
 - `light-hook=brightness`
+- `occlusion-box=renderer`
 - `scroll=four`
+- `section-vis=render-origin`
 - `weather=effect`
 
 ### Where the per-version Java comes from
@@ -59,7 +61,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.10.
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 
 ## Verifying this row before shipping it

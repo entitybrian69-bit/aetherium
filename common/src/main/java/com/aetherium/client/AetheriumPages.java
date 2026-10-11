@@ -9,6 +9,7 @@ import com.aetherium.gui.AetheriumView;
 import com.aetherium.gui.Page;
 import com.aetherium.gui.PixelArt;
 import com.aetherium.perf.BlockEntityCull;
+import com.aetherium.perf.RenderToggles;
 import com.aetherium.perf.WorkerThreads;
 import com.aetherium.gui.Setting;
 import com.aetherium.mixin.AetheriumMixinPlugin;
@@ -209,6 +210,9 @@ public final class AetheriumPages {
         page.add(flag("perf.vsync", "VSync", "Sync to the display refresh rate. Removes tearing, adds latency.",
                 VanillaOptions::getVsync, VanillaOptions::setVsync));
         page.add(bool("perf.entity_culling", "Entity culling", config.entityCulling));
+        page.add(bool("perf.occlusion_culling", "Hide entities behind walls", config.occlusionCulling)
+                .availableWhen(() -> Capabilities.ENTITY_OCCLUSION && !RenderToggles.isOcclusionBroken(),
+                        "Turned off after an error (see log)"));
         page.add(intSlider("perf.cull_distance", "Entity cull distance", config.entityCullDistance, 8,
                 v -> v + " blocks").presetMember());
         page.add(Setting.slider("perf.entity_distance", "Entity distance",
@@ -238,8 +242,8 @@ public final class AetheriumPages {
     private Page backend() {
         final Page page = new Page("Backend", "Backend", "Renderer and runtime", PixelArt.CUBE);
         page.add(Setting.info("backend.api", "Rendering API",
-                "Aetherium issues no GL calls of its own; it runs on any device that runs Minecraft.",
-                () -> Aetherium.RENDERING_API + " (vanilla pipeline)"));
+                "Vanilla draws everything unless the experimental chunk renderer (1.16.5) is on; Aetherium only removes work.",
+                () -> Aetherium.RENDERING_API + (ChunkRenderer.isDrawing() ? " (Aetherium terrain shader)" : " (vanilla pipeline)")));
         page.add(Setting.info("backend.gpu", "GPU", "Reported by the driver.", GlInfo::renderer));
         page.add(Setting.info("backend.vendor", "Vendor", "Reported by the driver.", GlInfo::vendor));
         page.add(Setting.info("backend.driver", "Driver", "GL version string reported by the driver.", GlInfo::version));
@@ -258,6 +262,10 @@ public final class AetheriumPages {
                     }
                     return cap + " FPS" + (ClientHooks.isThermalCapped() ? " (thermal)" : "");
                 }));
+        page.add(bool("backend.chunk_renderer", "Experimental chunk renderer", config.experimentalChunkRenderer)
+                .availableWhen(() -> Capabilities.EXPERIMENTAL_CHUNK_RENDERER, "Minecraft 1.16.5 only for now"));
+        page.add(Setting.info("backend.chunk_renderer_state", "Chunk renderer",
+                "Which path draws solid and cutout terrain right now.", ChunkRenderer::statusText));
         page.add(bool("backend.debug", "Debug logging", config.debugLogging));
         page.add(bool("backend.delegate", "Hand off to conflicting mods", config.conflictAutoDelegate));
         return page;

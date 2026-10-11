@@ -45,6 +45,11 @@ HINTS = {
     "net.minecraft.world.level.block.entity.BeaconBlockEntity": ("net.minecraft.world.level.block.entity.BlockEntity", []),
     "net.minecraft.world.level.block.entity.TheEndPortalBlockEntity": ("net.minecraft.world.level.block.entity.BlockEntity", []),
     "net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity": ("net.minecraft.world.level.block.entity.TheEndPortalBlockEntity", []),
+    "it.unimi.dsi.fastutil.objects.ObjectArrayList": (None, ["public T0 get(int);", "public int size();"]),
+    "it.unimi.dsi.fastutil.objects.ObjectList": (None, ["public T0 get(int);", "public int size();"]),
+    "net.minecraft.world.phys.AABB": (None, ["public final double minX;", "public final double minY;",
+                                             "public final double minZ;", "public final double maxX;",
+                                             "public final double maxY;", "public final double maxZ;"]),
     "net.minecraft.world.item.Items": (None, ["public static final net.minecraft.world.item.Item LAVA_BUCKET;",
                                              "public static final net.minecraft.world.item.Item TORCH;",
                                              "public static final net.minecraft.world.item.Item GLOWSTONE;"]),
@@ -53,6 +58,8 @@ HINTS = {
 # Unprobed types that need type parameters or interfaces in their stub.
 HINT_ARITY = {
     "net.minecraft.core.Holder$Reference": 1,
+    "it.unimi.dsi.fastutil.objects.ObjectArrayList": 1,
+    "it.unimi.dsi.fastutil.objects.ObjectList": 1,
 }
 HINT_IMPLEMENTS = {
     "net.minecraft.client.resources.sounds.AbstractSoundInstance": ["net.minecraft.client.resources.sounds.SoundInstance"],

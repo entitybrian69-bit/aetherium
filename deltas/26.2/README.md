@@ -24,6 +24,7 @@ neoforge_version=26.2.0.89
 - `background=extract`
 - `be-render=extract-flag`
 - `bg-threads=property`
+- `chunk-renderer=none`
 - `chunk-upload=none`
 - `dirty=sections`
 - `graphics=preset`
@@ -35,12 +36,14 @@ neoforge_version=26.2.0.89
 - `mappings-line-removed`
 - `modCompileOnly->compileOnly`
 - `modImplementation->implementation`
+- `occlusion-box=renderer`
 - `options=instances`
 - `reload=invalidate`
 - `remapJar-block-removed`
 - `screen-owner=gui`
 - `screen-pkg=options`
 - `scroll=four`
+- `section-vis=render-origin`
 - `simdist=sim`
 - `vignette=none`
 - `weather=effect`
@@ -83,9 +86,11 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 
 ## Verifying this row before shipping it

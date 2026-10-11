@@ -1,4 +1,4 @@
-# Aetherium 1.1.0: verification report
+# Aetherium 1.2.0: verification report
 
 What was checked, how it was checked, and what was **not** checked. The audit trail for the
 0.1.0 line (CI compile reports 1–6, the old renderer's defects) is in git history at
@@ -239,3 +239,54 @@ clean; `check_refs.py` clean.
 Not established: the frame-rate change on any device. Fixes 1 and 2 remove a 30 FPS cap and
 repeated world reloads, which should be clearly visible where they applied. Fixes 3–5 remove
 per-call allocations and a queue walk, whose effect depends on how the JIT handled them.
+
+## 10. 1.2.0: occlusion culling and the experimental chunk renderer
+
+### Probe data
+
+Two probe runs added the classes the new hooks touch: `LevelRenderer$RenderChunkInfo`,
+`ChunkRenderDispatcher$RenderChunk` / `$CompiledChunk`, `SectionRenderDispatcher$RenderSection`,
+`VertexBuffer`, `VertexFormat`, `DefaultVertexFormat`, `RenderType`, `RenderStateShard`,
+`PoseStack$Pose`, `Matrix4f`, `FogRenderer` and `Camera`. They also added code probes for
+`LevelRenderer.renderChunkLayer`, `VertexBuffer.bind/draw/unbind`, `GlStateManager`,
+`LightTexture`, `VertexFormat` and both section classes.
+
+| Fact | Versions (from `tools/probe/<ver>.txt`) | Used by |
+| --- | --- | --- |
+| Visible list `ObjectList<RenderChunkInfo> renderChunks` | 1.16.5 | era `section-vis` = `list16` |
+| `ObjectArrayList<RenderChunkInfo> renderChunks` | 1.17–1.17.1 | `list17` |
+| `ObjectArrayList<RenderChunkInfo> renderChunksInFrustum` | 1.18–1.20.1 | `list18` |
+| `ObjectArrayList<RenderSection> visibleSections`, `RenderSection.getOrigin()` | 1.20.2–1.21.4 | `sections` |
+| Same list, `RenderSection.getRenderOrigin()` | 1.21.5–26.3 | `render-origin` |
+| `RenderChunkInfo.chunk` (`private final` 1.16.5, package-private 1.17–1.20.1), `RenderChunk.getOrigin()` | 1.16.5–1.20.1 | `RenderChunkInfoMixin` |
+| `EntityRenderer.shouldRender(T, Frustum, double×3)`, `Entity.noCulling`, `Entity.getBoundingBoxForCulling()` | 1.16.5–1.21.1 | era `occlusion-box` = `entity` |
+| Same `shouldRender`, `EntityRenderer.affectedByCulling(T)`, `getBoundingBoxForCulling(T)` | 1.21.2–26.2 | `renderer` |
+| `shouldRender(T, Frustum, double×3, float)`, `getBoundingBoxForCulling(T, float)` | 26.3 | `renderer-tick` |
+| `Minecraft.levelRenderer`, `Minecraft.shouldEntityAppearGlowing(Entity)`, `Entity.isCustomNameVisible()` | all 33 | `ClientHooks.hiddenBehindTerrain` |
+| 1.21.11+ `isSectionCompiledAndVisible` reads `RenderSection.getVisibility(long)` (fade-in), not occlusion | 1.21.11–26.3 | reason the culling applies there too |
+| 1.16.5 `renderChunkLayer`: `setupRenderState`, filter by `getCompiledChunk().isEmpty`, per chunk `getBuffer` → `getOrigin` → `bind` → `setupBufferState` → `VertexBuffer.draw(Matrix4f, 7)` = push/loadIdentity/multMatrix/drawArrays/pop, then `unbind`, `clearBufferState`, `clearRenderState` | 1.16.5 | `ChunkRendererMixin` |
+| `VertexBuffer.id`, `vertexCount` (`private int`); `Matrix4f.store(FloatBuffer)`; `GlStateManager._glUseProgram` / `_glBindBuffer` call GL directly (no cached program or buffer binding to desync) | 1.16.5 | `VertexBufferMixin`, `ChunkRenderer` |
+
+### Checks
+
+| Piece | Check |
+| --- | --- |
+| `perf/SectionVisibility` (bit grid, conservative edges) | `SectionVisibilityTest`: unknown frame or empty list → visible; hidden section culls; a box straddling a visible section stays visible; negative coordinates floor correctly; rows above/below every visible section, off-grid, huge and NaN boxes stay visible; the grid recentres and clears between frames, and its corners do not alias |
+| Sodium/Embeddium/Magnesium hand-off | `ModConflictScannerTest.sodiumDelegatesLights`: occlusion culling and the experimental renderer are switched off, distance culling stays on |
+| `client/ChunkRenderer` (GPU-free parts) | `ChunkRendererTest`: quad → triangle index layout and winding; the 16-bit range; a worst-case section (98 304 vertices) splits into 2 draws on a quad boundary with no quad lost; GL fog mode mapping; shaders are GLSL 1.20 with no fixed-function built-ins, and attribute/uniform names match the code; BLOCK stride and offsets |
+| Era selection | `stubcheck` on 1.16.5, 1.17, 1.18, 1.20.1, 1.20.2, 1.21.4, 1.21.5, 1.21.10, 1.21.11, 26.1, 26.2, 26.3 (one per variant), then `--all` |
+
+### Not established
+
+- Nothing ran on a GPU. The chunk renderer's output was not compared with vanilla's on screen.
+  Lightmap coordinates `(uv2 + 8) / 256`, fog distance (radial, like vanilla on NVIDIA's
+  `NV_fog_distance`) and alpha cutout follow the 1.16.5 fixed-function state as read from the
+  probes. A wrong uniform would show as wrong colours, not a crash, and a compile or link failure
+  falls back to vanilla.
+- The frame-rate effect of either feature. Occlusion culling helps wherever many entities sit in
+  hidden sections (caves under the player, villages behind hills, mob farms). The chunk renderer
+  mainly removes GL4ES work.
+
+Gates run for 1.2.0: `stubcheck --all` 33/33 (Java 8 API lint on 1.16.5); `testrun.py --bench`
+116 passed, 0 failed (109 unit + 7 benchmarks); `gen_resources --check` (36 options, 97 lang keys);
+`gen_deltas --all --verify` (32 patches apply cleanly); `check.py` clean; `check_refs.py` clean.

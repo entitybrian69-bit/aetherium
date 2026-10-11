@@ -91,7 +91,7 @@ final class ModConflictScannerTest {
     }
 
     @Test
-    @DisplayName("Sodium takes over dynamic lights only; everything else keeps working")
+    @DisplayName("Sodium takes over dynamic lights, entity occlusion and the chunk renderer; distance culling keeps working")
     void sodiumDelegatesLights() {
         final AetheriumConfig config = AetheriumConfig.createDefaults();
         // Dynamic lights default to OFF; turn them on so "the scan switched them off" is observable.
@@ -107,7 +107,9 @@ final class ModConflictScannerTest {
         assertTrue(scanner.summarize().toLowerCase().contains("sodium"), "the summary must name the mod: " + scanner.summarize());
         assertEquals(AetheriumConfig.LightMode.OFF, config.dynamicLights.get(),
                 "Sodium meshes chunks itself, so our light hook would never be read");
-        assertTrue(config.entityCulling.get(), "culling is independent of the mesher and stays on");
+        assertTrue(config.entityCulling.get(), "distance culling is independent of the renderer and stays on");
+        assertFalse(config.occlusionCulling.get(), "Sodium culls entities itself and replaces vanilla's visible list");
+        assertFalse(config.experimentalChunkRenderer.get(), "Sodium owns the chunk renderer");
         assertFalse(scanner.adviceForUser().isPresent(), "a delegate needs no user action");
         assertTrue(scanner.asReport().contains("Sodium"), "the crash-report section must name the mod");
     }

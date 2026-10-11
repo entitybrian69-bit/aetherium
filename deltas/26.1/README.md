@@ -24,6 +24,7 @@ neoforge_version=26.1.2.115
 - `background=extract`
 - `be-render=extract`
 - `bg-threads=property`
+- `chunk-renderer=none`
 - `chunk-upload=none`
 - `graphics=preset`
 - `gui=extractor`
@@ -34,10 +35,12 @@ neoforge_version=26.1.2.115
 - `mappings-line-removed`
 - `modCompileOnly->compileOnly`
 - `modImplementation->implementation`
+- `occlusion-box=renderer`
 - `options=instances`
 - `reload=all-changed`
 - `remapJar-block-removed`
 - `scroll=four`
+- `section-vis=render-origin`
 - `simdist=sim`
 - `vignette=extract`
 - `weather=effect`
@@ -78,8 +81,10 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.1.txt
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 
 ## Verifying this row before shipping it

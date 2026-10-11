@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 336f6b7..9f7b7c1 100644
+index 23fa1c2..dafe1bc 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -16,24 +16,24 @@ package com.aetherium;
@@ -243,10 +243,10 @@ index e5e224a..903075d 100644
      // @era:input-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index a8b3222..597e22f 100644
+index 7e8e640..7b5cead 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -330,18 +330,18 @@ public final class ClientHooks {
+@@ -387,18 +387,18 @@ public final class ClientHooks {
  
      /** The open screen; it moved from {@code Minecraft} to {@code Gui} in 26.2. */
      public static Screen currentScreen(final Minecraft mc) {
@@ -691,6 +691,46 @@ index b663eb2..9cf99e1 100644
 -    //~ }
      // @era:chunk-upload-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java b/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
+index ad232af..291433f 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
+@@ -28,25 +28,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ @Mixin(EntityRenderer.class)
+ public abstract class EntityOcclusionMixin {
+ 
+-    // @era:occlusion-box-begin entity
++    // @era:occlusion-box-begin renderer
++    @Shadow
++    protected abstract boolean affectedByCulling(Entity entity);
++    @Shadow
++    protected abstract AABB getBoundingBoxForCulling(Entity entity);
+     @Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true, require = 0)
+     private void aetherium$occlusion(final Entity entity, final Frustum frustum, final double camX, final double camY,
+                                      final double camZ, final CallbackInfoReturnable<Boolean> cir) {
+-        if (Boolean.TRUE.equals(cir.getReturnValue()) && !entity.noCulling
+-                && ClientHooks.hiddenBehindTerrain(entity, entity.getBoundingBoxForCulling(), camX, camY, camZ)) {
++        if (Boolean.TRUE.equals(cir.getReturnValue()) && this.affectedByCulling(entity)
++                && ClientHooks.hiddenBehindTerrain(entity, this.getBoundingBoxForCulling(entity), camX, camY, camZ)) {
+             cir.setReturnValue(Boolean.FALSE);
+         }
+     }
+-    // @era:occlusion-box-else renderer
+-    //~ @Shadow
+-    //~ protected abstract boolean affectedByCulling(Entity entity);
+-    //~ @Shadow
+-    //~ protected abstract AABB getBoundingBoxForCulling(Entity entity);
++    // @era:occlusion-box-else entity
+     //~ @Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true, require = 0)
+     //~ private void aetherium$occlusion(final Entity entity, final Frustum frustum, final double camX, final double camY,
+                                      //~ final double camZ, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ if (Boolean.TRUE.equals(cir.getReturnValue()) && this.affectedByCulling(entity)
+-                //~ && ClientHooks.hiddenBehindTerrain(entity, this.getBoundingBoxForCulling(entity), camX, camY, camZ)) {
++        //~ if (Boolean.TRUE.equals(cir.getReturnValue()) && !entity.noCulling
++                //~ && ClientHooks.hiddenBehindTerrain(entity, entity.getBoundingBoxForCulling(), camX, camY, camZ)) {
+             //~ cir.setReturnValue(Boolean.FALSE);
+         //~ }
+     //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..815c08b 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -788,6 +828,56 @@ index 04328e7..2445f2f 100644
  // @era:screen-owner-end
  public abstract class ScreenSwapMixin {
  
+diff --git a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
+index f4b7685..56aed81 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
+@@ -3,11 +3,11 @@ package com.aetherium.mixin.core;
+ import com.aetherium.client.VisibleSectionSource;
+ import com.aetherium.perf.SectionVisibility;
+ 
+-// @era:section-vis-begin sections
++// @era:section-vis-begin render-origin
+ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+ import net.minecraft.core.BlockPos;
+-// @era:section-vis-else render-origin
++// @era:section-vis-else sections
+ //~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+ //~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+ //~ import net.minecraft.core.BlockPos;
+@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.Shadow;
+ @Mixin(LevelRenderer.class)
+ public abstract class VisibleSectionsMixin implements VisibleSectionSource {
+ 
+-    // @era:section-vis-begin sections
++    // @era:section-vis-begin render-origin
+     @Shadow
+     @Final
+     private ObjectArrayList<SectionRenderDispatcher.RenderSection> visibleSections;
+@@ -43,11 +43,11 @@ public abstract class VisibleSectionsMixin implements VisibleSectionSource {
+     public void aetheriumCollectVisible(final SectionVisibility out) {
+         final ObjectArrayList<SectionRenderDispatcher.RenderSection> list = this.visibleSections;
+         for (int i = 0, n = list.size(); i < n; i++) {
+-            final BlockPos origin = list.get(i).getOrigin();
++            final BlockPos origin = list.get(i).getRenderOrigin();
+             out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+         }
+     }
+-    // @era:section-vis-else render-origin
++    // @era:section-vis-else sections
+     //~ @Shadow
+     //~ @Final
+     //~ private ObjectArrayList<SectionRenderDispatcher.RenderSection> visibleSections;
+@@ -56,7 +56,7 @@ public abstract class VisibleSectionsMixin implements VisibleSectionSource {
+     //~ public void aetheriumCollectVisible(final SectionVisibility out) {
+         //~ final ObjectArrayList<SectionRenderDispatcher.RenderSection> list = this.visibleSections;
+         //~ for (int i = 0, n = list.size(); i < n; i++) {
+-            //~ final BlockPos origin = list.get(i).getRenderOrigin();
++            //~ final BlockPos origin = list.get(i).getOrigin();
+             //~ out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+         //~ }
+     //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
 index dd489bc..090bb2c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
@@ -821,7 +911,7 @@ index dd489bc..090bb2c 100644
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index dbdd789..c706fbc 100644
+index b31e664..2f2fb31 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -888,7 +978,7 @@ index a2a8bd6..151bd9f 100644
  neoforge-moddev = { id = "net.neoforged.moddev", version.ref = "moddev" }
  gitversion = { id = "com.palantir.git-version", version.ref = "gitversion" }
 diff --git a/gradle.properties b/gradle.properties
-index c2ab181..d3bc831 100644
+index 0151ad1..5a04117 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

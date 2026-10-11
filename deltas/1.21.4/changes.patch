@@ -4,6 +4,46 @@
 # status: documented
 # apply:  git apply --whitespace=nowarn deltas/1.21.4/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.4/changes.patch
+diff --git a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java b/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
+index ad232af..291433f 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
+@@ -28,25 +28,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ @Mixin(EntityRenderer.class)
+ public abstract class EntityOcclusionMixin {
+ 
+-    // @era:occlusion-box-begin entity
++    // @era:occlusion-box-begin renderer
++    @Shadow
++    protected abstract boolean affectedByCulling(Entity entity);
++    @Shadow
++    protected abstract AABB getBoundingBoxForCulling(Entity entity);
+     @Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true, require = 0)
+     private void aetherium$occlusion(final Entity entity, final Frustum frustum, final double camX, final double camY,
+                                      final double camZ, final CallbackInfoReturnable<Boolean> cir) {
+-        if (Boolean.TRUE.equals(cir.getReturnValue()) && !entity.noCulling
+-                && ClientHooks.hiddenBehindTerrain(entity, entity.getBoundingBoxForCulling(), camX, camY, camZ)) {
++        if (Boolean.TRUE.equals(cir.getReturnValue()) && this.affectedByCulling(entity)
++                && ClientHooks.hiddenBehindTerrain(entity, this.getBoundingBoxForCulling(entity), camX, camY, camZ)) {
+             cir.setReturnValue(Boolean.FALSE);
+         }
+     }
+-    // @era:occlusion-box-else renderer
+-    //~ @Shadow
+-    //~ protected abstract boolean affectedByCulling(Entity entity);
+-    //~ @Shadow
+-    //~ protected abstract AABB getBoundingBoxForCulling(Entity entity);
++    // @era:occlusion-box-else entity
+     //~ @Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true, require = 0)
+     //~ private void aetherium$occlusion(final Entity entity, final Frustum frustum, final double camX, final double camY,
+                                      //~ final double camZ, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ if (Boolean.TRUE.equals(cir.getReturnValue()) && this.affectedByCulling(entity)
+-                //~ && ClientHooks.hiddenBehindTerrain(entity, this.getBoundingBoxForCulling(entity), camX, camY, camZ)) {
++        //~ if (Boolean.TRUE.equals(cir.getReturnValue()) && !entity.noCulling
++                //~ && ClientHooks.hiddenBehindTerrain(entity, entity.getBoundingBoxForCulling(), camX, camY, camZ)) {
+             //~ cir.setReturnValue(Boolean.FALSE);
+         //~ }
+     //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
 index dd489bc..090bb2c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
@@ -37,7 +77,7 @@ index dd489bc..090bb2c 100644
      private void aetherium$hideWeather(final CallbackInfo ci) {
          if (ClientHooks.hideWeather()) {
 diff --git a/gradle.properties b/gradle.properties
-index c2ab181..c329ca2 100644
+index 0151ad1..6ab7283 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@ org.gradle.daemon=true
