@@ -60,7 +60,7 @@ final class CompactTerrainTest {
         final CompactTerrain.Layout layout = new CompactTerrain.Layout();
         final ByteBuffer out = CompactTerrain.encode(cube(3, 4, 5).done(), new CompactTerrain.Scratch(), layout);
         assertNotNull(out);
-        assertEquals(6 * CompactTerrain.QUAD_BYTES, out.remaining(), "16 bytes per vertex, half of vanilla");
+        assertEquals(6 * CompactTerrain.QUAD_BYTES, out.remaining(), "six 16-byte vertices per quad: 96 bytes, vanilla uses 128");
         assertEquals(6, layout.quads());
         for (final int g : new int[] {CompactTerrain.UP, CompactTerrain.DOWN, CompactTerrain.NORTH, CompactTerrain.SOUTH,
                 CompactTerrain.WEST, CompactTerrain.EAST}) {
@@ -85,6 +85,27 @@ final class CompactTerrainTest {
         assertEquals(3.0f, layout.plane[CompactTerrain.WEST], 0.0f);
         assertEquals(6.0f, layout.plane[CompactTerrain.SOUTH], 0.0f);
         assertEquals(5.0f, layout.plane[CompactTerrain.NORTH], 0.0f);
+    }
+
+    @Test
+    @DisplayName("compact terrain: each quad is two triangles 0-1-2 and 2-3-0 (vanilla's winding), no index buffer needed")
+    void plainTriangles() {
+        final CompactTerrain.Layout layout = new CompactTerrain.Layout();
+        final ByteBuffer out = CompactTerrain.encode(new Mesh().quad(UP_FACE, 0, 0, 0, 0, 127, 0, 0, 0).done(),
+                new CompactTerrain.Scratch(), layout);
+        assertNotNull(out);
+        assertEquals(6, CompactTerrain.VERTICES_PER_QUAD);
+        assertEquals(CompactTerrain.QUAD_BYTES, out.remaining());
+        final int[] corners = {0, 1, 2, 2, 3, 0};
+        for (int v = 0; v < 6; v++) {
+            final int at = v * CompactTerrain.STRIDE;
+            final float[] expected = UP_FACE[corners[v]];
+            assertEquals(expected[0], CompactTerrain.dequantisePosition(out.getShort(at)), 0.0f, "x of vertex " + v);
+            assertEquals(expected[2], CompactTerrain.dequantisePosition(out.getShort(at + 4)), 0.0f, "z of vertex " + v);
+            // per-corner uv survives the duplication (Mesh writes u = 0.25 + corner * 0.001)
+            assertEquals(0.25f + corners[v] * 0.001f, (out.getShort(at + CompactTerrain.OFFSET_UV) & 0xFFFF) / 65535.0f,
+                    1.0f / 65535.0f);
+        }
     }
 
     @Test

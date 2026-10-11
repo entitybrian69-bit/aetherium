@@ -108,7 +108,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
                     && (Capabilities.ENTITY_OCCLUSION || Capabilities.EXPERIMENTAL_CHUNK_RENDERER);
         }
         if ("ChunkRendererMixin".equals(simpleName) || "VertexBufferMixin".equals(simpleName)
-                || "RenderChunkBuffersMixin".equals(simpleName)) {
+                || "RenderChunkBuffersMixin".equals(simpleName) || "FogStateMixin".equals(simpleName)) {
             return Capabilities.EXPERIMENTAL_CHUNK_RENDERER;
         }
         if ("GuiMixin".equals(simpleName)) {

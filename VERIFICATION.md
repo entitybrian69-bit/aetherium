@@ -1,4 +1,4 @@
-# Aetherium 1.3.1: verification report
+# Aetherium 1.3.2: verification report
 
 What was checked, how it was checked, and what was **not** checked. The audit trail for the
 0.1.0 line (CI compile reports 1–6, the old renderer's defects) is in git history at
@@ -356,3 +356,24 @@ benchmarks); `gen_resources --check` (36 options, 97 lang keys); `gen_deltas --a
 patches apply cleanly); `check.py` clean (335 files); `check_refs.py` clean.
 CI: `ship` run 38106872874 for commit 4cb4426 passed all 35 jobs and published 33 releases
 `v1.3.1+<mc>` (listed in `DOWNLOADS.md`).
+
+## 13. 1.3.2: no index buffer (1.16.5)
+
+Second report, with 1.3.1: renderer LTW (GL 3.3 core translator), same device and mods. The log
+shows `pipeline on: rebuilding`, `first compact chunk upload (356 quads, 23 KB instead of 45 KB)`,
+`pipeline ready`, and then nothing: the process died during the first terrain layer (the
+`first compact terrain layer drawn` line never came). That places the crash in our first draw
+calls. Of those, the indexed draw (`glDrawElements` with a shared element buffer, offsets into it)
+is the one vanilla never makes and the one a translator crashes on natively if it does not track
+the element-buffer binding. **Not established:** that this was the exact call. No native crash log
+has been seen.
+
+| Change | Check |
+| --- | --- |
+| Compact quads written as two triangles (0-1-2, 2-3-0), drawn with `glDrawArrays(GL_TRIANGLES)`; index buffer removed | `CompactTerrainTest.plainTriangles`: six vertices per quad in that order, per-corner uv preserved; cube round trip at 96 bytes per quad |
+| Legacy buffers drawn with `glDrawArrays(GL_QUADS)` (vanilla's call) | `ChunkRendererTest.shaderSources` (GL_QUADS = 7) |
+| Fog from `GlStateManager._enableFog/_disableFog/_fogMode(int)/_fogStart/_fogEnd/_fogDensity/_fog(int, float[])` (all in the 1.16.5 probe) via `FogStateMixin` | `ChunkRendererTest.fogTracker`: values, colour only from `GL_FOG_COLOR` with 4 components, enable/disable mapping |
+
+Gates run for 1.3.2: `stubcheck --all` 33/33; `testrun.py --bench` 127 passed (120 unit + 7
+benchmarks); `gen_resources --check`; `gen_deltas --all --verify` (32 patches); `check.py` clean (337
+files); `check_refs.py` clean.

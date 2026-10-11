@@ -11,46 +11,28 @@ import org.junit.jupiter.api.Test;
 final class ChunkRendererTest {
 
     @Test
-    @DisplayName("chunk renderer: quads become two triangles with vanilla's winding, within 16-bit range")
-    void quadIndexLayout() {
-        final short[] two = ChunkRenderer.quadIndices(2);
-        assertEquals(12, two.length);
-        final short[] expected = {0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4};
-        for (int i = 0; i < expected.length; i++) {
-            assertEquals(expected[i], two[i], "index " + i);
-        }
-        final short[] all = ChunkRenderer.quadIndices(ChunkRenderer.MAX_QUADS_PER_DRAW);
-        int max = 0;
-        for (final short s : all) {
-            max = Math.max(max, s & 0xFFFF);
-        }
-        assertEquals(ChunkRenderer.MAX_VERTICES_PER_DRAW - 1, max, "last vertex addressable as unsigned short");
-        assertTrue(ChunkRenderer.MAX_VERTICES_PER_DRAW <= 65536);
-    }
-
-    @Test
-    @DisplayName("chunk renderer: index counts drop incomplete quads and split sections fit the shared buffer")
-    void indexCounts() {
-        assertEquals(0, ChunkRenderer.indexCountFor(0));
-        assertEquals(0, ChunkRenderer.indexCountFor(3));
-        assertEquals(6, ChunkRenderer.indexCountFor(4));
-        assertEquals(6, ChunkRenderer.indexCountFor(7));
-        assertEquals(ChunkRenderer.MAX_QUADS_PER_DRAW * 6, ChunkRenderer.indexCountFor(ChunkRenderer.MAX_VERTICES_PER_DRAW));
-        // A worst-case section (every block face visible): 4096 blocks * 6 faces * 4 vertices.
-        final int worst = 4096 * 6 * 4;
-        int first = 0;
-        int indices = 0;
-        int draws = 0;
-        while (first < worst) {
-            final int count = Math.min(worst - first, ChunkRenderer.MAX_VERTICES_PER_DRAW);
-            assertTrue(ChunkRenderer.indexCountFor(count) <= ChunkRenderer.MAX_QUADS_PER_DRAW * 6);
-            indices += ChunkRenderer.indexCountFor(count);
-            first += count;
-            draws++;
-        }
-        assertEquals(2, draws);
-        assertEquals(worst / 4 * 6, indices, "no quad lost at the split");
-        assertEquals(0, ChunkRenderer.MAX_VERTICES_PER_DRAW % 4, "splits land on quad boundaries");
+    @DisplayName("chunk renderer: fog comes from what vanilla told GlStateManager, not from GL queries")
+    void fogTracker() {
+        FogTracker.setEnabled(true);
+        FogTracker.setMode(ChunkRenderer.GL_LINEAR);
+        FogTracker.setStart(12.0f);
+        FogTracker.setEnd(96.0f);
+        FogTracker.setDensity(0.5f);
+        FogTracker.setParameter(0x0B65, new float[] {1, 2, 3, 4}); // not the colour: ignored
+        FogTracker.setParameter(FogTracker.GL_FOG_COLOR, new float[] {0.1f, 0.2f, 0.3f, 1.0f});
+        assertTrue(FogTracker.seen());
+        assertEquals(ChunkRenderer.FOG_LINEAR, ChunkRenderer.fogModeFor(FogTracker.enabled(), FogTracker.mode()));
+        assertEquals(12.0f, FogTracker.start(), 0.0f);
+        assertEquals(96.0f, FogTracker.end(), 0.0f);
+        final java.nio.FloatBuffer color = java.nio.FloatBuffer.allocate(4);
+        FogTracker.copyColor(color);
+        assertEquals(0.2f, color.get(1), 0.0f);
+        assertEquals(1.0f, color.get(3), 0.0f);
+        FogTracker.setParameter(FogTracker.GL_FOG_COLOR, new float[] {1});  // too short: ignored
+        FogTracker.copyColor(color);
+        assertEquals(0.1f, color.get(0), 0.0f);
+        FogTracker.setEnabled(false);
+        assertEquals(ChunkRenderer.FOG_NONE, ChunkRenderer.fogModeFor(FogTracker.enabled(), FogTracker.mode()));
     }
 
     @Test
@@ -83,6 +65,7 @@ final class ChunkRendererTest {
             assertFalse(vs.contains(banned) || fs.contains(banned), "GLSL 1.20 / no fixed-function built-ins: " + banned);
         }
         assertEquals(32, ChunkRenderer.STRIDE);
+        assertEquals(7, ChunkRenderer.GL_QUADS, "legacy buffers use vanilla's own draw call");
         assertTrue(ChunkRenderer.OFFSET_POS < ChunkRenderer.OFFSET_COLOR && ChunkRenderer.OFFSET_COLOR < ChunkRenderer.OFFSET_UV0
                 && ChunkRenderer.OFFSET_UV0 < ChunkRenderer.OFFSET_UV2 && ChunkRenderer.OFFSET_UV2 + 4 <= ChunkRenderer.STRIDE);
     }

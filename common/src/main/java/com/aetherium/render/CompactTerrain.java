@@ -28,14 +28,24 @@ import java.nio.ByteOrder;
  * discarded those triangles anyway, after the GPU had already transformed their vertices.
  *
  * <p>Anything the format cannot hold exactly enough (positions outside -8..56, UVs outside 0..1,
- * light values above 255, a non-quad vertex count) makes {@link #encode} return -1 and the
+ * light values above 255, a non-quad vertex count) makes {@link #encode} return null and the
  * caller uploads vanilla's data unchanged.</p>
+ *
+ * <h2>Plain triangles, no index buffer (1.3.2)</h2>
+ * Each quad is written as two triangles, vertices 0, 1, 2 and 2, 3, 0 (vanilla's winding), so
+ * the renderer draws with {@code glDrawArrays(GL_TRIANGLES)} and never binds an element buffer.
+ * 1.3.0 used four vertices per quad and a shared index buffer; a GL translator on Android (LTW)
+ * crashed natively on the first indexed draw. Six 16-byte vertices are 96 bytes per quad, still a
+ * quarter less than vanilla's 128.
  */
 public final class CompactTerrain {
 
     public static final int SOURCE_STRIDE = 32;
     public static final int STRIDE = 16;
-    public static final int QUAD_BYTES = STRIDE * 4;
+    /** Two triangles per quad: 0, 1, 2 and 2, 3, 0. */
+    public static final int VERTICES_PER_QUAD = 6;
+    public static final int QUAD_BYTES = STRIDE * VERTICES_PER_QUAD;
+    private static final int[] TRIANGLE_CORNERS = {0, 1, 2, 2, 3, 0};
 
     public static final int OFFSET_POS = 0;
     public static final int OFFSET_COLOR = 8;
@@ -178,8 +188,8 @@ public final class CompactTerrain {
         for (int q = 0; q < quads; q++) {
             final int quad = base + q * SOURCE_STRIDE * 4;
             final int dst = cursor[groupOf[q]]++ * QUAD_BYTES;
-            for (int v = 0; v < 4; v++) {
-                final int at = quad + v * SOURCE_STRIDE;
+            for (int v = 0; v < VERTICES_PER_QUAD; v++) {
+                final int at = quad + TRIANGLE_CORNERS[v] * SOURCE_STRIDE;
                 final int to = dst + v * STRIDE;
                 out.putShort(to, quantisePosition(src.getFloat(at + SRC_POS)));
                 out.putShort(to + 2, quantisePosition(src.getFloat(at + SRC_POS + 4)));

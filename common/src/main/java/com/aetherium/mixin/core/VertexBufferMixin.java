@@ -136,7 +136,7 @@ public abstract class VertexBufferMixin implements VertexBufferAccess {
             //~ ChunkRenderer.fail("compact encode failed: " + error);
         //~ }
         //~ if (this.id != -1) {
-            //~ this.vertexCount = compact ? this.aetherium$layout.quads() * 4 : data.remaining() / this.format.getVertexSize();
+            //~ this.vertexCount = compact ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
             //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
             //~ GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
             //~ GL15.glBindBuffer(0x8892, 0);

@@ -10,5 +10,6 @@ public class GL11 {
     public static float glGetFloat(int pname) { return 0f; }
     public static void glGetFloatv(int pname, FloatBuffer params) { }
     public static void glDrawElements(int mode, int count, int type, long indices) { }
+    public static void glDrawArrays(int mode, int first, int count) { }
     public static int glGetError() { return 0; }
 }

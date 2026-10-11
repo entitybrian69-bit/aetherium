@@ -78,6 +78,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java`

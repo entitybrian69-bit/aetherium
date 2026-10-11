@@ -7,7 +7,6 @@ import com.aetherium.util.AetheriumLog;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -21,15 +20,20 @@ import org.lwjgl.opengl.GL20;
  * {@code glDrawArrays(GL_QUADS)}. Desktop drivers cope; GL4ES (Android) has to emulate the
  * matrix stack, rebuild a fixed-function shader for the state, and convert every quad list into
  * triangles on the CPU, per section, per frame. This class draws the same vertex buffers vanilla
- * built with one small GLSL 1.20 program, a single shared quad-to-triangle index buffer, and one
- * uniform per section for its offset.</p>
+ * built with one small GLSL 1.20 program and one uniform per section for its offset.</p>
+ *
+ * <p><b>Only the most basic GL (1.3.2).</b> Draws use {@code glDrawArrays} (no element buffer:
+ * an Android GL translator crashed natively on the first indexed draw in 1.3.0/1.3.1). The
+ * projection comes from vanilla's {@code renderLevel} argument and fog from vanilla's own
+ * {@code GlStateManager} calls ({@link FogTracker}), so no fixed-function state is queried from
+ * GL, which translators may not implement.</p>
  *
  * <p>Version-neutral on purpose: it knows LWJGL and nothing about Minecraft classes. The version
  * mixin hands it the section VBO ids, vertex counts and camera-relative origins; vanilla keeps
  * meshing, uploading, culling, sorting and the render-state setup (textures, lightmap, blend,
  * depth) exactly as before.</p>
  *
- * <p><b>Aetherium pipeline (1.3.0).</b> Sections uploaded through {@code VertexBufferUploadMixin}
+ * <p><b>Aetherium pipeline (1.3.0).</b> Sections uploaded through {@code VertexBufferMixin}
  * are in {@link CompactTerrain}'s 16-byte format, sorted into face-direction groups. They are drawn
  * by a second program that decodes the packed attributes, and only the groups that can face the
  * camera are drawn (in one or two index ranges per section). Buffers that did not fit the format
@@ -45,6 +49,7 @@ public final class ChunkRenderer {
 
     // GL constants (local so nothing depends on stub values).
     static final int GL_TRIANGLES = 0x0004;
+    static final int GL_QUADS = 0x0007;
     static final int GL_UNSIGNED_BYTE = 0x1401;
     static final int GL_SHORT = 0x1402;
     static final int GL_UNSIGNED_SHORT = 0x1403;
@@ -60,8 +65,6 @@ public final class ChunkRenderer {
     static final int GL_EXP = 0x0800;
     static final int GL_EXP2 = 0x0801;
     static final int GL_ARRAY_BUFFER = 0x8892;
-    static final int GL_ELEMENT_ARRAY_BUFFER = 0x8893;
-    static final int GL_STATIC_DRAW = 0x88E4;
     static final int GL_FRAGMENT_SHADER = 0x8B30;
     static final int GL_VERTEX_SHADER = 0x8B31;
     static final int GL_COMPILE_STATUS = 0x8B81;
@@ -79,9 +82,6 @@ public final class ChunkRenderer {
     static final int ATTR_UV0 = 2;
     static final int ATTR_UV2 = 3;
 
-    /** 16-bit indices address 65 536 vertices = 16 384 quads per draw; bigger sections are split. */
-    static final int MAX_QUADS_PER_DRAW = 16384;
-    static final int MAX_VERTICES_PER_DRAW = MAX_QUADS_PER_DRAW * 4;
 
     static final int ATTR_COMPACT_POS = 0;
     static final int ATTR_COMPACT_COLOR = 1;
@@ -218,7 +218,6 @@ public final class ChunkRenderer {
     private static final Program LEGACY = new Program("legacy");
     private static final Program COMPACT = new Program("compact");
     private static boolean programsReady;
-    private static int indexBuffer;
 
     // Per-layer state captured in begin(), uploaded to whichever program is switched to.
     private static Program current;
@@ -332,7 +331,6 @@ public final class ChunkRenderer {
             layerCutout = cutout;
             readFog();
             current = null;
-            GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
             GL20.glEnableVertexAttribArray(ATTR_POS);
             GL20.glEnableVertexAttribArray(ATTR_COLOR);
             GL20.glEnableVertexAttribArray(ATTR_UV0);
@@ -358,13 +356,9 @@ public final class ChunkRenderer {
         use(LEGACY);
         GL20.glUniform3f(LEGACY.uOffset, dx, dy, dz);
         GL15.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        int first = 0;
-        while (first < vertexCount) {
-            final int count = Math.min(vertexCount - first, MAX_VERTICES_PER_DRAW);
-            pointAttributes((long) first * STRIDE);
-            GL11.glDrawElements(GL_TRIANGLES, indexCountFor(count), GL_UNSIGNED_SHORT, 0L);
-            first += count;
-        }
+        pointAttributes(0L);
+        // The same draw call vanilla uses for these buffers: every GL layer that runs 1.16.5 supports it.
+        GL11.glDrawArrays(GL_QUADS, 0, vertexCount & ~3);
         sectionsLastLayer++;
     }
 
@@ -387,25 +381,12 @@ public final class ChunkRenderer {
         use(COMPACT);
         GL20.glUniform3f(COMPACT.uOffset, dx, dy, dz);
         GL15.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        if (quads <= MAX_QUADS_PER_DRAW) {
-            pointCompactAttributes(0L);
-            for (int r = 0; r < runs; r++) {
-                // Quad q's six indices start at index 6q (12q bytes) of the shared buffer.
-                GL11.glDrawElements(GL_TRIANGLES, RUN_COUNT[r] * 6, GL_UNSIGNED_SHORT, RUN_FIRST[r] * 12L);
-                compactQuadsDrawn += RUN_COUNT[r];
-            }
-        } else {
-            for (int r = 0; r < runs; r++) {
-                int at = RUN_FIRST[r];
-                final int end = at + RUN_COUNT[r];
-                while (at < end) {
-                    final int count = Math.min(end - at, MAX_QUADS_PER_DRAW);
-                    pointCompactAttributes((long) at * CompactTerrain.QUAD_BYTES);
-                    GL11.glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_SHORT, 0L);
-                    compactQuadsDrawn += count;
-                    at += count;
-                }
-            }
+        pointCompactAttributes(0L);
+        for (int r = 0; r < runs; r++) {
+            // Plain triangles, no element buffer: quad q is vertices 6q .. 6q + 5.
+            GL11.glDrawArrays(GL_TRIANGLES, RUN_FIRST[r] * CompactTerrain.VERTICES_PER_QUAD,
+                    RUN_COUNT[r] * CompactTerrain.VERTICES_PER_QUAD);
+            compactQuadsDrawn += RUN_COUNT[r];
         }
         compactQuadsTotal += quads;
         compactSectionsLastLayer++;
@@ -419,7 +400,6 @@ public final class ChunkRenderer {
             GL20.glDisableVertexAttribArray(ATTR_COLOR);
             GL20.glDisableVertexAttribArray(ATTR_UV0);
             GL20.glDisableVertexAttribArray(ATTR_UV2);
-            GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
             GL15.glBindBuffer(GL_ARRAY_BUFFER, 0);
             GL20.glUseProgram(0);
         } catch (final RuntimeException | LinkageError error) {
@@ -510,26 +490,6 @@ public final class ChunkRenderer {
 
     // ------------------------------------------------------------------ helpers
 
-    /** Triangle indices needed for {@code vertexCount} quad vertices (incomplete quads are dropped). */
-    static int indexCountFor(final int vertexCount) {
-        return (vertexCount >> 2) * 6;
-    }
-
-    /** Quad i -> triangles (4i, 4i+1, 4i+2) and (4i+2, 4i+3, 4i): vanilla's quad winding, split. */
-    static short[] quadIndices(final int quads) {
-        final short[] out = new short[quads * 6];
-        for (int q = 0, i = 0; q < quads; q++) {
-            final int v = q * 4;
-            out[i++] = (short) v;
-            out[i++] = (short) (v + 1);
-            out[i++] = (short) (v + 2);
-            out[i++] = (short) (v + 2);
-            out[i++] = (short) (v + 3);
-            out[i++] = (short) v;
-        }
-        return out;
-    }
-
     /** Maps the GL fog state to the shader's mode uniform. */
     static int fogModeFor(final boolean fogEnabled, final int glMode) {
         if (!fogEnabled) {
@@ -586,6 +546,15 @@ public final class ChunkRenderer {
     }
 
     private static void readFog() {
+        if (FogTracker.seen()) {
+            // What vanilla told GlStateManager: no GL query at all.
+            fogMode = fogModeFor(FogTracker.enabled(), FogTracker.mode());
+            fogStart = FogTracker.start();
+            fogEnd = FogTracker.end();
+            fogDensity = FogTracker.density();
+            FogTracker.copyColor(FOG_COLOR);
+            return;
+        }
         fogMode = fogModeFor(GL11.glIsEnabled(GL_FOG), GL11.glGetInteger(GL_FOG_MODE));
         if (fogMode == FOG_NONE) {
             return;
@@ -618,16 +587,8 @@ public final class ChunkRenderer {
             }
             return false;
         }
-        final short[] indices = quadIndices(MAX_QUADS_PER_DRAW);
-        final ShortBuffer data = ByteBuffer.allocateDirect(indices.length * 2).order(ByteOrder.nativeOrder()).asShortBuffer();
-        data.put(indices).flip();
-        indexBuffer = GL15.glGenBuffers();
-        GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        GL15.glBufferData(GL_ELEMENT_ARRAY_BUFFER, data, GL_STATIC_DRAW);
-        GL15.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         programsReady = true;
-        LOG.info("Aetherium pipeline ready (GLSL 1.20, 16-byte compact vertices, shared index buffer of {} quads)",
-                MAX_QUADS_PER_DRAW);
+        LOG.info("Aetherium pipeline ready (GLSL 1.20, 16-byte compact vertices, plain triangles, no index buffer)");
         return true;
     }
 

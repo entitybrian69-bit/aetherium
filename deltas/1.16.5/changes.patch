@@ -1455,6 +1455,106 @@ index b663eb2..26dfea5 100644
          //~ }
      //~ }
      // @era:chunk-upload-else none
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java
+index 7680693..4dfdea6 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java
+@@ -1,11 +1,11 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:chunk-renderer-begin none
+-// @era:chunk-renderer-else gl16
+-//~ import com.aetherium.client.FogTracker;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:chunk-renderer-begin gl16
++import com.aetherium.client.FogTracker;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:chunk-renderer-else none
+ // @era:chunk-renderer-end
+ import org.spongepowered.asm.mixin.Mixin;
+ 
+@@ -20,41 +20,41 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
+ public abstract class FogStateMixin {
+ 
+-    // @era:chunk-renderer-begin none
+-    // @era:chunk-renderer-else gl16
+-    //~ @Inject(method = "_enableFog", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$enableFog(final CallbackInfo ci) {
+-        //~ FogTracker.setEnabled(true);
+-    //~ }
+-
+-    //~ @Inject(method = "_disableFog", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$disableFog(final CallbackInfo ci) {
+-        //~ FogTracker.setEnabled(false);
+-    //~ }
+-
+-    //~ @Inject(method = "_fogMode", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$fogMode(final int mode, final CallbackInfo ci) {
+-        //~ FogTracker.setMode(mode);
+-    //~ }
+-
+-    //~ @Inject(method = "_fogStart", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$fogStart(final float value, final CallbackInfo ci) {
+-        //~ FogTracker.setStart(value);
+-    //~ }
+-
+-    //~ @Inject(method = "_fogEnd", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$fogEnd(final float value, final CallbackInfo ci) {
+-        //~ FogTracker.setEnd(value);
+-    //~ }
+-
+-    //~ @Inject(method = "_fogDensity", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$fogDensity(final float value, final CallbackInfo ci) {
+-        //~ FogTracker.setDensity(value);
+-    //~ }
+-
+-    //~ @Inject(method = "_fog", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$fog(final int pname, final float[] params, final CallbackInfo ci) {
+-        //~ FogTracker.setParameter(pname, params);
+-    //~ }
++    // @era:chunk-renderer-begin gl16
++    @Inject(method = "_enableFog", at = @At("HEAD"), require = 0)
++    private static void aetherium$enableFog(final CallbackInfo ci) {
++        FogTracker.setEnabled(true);
++    }
++
++    @Inject(method = "_disableFog", at = @At("HEAD"), require = 0)
++    private static void aetherium$disableFog(final CallbackInfo ci) {
++        FogTracker.setEnabled(false);
++    }
++
++    @Inject(method = "_fogMode", at = @At("HEAD"), require = 0)
++    private static void aetherium$fogMode(final int mode, final CallbackInfo ci) {
++        FogTracker.setMode(mode);
++    }
++
++    @Inject(method = "_fogStart", at = @At("HEAD"), require = 0)
++    private static void aetherium$fogStart(final float value, final CallbackInfo ci) {
++        FogTracker.setStart(value);
++    }
++
++    @Inject(method = "_fogEnd", at = @At("HEAD"), require = 0)
++    private static void aetherium$fogEnd(final float value, final CallbackInfo ci) {
++        FogTracker.setEnd(value);
++    }
++
++    @Inject(method = "_fogDensity", at = @At("HEAD"), require = 0)
++    private static void aetherium$fogDensity(final float value, final CallbackInfo ci) {
++        FogTracker.setDensity(value);
++    }
++
++    @Inject(method = "_fog", at = @At("HEAD"), require = 0)
++    private static void aetherium$fog(final int pname, final float[] params, final CallbackInfo ci) {
++        FogTracker.setParameter(pname, params);
++    }
++    // @era:chunk-renderer-else none
+     // @era:chunk-renderer-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..531f6bc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -1675,7 +1775,7 @@ index 0c9cdbc..592d8eb 100644
      // @era:section-vis-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
-index 51a565b..66581ef 100644
+index 158ea2c..5d6f7d2 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 @@ -3,18 +3,18 @@ package com.aetherium.mixin.core;
@@ -1813,7 +1913,7 @@ index 51a565b..66581ef 100644
 +            ChunkRenderer.fail("compact encode failed: " + error);
 +        }
 +        if (this.id != -1) {
-+            this.vertexCount = compact ? this.aetherium$layout.quads() * 4 : data.remaining() / this.format.getVertexSize();
++            this.vertexCount = compact ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
 +            GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
 +            GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
 +            GL15.glBindBuffer(0x8892, 0);
@@ -1883,7 +1983,7 @@ index 51a565b..66581ef 100644
 -            //~ ChunkRenderer.fail("compact encode failed: " + error);
 -        //~ }
 -        //~ if (this.id != -1) {
--            //~ this.vertexCount = compact ? this.aetherium$layout.quads() * 4 : data.remaining() / this.format.getVertexSize();
+-            //~ this.vertexCount = compact ? this.aetherium$layout.quads() * CompactTerrain.VERTICES_PER_QUAD : data.remaining() / this.format.getVertexSize();
 -            //~ GL15.glBindBuffer(0x8892, this.id);       // GL_ARRAY_BUFFER
 -            //~ GL15.glBufferData(0x8892, upload, 0x88E4); // GL_STATIC_DRAW, as vanilla
 -            //~ GL15.glBindBuffer(0x8892, 0);
@@ -2016,7 +2116,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index fbfb8d3..d749f5d 100644
+index 3b828a7..fd7ebcf 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -2029,7 +2129,7 @@ index fbfb8d3..d749f5d 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 96bf9ee..997d380 100644
+index 74402e4..dc8e9ab 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

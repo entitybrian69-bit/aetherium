@@ -5,7 +5,8 @@ A client-side performance and video-settings mod for Minecraft **1.16.5 → 26.3
 tabbed screen. It also adds frame-rate features that work *with* the vanilla renderer instead of
 replacing it.
 
-Version **1.3.1** makes the pipeline safe to try after a crash report on 1.16.5 (see
+Version **1.3.2** fixes the 1.16.5 pipeline crash on Android GL translators (see
+[1.3.2: no index buffer](#132-no-index-buffer-no-fixed-function-queries-1165)). Version **1.3.1** made the pipeline safe to try after a crash report on 1.16.5 (see
 [1.3.1: crash guard](#131-crash-guard-for-the-pipeline)). Version **1.3.0** turned the experimental 1.16.5 chunk renderer into **Aetherium's own terrain
 pipeline**: a compact 16-byte vertex format, chunk meshes grouped by face direction, and back-face
 groups that are never drawn (see [1.3.0: the Aetherium pipeline](#130-the-aetherium-pipeline-1165)).
@@ -20,6 +21,25 @@ added smooth chunk loading, an animated-texture switch, a block-entity distance,
 sizing, a light/dark theme, a working scrollbar, touch scrolling and interface sounds. Every feature
 either removes work vanilla would have done or changes a vanilla setting. Aetherium makes no
 OpenGL calls of its own unless you turn on the experimental 1.16.5 Aetherium pipeline.
+
+## 1.3.2: no index buffer, no fixed-function queries (1.16.5)
+
+The 1.3.1 milestone log narrowed the crash down on LTW (Android, GL 3.3 core translator): the
+pipeline switched on, the first compact chunk was uploaded, the shaders compiled, and the process
+died before the first terrain layer finished. That is the first draw call. 1.3.0/1.3.1 drew with
+`glDrawElements` from a shared index buffer. A translator that does not track that binding reads the
+offset as a memory address and crashes natively. Vanilla never uses an index buffer for terrain.
+
+- **Compact sections are plain triangles** (two per quad, vertices 0-1-2 and 2-3-0) drawn with
+  `glDrawArrays(GL_TRIANGLES)`. No element buffer is created or bound anywhere. That is 96 bytes per
+  quad, a quarter less than vanilla's 128 (1.3.0's 64 needed the index buffer). Face-group skipping
+  and run merging are unchanged.
+- **Buffers that stay in vanilla's layout** are drawn with `glDrawArrays(GL_QUADS)`, the exact call
+  vanilla uses for them.
+- **Fog comes from vanilla's own `GlStateManager` calls** (`_enableFog`, `_fogMode`, `_fogStart`,
+  `_fogEnd`, `_fogDensity`, `_fog`), recorded by `FogStateMixin`. Together with 1.3.1's projection
+  change, the pipeline no longer queries any fixed-function state from GL.
+- If 1.3.1's crash guard switched the pipeline off after the last crash, turn it back on.
 
 ## 1.3.1: crash guard for the pipeline
 
@@ -148,12 +168,12 @@ a feature is off.
 
 | | |
 | --- | --- |
-| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874 (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
+| Compiles | All **33** versions, against the method and field signatures CI extracted from each version's real Minecraft jar (`tools/stubcheck.py --all`). CI then builds each version with its real Loom/ModDev toolchain (`ship.yml`): **33/33 green** for 1.3.0 in run 38104354261; 1.3.1: 38106872874; 1.3.2: see the latest `ship` run (1.2.0: 38102357434; 1.1.0: 38078947462; 1.0.0: 38065183797). |
 | Tests | 120 unit tests (including a headless test of the settings screen: scrollbar, tap vs. swipe, fling, theme switch, sounds) and 7 opt-in CPU micro-benchmarks, all passing offline (`tools/testrun.py --bench`). CI runs the same unit tests with real JUnit 5 on every version. |
 | Mixin targets | Checked by hand against the `javap` probes of every version (`tools/probe/<ver>.txt`) |
 | Launched in game | **No.** Nothing in this repository's tooling has a GPU. See VERIFICATION.md §3 |
 
-Releases are published per Minecraft version as `v1.3.1+<mcversion>`, and only for versions whose
+Releases are published per Minecraft version as `v1.3.2+<mcversion>`, and only for versions whose
 build and tests passed. `DOWNLOADS.md` lists only releases that actually exist.
 
 ## The settings screen
@@ -190,7 +210,7 @@ settings** on the General tab opens the original screen.
   Nothing you set is lost.
 - **Presets** (General): *Max FPS*, *Balanced*, *Quality* and *Custom*. A preset sets the
   performance options together, and touching any of them switches the preset to *Custom*.
-- The footer reads `Aetherium Mod v1.3.1 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
+- The footer reads `Aetherium Mod v1.3.2 · Minecraft <version>` and `Rendering API: OpenGL 3.0 · <GPU>`.
 
 The screen is drawn with plain filled rectangles and text: about 300 fills per frame, no textures
 and no shaders. It costs less to draw than the vanilla screen it replaces.
