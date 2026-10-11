@@ -354,3 +354,5 @@ in `latest.log`. That means a native crash. Its cause is **not established**: no
 Gates run for 1.3.1: `stubcheck --all` 33/33; `testrun.py --bench` 127 passed (120 unit + 7
 benchmarks); `gen_resources --check` (36 options, 97 lang keys); `gen_deltas --all --verify` (32
 patches apply cleanly); `check.py` clean (335 files); `check_refs.py` clean.
+CI: `ship` run 38106872874 for commit 4cb4426 passed all 35 jobs and published 33 releases
+`v1.3.1+<mc>` (listed in `DOWNLOADS.md`).
