@@ -334,3 +334,5 @@ Probe run 38103235990 added `BufferBuilder`, `BufferBuilder$DrawState`,
 Gates run for 1.3.0: `stubcheck --all` 33/33 (Java 8 API lint on the new 1.16.5 sources);
 `testrun.py` 118 unit tests passed; `gen_resources --check` (36 options, 97 lang keys);
 `gen_deltas --all --verify` (32 patches apply cleanly); `check.py` clean; `check_refs.py` clean.
+CI: `ship` run 38104354261 for commit d52294c passed all 35 jobs and published 33 releases
+`v1.3.0+<mc>` (50 jars, listed in `DOWNLOADS.md`).
