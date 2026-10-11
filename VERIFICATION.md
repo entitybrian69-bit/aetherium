@@ -817,3 +817,5 @@ mod controls.
 
 Gates run for 1.7.2: `testrun.py` 169 passed; `stubcheck --all` 33/33; `gen_deltas --all --verify`;
 `check.py` clean; `check_refs.py` clean; `java_api_lint 8` clean.
+CI: `ship` run 38149090496 for commit 421cca7 passed and published `v1.7.2+1.16.5`
+(`aetherium-fabric-1.7.2+1.16.5.jar`, 1002697 bytes).
