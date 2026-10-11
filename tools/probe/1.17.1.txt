@@ -5856,6 +5856,47 @@ public final class net.minecraft.client.renderer.FogRenderer$FogMode extends jav
   private static net.minecraft.client.renderer.FogRenderer$FogMode[] $values();
   static {};
 }
+=== net.minecraft.world.level.material.FluidState
+Compiled from "FluidState.java"
+public final class net.minecraft.world.level.material.FluidState extends net.minecraft.world.level.block.state.StateHolder<net.minecraft.world.level.material.Fluid, net.minecraft.world.level.material.FluidState> {
+  public static final com.mojang.serialization.Codec<net.minecraft.world.level.material.FluidState> CODEC;
+  public static final int AMOUNT_MAX;
+  public static final int AMOUNT_FULL;
+  public net.minecraft.world.level.material.FluidState(net.minecraft.world.level.material.Fluid, com.google.common.collect.ImmutableMap<net.minecraft.world.level.block.state.properties.Property<?>, java.lang.Comparable<?>>, com.mojang.serialization.MapCodec<net.minecraft.world.level.material.FluidState>);
+  public net.minecraft.world.level.material.Fluid getType();
+  public boolean isSource();
+  public boolean isSourceOfType(net.minecraft.world.level.material.Fluid);
+  public boolean isEmpty();
+  public float getHeight(net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  public float getOwnHeight();
+  public int getAmount();
+  public boolean shouldRenderBackwardUpFace(net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  public void tick(net.minecraft.world.level.Level, net.minecraft.core.BlockPos);
+  public void animateTick(net.minecraft.world.level.Level, net.minecraft.core.BlockPos, java.util.Random);
+  public boolean isRandomlyTicking();
+  public void randomTick(net.minecraft.world.level.Level, net.minecraft.core.BlockPos, java.util.Random);
+  public net.minecraft.world.phys.Vec3 getFlow(net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.block.state.BlockState createLegacyBlock();
+  public net.minecraft.core.particles.ParticleOptions getDripParticle();
+  public boolean is(net.minecraft.tags.Tag<net.minecraft.world.level.material.Fluid>);
+  public float getExplosionResistance();
+  public boolean canBeReplacedWith(net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.world.level.material.Fluid, net.minecraft.core.Direction);
+  public net.minecraft.world.phys.shapes.VoxelShape getShape(net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  static {};
+}
+=== net.minecraft.tags.Tag
+Compiled from "Tag.java"
+public interface net.minecraft.tags.Tag<T> {
+  public static <T> com.mojang.serialization.Codec<net.minecraft.tags.Tag<T>> codec(java.util.function.Supplier<net.minecraft.tags.TagCollection<T>>);
+  public abstract boolean contains(T);
+  public abstract java.util.List<T> getValues();
+  public default T getRandomElement(java.util.Random);
+  public static <T> net.minecraft.tags.Tag<T> fromSet(java.util.Set<T>);
+  private static com.mojang.serialization.DataResult method_28135(java.util.function.Supplier, net.minecraft.tags.Tag);
+  private static com.mojang.serialization.DataResult method_28133(net.minecraft.tags.Tag);
+  private static com.mojang.serialization.DataResult method_28136(java.util.function.Supplier, net.minecraft.resources.ResourceLocation);
+  private static com.mojang.serialization.DataResult method_28137(net.minecraft.resources.ResourceLocation);
+}
 === code net.minecraft.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
   private static final java.util.concurrent.ExecutorService BACKGROUND_EXECUTOR; :: private static final java.util.concurrent.ExecutorService BACKGROUND_EXECUTOR;
   private static java.util.concurrent.ExecutorService makeExecutor(java.lang.String); :: private static java.util.concurrent.ExecutorService makeExecutor(java.lang.String);
@@ -6834,8 +6875,8 @@ public final class net.minecraft.client.renderer.FogRenderer$FogMode extends jav
   public void compileSync(); :: 1: invokevirtual #454                // Method createCompileTask:()Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask;
 === package listing (client.gui.screens, client.input, client)
 net/minecraft/client/AttackIndicatorStatus.class
-net/minecraft/client/CloudStatus.class
 net/minecraft/client/AmbientOcclusionStatus.class
+net/minecraft/client/CloudStatus.class
 net/minecraft/client/GraphicsStatus.class
 net/minecraft/client/NarratorStatus.class
 net/minecraft/client/ParticleStatus.class
@@ -6848,6 +6889,7 @@ net/minecraft/client/gui/screens/ConnectScreen.class
 net/minecraft/client/gui/screens/ConfirmScreen.class
 net/minecraft/client/gui/screens/ChatScreen.class
 net/minecraft/client/gui/screens/CreateFlatWorldScreen.class
+net/minecraft/client/gui/screens/CreateBuffetWorldScreen.class
 net/minecraft/client/gui/screens/DatapackLoadFailureScreen.class
 net/minecraft/client/gui/screens/DeathScreen.class
 net/minecraft/client/gui/screens/DirectJoinServerScreen.class
@@ -6855,7 +6897,6 @@ net/minecraft/client/gui/screens/DemoIntroScreen.class
 net/minecraft/client/gui/screens/DisconnectedScreen.class
 net/minecraft/client/gui/screens/EditServerScreen.class
 net/minecraft/client/gui/screens/ErrorScreen.class
-net/minecraft/client/gui/screens/CreateBuffetWorldScreen.class
 net/minecraft/client/gui/screens/GenericDirtMessageScreen.class
 net/minecraft/client/gui/screens/LanguageSelectScreen.class
 net/minecraft/client/gui/screens/InBedChatScreen.class
@@ -6863,16 +6904,16 @@ net/minecraft/client/gui/screens/LevelLoadingScreen.class
 net/minecraft/client/gui/screens/MouseSettingsScreen.class
 net/minecraft/client/gui/screens/OptionsSubScreen.class
 net/minecraft/client/gui/screens/OutOfMemoryScreen.class
-net/minecraft/client/gui/screens/OptionsScreen.class
 net/minecraft/client/gui/screens/PopupScreen.class
-net/minecraft/client/gui/screens/ProgressScreen.class
 net/minecraft/client/gui/screens/PauseScreen.class
-net/minecraft/client/gui/screens/ReceivingLevelScreen.class
-net/minecraft/client/gui/screens/SimpleOptionsSubScreen.class
-net/minecraft/client/gui/screens/ShareToLanScreen.class
+net/minecraft/client/gui/screens/ProgressScreen.class
 net/minecraft/client/gui/screens/PresetFlatWorldScreen.class
+net/minecraft/client/gui/screens/ReceivingLevelScreen.class
+net/minecraft/client/gui/screens/OptionsScreen.class
 net/minecraft/client/gui/screens/SoundOptionsScreen.class
+net/minecraft/client/gui/screens/ShareToLanScreen.class
 net/minecraft/client/gui/screens/SkinCustomizationScreen.class
 net/minecraft/client/gui/screens/VideoSettingsScreen.class
 net/minecraft/client/gui/screens/TitleScreen.class
 net/minecraft/client/gui/screens/WinScreen.class
+net/minecraft/client/gui/screens/SimpleOptionsSubScreen.class
