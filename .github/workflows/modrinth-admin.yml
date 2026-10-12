@@ -1,0 +1,29 @@
+# One-off Modrinth maintenance on the main project (aetherium-team_aerix). Runs only when this file
+# changes; edit the steps for the next job. Every command is in tools/modrinth_project.py.
+name: modrinth admin
+on:
+  push:
+    branches: [arena/46f241da-aetherium]
+    paths: ['.github/workflows/modrinth-admin.yml']
+permissions:
+  contents: read
+concurrency:
+  group: modrinth
+  cancel-in-progress: false
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    env:
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+      P: aetherium-team_aerix
+    steps:
+      - uses: actions/checkout@v4
+      - name: current text
+        run: python3 tools/modrinth_project.py show "$P"
+      - name: delete the hand-uploaded duplicates (Fabric, numbered just 1.8.2)
+        run: python3 tools/modrinth_project.py delete-number "$P" fabric 1.8.2
+      - name: icon
+        run: python3 tools/modrinth_project.py icon "$P" tools/modrinth/icon-512.png
+      - name: what is left
+        if: always()
+        run: python3 tools/modrinth_project.py list "$P"
