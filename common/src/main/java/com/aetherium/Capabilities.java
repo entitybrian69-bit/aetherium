@@ -193,6 +193,27 @@ public final class Capabilities {
     //~ public static final boolean VISIBLE_ANIMATION_PASS = false;
     // @era:anim-end
 
+    /** Fast mob/block-entity models (1.16.5..1.20.6, while BufferBuilder writes a plain ByteBuffer). */
+    // @era:model-fast-begin none
+    public static final boolean FAST_MODELS = false;
+    public static final boolean FAST_MODELS_MOJANG = false;
+    public static final boolean FAST_MODELS_TRUSTED = false;
+    // @era:model-fast-else joml
+    //~ public static final boolean FAST_MODELS = true;
+    //~ /** com.mojang.math.Matrix3f normal matrix (..1.19.2): Matrix3fAccessor. */
+    //~ public static final boolean FAST_MODELS_MOJANG = false;
+    //~ /** 1.20.5..1.20.6: the pose's trustedNormals flag (PoseNormalsAccessor). */
+    //~ public static final boolean FAST_MODELS_TRUSTED = false;
+    // @era:model-fast-else v16|mojang
+    //~ public static final boolean FAST_MODELS = true;
+    //~ public static final boolean FAST_MODELS_MOJANG = true;
+    //~ public static final boolean FAST_MODELS_TRUSTED = false;
+    // @era:model-fast-else trusted
+    //~ public static final boolean FAST_MODELS = true;
+    //~ public static final boolean FAST_MODELS_MOJANG = false;
+    //~ public static final boolean FAST_MODELS_TRUSTED = true;
+    // @era:model-fast-end
+
     /** Fog controls, sky toggles and per-type particle toggles (every version since 1.8.0). */
     public static final boolean SCENERY_CONTROLS = true;
 

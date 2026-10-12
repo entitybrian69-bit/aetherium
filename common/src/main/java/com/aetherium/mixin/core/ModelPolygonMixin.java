@@ -3,17 +3,21 @@ package com.aetherium.mixin.core;
 import com.aetherium.perf.ModelPolygonData;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:model-fast-begin none
+// @era:model-fast-else v16|mojang
 //~ import com.mojang.math.Vector3f;
 //~ import org.spongepowered.asm.mixin.Final;
 //~ import org.spongepowered.asm.mixin.Shadow;
-// @era:qol16-end
+// @era:model-fast-else joml|trusted
+//~ import org.joml.Vector3f;
+//~ import org.spongepowered.asm.mixin.Final;
+//~ import org.spongepowered.asm.mixin.Shadow;
+// @era:model-fast-end
 
-/** A model face's normal for the fast model path (1.16.5). Applied only where {@code Capabilities.STREAMING} is true. */
+/** A model face's normal for the fast model path (1.16.5..1.20.6). Applied only where {@code Capabilities.FAST_MODELS} is true. */
 @Mixin(targets = "net.minecraft.client.model.geom.ModelPart$Polygon")
 public abstract class ModelPolygonMixin implements ModelPolygonData {
-    // @era:qol16-begin none
+    // @era:model-fast-begin none
     @Override
     public float aetheriumNormalX() {
         return 0.0f;
@@ -28,7 +32,7 @@ public abstract class ModelPolygonMixin implements ModelPolygonData {
     public float aetheriumNormalZ() {
         return 0.0f;
     }
-    // @era:qol16-else v16
+    // @era:model-fast-else v16|mojang|joml|trusted
     //~ @Shadow
     //~ @Final
     //~ public Vector3f normal;
@@ -47,5 +51,5 @@ public abstract class ModelPolygonMixin implements ModelPolygonData {
     //~ public float aetheriumNormalZ() {
         //~ return this.normal.z();
     //~ }
-    // @era:qol16-end
+    // @era:model-fast-end
 }

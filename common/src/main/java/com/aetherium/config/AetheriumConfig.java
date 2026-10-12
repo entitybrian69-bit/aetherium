@@ -66,7 +66,7 @@ public final class AetheriumConfig {
     public final ConfigValue<Boolean> visibleAnimations = ConfigValue.bool(
             "performance.visible_animations", true, "Minecraft 1.16.5 to 1.21.4: only animated block textures you can see (in visible chunks, held or shown items, block entities, particles) keep animating; the rest pause, which saves their texture uploads every tick. Fire and portals always animate. If an animated texture from another mod stops moving, turn this off.");
     public final ConfigValue<Boolean> fastModels = ConfigValue.bool(
-            "performance.fast_models", true, "Minecraft 1.16.5: mob, player and block-entity models are written straight into the vertex buffer, without the temporary vector vanilla creates for every vertex and the per-vertex buffer calls. Same bytes as vanilla; outlines, enchantment glint and unusual buffers keep the vanilla path.");
+            "performance.fast_models", true, "Minecraft 1.16.5 to 1.20.6: mob, player and block-entity models are written straight into the vertex buffer, without the temporary vector vanilla creates for every vertex and the per-vertex buffer calls. Same bytes as vanilla; outlines, enchantment glint and unusual buffers keep the vanilla path.");
     public final ConfigValue<Boolean> framePacing = ConfigValue.bool(
             "performance.frame_pacing", true, "With a Max framerate set, frames are spaced evenly: each frame ends one frame-length after the previous one was due, so a late frame is made up instead of pushing every later frame back. Set Max framerate to your screen's refresh rate (60, 90 or 120) for the steadiest picture.");
     public final ConfigValue<Integer> workerThreads = ConfigValue.intRange(

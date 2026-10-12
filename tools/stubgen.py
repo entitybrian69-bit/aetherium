@@ -49,6 +49,10 @@ HINTS = {
     # joml is not on the probe classpath (a library jar); public API since joml 1.9.
     "org.joml.Quaternionf": (None, ["public float x;", "public float y;", "public float z;", "public float w;"]),
     "org.joml.Matrix4f": (None, ["public float[] get(float[]);"]),
+    "org.joml.Matrix3f": (None, ["public float m00();", "public float m01();", "public float m02();",
+                                 "public float m10();", "public float m11();", "public float m12();",
+                                 "public float m20();", "public float m21();", "public float m22();"]),
+    "org.joml.Vector3f": (None, ["public float x();", "public float y();", "public float z();"]),
     "it.unimi.dsi.fastutil.objects.ObjectList": (None, ["public T0 get(int);", "public int size();"]),
     "net.minecraft.world.phys.AABB": (None, ["public final double minX;", "public final double minY;",
                                              "public final double minZ;", "public final double maxX;",

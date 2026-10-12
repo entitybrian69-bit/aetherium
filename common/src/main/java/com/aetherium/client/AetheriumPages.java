@@ -276,9 +276,9 @@ public final class AetheriumPages {
         page.add(bool("perf.fast_particles", "Fast particles", config.fastParticles)
                 .availableWhen(() -> Capabilities.FAST_PARTICLES, NOT_ON_THIS_VERSION));
         page.add(bool("perf.visible_animations", "Animate visible textures only", config.visibleAnimations)
-                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
+                .availableWhen(() -> Capabilities.VISIBLE_ANIMATIONS, NOT_ON_THIS_VERSION));
         page.add(bool("perf.fast_models", "Fast mob models", config.fastModels)
-                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
+                .availableWhen(() -> Capabilities.FAST_MODELS, NOT_ON_THIS_VERSION));
         page.add(intSlider("perf.worker_threads", "Worker threads", config.workerThreads, 1,
                 v -> v == 0 ? "Auto" + autoThreadsSuffix() : v + (v == 1 ? " thread" : " threads")));
         return page;

@@ -50,6 +50,7 @@ neoforge_version=26.3.0.64-beta
 - `mesh-exec=tracing`
 - `modCompileOnly->compileOnly`
 - `modImplementation->implementation`
+- `model-fast=none`
 - `near-build=none`
 - `occlusion-box=renderer-tick`
 - `options=instances`

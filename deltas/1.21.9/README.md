@@ -43,6 +43,7 @@ neoforge_version=21.9.16-beta
 - `light-hook=brightness`
 - `mesh-alloc=none`
 - `mesh-exec=tracing`
+- `model-fast=none`
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`

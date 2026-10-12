@@ -61,7 +61,7 @@ public final class RenderToggles {
         freezeTextureAnimations = isActive && !config.animatedTextures.get().booleanValue();
         smartChunkCulling = isActive && (Capabilities.STREAMING || Capabilities.FOG_CULL) && config.smartChunkCulling.get().booleanValue();
         fastParticles = isActive && Capabilities.FAST_PARTICLES && config.fastParticles.get().booleanValue();
-        fastModels = isActive && Capabilities.STREAMING && !fastModelsBroken && config.fastModels.get().booleanValue();
+        fastModels = isActive && Capabilities.FAST_MODELS && !fastModelsBroken && config.fastModels.get().booleanValue();
         framePacing = isActive && Capabilities.FRAME_PACING && config.framePacing.get().booleanValue();
         SpriteActivity.setEnabled(isActive && Capabilities.VISIBLE_ANIMATIONS && config.visibleAnimations.get().booleanValue());
         UploadBudget.setEnabled(isActive && config.smoothChunkLoading.get().booleanValue());

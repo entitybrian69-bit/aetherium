@@ -49,6 +49,7 @@ neoforge_version=26.2.0.89
 - `mesh-exec=tracing`
 - `modCompileOnly->compileOnly`
 - `modImplementation->implementation`
+- `model-fast=none`
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`

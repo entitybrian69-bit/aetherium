@@ -21,15 +21,34 @@ neoforge_version=20.4.251
 
 ### Era transforms applied by the generated patch
 
+- `anim=on`
+- `bg-threads=property`
 - `camera-get=getter`
+- `chunk-renderer=none`
+- `chunk-upload=srd`
+- `fog-cull=section`
+- `frustum-cap=joml`
 - `hud=graphics-float`
+- `light-hook=color`
+- `math=joml`
+- `mesh-alloc=v16`
+- `model-fast=joml`
+- `near-build=none`
+- `options=instances`
 - `particle-fast=facing`
+- `pose-normals=plain`
+- `qol16=none`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
+- `search-throttle=none`
+- `section-api=srd`
 - `section-compile=rebuild202`
+- `section-vis=sections`
+- `simdist=sim`
 - `sky=rb193`
 - `vignette=render`
 - `zoom-cam=double`
+- `zoom=on`
 
 ### Where the per-version Java comes from
 
@@ -58,9 +77,16 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.4.t
 
 - `gradle.properties`
 - `common/src/main/resources/aetherium-common.mixins.json`
+- `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
+- `common/src/main/java/com/aetherium/mixin/core/DefaultedVertexAccessor.java`
+- `common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ModelPolygonMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`

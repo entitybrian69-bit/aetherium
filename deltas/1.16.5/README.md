@@ -39,6 +39,7 @@ neoforge_version=unavailable (module disabled)
 - `logger=log4j`
 - `mesh-alloc=v16`
 - `mesh-exec=crd`
+- `model-fast=v16`
 - `near-build=v16`
 - `options=fields`
 - `particle-fast=v16`

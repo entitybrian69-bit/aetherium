@@ -44,6 +44,7 @@ neoforge_version=21.11.45
 - `light-hook=brightness`
 - `mesh-alloc=none`
 - `mesh-exec=tracing`
+- `model-fast=none`
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`

@@ -102,6 +102,13 @@ ERAS = {
     "search-throttle": [("v16", "..1.16.5"), ("bfs", "1.17..1.17.1"), ("none", "1.18..")],
     # Visible-only animated textures (1.7.0): the whole feature to 1.21.4 (1.21.5 changes the
     # tickers, quads and compiled sections).
+    # Fast mob/block-entity models (1.7.0): BufferBuilder written directly while it is the old
+    # ByteBuffer builder (..1.20.6); com.mojang.math to 1.19.2, joml from 1.19.3; 1.20.5 normalises
+    # normals unless the pose's trustedNormals is set.
+    "model-fast": [("v16", "..1.16.5"), ("mojang", "1.17..1.19.2"), ("joml", "1.19.3..1.20.4"),
+                   ("trusted", "1.20.5..1.20.6"), ("none", "1.21..")],
+    "pose-normals": [("plain", "..1.20.4"), ("trusted", "1.20.5..")],
+    "math": [("mojang", "..1.19.2"), ("joml", "1.19.3..")],
     "anim": [("v16", "..1.16.5"), ("on", "1.17..1.21.4"), ("none", "1.21.5..")],
     # Atlas animation steps: 1.16.5 cycles sprites; 1.17 Tickable from getAnimationTicker (reload);
     # 1.19.3 TextureAtlasSprite$Ticker from createTicker (upload), tickAndUpload()V; 1.21.5 takes a

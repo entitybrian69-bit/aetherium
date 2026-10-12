@@ -3,21 +3,25 @@ package com.aetherium.mixin.core;
 import com.aetherium.perf.ModelVertexData;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:model-fast-begin none
+// @era:model-fast-else v16|mojang
 //~ import com.mojang.math.Vector3f;
 //~ import org.spongepowered.asm.mixin.Final;
 //~ import org.spongepowered.asm.mixin.Shadow;
-// @era:qol16-end
+// @era:model-fast-else joml|trusted
+//~ import org.joml.Vector3f;
+//~ import org.spongepowered.asm.mixin.Final;
+//~ import org.spongepowered.asm.mixin.Shadow;
+// @era:model-fast-end
 
 /**
- * A model vertex for the fast model path (1.16.5): the position divided by 16 exactly as
+ * A model vertex for the fast model path (1.16.5..1.20.6): the position divided by 16 exactly as
  * {@code ModelPart.compile} divides it, and the texture coordinates. Applied only where
- * {@code Capabilities.STREAMING} is true.
+ * {@code Capabilities.FAST_MODELS} is true.
  */
 @Mixin(targets = "net.minecraft.client.model.geom.ModelPart$Vertex")
 public abstract class ModelVertexMixin implements ModelVertexData {
-    // @era:qol16-begin none
+    // @era:model-fast-begin none
     @Override
     public float aetheriumX() {
         return 0.0f;
@@ -42,7 +46,7 @@ public abstract class ModelVertexMixin implements ModelVertexData {
     public float aetheriumV() {
         return 0.0f;
     }
-    // @era:qol16-else v16
+    // @era:model-fast-else v16|mojang|joml|trusted
     //~ @Shadow
     //~ @Final
     //~ public Vector3f pos;
@@ -79,5 +83,5 @@ public abstract class ModelVertexMixin implements ModelVertexData {
     //~ public float aetheriumV() {
         //~ return this.v;
     //~ }
-    // @era:qol16-end
+    // @era:model-fast-end
 }

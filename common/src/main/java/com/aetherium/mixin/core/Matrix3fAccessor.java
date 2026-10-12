@@ -1,16 +1,16 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:model-fast-begin joml|trusted|none
+// @era:model-fast-else v16|mojang
 //~ import org.spongepowered.asm.mixin.gen.Accessor;
-// @era:qol16-end
+// @era:model-fast-end
 
-/** The normal matrix entries for the fast model path (1.16.5). Applied only where {@code Capabilities.STREAMING} is true. */
+/** The normal matrix entries for the fast model path (com.mojang.math, 1.16.5..1.19.2). Applied only where {@code Capabilities.FAST_MODELS} is true. */
 @Mixin(targets = "com.mojang.math.Matrix3f")
 public interface Matrix3fAccessor {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:model-fast-begin joml|trusted|none
+    // @era:model-fast-else v16|mojang
     //~ @Accessor("m00")
     //~ float aetherium$m00();
 
@@ -37,5 +37,5 @@ public interface Matrix3fAccessor {
 
     //~ @Accessor("m22")
     //~ float aetherium$m22();
-    // @era:qol16-end
+    // @era:model-fast-end
 }

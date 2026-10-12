@@ -68,13 +68,31 @@ public final class ModelVertexWriter {
      */
     public static int writeFaces(final ByteBuffer b, final int at, final float[] m, final float[] n,
                                  final float[] faces, final int color, final int overlay, final int light) {
+        return writeFaces(b, at, m, n, faces, color, overlay, light, false);
+    }
+
+    /**
+     * As above; with {@code normalize} each transformed normal is scaled to unit length first, as
+     * joml's {@code Vector3f.normalize()} does (1.20.5+ untrusted poses).
+     */
+    public static int writeFaces(final ByteBuffer b, final int at, final float[] m, final float[] n,
+                                 final float[] faces, final int color, final int overlay, final int light,
+                                 final boolean normalize) {
         int out = at;
         for (int f = 0; f + ModelCubeData.FACE_FLOATS <= faces.length; f += ModelCubeData.FACE_FLOATS) {
             final float x = faces[f + 20];
             final float y = faces[f + 21];
             final float z = faces[f + 22];
-            final int normal = packNormal(n[0] * x + n[1] * y + n[2] * z, n[3] * x + n[4] * y + n[5] * z,
-                    n[6] * x + n[7] * y + n[8] * z);
+            float nx = n[0] * x + n[1] * y + n[2] * z;
+            float ny = n[3] * x + n[4] * y + n[5] * z;
+            float nz = n[6] * x + n[7] * y + n[8] * z;
+            if (normalize) {
+                final float inv = 1.0F / (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+                nx *= inv;
+                ny *= inv;
+                nz *= inv;
+            }
+            final int normal = packNormal(nx, ny, nz);
             for (int v = f; v < f + 20; v += 5) {
                 vertex(b, out, m, faces[v], faces[v + 1], faces[v + 2], color, faces[v + 3], faces[v + 4], overlay,
                         light, normal);

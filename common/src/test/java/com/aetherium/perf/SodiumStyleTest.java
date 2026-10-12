@@ -435,6 +435,39 @@ final class SodiumStyleTest {
                 assertEquals(ref.get(k), ours.get(k), "byte " + k);
             }
         }
+
+        // 1.20.5+ untrusted pose: transformNormal normalises (joml: x * (1f / (float) Math.sqrt(len2))).
+        for (int i = 0; i < 9; i++) {
+            n[i] *= 3.0f; // a scaled normal matrix: unnormalised results would clamp
+        }
+        ours.clear();
+        ref.clear();
+        assertEquals(36 * 24, ModelVertexWriter.writeFaces(ours, 36, m, n, faces,
+                ModelVertexWriter.packColor(r, g, bl, a), overlay, light, true), "24 vertices, normalised");
+        at = 36;
+        for (final FakePolygon p : polygons) {
+            float nx = n[0] * p.nx + n[1] * p.ny + n[2] * p.nz;
+            float ny = n[3] * p.nx + n[4] * p.ny + n[5] * p.nz;
+            float nz = n[6] * p.nx + n[7] * p.ny + n[8] * p.nz;
+            final float inv = 1.0f / (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+            nx *= inv;
+            ny *= inv;
+            nz *= inv;
+            for (final FakeVertex v : p.vertices) {
+                final float x = v.x / 16.0F;
+                final float y = v.y / 16.0F;
+                final float z = v.z / 16.0F;
+                vanillaVertex(ref, at, m[0] * x + m[4] * y + m[8] * z + m[12] * 1.0F,
+                        m[1] * x + m[5] * y + m[9] * z + m[13] * 1.0F, m[2] * x + m[6] * y + m[10] * z + m[14] * 1.0F,
+                        r, g, bl, a, v.u, v.v, overlay, light, nx, ny, nz);
+                at += 36;
+            }
+        }
+        for (int k = 36; k < 36 + written; k++) {
+            if (k % 36 != 35) {
+                assertEquals(ref.get(k), ours.get(k), "normalised byte " + k);
+            }
+        }
     }
 
     // ------------------------------------------------------------------ visibility search

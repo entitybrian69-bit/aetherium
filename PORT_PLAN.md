@@ -40,7 +40,7 @@ variant is only enabled once its targets are confirmed there and `stubcheck --al
 | Visibility-search throttle (smart culling) | done | done | vanilla | vanilla | vanilla | vanilla | vanilla | `search-throttle`: 1.17 `setupRender` as 1.16.5 (needsUpdate PUTFIELD ordinals 1/2); 1.18+ searches on a background thread |
 | Fast particles | done | done | done | done | done | done (to 1.21.8) | - | `particle-fast`, `frustum-cap`; 1.21.9+ extracts particle render states |
 | Visible-only animations | done | done | done | done | 1.21.4 | — | — | `anim` / `atlas-tick` / `section-compile`: per-atlas ticker→sprite map wraps `Tickable.tick` (1.17) / `Ticker.tickAndUpload` (1.19.3); sprites collected per build, taken by the CompiledChunk/CompiledSection created after it (1.19+); `VisibleSpritesMixin` marks the visible list once per atlas tick |
-| Fast models | done | | | | | | | |
+| Fast models | done | done | done | 1.20.6 | — | — | — | `model-fast` / `math` / `pose-normals`: ModelPart.compile written straight into the old ByteBuffer BufferBuilder (enum mode from 1.17, joml from 1.19.3, normals normalised for untrusted poses on 1.20.5-1.20.6); 1.21's BufferBuilder is already direct |
 | Aetherium renderer (terrain pipeline) | done | | | | | | | shader-era rewrite per group, last |
 
 Scenery settings: the 1.21.6+ distance settings only move the render-distance fog range, so they

@@ -32,8 +32,8 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
 
     private static final String PACKAGE = "com.aetherium.mixin.core.";
 
-    private static final Set<String> STREAMING_1_7 = Collections.unmodifiableSet(new java.util.HashSet<String>(
-            java.util.Arrays.asList("ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin", "Matrix3fAccessor",
+    private static final Set<String> FAST_MODEL_MIXINS = Collections.unmodifiableSet(new java.util.HashSet<String>(
+            java.util.Arrays.asList("ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin",
                     "DefaultedVertexAccessor", "FastModelMixin")));
 
     private static final Set<String> VISIBLE_ANIMATION_MIXINS = Collections.unmodifiableSet(new java.util.HashSet<String>(
@@ -145,13 +145,22 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("VisibleSpritesMixin".equals(simpleName)) {
             return Capabilities.VISIBLE_ANIMATION_PASS;
         }
-        if (STREAMING_1_7.contains(simpleName)) {
-            // 1.7.0 fast models.
-            return Capabilities.STREAMING;
+        if (FAST_MODEL_MIXINS.contains(simpleName)) {
+            return Capabilities.FAST_MODELS;
         }
-        if ("ChunkPrepareMixin".equals(simpleName) || "BufferBuilderAccessor".equals(simpleName)) {
+        if ("Matrix3fAccessor".equals(simpleName)) {
+            return Capabilities.FAST_MODELS_MOJANG;
+        }
+        if ("PoseNormalsAccessor".equals(simpleName)) {
+            return Capabilities.FAST_MODELS_TRUSTED;
+        }
+        if ("ChunkPrepareMixin".equals(simpleName)) {
             // Converts meshes for the Aetherium pipeline, so it needs the pipeline's buffer hooks.
             return Capabilities.STREAMING && Capabilities.AETHERIUM_RENDERER;
+        }
+        if ("BufferBuilderAccessor".equals(simpleName)) {
+            // The pipeline's mesh conversion (1.16.5) and the fast model path (..1.20.6).
+            return (Capabilities.STREAMING && Capabilities.AETHERIUM_RENDERER) || Capabilities.FAST_MODELS;
         }
         if ("SearchThrottleMixin".equals(simpleName)) {
             return Capabilities.SEARCH_THROTTLE;

@@ -3,25 +3,25 @@ package com.aetherium.mixin.core;
 import com.aetherium.perf.ModelCubeData;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:model-fast-begin none
+// @era:model-fast-else v16|mojang|joml|trusted
 //~ import com.aetherium.perf.ModelCubes;
 //~ import net.minecraft.client.model.geom.ModelPart;
 //~ import org.spongepowered.asm.mixin.Unique;
-// @era:qol16-end
+// @era:model-fast-end
 
 /**
- * A model cube's faces, packed on first use for the fast model path (1.16.5). Render thread
- * only. Applied only where {@code Capabilities.STREAMING} is true.
+ * A model cube's faces, packed on first use for the fast model path (1.16.5..1.20.6). Render thread
+ * only. Applied only where {@code Capabilities.FAST_MODELS} is true.
  */
 @Mixin(targets = "net.minecraft.client.model.geom.ModelPart$Cube")
 public abstract class ModelCubeMixin implements ModelCubeData {
-    // @era:qol16-begin none
+    // @era:model-fast-begin none
     @Override
     public float[] aetheriumFaces() {
         return null;
     }
-    // @era:qol16-else v16
+    // @era:model-fast-else v16|mojang|joml|trusted
     //~ @Unique
     //~ private float[] aetherium$faces;
 
@@ -36,5 +36,5 @@ public abstract class ModelCubeMixin implements ModelCubeData {
         //~ }
         //~ return this.aetherium$faces;
     //~ }
-    // @era:qol16-end
+    // @era:model-fast-end
 }
