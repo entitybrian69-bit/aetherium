@@ -53,7 +53,7 @@ jobs:
         id: neo
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-        run: python3 tools/modrinth_project.py ensure aetherium-neoforge "Aetherium NeoForge"
+        run: python3 tools/modrinth_project.py ensure aetherium-neoforge-team_aerix "Aetherium NeoForge"
       - name: take the NeoForge versions out of the main project
         if: env.DRY_RUN != '1'
         env:
@@ -70,3 +70,8 @@ jobs:
           MODRINTH_PROJECT: ${{ steps.neo.outputs.slug }}
           LOADERS: neoforge
         run: python3 tools/modrinth_publish.py dist
+      - name: list what the main project holds
+        if: always()
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: python3 tools/modrinth_project.py list "$MODRINTH_PROJECT"
