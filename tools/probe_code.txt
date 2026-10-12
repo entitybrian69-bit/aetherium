@@ -86,3 +86,12 @@ net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$Rebuil
 net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$CompileTask compile|doTask|SectionCompiler|CompiledSectionMesh|setSectionMesh
 net.minecraft.client.renderer.texture.SpriteContents tick|uploadFrame|Ticker|animatedTexture|createTicker
 net.minecraft.client.renderer.texture.TextureAtlas Ticker|animatedTextures|createTicker|tickers|SpriteContents
+# 1.21.5+ renderer port: where chunk draws are built and where chunk meshes are uploaded.
+net.minecraft.client.renderer.LevelRenderer RenderPass\$Draw|drawMultipleIndexed|drawIndexed|ChunkSectionsToRender|SectionDraw|getIndexCount|getIndexBuffer|getVertexBuffer|getRenderOrigin|getBuffers|DrawIndirect|DrawSeparate|SectionBuffers|BufferSlice|UberBuffers|getSectionMesh|ChunkSectionLayer
+net.minecraft.client.renderer.chunk.ChunkSectionsToRender invoke|new |getfield|putfield|areturn
+net.minecraft.client.renderer.chunk.SectionRenderDispatcher createBuffer|writeToBuffer|MeshData|vertexBuffer|indexBuffer|SectionBuffers|UberBuffers|BufferSlice|upload|DrawState|addSection|getVertexSize|vertexCount
+net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection SectionBuffers|MeshData|upload|createBuffer|BufferSlice|setSectionMesh|CompiledSectionMesh|SectionDraw|getRenderOrigin|UberBuffers
+net.minecraft.client.renderer.chunk.CompiledSectionMesh invoke|new |getfield|putfield
+net.minecraft.client.renderer.chunk.SectionRenderDispatcher$SectionUberBuffers invoke|new |getfield|putfield
+net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSectionBufferSlice invoke|new |getfield
+net.minecraft.client.renderer.chunk.SectionCompiler MeshData|Results|build|ChunkSectionLayer|sortQuads|put
