@@ -14,6 +14,18 @@
   modrinth_project.py list <project>
       Print every version of <project> (number, loaders, game versions, channel, date, file name).
 
+  modrinth_project.py show <project>
+      Print the title, summary and description (body) as annotations, in pieces.
+
+  modrinth_project.py delete-number <project> <loader> <version_number>
+      Delete the versions of <project> numbered exactly <version_number> whose only loader is <loader>.
+
+  modrinth_project.py icon <project> <png>
+      Set the project icon.
+
+  modrinth_project.py text <project> <summary_file> <body_file>
+      Replace the project summary and description.
+
 Environment: MODRINTH_TOKEN (scopes: Create projects, Read projects, Create versions, Delete versions).
 """
 import json
@@ -149,6 +161,73 @@ def list_versions(token, project):
     return 0
 
 
+def project_id(token, project):
+    st, proj = mp.call('GET', '/project/' + project, token)
+    if st != 200:
+        mp.note('error', 'project %s: HTTP %s %s' % (project, st, proj))
+        return None
+    return proj
+
+
+def show(token, project):
+    proj = project_id(token, project)
+    if not proj:
+        return 1
+    mp.note('notice', 'TITLE: %s\nSUMMARY: %s\nICON: %s\nBODY: %d chars'
+            % (proj['title'], proj['description'], proj.get('icon_url'), len(proj['body'])))
+    body = proj['body']
+    for i in range(0, len(body), 3500):
+        mp.note('notice', 'BODY[%d]\n%s' % (i // 3500, body[i:i + 3500]))
+    return 0
+
+
+def delete_number(token, project, loader, number):
+    st, versions = mp.call('GET', '/project/%s/version' % project, token)
+    if st != 200:
+        mp.note('error', 'versions of %s: HTTP %s %s' % (project, st, versions))
+        return 1
+    doomed = [v for v in versions if v['version_number'] == number and v.get('loaders') == [loader]]
+    gone, failed = [], 0
+    for v in doomed:
+        st, res = mp.call('DELETE', '/version/' + v['id'], token)
+        if st in (200, 204):
+            gone.append(','.join(v.get('game_versions', [])))
+        else:
+            failed += 1
+            mp.note('error', 'deleting %s (%s): HTTP %s %s' % (number, v['id'], st, res))
+    mp.note('notice', 'deleted %d %s versions numbered %s from %s (Minecraft %s)'
+            % (len(gone), loader, number, project, ' '.join(gone)))
+    return 1 if failed else 0
+
+
+def set_icon(token, project, png):
+    proj = project_id(token, project)
+    if not proj:
+        return 1
+    st, res = mp.call('PATCH', '/project/%s/icon?ext=png' % proj['id'], token,
+                      open(png, 'rb').read(), {'Content-Type': 'image/png'})
+    if st not in (200, 204):
+        mp.note('error', 'icon: HTTP %s %s' % (st, res))
+        return 1
+    mp.note('notice', 'icon of %s set from %s' % (project, png))
+    return 0
+
+
+def set_text(token, project, summary_file, body_file):
+    proj = project_id(token, project)
+    if not proj:
+        return 1
+    data = {'description': open(summary_file, encoding='utf-8').read().strip(),
+            'body': open(body_file, encoding='utf-8').read().strip()}
+    st, res = mp.call('PATCH', '/project/' + proj['id'], token, json.dumps(data).encode(),
+                      {'Content-Type': 'application/json'})
+    if st not in (200, 204):
+        mp.note('error', 'text: HTTP %s %s' % (st, res))
+        return 1
+    mp.note('notice', 'summary and description of %s replaced' % project)
+    return 0
+
+
 def main():
     token = os.environ.get('MODRINTH_TOKEN', '').strip()
     if not token:
@@ -158,6 +237,14 @@ def main():
         return ensure(token, sys.argv[2], sys.argv[3])
     if len(sys.argv) == 4 and sys.argv[1] == 'drop-loader':
         return drop_loader(token, sys.argv[2], sys.argv[3])
+    if len(sys.argv) == 3 and sys.argv[1] == 'show':
+        return show(token, sys.argv[2])
+    if len(sys.argv) == 5 and sys.argv[1] == 'delete-number':
+        return delete_number(token, *sys.argv[2:])
+    if len(sys.argv) == 4 and sys.argv[1] == 'icon':
+        return set_icon(token, sys.argv[2], sys.argv[3])
+    if len(sys.argv) == 5 and sys.argv[1] == 'text':
+        return set_text(token, *sys.argv[2:])
     if len(sys.argv) == 3 and sys.argv[1] == 'list':
         return list_versions(token, sys.argv[2])
     sys.exit(__doc__)
