@@ -95,6 +95,10 @@ def ensure(token, slug, title):
             mp.note('notice', 'created project %s (%s, "%s") as a draft' % (candidate, res['id'], title))
             output('slug', candidate)
             return 0
+        if st == 400 and 'slug' in str(res).lower() and 'taken' in str(res).lower():
+            # Taken by a project we cannot see (someone else's draft or private project).
+            mp.note('warning', 'slug %s is taken by a project we cannot see, trying the next one' % candidate)
+            continue
         mp.note('error', 'creating %s: HTTP %s %s' % (candidate, st, res))
         if st in (401, 403):
             mp.note('error', 'the token was refused: it needs the "Create projects" scope')
