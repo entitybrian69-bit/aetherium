@@ -494,4 +494,40 @@ final class SodiumStyleTest {
         assertEquals(1L, FogCull.culled());
         FogCull.resetForTests();
     }
+
+    @Test
+    @DisplayName("Distance fog cull (1.17+): cylinder test, farthest write per frame, opaque linear ranges only")
+    void distanceFogCull() {
+        FogCull.resetForTests();
+        assertFalse(FogCull.beginDistance(true), "no fog seen yet: nothing to cull");
+        // Two terrain-fog writes in one frame: the farther (128) wins.
+        FogCull.recordFogRange(100f, 64f, 1f);
+        FogCull.recordFogRange(96f, 128f, 1f);
+        FogCull.frame();
+        assertTrue(FogCull.distanceStale(true));
+        assertTrue(FogCull.beginDistance(true));
+        assertFalse(FogCull.distanceStale(true));
+        // Limit 128 + margin 4.
+        assertTrue(FogCull.distanceHidden(133f, -8f, -8f, 149f, 8f, 8f), "nearest horizontal 133");
+        assertFalse(FogCull.distanceHidden(131f, -8f, -8f, 147f, 8f, 8f), "within the margin");
+        // Diagonal: cylinder distance sqrt(95^2 + 95^2) = 134 even though each axis is under the limit.
+        assertTrue(FogCull.distanceHidden(95f, 0f, 95f, 111f, 16f, 111f));
+        // Straight up: the vertical axis alone counts.
+        assertTrue(FogCull.distanceHidden(-8f, 140f, -8f, 8f, 156f, 8f));
+        assertFalse(FogCull.distanceHidden(-8f, -8f, -8f, 8f, 8f, 8f), "camera section");
+        // Translucent fog colour never hides anything; a frame without fog clears the limit.
+        FogCull.recordFogRange(10f, 20f, 0.5f);
+        FogCull.frame();
+        assertTrue(FogCull.distanceStale(true));
+        assertFalse(FogCull.beginDistance(true));
+        // 1.21.6+: the nearer of the two applied ranges; "no fog" values are ignored.
+        FogCull.recordFogRanges(Float.MAX_VALUE, Float.MAX_VALUE, 180f, 192f);
+        FogCull.frame();
+        assertTrue(FogCull.beginDistance(true));
+        assertTrue(FogCull.distanceHidden(197f, 0f, 0f, 213f, 16f, 16f));
+        assertFalse(FogCull.distanceHidden(195f, 0f, 0f, 211f, 16f, 16f));
+        assertFalse(FogCull.beginDistance(false), "option off");
+        assertFalse(FogCull.distanceHidden(1000f, 0f, 0f, 1016f, 16f, 16f));
+        FogCull.resetForTests();
+    }
 }

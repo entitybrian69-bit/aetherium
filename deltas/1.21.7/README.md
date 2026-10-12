@@ -26,8 +26,10 @@ neoforge_version=21.7.25-beta
 - `chunk-renderer=none`
 - `chunk-upload=srd`
 - `clouds=renderer`
+- `fog-cull=section`
 - `fog=buffer`
 - `freelook=minecart`
+- `frustum-cap=joml`
 - `gui-layer=stratum`
 - `gui=graphics`
 - `hud=graphics-delta`
@@ -37,8 +39,10 @@ neoforge_version=21.7.25-beta
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`
+- `particle-fast=inner`
 - `qol16=none`
 - `registry=builtin`
+- `search-throttle=none`
 - `section-api=mesh`
 - `section-vis=render-origin`
 - `simdist=sim`
@@ -76,6 +80,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.7.t
 - `gradle.properties`
 - `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/CoalesceHooks.java`
+- `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
@@ -83,6 +88,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.7.t
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`

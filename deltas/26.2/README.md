@@ -31,8 +31,10 @@ neoforge_version=26.2.0.89
 - `chunk-upload=none`
 - `clouds=renderer`
 - `dirty=sections`
+- `fog-cull=none`
 - `fog=data`
 - `freelook=align`
+- `frustum-cap=none`
 - `graphics=preset`
 - `gui=extractor`
 - `hud=none`
@@ -49,6 +51,7 @@ neoforge_version=26.2.0.89
 - `occlusion-box=renderer`
 - `options=instances`
 - `pacing=limiter`
+- `particle-fast=none`
 - `qol16=none`
 - `registry=builtin`
 - `reload=invalidate`
@@ -56,6 +59,7 @@ neoforge_version=26.2.0.89
 - `screen-owner=gui`
 - `screen-pkg=options`
 - `scroll=four`
+- `search-throttle=none`
 - `section-api=none`
 - `section-vis=render-origin`
 - `simdist=sim`
@@ -100,6 +104,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/client/CoalesceHooks.java`
+- `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
@@ -112,9 +117,13 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FrustumCaptureMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
@@ -122,6 +131,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`

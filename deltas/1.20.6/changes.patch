@@ -5,10 +5,10 @@
 # apply:  git apply --whitespace=nowarn deltas/1.20.6/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.20.6/changes.patch
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 56b4f74..f139b2b 100644
+index bccc384..0c49a03 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -388,10 +388,10 @@ public final class ClientHooks {
+@@ -389,10 +389,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -23,7 +23,7 @@ index 56b4f74..f139b2b 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -426,10 +426,10 @@ public final class ClientHooks {
+@@ -427,10 +427,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -37,6 +37,262 @@ index 56b4f74..f139b2b 100644
 +        //~ return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
          // @era:screen-pkg-end
      }
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java b/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
+index ca48c5a..dd580ac 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
+@@ -1,50 +1,51 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:particle-fast-begin inner
++// @era:particle-fast-begin facing
+ import com.aetherium.perf.Billboard;
+ import com.aetherium.perf.RenderToggles;
+ import com.aetherium.perf.ViewFrustum;
+ import com.mojang.blaze3d.vertex.VertexConsumer;
++import net.minecraft.client.Camera;
+ import net.minecraft.client.multiplayer.ClientLevel;
+ import net.minecraft.client.particle.Particle;
++import net.minecraft.client.particle.SingleQuadParticle;
++import net.minecraft.world.phys.Vec3;
+ import org.joml.Quaternionf;
+ import org.spongepowered.asm.mixin.Shadow;
+ import org.spongepowered.asm.mixin.Unique;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:particle-fast-else v16|quat
++// @era:particle-fast-else inner
+ //~ import com.aetherium.perf.Billboard;
+ //~ import com.aetherium.perf.RenderToggles;
+ //~ import com.aetherium.perf.ViewFrustum;
+ //~ import com.mojang.blaze3d.vertex.VertexConsumer;
+-//~ import com.mojang.math.Quaternion;
+-//~ import net.minecraft.client.Camera;
+ //~ import net.minecraft.client.multiplayer.ClientLevel;
+ //~ import net.minecraft.client.particle.Particle;
+-//~ import net.minecraft.world.phys.Vec3;
++//~ import org.joml.Quaternionf;
+ //~ import org.spongepowered.asm.mixin.Shadow;
+ //~ import org.spongepowered.asm.mixin.Unique;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:particle-fast-else joml
++// @era:particle-fast-else v16|quat
+ //~ import com.aetherium.perf.Billboard;
+ //~ import com.aetherium.perf.RenderToggles;
+ //~ import com.aetherium.perf.ViewFrustum;
+ //~ import com.mojang.blaze3d.vertex.VertexConsumer;
++//~ import com.mojang.math.Quaternion;
+ //~ import net.minecraft.client.Camera;
+ //~ import net.minecraft.client.multiplayer.ClientLevel;
+ //~ import net.minecraft.client.particle.Particle;
+ //~ import net.minecraft.world.phys.Vec3;
+-//~ import org.joml.Quaternionf;
+ //~ import org.spongepowered.asm.mixin.Shadow;
+ //~ import org.spongepowered.asm.mixin.Unique;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:particle-fast-else facing
++// @era:particle-fast-else joml
+ //~ import com.aetherium.perf.Billboard;
+ //~ import com.aetherium.perf.RenderToggles;
+ //~ import com.aetherium.perf.ViewFrustum;
+@@ -52,7 +53,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ //~ import net.minecraft.client.Camera;
+ //~ import net.minecraft.client.multiplayer.ClientLevel;
+ //~ import net.minecraft.client.particle.Particle;
+-//~ import net.minecraft.client.particle.SingleQuadParticle;
+ //~ import net.minecraft.world.phys.Vec3;
+ //~ import org.joml.Quaternionf;
+ //~ import org.spongepowered.asm.mixin.Shadow;
+@@ -109,64 +109,64 @@ public abstract class FastParticleMixin extends Particle {
+     // @era:particle-fast-else none
+     // @era:particle-fast-end
+ 
+-    // @era:particle-fast-begin inner
+-    @Inject(method = "renderRotatedQuad(Lcom/mojang/blaze3d/vertex/VertexConsumer;Lorg/joml/Quaternionf;FFFF)V",
+-            at = @At("HEAD"), cancellable = true, require = 0)
+-    private void aetherium$fastQuad(final VertexConsumer consumer, final Quaternionf q, final float px,
+-                                    final float py, final float pz, final float partialTick, final CallbackInfo ci) {
+-        if (!RenderToggles.fastParticles) {
++    // @era:particle-fast-begin facing
++    @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
++                                      final CallbackInfo ci) {
++        // Other facing modes (LOOKAT_Y, custom) keep vanilla's rotation.
++        if (!RenderToggles.fastParticles
++                || ((SingleQuadParticle) (Object) this).getFacingCameraMode() != SingleQuadParticle.FacingCameraMode.LOOKAT_XYZ) {
+             return;
+         }
++        final Vec3 cam = camera.getPosition();
++        final double t = partialTick;
++        final float px = (float) (this.xo + t * (this.x - this.xo) - cam.x());
++        final float py = (float) (this.yo + t * (this.y - this.yo) - cam.y());
++        final float pz = (float) (this.zo + t * (this.z - this.zo) - cam.z());
+         final float size = this.getQuadSize(partialTick);
+         ci.cancel();
+-        // Corners are size * sqrt(2) from the centre.
+         if (!ViewFrustum.FRAME.sphereVisible(px, py, pz, size * 1.4143f + 0.01f)) {
+             return;
+         }
++        final Quaternionf q = camera.rotation();
++        final float roll = this.roll == 0.0f ? 0.0f : this.oRoll + partialTick * (this.roll - this.oRoll);
+         final float[] c = AETHERIUM$CORNERS;
+-        // The roll (if any) is already part of q here.
+-        Billboard.corners(q.x, q.y, q.z, q.w, 0.0f, size, c);
+-        final float u0 = this.getU0();
+-        final float u1 = this.getU1();
+-        final float v0 = this.getV0();
+-        final float v1 = this.getV1();
+-        final int light = this.getLightColor(partialTick);
+-        final float r = this.rCol;
+-        final float g = this.gCol;
+-        final float b = this.bCol;
+-        final float a = this.alpha;
+-        // 1.21 order: (1, -1), (1, 1), (-1, 1), (-1, -1) = Billboard corners 3, 2, 1, 0.
+-        consumer.addVertex(c[9] + px, c[10] + py, c[11] + pz).setUv(u1, v1).setColor(r, g, b, a).setLight(light);
+-        consumer.addVertex(c[6] + px, c[7] + py, c[8] + pz).setUv(u1, v0).setColor(r, g, b, a).setLight(light);
+-        consumer.addVertex(c[3] + px, c[4] + py, c[5] + pz).setUv(u0, v0).setColor(r, g, b, a).setLight(light);
+-        consumer.addVertex(c[0] + px, c[1] + py, c[2] + pz).setUv(u0, v1).setColor(r, g, b, a).setLight(light);
++        Billboard.corners(q.x, q.y, q.z, q.w, roll, size, c);
++        this.aetherium$emit(consumer, c, px, py, pz, partialTick);
+     }
+-    // @era:particle-fast-else v16|quat
+-    //~ @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
+-                                      //~ final CallbackInfo ci) {
++    // @era:particle-fast-else inner
++    //~ @Inject(method = "renderRotatedQuad(Lcom/mojang/blaze3d/vertex/VertexConsumer;Lorg/joml/Quaternionf;FFFF)V",
++            //~ at = @At("HEAD"), cancellable = true, require = 0)
++    //~ private void aetherium$fastQuad(final VertexConsumer consumer, final Quaternionf q, final float px,
++                                    //~ final float py, final float pz, final float partialTick, final CallbackInfo ci) {
+         //~ if (!RenderToggles.fastParticles) {
+             //~ return;
+         //~ }
+-        //~ final Vec3 cam = camera.getPosition();
+-        //~ // Mth.lerp(delta, start, end) = start + delta * (end - start), as vanilla interpolates.
+-        //~ final double t = partialTick;
+-        //~ final float px = (float) (this.xo + t * (this.x - this.xo) - cam.x());
+-        //~ final float py = (float) (this.yo + t * (this.y - this.yo) - cam.y());
+-        //~ final float pz = (float) (this.zo + t * (this.z - this.zo) - cam.z());
+         //~ final float size = this.getQuadSize(partialTick);
+         //~ ci.cancel();
+         //~ // Corners are size * sqrt(2) from the centre.
+         //~ if (!ViewFrustum.FRAME.sphereVisible(px, py, pz, size * 1.4143f + 0.01f)) {
+             //~ return;
+         //~ }
+-        //~ final Quaternion q = camera.rotation();
+-        //~ final float roll = this.roll == 0.0f ? 0.0f : this.oRoll + partialTick * (this.roll - this.oRoll);
+         //~ final float[] c = AETHERIUM$CORNERS;
+-        //~ Billboard.corners(q.i(), q.j(), q.k(), q.r(), roll, size, c);
+-        //~ this.aetherium$emit(consumer, c, px, py, pz, partialTick);
++        //~ // The roll (if any) is already part of q here.
++        //~ Billboard.corners(q.x, q.y, q.z, q.w, 0.0f, size, c);
++        //~ final float u0 = this.getU0();
++        //~ final float u1 = this.getU1();
++        //~ final float v0 = this.getV0();
++        //~ final float v1 = this.getV1();
++        //~ final int light = this.getLightColor(partialTick);
++        //~ final float r = this.rCol;
++        //~ final float g = this.gCol;
++        //~ final float b = this.bCol;
++        //~ final float a = this.alpha;
++        //~ // 1.21 order: (1, -1), (1, 1), (-1, 1), (-1, -1) = Billboard corners 3, 2, 1, 0.
++        //~ consumer.addVertex(c[9] + px, c[10] + py, c[11] + pz).setUv(u1, v1).setColor(r, g, b, a).setLight(light);
++        //~ consumer.addVertex(c[6] + px, c[7] + py, c[8] + pz).setUv(u1, v0).setColor(r, g, b, a).setLight(light);
++        //~ consumer.addVertex(c[3] + px, c[4] + py, c[5] + pz).setUv(u0, v0).setColor(r, g, b, a).setLight(light);
++        //~ consumer.addVertex(c[0] + px, c[1] + py, c[2] + pz).setUv(u0, v1).setColor(r, g, b, a).setLight(light);
+     //~ }
+-    // @era:particle-fast-else joml
++    // @era:particle-fast-else v16|quat
+     //~ @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+     //~ private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
+                                       //~ final CallbackInfo ci) {
+@@ -174,28 +174,28 @@ public abstract class FastParticleMixin extends Particle {
+             //~ return;
+         //~ }
+         //~ final Vec3 cam = camera.getPosition();
++        //~ // Mth.lerp(delta, start, end) = start + delta * (end - start), as vanilla interpolates.
+         //~ final double t = partialTick;
+         //~ final float px = (float) (this.xo + t * (this.x - this.xo) - cam.x());
+         //~ final float py = (float) (this.yo + t * (this.y - this.yo) - cam.y());
+         //~ final float pz = (float) (this.zo + t * (this.z - this.zo) - cam.z());
+         //~ final float size = this.getQuadSize(partialTick);
+         //~ ci.cancel();
++        //~ // Corners are size * sqrt(2) from the centre.
+         //~ if (!ViewFrustum.FRAME.sphereVisible(px, py, pz, size * 1.4143f + 0.01f)) {
+             //~ return;
+         //~ }
+-        //~ final Quaternionf q = camera.rotation();
++        //~ final Quaternion q = camera.rotation();
+         //~ final float roll = this.roll == 0.0f ? 0.0f : this.oRoll + partialTick * (this.roll - this.oRoll);
+         //~ final float[] c = AETHERIUM$CORNERS;
+-        //~ Billboard.corners(q.x, q.y, q.z, q.w, roll, size, c);
++        //~ Billboard.corners(q.i(), q.j(), q.k(), q.r(), roll, size, c);
+         //~ this.aetherium$emit(consumer, c, px, py, pz, partialTick);
+     //~ }
+-    // @era:particle-fast-else facing
++    // @era:particle-fast-else joml
+     //~ @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+     //~ private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
+                                       //~ final CallbackInfo ci) {
+-        //~ // Other facing modes (LOOKAT_Y, custom) keep vanilla's rotation.
+-        //~ if (!RenderToggles.fastParticles
+-                //~ || ((SingleQuadParticle) (Object) this).getFacingCameraMode() != SingleQuadParticle.FacingCameraMode.LOOKAT_XYZ) {
++        //~ if (!RenderToggles.fastParticles) {
+             //~ return;
+         //~ }
+         //~ final Vec3 cam = camera.getPosition();
+@@ -217,25 +217,25 @@ public abstract class FastParticleMixin extends Particle {
+     // @era:particle-fast-else none
+     // @era:particle-fast-end
+ 
+-    // @era:particle-fast-begin inner|none
+-    // @era:particle-fast-else v16|quat|joml|facing
+-    //~ /** Vanilla's 1.16.5..1.20.6 order: (-1, -1), (-1, 1), (1, 1), (1, -1). */
+-    //~ @Unique
+-    //~ private void aetherium$emit(final VertexConsumer consumer, final float[] c, final float px, final float py,
+-                                //~ final float pz, final float partialTick) {
+-        //~ final float u0 = this.getU0();
+-        //~ final float u1 = this.getU1();
+-        //~ final float v0 = this.getV0();
+-        //~ final float v1 = this.getV1();
+-        //~ final int light = this.getLightColor(partialTick);
+-        //~ final float r = this.rCol;
+-        //~ final float g = this.gCol;
+-        //~ final float b = this.bCol;
+-        //~ final float a = this.alpha;
+-        //~ consumer.vertex(c[0] + px, c[1] + py, c[2] + pz).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[3] + px, c[4] + py, c[5] + pz).uv(u1, v0).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[6] + px, c[7] + py, c[8] + pz).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[9] + px, c[10] + py, c[11] + pz).uv(u0, v1).color(r, g, b, a).uv2(light).endVertex();
+-    //~ }
++    // @era:particle-fast-begin v16|quat|joml|facing
++    /** Vanilla's 1.16.5..1.20.6 order: (-1, -1), (-1, 1), (1, 1), (1, -1). */
++    @Unique
++    private void aetherium$emit(final VertexConsumer consumer, final float[] c, final float px, final float py,
++                                final float pz, final float partialTick) {
++        final float u0 = this.getU0();
++        final float u1 = this.getU1();
++        final float v0 = this.getV0();
++        final float v1 = this.getV1();
++        final int light = this.getLightColor(partialTick);
++        final float r = this.rCol;
++        final float g = this.gCol;
++        final float b = this.bCol;
++        final float a = this.alpha;
++        consumer.vertex(c[0] + px, c[1] + py, c[2] + pz).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[3] + px, c[4] + py, c[5] + pz).uv(u1, v0).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[6] + px, c[7] + py, c[8] + pz).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[9] + px, c[10] + py, c[11] + pz).uv(u0, v1).color(r, g, b, a).uv2(light).endVertex();
++    }
++    // @era:particle-fast-else inner|none
+     // @era:particle-fast-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..120379c 100644

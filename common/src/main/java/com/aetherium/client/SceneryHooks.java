@@ -1,5 +1,6 @@
 package com.aetherium.client;
 
+import com.aetherium.perf.FogCull;
 import com.aetherium.qol.ParticleFilter;
 import com.aetherium.qol.Scenery;
 import java.util.IdentityHashMap;
@@ -13,18 +14,18 @@ import net.minecraft.world.entity.LivingEntity;
 // @era:fog-begin shader17|shader19
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.world.level.material.FogType;
+// @era:fog-else buffer|data
+//~ import net.minecraft.client.Minecraft;
+//~ import net.minecraft.world.level.material.FogType;
+// @era:fog-else params
+//~ import net.minecraft.client.renderer.FogParameters;
+//~ import net.minecraft.world.level.material.FogType;
 // @era:fog-else gl
 //~ import com.mojang.blaze3d.systems.RenderSystem;
 //~ import net.minecraft.tags.FluidTags;
 //~ import net.minecraft.tags.Tag;
 //~ import net.minecraft.world.level.material.Fluid;
 //~ import net.minecraft.world.level.material.FluidState;
-// @era:fog-else params
-//~ import net.minecraft.client.renderer.FogParameters;
-//~ import net.minecraft.world.level.material.FogType;
-// @era:fog-else buffer|data
-//~ import net.minecraft.client.Minecraft;
-//~ import net.minecraft.world.level.material.FogType;
 // @era:fog-end
 // @era:registry-begin builtin
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -115,6 +116,13 @@ public final class SceneryHooks {
     // @era:fog-begin shader17|shader19
     /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
     public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
+        adjustShaderFog(camera, farPlane, thick);
+        // What the terrain is drawn with this frame, for the fog cull.
+        FogCull.recordFogRange(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(),
+                RenderSystem.getShaderFogColor()[3]);
+    }
+
+    private static void adjustShaderFog(final Camera camera, final float farPlane, final boolean thick) {
         if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
             return;
         }
@@ -126,21 +134,6 @@ public final class SceneryHooks {
         RenderSystem.setShaderFogStart(FOG[Scenery.START]);
         RenderSystem.setShaderFogEnd(FOG[Scenery.END]);
     }
-    // @era:fog-else gl
-    // @era:fog-else params
-    //~ /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
-    //~ public static FogParameters adjustFog(final FogParameters fog, final Camera camera, final float renderDistance,
-                                          //~ final boolean thick) {
-        //~ if (fog == null || fog == FogParameters.NO_FOG || Scenery.fogVanilla() || blinded(camera.getEntity())) {
-            //~ return fog;
-        //~ }
-        //~ final int medium = medium(camera);
-        //~ if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, renderDistance, fog.start(), fog.end(), FOG)) {
-            //~ return fog;
-        //~ }
-        //~ return new FogParameters(FOG[Scenery.START], FOG[Scenery.END], fog.shape(), fog.red(), fog.green(),
-                //~ fog.blue(), fog.alpha());
-    //~ }
     // @era:fog-else buffer|data
     //~ /**
      //~ * Before FogRenderer writes the fog uniform: the four ranges to write instead, or null to
@@ -149,6 +142,17 @@ public final class SceneryHooks {
      //~ */
     //~ public static float[] adjustFogBuffer(final float envStart, final float envEnd, final float rdStart,
                                           //~ final float rdEnd) {
+        //~ final float[] fog = adjustFogRanges(envStart, envEnd, rdStart, rdEnd);
+        //~ if (fog == null) {
+            //~ FogCull.recordFogRanges(envStart, envEnd, rdStart, rdEnd);
+        //~ } else {
+            //~ FogCull.recordFogRanges(fog[0], fog[1], fog[2], fog[3]);
+        //~ }
+        //~ return fog;
+    //~ }
+
+    //~ private static float[] adjustFogRanges(final float envStart, final float envEnd, final float rdStart,
+                                           //~ final float rdEnd) {
         //~ if (Scenery.fogVanilla()) {
             //~ return null;
         //~ }
@@ -162,6 +166,30 @@ public final class SceneryHooks {
         //~ }
         //~ return FOG;
     //~ }
+    // @era:fog-else params
+    //~ /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
+    //~ public static FogParameters adjustFog(final FogParameters fog, final Camera camera, final float renderDistance,
+                                          //~ final boolean thick) {
+        //~ final FogParameters used = adjustFogParameters(fog, camera, renderDistance, thick);
+        //~ if (used != null) {
+            //~ FogCull.recordFogRange(used.start(), used.end(), used.alpha());
+        //~ }
+        //~ return used;
+    //~ }
+
+    //~ private static FogParameters adjustFogParameters(final FogParameters fog, final Camera camera,
+                                                     //~ final float renderDistance, final boolean thick) {
+        //~ if (fog == null || fog == FogParameters.NO_FOG || Scenery.fogVanilla() || blinded(camera.getEntity())) {
+            //~ return fog;
+        //~ }
+        //~ final int medium = medium(camera);
+        //~ if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, renderDistance, fog.start(), fog.end(), FOG)) {
+            //~ return fog;
+        //~ }
+        //~ return new FogParameters(FOG[Scenery.START], FOG[Scenery.END], fog.shape(), fog.red(), fog.green(),
+                //~ fog.blue(), fog.alpha());
+    //~ }
+    // @era:fog-else gl
     // @era:fog-end
 
     // ------------------------------------------------------------------ particles

@@ -140,6 +140,46 @@ public final class Capabilities {
     //~ public static final boolean COALESCE = false;
     // @era:section-api-end
 
+    /** Allocation-free, frustum-culled camera-facing particles (1.16.5..1.21.8). */
+    // @era:particle-fast-begin v16|quat|joml|facing|inner
+    public static final boolean FAST_PARTICLES = true;
+    // @era:particle-fast-else none
+    //~ public static final boolean FAST_PARTICLES = false;
+    // @era:particle-fast-end
+
+    /** Per-frame camera frustum from vanilla's own matrices (1.16.5 via StreamingLevelMixin). */
+    // @era:frustum-cap-begin mojang|joml|joml-ret
+    public static final boolean FRAME_FRUSTUM = true;
+    // @era:frustum-cap-else none
+    //~ public static final boolean FRAME_FRUSTUM = false;
+    // @era:frustum-cap-end
+
+    /** Visible sections wholly inside the fog are skipped (1.17..26.1; 1.16.5 culls in STREAMING). */
+    // @era:fog-cull-begin bfs|info|section
+    public static final boolean FOG_CULL = true;
+    // @era:fog-cull-else none
+    //~ public static final boolean FOG_CULL = false;
+    // @era:fog-cull-end
+
+    /** Which list the fog cull filters: RenderChunkInfo (1.17..1.20.1) or RenderSection (1.20.2..26.1). */
+    // @era:fog-cull-begin section
+    public static final boolean FOG_CULL_INFO = false;
+    public static final boolean FOG_CULL_SECTION = true;
+    // @era:fog-cull-else bfs|info
+    //~ public static final boolean FOG_CULL_INFO = true;
+    //~ public static final boolean FOG_CULL_SECTION = false;
+    // @era:fog-cull-else none
+    //~ public static final boolean FOG_CULL_INFO = false;
+    //~ public static final boolean FOG_CULL_SECTION = false;
+    // @era:fog-cull-end
+
+    /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */
+    // @era:search-throttle-begin v16|none
+    public static final boolean SEARCH_THROTTLE = false;
+    // @era:search-throttle-else bfs
+    //~ public static final boolean SEARCH_THROTTLE = true;
+    // @era:search-throttle-end
+
     /** Fog controls, sky toggles and per-type particle toggles (every version since 1.8.0). */
     public static final boolean SCENERY_CONTROLS = true;
 

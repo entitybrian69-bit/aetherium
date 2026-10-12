@@ -78,6 +78,28 @@ ERAS = {
     "zoom-cam": [("double", "..1.20.6"), ("float", "1.21..1.21.11"), ("align", "26.1..")],
     # Threaded "build near" chunk rebuilds and the per-frame client light budget (NearBuildMixin).
     # 1.17 still rebuilds near sections on the render thread; 1.18+ vanilla builds them threaded by default.
+    # Fast particles: SingleQuadParticle.render (VertexConsumer, Camera, float) with the camera
+    # quaternion as com.mojang Quaternion (..1.19.2) or joml (1.19.3+); 1.20.3 adds facing modes;
+    # 1.21 moves the vertices into renderRotatedQuad(VertexConsumer, Quaternionf, x, y, z, pt) with
+    # the new vertex API and the corners in reverse order; 1.21.9 extracts render states instead.
+    "particle-fast": [("v16", "..1.16.5"), ("quat", "1.17..1.19.2"), ("joml", "1.19.3..1.20.2"),
+                      ("facing", "1.20.3..1.20.6"), ("inner", "1.21..1.21.8"), ("none", "1.21.9..")],
+    # Per-frame view frustum: Frustum.calculateFrustum(view, projection), armed at the head of
+    # LevelRenderer.prepareCullFrustum (void ..1.21.8, returns the Frustum 1.21.9..1.21.11). 1.16.5
+    # captures in StreamingLevelMixin; 26.x builds the frustum outside LevelRenderer.
+    "frustum-cap": [("none", "..1.16.5"), ("mojang", "1.17..1.19.2"), ("joml", "1.19.3..1.21.8"),
+                    ("joml-ret", "1.21.9..1.21.11"), ("none", "26.1..")],
+    # Fog cull of the visible-section list (1.16.5 culls inside its own search, StreamingLevelMixin):
+    # 1.17 filters LevelRenderer.renderChunks after setupRender (search on the render thread, its
+    # needsUpdate flag); 1.18-1.20.1 filter renderChunksInFrustum after applyFrustum
+    # (needsFrustumUpdate); 1.20.2-26.1 filter visibleSections after applyFrustum
+    # (SectionOcclusionGraph.needsFrustumUpdate); 26.2 has no applyFrustum.
+    "fog-cull": [("none", "..1.16.5"), ("bfs", "1.17..1.17.1"), ("info", "1.18..1.20.1"),
+                 ("section", "1.20.2..26.1"), ("none", "26.2..")],
+    # Visible-section search throttle: the search runs on the render thread in setupRender up to
+    # 1.17.1 (1.16.5 in StreamingLevelMixin; 1.17 needsUpdate PUTFIELD ordinals 0 camera moved,
+    # 1 search start, 2 dirty section, as on 1.16.5); 1.18+ searches on a background thread.
+    "search-throttle": [("v16", "..1.16.5"), ("bfs", "1.17..1.17.1"), ("none", "1.18..")],
     "near-build": [("v16", "..1.17.1"), ("none", "1.18..")],
     # Entity yaw/pitch: public fields on 1.16.5, getYRot()/getXRot() from 1.17.
     "rot": [("fields", "..1.16.5"), ("getters", "1.17..")],

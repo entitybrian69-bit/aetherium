@@ -25,8 +25,10 @@ neoforge_version=21.5.81
 - `chunk-renderer=none`
 - `chunk-upload=srd`
 - `clouds=renderer`
+- `fog-cull=section`
 - `fog=params`
 - `freelook=minecart`
+- `frustum-cap=joml`
 - `hud=graphics-delta`
 - `light-hook=brightness`
 - `mesh-alloc=none`
@@ -34,8 +36,10 @@ neoforge_version=21.5.81
 - `near-build=none`
 - `occlusion-box=renderer`
 - `options=instances`
+- `particle-fast=inner`
 - `qol16=none`
 - `registry=builtin`
+- `search-throttle=none`
 - `section-api=srd-ro`
 - `section-vis=render-origin`
 - `simdist=sim`
@@ -78,6 +82,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.5.t
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`

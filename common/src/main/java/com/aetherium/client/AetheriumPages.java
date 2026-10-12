@@ -272,9 +272,9 @@ public final class AetheriumPages {
         page.add(bool("perf.coalesce_rebuilds", "Merge chunk rebuilds", config.coalesceRebuilds)
                 .availableWhen(() -> Capabilities.COALESCE, NOT_ON_THIS_VERSION));
         page.add(bool("perf.smart_chunk_culling", "Smarter chunk culling", config.smartChunkCulling)
-                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
+                .availableWhen(() -> Capabilities.STREAMING || Capabilities.FOG_CULL, NOT_ON_THIS_VERSION));
         page.add(bool("perf.fast_particles", "Fast particles", config.fastParticles)
-                .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
+                .availableWhen(() -> Capabilities.FAST_PARTICLES, NOT_ON_THIS_VERSION));
         page.add(bool("perf.visible_animations", "Animate visible textures only", config.visibleAnimations)
                 .availableWhen(() -> Capabilities.STREAMING, NOT_ON_THIS_VERSION));
         page.add(bool("perf.fast_models", "Fast mob models", config.fastModels)

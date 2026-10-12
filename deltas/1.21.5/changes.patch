@@ -5,7 +5,7 @@
 # apply:  git apply --whitespace=nowarn deltas/1.21.5/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.5/changes.patch
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index c922c54..88de617 100644
+index b85753a..d6c5834 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -127,10 +127,10 @@ public final class Capabilities {
@@ -24,10 +24,10 @@ index c922c54..88de617 100644
  
      /** Rebuild coalescing (per-section dirty timestamps); 26.2 dropped the section dirty flag. */
 diff --git a/common/src/main/java/com/aetherium/client/SceneryHooks.java b/common/src/main/java/com/aetherium/client/SceneryHooks.java
-index 061c32d..c0cc98a 100644
+index b967978..62cfd75 100644
 --- a/common/src/main/java/com/aetherium/client/SceneryHooks.java
 +++ b/common/src/main/java/com/aetherium/client/SceneryHooks.java
-@@ -10,18 +10,18 @@ import net.minecraft.core.particles.ParticleType;
+@@ -11,15 +11,15 @@ import net.minecraft.core.particles.ParticleType;
  import net.minecraft.world.effect.MobEffects;
  import net.minecraft.world.entity.Entity;
  import net.minecraft.world.entity.LivingEntity;
@@ -39,31 +39,42 @@ index 061c32d..c0cc98a 100644
 +// @era:fog-else shader17|shader19
 +//~ import com.mojang.blaze3d.systems.RenderSystem;
 +//~ import net.minecraft.world.level.material.FogType;
- // @era:fog-else gl
- //~ import com.mojang.blaze3d.systems.RenderSystem;
- //~ import net.minecraft.tags.FluidTags;
- //~ import net.minecraft.tags.Tag;
- //~ import net.minecraft.world.level.material.Fluid;
- //~ import net.minecraft.world.level.material.FluidState;
--// @era:fog-else params
--//~ import net.minecraft.client.renderer.FogParameters;
--//~ import net.minecraft.world.level.material.FogType;
  // @era:fog-else buffer|data
  //~ import net.minecraft.client.Minecraft;
  //~ import net.minecraft.world.level.material.FogType;
-@@ -112,35 +112,35 @@ public final class SceneryHooks {
+-// @era:fog-else params
+-//~ import net.minecraft.client.renderer.FogParameters;
+-//~ import net.minecraft.world.level.material.FogType;
+ // @era:fog-else gl
+ //~ import com.mojang.blaze3d.systems.RenderSystem;
+ //~ import net.minecraft.tags.FluidTags;
+@@ -113,27 +113,50 @@ public final class SceneryHooks {
      //~ }
      // @era:fog-end
  
 -    // @era:fog-begin shader17|shader19
 -    /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
 -    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
--        if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
--            return;
+-        adjustShaderFog(camera, farPlane, thick);
+-        // What the terrain is drawn with this frame, for the fog cull.
+-        FogCull.recordFogRange(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(),
+-                RenderSystem.getShaderFogColor()[3]);
 +    // @era:fog-begin params
 +    /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
 +    public static FogParameters adjustFog(final FogParameters fog, final Camera camera, final float renderDistance,
 +                                          final boolean thick) {
++        final FogParameters used = adjustFogParameters(fog, camera, renderDistance, thick);
++        if (used != null) {
++            FogCull.recordFogRange(used.start(), used.end(), used.alpha());
++        }
++        return used;
+     }
+ 
+-    private static void adjustShaderFog(final Camera camera, final float farPlane, final boolean thick) {
+-        if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
+-            return;
++    private static FogParameters adjustFogParameters(final FogParameters fog, final Camera camera,
++                                                     final float renderDistance, final boolean thick) {
 +        if (fog == null || fog == FogParameters.NO_FOG || Scenery.fogVanilla() || blinded(camera.getEntity())) {
 +            return fog;
          }
@@ -79,35 +90,60 @@ index 061c32d..c0cc98a 100644
 +        return new FogParameters(FOG[Scenery.START], FOG[Scenery.END], fog.shape(), fog.red(), fog.green(),
 +                fog.blue(), fog.alpha());
      }
--    // @era:fog-else gl
++    // @era:fog-else shader17|shader19
++    //~ /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
++    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
++        //~ adjustShaderFog(camera, farPlane, thick);
++        //~ // What the terrain is drawn with this frame, for the fog cull.
++        //~ FogCull.recordFogRange(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(),
++                //~ RenderSystem.getShaderFogColor()[3]);
++    //~ }
++
++    //~ private static void adjustShaderFog(final Camera camera, final float farPlane, final boolean thick) {
++        //~ if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
++            //~ return;
++        //~ }
++        //~ final int medium = medium(camera);
++        //~ if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, farPlane, RenderSystem.getShaderFogStart(),
++                //~ RenderSystem.getShaderFogEnd(), FOG)) {
++            //~ return;
++        //~ }
++        //~ RenderSystem.setShaderFogStart(FOG[Scenery.START]);
++        //~ RenderSystem.setShaderFogEnd(FOG[Scenery.END]);
++    //~ }
+     // @era:fog-else buffer|data
+     //~ /**
+      //~ * Before FogRenderer writes the fog uniform: the four ranges to write instead, or null to
+@@ -166,29 +189,6 @@ public final class SceneryHooks {
+         //~ }
+         //~ return FOG;
+     //~ }
 -    // @era:fog-else params
 -    //~ /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
 -    //~ public static FogParameters adjustFog(final FogParameters fog, final Camera camera, final float renderDistance,
 -                                          //~ final boolean thick) {
+-        //~ final FogParameters used = adjustFogParameters(fog, camera, renderDistance, thick);
+-        //~ if (used != null) {
+-            //~ FogCull.recordFogRange(used.start(), used.end(), used.alpha());
+-        //~ }
+-        //~ return used;
+-    //~ }
+-
+-    //~ private static FogParameters adjustFogParameters(final FogParameters fog, final Camera camera,
+-                                                     //~ final float renderDistance, final boolean thick) {
 -        //~ if (fog == null || fog == FogParameters.NO_FOG || Scenery.fogVanilla() || blinded(camera.getEntity())) {
 -            //~ return fog;
-+    // @era:fog-else shader17|shader19
-+    //~ /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
-+    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
-+        //~ if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
-+            //~ return;
-         //~ }
-         //~ final int medium = medium(camera);
+-        //~ }
+-        //~ final int medium = medium(camera);
 -        //~ if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, renderDistance, fog.start(), fog.end(), FOG)) {
 -            //~ return fog;
-+        //~ if (medium < 0 || !Scenery.adjustLinearFog(medium, thick, farPlane, RenderSystem.getShaderFogStart(),
-+                //~ RenderSystem.getShaderFogEnd(), FOG)) {
-+            //~ return;
-         //~ }
+-        //~ }
 -        //~ return new FogParameters(FOG[Scenery.START], FOG[Scenery.END], fog.shape(), fog.red(), fog.green(),
 -                //~ fog.blue(), fog.alpha());
-+        //~ RenderSystem.setShaderFogStart(FOG[Scenery.START]);
-+        //~ RenderSystem.setShaderFogEnd(FOG[Scenery.END]);
-     //~ }
-+    // @era:fog-else gl
-     // @era:fog-else buffer|data
-     //~ /**
-      //~ * Before FogRenderer writes the fog uniform: the four ranges to write instead, or null to
+-    //~ }
+     // @era:fog-else gl
+     // @era:fog-end
+ 
 diff --git a/common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java b/common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java
 index 2a8d289..71eb00c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java
@@ -369,6 +405,25 @@ index 7a014ca..f261295 100644
      // @era:fog-else buffer
      //~ @WrapOperation(method = "setupFog", at = @At(value = "INVOKE",
              //~ target = "Lnet/minecraft/client/renderer/fog/FogRenderer;updateBuffer(Ljava/nio/ByteBuffer;ILorg/joml/Vector4f;FFFFFF)V"),
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
+index 5c63127..f83a1b4 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
+@@ -68,10 +68,10 @@ public abstract class FogCullMixin implements FogCullAccess {
+         int kept = 0;
+         for (int i = 0; i < n; i++) {
+             final Object item = list.get(i);
+-            // @era:section-api-begin srd
+-            final BlockPos origin = ((SectionRenderDispatcher.RenderSection) item).getOrigin();
+-            // @era:section-api-else srd-ro|mesh
+-            //~ final BlockPos origin = ((SectionRenderDispatcher.RenderSection) item).getRenderOrigin();
++            // @era:section-api-begin srd-ro|mesh
++            final BlockPos origin = ((SectionRenderDispatcher.RenderSection) item).getRenderOrigin();
++            // @era:section-api-else srd
++            //~ final BlockPos origin = ((SectionRenderDispatcher.RenderSection) item).getOrigin();
+             // @era:section-api-end
+             if (!FogCullHooks.hidden(origin.getX(), origin.getY(), origin.getZ())) {
+                 list.set(kept++, item);
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java b/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java
 index cc1f564..1e90220 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java

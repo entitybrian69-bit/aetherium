@@ -26,7 +26,9 @@ neoforge_version=unavailable (module disabled)
 - `camera-get=getter`
 - `chunk-renderer=gl16`
 - `chunk-upload=crdbool`
+- `fog-cull=none`
 - `fog=gl`
+- `frustum-cap=none`
 - `graphics=status`
 - `gui=stack`
 - `hud=stack`
@@ -37,6 +39,7 @@ neoforge_version=unavailable (module disabled)
 - `mesh-exec=crd`
 - `near-build=v16`
 - `options=fields`
+- `particle-fast=v16`
 - `qol16=v16`
 - `registry=static`
 - `reload=all-changed`
@@ -44,6 +47,7 @@ neoforge_version=unavailable (module disabled)
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`
+- `search-throttle=v16`
 - `section-api=v16`
 - `section-vis=list16`
 - `simdist=none`
@@ -103,7 +107,10 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FrustumCaptureMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java`
@@ -116,6 +123,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java`

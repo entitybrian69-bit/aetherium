@@ -32,10 +32,14 @@ variant is only enabled once its targets are confirmed there and `stubcheck --al
 | Sky / sun-moon / stars / cloud height | done | done | done | done | done | done | done | `sky`: renderSky draws (popNextBuffer / RenderedBuffer.release / MeshData.close); 1.21.2+ `SkyRenderer` methods; `clouds`: 1.21.2+ `CloudRenderer.render` height arg |
 | Per-type particles | done | done | done | done | done | done | done | `createParticle` on all; `block-particles`: ParticleEngine destroy/crack, 1.21.9+ ClientLevel effects; `registry` |
 | Packet budget, stutter log | done | done | done | done | done | done | done | `runTick -> runAllTasks` on all; `BlockableEventLoop.pollTask` |
-| Mesh threads, allocation-free mesh | done | | | | | | | dispatcher constructor executor per group |
-| Rebuild coalescing, visibility throttle, fog cull | done | | | | | | | per-group `setupRender` / occlusion graph rewrite |
-| Threaded near builds | done | | | | | | | |
-| 1.7.0: smart culling, fast particles, visible-only animations, fast models | done | | | | | | | |
+| Mesh threads | done | done | done | done | done | done | done | `mesh-exec`: dispatcher constructor executor (`allChanged`; 26.2+ `invalidateCompiledGeometry`), 1.21.2+ wrapped in `TracingExecutor` |
+| Allocation-free meshing | done | done | done | done | done (to 1.21.4) | - | - | `mesh-alloc`: AO `calculate` BitSet / MutableBlockPos; 1.21.5+ meshes through per-block render storage (not handled) |
+| Rebuild coalescing | done | done | done | done | done | done | 26.1 | `section-api`: `isDirty()` in setupRender (1.17) / compileChunks / compileSections; 26.2+ has no section dirty flag |
+| Threaded near builds | done | done | vanilla | vanilla | vanilla | vanilla | vanilla | `near-build`: 1.18+ builds near sections on the workers by default |
+| Fog cull (smart culling) | done | done | done | done | done | done | 26.1 | `fog-cull`: visible list filtered after `setupRender` (1.17) / `applyFrustum`; cylinder distance against the terrain fog recorded by the fog hooks |
+| Visibility-search throttle (smart culling) | done | done | vanilla | vanilla | vanilla | vanilla | vanilla | `search-throttle`: 1.17 `setupRender` as 1.16.5 (needsUpdate PUTFIELD ordinals 1/2); 1.18+ searches on a background thread |
+| Fast particles | done | done | done | done | done | done (to 1.21.8) | - | `particle-fast`, `frustum-cap`; 1.21.9+ extracts particle render states |
+| Visible-only animations, fast models | done | | | | | | | |
 | Aetherium renderer (terrain pipeline) | done | | | | | | | shader-era rewrite per group, last |
 
 Scenery settings: the 1.21.6+ distance settings only move the render-distance fog range, so they

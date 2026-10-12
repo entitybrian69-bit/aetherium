@@ -23,6 +23,7 @@ neoforge_version=unavailable (module disabled)
 
 - `camera-get=getter`
 - `hud=graphics-float`
+- `particle-fast=joml`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `sky=rb193`
@@ -59,6 +60,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.2.t
 - `build.gradle.kts`
 - `common/src/main/resources/aetherium-common.mixins.json`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`

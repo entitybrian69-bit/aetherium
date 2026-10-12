@@ -170,18 +170,18 @@ public final class QolHooks {
         //~ return RebuildCoalescer.defer(System.nanoTime(), times.aetheriumFirstDirty(), times.aetheriumLastDirty(),
                 //~ chunk.isDirtyFromPlayer(), compiled, dx * dx + dy * dy + dz * dz);
     //~ }
-
-    //~ /**
-     //~ * compileChunksUntil: whether this frame's uploads should trigger a new visible-section search.
-     //~ * Sections already in the visible list draw their new mesh at once either way; the search only
-     //~ * discovers sections behind them, so it is limited to 20 per second while uploads stream in
-     //~ * (shared with the other streaming triggers, see {@code VisibilitySearch}).
-     //~ */
-    //~ public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
-        //~ if (!PacketBudget.enabled()) {
-            //~ return uploaded;
-        //~ }
-        //~ return VisibilitySearch.afterUploads(uploaded, System.nanoTime());
-    //~ }
     // @era:qol16-end
+
+    /**
+     * compileChunksUntil (1.16.5, 1.17): whether this frame's uploads should trigger a new visible-section search.
+     * Sections already in the visible list draw their new mesh at once either way; the search only
+     * discovers sections behind them, so it is limited to 20 per second while uploads stream in
+     * (shared with the other streaming triggers, see {@code VisibilitySearch}).
+     */
+    public static boolean visibilityUpdateAfterUploads(final boolean uploaded) {
+        if (!com.aetherium.perf.PacketBudget.enabled()) {
+            return uploaded;
+        }
+        return com.aetherium.perf.VisibilitySearch.afterUploads(uploaded, System.nanoTime());
+    }
 }

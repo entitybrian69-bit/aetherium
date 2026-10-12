@@ -59,8 +59,8 @@ public final class RenderToggles {
         hideWeather = isActive && !config.weather.get().booleanValue();
         hideVignette = isActive && !config.vignette.get().booleanValue();
         freezeTextureAnimations = isActive && !config.animatedTextures.get().booleanValue();
-        smartChunkCulling = isActive && Capabilities.STREAMING && config.smartChunkCulling.get().booleanValue();
-        fastParticles = isActive && Capabilities.STREAMING && config.fastParticles.get().booleanValue();
+        smartChunkCulling = isActive && (Capabilities.STREAMING || Capabilities.FOG_CULL) && config.smartChunkCulling.get().booleanValue();
+        fastParticles = isActive && Capabilities.FAST_PARTICLES && config.fastParticles.get().booleanValue();
         fastModels = isActive && Capabilities.STREAMING && !fastModelsBroken && config.fastModels.get().booleanValue();
         framePacing = isActive && Capabilities.FRAME_PACING && config.framePacing.get().booleanValue();
         SpriteActivity.setEnabled(isActive && Capabilities.STREAMING && config.visibleAnimations.get().booleanValue());

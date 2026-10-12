@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index c922c54..51b157a 100644
+index b85753a..512e8aa 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -77,10 +77,10 @@ public final class Capabilities {
@@ -36,6 +36,25 @@ index c922c54..51b157a 100644
      // @era:section-vis-end
  
      /** Aetherium's own terrain renderer exists for this version. */
+@@ -162,12 +162,12 @@ public final class Capabilities {
+     // @era:fog-cull-end
+ 
+     /** Which list the fog cull filters: RenderChunkInfo (1.17..1.20.1) or RenderSection (1.20.2..26.1). */
+-    // @era:fog-cull-begin section
+-    public static final boolean FOG_CULL_INFO = false;
+-    public static final boolean FOG_CULL_SECTION = true;
+-    // @era:fog-cull-else bfs|info
+-    //~ public static final boolean FOG_CULL_INFO = true;
+-    //~ public static final boolean FOG_CULL_SECTION = false;
++    // @era:fog-cull-begin bfs|info
++    public static final boolean FOG_CULL_INFO = true;
++    public static final boolean FOG_CULL_SECTION = false;
++    // @era:fog-cull-else section
++    //~ public static final boolean FOG_CULL_INFO = false;
++    //~ public static final boolean FOG_CULL_SECTION = true;
+     // @era:fog-cull-else none
+     //~ public static final boolean FOG_CULL_INFO = false;
+     //~ public static final boolean FOG_CULL_SECTION = false;
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 index e5e224a..634ca72 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
@@ -84,10 +103,10 @@ index e5e224a..634ca72 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 56b4f74..f139b2b 100644
+index bccc384..0c49a03 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -388,10 +388,10 @@ public final class ClientHooks {
+@@ -389,10 +389,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -102,7 +121,7 @@ index 56b4f74..f139b2b 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -426,10 +426,10 @@ public final class ClientHooks {
+@@ -427,10 +427,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -257,6 +276,419 @@ index 2279e5b..07da951 100644
      // @era:section-api-else srd-ro
      //~ @WrapOperation(method = "compileSections", at = @At(value = "INVOKE",
              //~ target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection;isDirty()Z"), require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java b/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
+index ca48c5a..5cbe329 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
+@@ -1,44 +1,44 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:particle-fast-begin inner
++// @era:particle-fast-begin joml
+ import com.aetherium.perf.Billboard;
+ import com.aetherium.perf.RenderToggles;
+ import com.aetherium.perf.ViewFrustum;
+ import com.mojang.blaze3d.vertex.VertexConsumer;
++import net.minecraft.client.Camera;
+ import net.minecraft.client.multiplayer.ClientLevel;
+ import net.minecraft.client.particle.Particle;
++import net.minecraft.world.phys.Vec3;
+ import org.joml.Quaternionf;
+ import org.spongepowered.asm.mixin.Shadow;
+ import org.spongepowered.asm.mixin.Unique;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:particle-fast-else v16|quat
++// @era:particle-fast-else inner
+ //~ import com.aetherium.perf.Billboard;
+ //~ import com.aetherium.perf.RenderToggles;
+ //~ import com.aetherium.perf.ViewFrustum;
+ //~ import com.mojang.blaze3d.vertex.VertexConsumer;
+-//~ import com.mojang.math.Quaternion;
+-//~ import net.minecraft.client.Camera;
+ //~ import net.minecraft.client.multiplayer.ClientLevel;
+ //~ import net.minecraft.client.particle.Particle;
+-//~ import net.minecraft.world.phys.Vec3;
++//~ import org.joml.Quaternionf;
+ //~ import org.spongepowered.asm.mixin.Shadow;
+ //~ import org.spongepowered.asm.mixin.Unique;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:particle-fast-else joml
++// @era:particle-fast-else v16|quat
+ //~ import com.aetherium.perf.Billboard;
+ //~ import com.aetherium.perf.RenderToggles;
+ //~ import com.aetherium.perf.ViewFrustum;
+ //~ import com.mojang.blaze3d.vertex.VertexConsumer;
++//~ import com.mojang.math.Quaternion;
+ //~ import net.minecraft.client.Camera;
+ //~ import net.minecraft.client.multiplayer.ClientLevel;
+ //~ import net.minecraft.client.particle.Particle;
+ //~ import net.minecraft.world.phys.Vec3;
+-//~ import org.joml.Quaternionf;
+ //~ import org.spongepowered.asm.mixin.Shadow;
+ //~ import org.spongepowered.asm.mixin.Unique;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+@@ -109,64 +109,62 @@ public abstract class FastParticleMixin extends Particle {
+     // @era:particle-fast-else none
+     // @era:particle-fast-end
+ 
+-    // @era:particle-fast-begin inner
+-    @Inject(method = "renderRotatedQuad(Lcom/mojang/blaze3d/vertex/VertexConsumer;Lorg/joml/Quaternionf;FFFF)V",
+-            at = @At("HEAD"), cancellable = true, require = 0)
+-    private void aetherium$fastQuad(final VertexConsumer consumer, final Quaternionf q, final float px,
+-                                    final float py, final float pz, final float partialTick, final CallbackInfo ci) {
++    // @era:particle-fast-begin joml
++    @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
++                                      final CallbackInfo ci) {
+         if (!RenderToggles.fastParticles) {
+             return;
+         }
++        final Vec3 cam = camera.getPosition();
++        final double t = partialTick;
++        final float px = (float) (this.xo + t * (this.x - this.xo) - cam.x());
++        final float py = (float) (this.yo + t * (this.y - this.yo) - cam.y());
++        final float pz = (float) (this.zo + t * (this.z - this.zo) - cam.z());
+         final float size = this.getQuadSize(partialTick);
+         ci.cancel();
+-        // Corners are size * sqrt(2) from the centre.
+         if (!ViewFrustum.FRAME.sphereVisible(px, py, pz, size * 1.4143f + 0.01f)) {
+             return;
+         }
++        final Quaternionf q = camera.rotation();
++        final float roll = this.roll == 0.0f ? 0.0f : this.oRoll + partialTick * (this.roll - this.oRoll);
+         final float[] c = AETHERIUM$CORNERS;
+-        // The roll (if any) is already part of q here.
+-        Billboard.corners(q.x, q.y, q.z, q.w, 0.0f, size, c);
+-        final float u0 = this.getU0();
+-        final float u1 = this.getU1();
+-        final float v0 = this.getV0();
+-        final float v1 = this.getV1();
+-        final int light = this.getLightColor(partialTick);
+-        final float r = this.rCol;
+-        final float g = this.gCol;
+-        final float b = this.bCol;
+-        final float a = this.alpha;
+-        // 1.21 order: (1, -1), (1, 1), (-1, 1), (-1, -1) = Billboard corners 3, 2, 1, 0.
+-        consumer.addVertex(c[9] + px, c[10] + py, c[11] + pz).setUv(u1, v1).setColor(r, g, b, a).setLight(light);
+-        consumer.addVertex(c[6] + px, c[7] + py, c[8] + pz).setUv(u1, v0).setColor(r, g, b, a).setLight(light);
+-        consumer.addVertex(c[3] + px, c[4] + py, c[5] + pz).setUv(u0, v0).setColor(r, g, b, a).setLight(light);
+-        consumer.addVertex(c[0] + px, c[1] + py, c[2] + pz).setUv(u0, v1).setColor(r, g, b, a).setLight(light);
++        Billboard.corners(q.x, q.y, q.z, q.w, roll, size, c);
++        this.aetherium$emit(consumer, c, px, py, pz, partialTick);
+     }
+-    // @era:particle-fast-else v16|quat
+-    //~ @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
+-                                      //~ final CallbackInfo ci) {
++    // @era:particle-fast-else inner
++    //~ @Inject(method = "renderRotatedQuad(Lcom/mojang/blaze3d/vertex/VertexConsumer;Lorg/joml/Quaternionf;FFFF)V",
++            //~ at = @At("HEAD"), cancellable = true, require = 0)
++    //~ private void aetherium$fastQuad(final VertexConsumer consumer, final Quaternionf q, final float px,
++                                    //~ final float py, final float pz, final float partialTick, final CallbackInfo ci) {
+         //~ if (!RenderToggles.fastParticles) {
+             //~ return;
+         //~ }
+-        //~ final Vec3 cam = camera.getPosition();
+-        //~ // Mth.lerp(delta, start, end) = start + delta * (end - start), as vanilla interpolates.
+-        //~ final double t = partialTick;
+-        //~ final float px = (float) (this.xo + t * (this.x - this.xo) - cam.x());
+-        //~ final float py = (float) (this.yo + t * (this.y - this.yo) - cam.y());
+-        //~ final float pz = (float) (this.zo + t * (this.z - this.zo) - cam.z());
+         //~ final float size = this.getQuadSize(partialTick);
+         //~ ci.cancel();
+         //~ // Corners are size * sqrt(2) from the centre.
+         //~ if (!ViewFrustum.FRAME.sphereVisible(px, py, pz, size * 1.4143f + 0.01f)) {
+             //~ return;
+         //~ }
+-        //~ final Quaternion q = camera.rotation();
+-        //~ final float roll = this.roll == 0.0f ? 0.0f : this.oRoll + partialTick * (this.roll - this.oRoll);
+         //~ final float[] c = AETHERIUM$CORNERS;
+-        //~ Billboard.corners(q.i(), q.j(), q.k(), q.r(), roll, size, c);
+-        //~ this.aetherium$emit(consumer, c, px, py, pz, partialTick);
++        //~ // The roll (if any) is already part of q here.
++        //~ Billboard.corners(q.x, q.y, q.z, q.w, 0.0f, size, c);
++        //~ final float u0 = this.getU0();
++        //~ final float u1 = this.getU1();
++        //~ final float v0 = this.getV0();
++        //~ final float v1 = this.getV1();
++        //~ final int light = this.getLightColor(partialTick);
++        //~ final float r = this.rCol;
++        //~ final float g = this.gCol;
++        //~ final float b = this.bCol;
++        //~ final float a = this.alpha;
++        //~ // 1.21 order: (1, -1), (1, 1), (-1, 1), (-1, -1) = Billboard corners 3, 2, 1, 0.
++        //~ consumer.addVertex(c[9] + px, c[10] + py, c[11] + pz).setUv(u1, v1).setColor(r, g, b, a).setLight(light);
++        //~ consumer.addVertex(c[6] + px, c[7] + py, c[8] + pz).setUv(u1, v0).setColor(r, g, b, a).setLight(light);
++        //~ consumer.addVertex(c[3] + px, c[4] + py, c[5] + pz).setUv(u0, v0).setColor(r, g, b, a).setLight(light);
++        //~ consumer.addVertex(c[0] + px, c[1] + py, c[2] + pz).setUv(u0, v1).setColor(r, g, b, a).setLight(light);
+     //~ }
+-    // @era:particle-fast-else joml
++    // @era:particle-fast-else v16|quat
+     //~ @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
+     //~ private void aetherium$fastRender(final VertexConsumer consumer, final Camera camera, final float partialTick,
+                                       //~ final CallbackInfo ci) {
+@@ -174,19 +172,21 @@ public abstract class FastParticleMixin extends Particle {
+             //~ return;
+         //~ }
+         //~ final Vec3 cam = camera.getPosition();
++        //~ // Mth.lerp(delta, start, end) = start + delta * (end - start), as vanilla interpolates.
+         //~ final double t = partialTick;
+         //~ final float px = (float) (this.xo + t * (this.x - this.xo) - cam.x());
+         //~ final float py = (float) (this.yo + t * (this.y - this.yo) - cam.y());
+         //~ final float pz = (float) (this.zo + t * (this.z - this.zo) - cam.z());
+         //~ final float size = this.getQuadSize(partialTick);
+         //~ ci.cancel();
++        //~ // Corners are size * sqrt(2) from the centre.
+         //~ if (!ViewFrustum.FRAME.sphereVisible(px, py, pz, size * 1.4143f + 0.01f)) {
+             //~ return;
+         //~ }
+-        //~ final Quaternionf q = camera.rotation();
++        //~ final Quaternion q = camera.rotation();
+         //~ final float roll = this.roll == 0.0f ? 0.0f : this.oRoll + partialTick * (this.roll - this.oRoll);
+         //~ final float[] c = AETHERIUM$CORNERS;
+-        //~ Billboard.corners(q.x, q.y, q.z, q.w, roll, size, c);
++        //~ Billboard.corners(q.i(), q.j(), q.k(), q.r(), roll, size, c);
+         //~ this.aetherium$emit(consumer, c, px, py, pz, partialTick);
+     //~ }
+     // @era:particle-fast-else facing
+@@ -217,25 +217,25 @@ public abstract class FastParticleMixin extends Particle {
+     // @era:particle-fast-else none
+     // @era:particle-fast-end
+ 
+-    // @era:particle-fast-begin inner|none
+-    // @era:particle-fast-else v16|quat|joml|facing
+-    //~ /** Vanilla's 1.16.5..1.20.6 order: (-1, -1), (-1, 1), (1, 1), (1, -1). */
+-    //~ @Unique
+-    //~ private void aetherium$emit(final VertexConsumer consumer, final float[] c, final float px, final float py,
+-                                //~ final float pz, final float partialTick) {
+-        //~ final float u0 = this.getU0();
+-        //~ final float u1 = this.getU1();
+-        //~ final float v0 = this.getV0();
+-        //~ final float v1 = this.getV1();
+-        //~ final int light = this.getLightColor(partialTick);
+-        //~ final float r = this.rCol;
+-        //~ final float g = this.gCol;
+-        //~ final float b = this.bCol;
+-        //~ final float a = this.alpha;
+-        //~ consumer.vertex(c[0] + px, c[1] + py, c[2] + pz).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[3] + px, c[4] + py, c[5] + pz).uv(u1, v0).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[6] + px, c[7] + py, c[8] + pz).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
+-        //~ consumer.vertex(c[9] + px, c[10] + py, c[11] + pz).uv(u0, v1).color(r, g, b, a).uv2(light).endVertex();
+-    //~ }
++    // @era:particle-fast-begin v16|quat|joml|facing
++    /** Vanilla's 1.16.5..1.20.6 order: (-1, -1), (-1, 1), (1, 1), (1, -1). */
++    @Unique
++    private void aetherium$emit(final VertexConsumer consumer, final float[] c, final float px, final float py,
++                                final float pz, final float partialTick) {
++        final float u0 = this.getU0();
++        final float u1 = this.getU1();
++        final float v0 = this.getV0();
++        final float v1 = this.getV1();
++        final int light = this.getLightColor(partialTick);
++        final float r = this.rCol;
++        final float g = this.gCol;
++        final float b = this.bCol;
++        final float a = this.alpha;
++        consumer.vertex(c[0] + px, c[1] + py, c[2] + pz).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[3] + px, c[4] + py, c[5] + pz).uv(u1, v0).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[6] + px, c[7] + py, c[8] + pz).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
++        consumer.vertex(c[9] + px, c[10] + py, c[11] + pz).uv(u0, v1).color(r, g, b, a).uv2(light).endVertex();
++    }
++    // @era:particle-fast-else inner|none
+     // @era:particle-fast-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
+index 5c63127..5b80825 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
+@@ -3,22 +3,22 @@ package com.aetherium.mixin.core;
+ import com.aetherium.client.FogCullAccess;
+ import java.util.List;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:fog-cull-begin section
++// @era:fog-cull-begin info
+ import com.aetherium.client.FogCullHooks;
+ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+-import net.minecraft.client.renderer.SectionOcclusionGraph;
+-import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
++import java.util.concurrent.atomic.AtomicBoolean;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+ import net.minecraft.core.BlockPos;
+ import org.spongepowered.asm.mixin.Final;
+ import org.spongepowered.asm.mixin.Shadow;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:fog-cull-else info
++// @era:fog-cull-else section
+ //~ import com.aetherium.client.FogCullHooks;
+ //~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+-//~ import java.util.concurrent.atomic.AtomicBoolean;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++//~ import net.minecraft.client.renderer.SectionOcclusionGraph;
++//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+ //~ import net.minecraft.core.BlockPos;
+ //~ import org.spongepowered.asm.mixin.Final;
+ //~ import org.spongepowered.asm.mixin.Shadow;
+@@ -48,64 +48,64 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class FogCullMixin implements FogCullAccess {
+ 
+-    // @era:fog-cull-begin section
++    // @era:fog-cull-begin info
+     @Shadow
+     @Final
+-    private ObjectArrayList<Object> visibleSections;
++    private ObjectArrayList<Object> renderChunksInFrustum;
+ 
+     @Shadow
+     @Final
+-    private SectionOcclusionGraph sectionOcclusionGraph;
++    private AtomicBoolean needsFrustumUpdate;
+ 
+     @Inject(method = "applyFrustum", at = @At("TAIL"), require = 0)
+     private void aetherium$fogCull(final CallbackInfo ci) {
+-        // ObjectArrayList implements List (get/set are array reads and writes).
+-        final List<Object> list = aetherium$list(this.visibleSections);
+-        if (!FogCullHooks.begin()) {
+-            return;
+-        }
+-        final int n = list.size();
+-        int kept = 0;
+-        for (int i = 0; i < n; i++) {
+-            final Object item = list.get(i);
+-            // @era:section-api-begin srd
+-            final BlockPos origin = ((SectionRenderDispatcher.RenderSection) item).getOrigin();
+-            // @era:section-api-else srd-ro|mesh
+-            //~ final BlockPos origin = ((SectionRenderDispatcher.RenderSection) item).getRenderOrigin();
+-            // @era:section-api-end
+-            if (!FogCullHooks.hidden(origin.getX(), origin.getY(), origin.getZ())) {
+-                list.set(kept++, item);
+-            }
+-        }
+-        if (kept != n) {
+-            list.subList(kept, n).clear();
+-        }
++        aetherium$filter(this.renderChunksInFrustum);
+     }
+ 
+     @Override
+     public void aetheriumRefreshFogCull() {
+-        final Object graph = this.sectionOcclusionGraph;
+-        if (graph instanceof SectionOcclusionGraphAccessor) {
+-            ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
+-        }
++        this.needsFrustumUpdate.set(true);
+     }
+-    // @era:fog-cull-else info
++    // @era:fog-cull-else section
+     //~ @Shadow
+     //~ @Final
+-    //~ private ObjectArrayList<Object> renderChunksInFrustum;
++    //~ private ObjectArrayList<Object> visibleSections;
+ 
+     //~ @Shadow
+     //~ @Final
+-    //~ private AtomicBoolean needsFrustumUpdate;
++    //~ private SectionOcclusionGraph sectionOcclusionGraph;
+ 
+     //~ @Inject(method = "applyFrustum", at = @At("TAIL"), require = 0)
+     //~ private void aetherium$fogCull(final CallbackInfo ci) {
+-        //~ aetherium$filter(this.renderChunksInFrustum);
++        //~ // ObjectArrayList implements List (get/set are array reads and writes).
++        //~ final List<Object> list = aetherium$list(this.visibleSections);
++        //~ if (!FogCullHooks.begin()) {
++            //~ return;
++        //~ }
++        //~ final int n = list.size();
++        //~ int kept = 0;
++        //~ for (int i = 0; i < n; i++) {
++            //~ final Object item = list.get(i);
++            //~ // @era:section-api-begin srd
++            //~ final BlockPos origin = ((SectionRenderDispatcher.RenderSection) item).getOrigin();
++            //~ // @era:section-api-else srd-ro|mesh
++            //~ //~ final BlockPos origin = ((SectionRenderDispatcher.RenderSection) item).getRenderOrigin();
++            //~ // @era:section-api-end
++            //~ if (!FogCullHooks.hidden(origin.getX(), origin.getY(), origin.getZ())) {
++                //~ list.set(kept++, item);
++            //~ }
++        //~ }
++        //~ if (kept != n) {
++            //~ list.subList(kept, n).clear();
++        //~ }
+     //~ }
+ 
+     //~ @Override
+     //~ public void aetheriumRefreshFogCull() {
+-        //~ this.needsFrustumUpdate.set(true);
++        //~ final Object graph = this.sectionOcclusionGraph;
++        //~ if (graph instanceof SectionOcclusionGraphAccessor) {
++            //~ ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
++        //~ }
+     //~ }
+     // @era:fog-cull-else bfs
+     //~ @Shadow
+@@ -135,30 +135,30 @@ public abstract class FogCullMixin implements FogCullAccess {
+         return (List<Object>) vanilla;
+     }
+ 
+-    // @era:fog-cull-begin section|none
+-    // @era:fog-cull-else bfs|info
+-    //~ /** A list of LevelRenderer$RenderChunkInfo (package-private: reached through its accessor). */
+-    //~ private static void aetherium$filter(final ObjectArrayList<Object> vanilla) {
+-        //~ final List<Object> list = aetherium$list(vanilla);
+-        //~ if (!FogCullHooks.begin()) {
+-            //~ return;
+-        //~ }
+-        //~ final int n = list.size();
+-        //~ int kept = 0;
+-        //~ for (int i = 0; i < n; i++) {
+-            //~ final Object item = list.get(i);
+-            //~ if (!(item instanceof RenderChunkInfoAccessor)) {
+-                //~ return; // the accessor did not apply: leave vanilla's list alone
+-            //~ }
+-            //~ final ChunkRenderDispatcher.RenderChunk chunk = ((RenderChunkInfoAccessor) item).aetheriumChunk();
+-            //~ final BlockPos origin = chunk.getOrigin();
+-            //~ if (!FogCullHooks.hidden(origin.getX(), origin.getY(), origin.getZ())) {
+-                //~ list.set(kept++, item);
+-            //~ }
+-        //~ }
+-        //~ if (kept != n) {
+-            //~ list.subList(kept, n).clear();
+-        //~ }
+-    //~ }
++    // @era:fog-cull-begin bfs|info
++    /** A list of LevelRenderer$RenderChunkInfo (package-private: reached through its accessor). */
++    private static void aetherium$filter(final ObjectArrayList<Object> vanilla) {
++        final List<Object> list = aetherium$list(vanilla);
++        if (!FogCullHooks.begin()) {
++            return;
++        }
++        final int n = list.size();
++        int kept = 0;
++        for (int i = 0; i < n; i++) {
++            final Object item = list.get(i);
++            if (!(item instanceof RenderChunkInfoAccessor)) {
++                return; // the accessor did not apply: leave vanilla's list alone
++            }
++            final ChunkRenderDispatcher.RenderChunk chunk = ((RenderChunkInfoAccessor) item).aetheriumChunk();
++            final BlockPos origin = chunk.getOrigin();
++            if (!FogCullHooks.hidden(origin.getX(), origin.getY(), origin.getZ())) {
++                list.set(kept++, item);
++            }
++        }
++        if (kept != n) {
++            list.subList(kept, n).clear();
++        }
++    }
++    // @era:fog-cull-else section|none
+     // @era:fog-cull-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..120379c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -327,6 +759,38 @@ index 7849c9d..ff41036 100644
  // @era:section-api-end
  public abstract class RenderChunkDirtyMixin implements RenderChunkDirtyAccess {
      // @era:section-api-begin v16|crd|srd|srd-ro|mesh
+diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoAccessor.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoAccessor.java
+index a483b7c..b401a59 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoAccessor.java
+@@ -1,19 +1,19 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:fog-cull-begin section|none
+-// @era:fog-cull-else bfs|info
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:fog-cull-begin bfs|info
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:fog-cull-else section|none
+ // @era:fog-cull-end
+ 
+ /** The section of a visible-list entry (1.17..1.20.1; FogCullMixin). */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer$RenderChunkInfo")
+ public interface RenderChunkInfoAccessor {
+ 
+-    // @era:fog-cull-begin section|none
+-    // @era:fog-cull-else bfs|info
+-    //~ @Accessor("chunk")
+-    //~ ChunkRenderDispatcher.RenderChunk aetheriumChunk();
++    // @era:fog-cull-begin bfs|info
++    @Accessor("chunk")
++    ChunkRenderDispatcher.RenderChunk aetheriumChunk();
++    // @era:fog-cull-else section|none
+     // @era:fog-cull-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
 index 0c9cdbc..592d8eb 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java
@@ -383,6 +847,38 @@ index 0c9cdbc..592d8eb 100644
 +        //~ return null;
      //~ }
      // @era:section-vis-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
+index 1b68a9e..2db9349 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
+@@ -1,19 +1,19 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:fog-cull-begin section
+-import java.util.concurrent.atomic.AtomicBoolean;
+-import org.spongepowered.asm.mixin.gen.Accessor;
+-// @era:fog-cull-else bfs|info|none
++// @era:fog-cull-begin bfs|info|none
++// @era:fog-cull-else section
++//~ import java.util.concurrent.atomic.AtomicBoolean;
++//~ import org.spongepowered.asm.mixin.gen.Accessor;
+ // @era:fog-cull-end
+ 
+ /** The frustum-pass request flag of the visibility graph (1.20.2..26.1; FogCullMixin). */
+ @Mixin(targets = "net.minecraft.client.renderer.SectionOcclusionGraph")
+ public interface SectionOcclusionGraphAccessor {
+ 
+-    // @era:fog-cull-begin section
+-    @Accessor("needsFrustumUpdate")
+-    AtomicBoolean aetheriumNeedsFrustumUpdate();
+-    // @era:fog-cull-else bfs|info|none
++    // @era:fog-cull-begin bfs|info|none
++    // @era:fog-cull-else section
++    //~ @Accessor("needsFrustumUpdate")
++    //~ AtomicBoolean aetheriumNeedsFrustumUpdate();
+     // @era:fog-cull-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
 index 7594ede..63f6ea1 100644
@@ -623,7 +1119,7 @@ index df6c58d..98d2889 100644
      // @era:zoom-cam-else align
      //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 5b85985..903657e 100644
+index b6f54fb..2d7e09d 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

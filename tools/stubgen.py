@@ -46,6 +46,9 @@ HINTS = {
     "net.minecraft.world.level.block.entity.TheEndPortalBlockEntity": ("net.minecraft.world.level.block.entity.BlockEntity", []),
     "net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity": ("net.minecraft.world.level.block.entity.TheEndPortalBlockEntity", []),
     "it.unimi.dsi.fastutil.objects.ObjectArrayList": (None, ["public T0 get(int);", "public int size();"]),
+    # joml is not on the probe classpath (a library jar); public API since joml 1.9.
+    "org.joml.Quaternionf": (None, ["public float x;", "public float y;", "public float z;", "public float w;"]),
+    "org.joml.Matrix4f": (None, ["public float[] get(float[]);"]),
     "it.unimi.dsi.fastutil.objects.ObjectList": (None, ["public T0 get(int);", "public int size();"]),
     "net.minecraft.world.phys.AABB": (None, ["public final double minX;", "public final double minY;",
                                              "public final double minZ;", "public final double maxX;",

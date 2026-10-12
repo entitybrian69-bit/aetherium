@@ -33,7 +33,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     private static final String PACKAGE = "com.aetherium.mixin.core.";
 
     private static final Set<String> STREAMING_1_7 = Collections.unmodifiableSet(new java.util.HashSet<String>(
-            java.util.Arrays.asList("FastParticleMixin", "SpriteActivityMixin", "BakedQuadAccessor",
+            java.util.Arrays.asList("SpriteActivityMixin", "BakedQuadAccessor",
                     "BlockSpriteUseMixin", "ItemSpriteUseMixin", "SectionSpritesMixin", "CompiledChunkSpritesMixin",
                     "ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin", "Matrix3fAccessor",
                     "DefaultedVertexAccessor", "FastModelMixin")));
@@ -144,6 +144,24 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("ChunkPrepareMixin".equals(simpleName) || "BufferBuilderAccessor".equals(simpleName)) {
             // Converts meshes for the Aetherium pipeline, so it needs the pipeline's buffer hooks.
             return Capabilities.STREAMING && Capabilities.AETHERIUM_RENDERER;
+        }
+        if ("SearchThrottleMixin".equals(simpleName)) {
+            return Capabilities.SEARCH_THROTTLE;
+        }
+        if ("FogCullMixin".equals(simpleName)) {
+            return Capabilities.FOG_CULL;
+        }
+        if ("RenderChunkInfoAccessor".equals(simpleName)) {
+            return Capabilities.FOG_CULL_INFO;
+        }
+        if ("SectionOcclusionGraphAccessor".equals(simpleName)) {
+            return Capabilities.FOG_CULL_SECTION;
+        }
+        if ("FastParticleMixin".equals(simpleName)) {
+            return Capabilities.FAST_PARTICLES;
+        }
+        if ("FrustumCaptureMixin".equals(simpleName) || "FrustumArmMixin".equals(simpleName)) {
+            return Capabilities.FRAME_FRUSTUM;
         }
         if ("MeshExecutorMixin".equals(simpleName)) {
             return Capabilities.MESH_THREADS;

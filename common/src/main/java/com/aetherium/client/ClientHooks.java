@@ -79,6 +79,7 @@ public final class ClientHooks {
         // Stutter log and adaptive upload budget, then freelook (before the camera is set up).
         QolHooks.frame(Minecraft.getInstance());
         FreelookHooks.frame(Minecraft.getInstance());
+        FogCullHooks.frame(Minecraft.getInstance());
         ChunkRenderer.onFrame();
         if (Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive()) {
             LIMITER.beforeFrame();

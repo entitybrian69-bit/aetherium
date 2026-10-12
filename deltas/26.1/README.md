@@ -29,8 +29,10 @@ neoforge_version=26.1.2.115
 - `chunk-renderer=none`
 - `chunk-upload=none`
 - `clouds=renderer`
+- `fog-cull=section`
 - `fog=data`
 - `freelook=align`
+- `frustum-cap=none`
 - `graphics=preset`
 - `gui=extractor`
 - `hud=extractor`
@@ -47,11 +49,13 @@ neoforge_version=26.1.2.115
 - `occlusion-box=renderer`
 - `options=instances`
 - `pacing=limiter`
+- `particle-fast=none`
 - `qol16=none`
 - `registry=builtin`
 - `reload=all-changed`
 - `remapJar-block-removed`
 - `scroll=four`
+- `search-throttle=none`
 - `section-api=mesh`
 - `section-vis=render-origin`
 - `simdist=sim`
@@ -95,6 +99,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.1.txt
 - `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/CoalesceHooks.java`
+- `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
@@ -106,9 +111,13 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.1.txt
 - `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FrustumCaptureMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
