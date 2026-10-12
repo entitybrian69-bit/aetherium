@@ -11,6 +11,9 @@
       Delete every version of <project> whose only loader is <loader> (the NeoForge versions leave
       the main project; Modrinth refuses a file that already exists in another project).
 
+  modrinth_project.py list <project>
+      Print every version of <project> (number, loaders, game versions, channel, date, file name).
+
 Environment: MODRINTH_TOKEN (scopes: Create projects, Read projects, Create versions, Delete versions).
 """
 import json
@@ -131,6 +134,21 @@ def drop_loader(token, project, loader):
     return 1 if failed else 0
 
 
+def list_versions(token, project):
+    st, versions = mp.call('GET', '/project/%s/version' % project, token)
+    if st != 200:
+        mp.note('error', 'versions of %s: HTTP %s %s' % (project, st, versions))
+        return 1
+    rows = ['%s | %s | %s | %s | %s | %s' % (v['version_number'], ','.join(v.get('loaders', [])),
+            ','.join(v.get('game_versions', [])), v.get('version_type'), v.get('date_published', '')[:16],
+            ','.join(f.get('filename', '') for f in v.get('files', []))) for v in versions]
+    print('\n'.join(rows))
+    odd = [r for r in rows if not r.split(' | ')[0].count('+')]
+    mp.note('notice', '%s has %d versions; %d not numbered <mod>+<mc>-<loader>:%s'
+            % (project, len(rows), len(odd), ''.join('\n' + r for r in odd)))
+    return 0
+
+
 def main():
     token = os.environ.get('MODRINTH_TOKEN', '').strip()
     if not token:
@@ -140,6 +158,8 @@ def main():
         return ensure(token, sys.argv[2], sys.argv[3])
     if len(sys.argv) == 4 and sys.argv[1] == 'drop-loader':
         return drop_loader(token, sys.argv[2], sys.argv[3])
+    if len(sys.argv) == 3 and sys.argv[1] == 'list':
+        return list_versions(token, sys.argv[2])
     sys.exit(__doc__)
 
 
