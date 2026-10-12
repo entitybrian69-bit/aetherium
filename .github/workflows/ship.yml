@@ -25,6 +25,8 @@ on:
       - 'tools/probe_*.txt'
       - '.github/workflows/probe.yml'
       - '.github/workflows/secret-check.yml'
+      - '.github/workflows/modrinth.yml'
+      - 'tools/modrinth_publish.py'
   workflow_dispatch:
     inputs:
       only:
@@ -312,6 +314,15 @@ jobs:
             ${{ runner.temp }}/build.log
           if-no-files-found: ignore
           retention-days: 14
+
+  modrinth:
+    name: publish to Modrinth
+    needs: ship
+    # Publish whatever shipped, even if one leg failed; the publisher skips versions that are
+    # already on Modrinth, so the next run fills in anything missing.
+    if: always() && needs.ship.result != 'cancelled'
+    uses: ./.github/workflows/modrinth.yml
+    secrets: inherit
 
   downloads:
     name: write DOWNLOADS.md from the releases that exist

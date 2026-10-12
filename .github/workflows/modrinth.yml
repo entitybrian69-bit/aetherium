@@ -1,0 +1,49 @@
+# Publishes the jars of the current mod_version (gradle.properties) to Modrinth.
+#
+# * Called by ship.yml after every release, so a new version reaches Modrinth automatically.
+# * Also runs on its own when this file or the publisher script changes (no rebuild needed: it
+#   takes the jars from the GitHub releases that already exist).
+# Versions already on Modrinth are skipped, so running it twice never duplicates anything.
+# Needs the MODRINTH_TOKEN repository secret (Modrinth PAT with the "Create versions" scope).
+name: modrinth
+on:
+  push:
+    branches: [arena/46f241da-aetherium]
+    paths: ['.github/workflows/modrinth.yml', 'tools/modrinth_publish.py']
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: modrinth
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: upload to Modrinth
+    runs-on: ubuntu-latest
+    env:
+      MODRINTH_PROJECT: aetherium-team_aerix
+      # "1" = check everything and list what would be uploaded, upload nothing.
+      DRY_RUN: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch the jars from the GitHub releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mod=$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')
+          mkdir -p dist
+          for ver in $(python3 -c "import json; print(' '.join(r['version'] for r in json.load(open('tools/porting_pins.json'))['rows']))"); do
+            if ! gh release download "v$mod+$ver" --repo "$GITHUB_REPOSITORY" -p 'aetherium-*.jar' -D dist --clobber; then
+              echo "::warning::no release v$mod+$ver yet, skipped"
+            fi
+          done
+          ls -l dist
+      - name: upload
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: python3 tools/modrinth_publish.py dist
