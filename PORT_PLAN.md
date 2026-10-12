@@ -39,7 +39,8 @@ variant is only enabled once its targets are confirmed there and `stubcheck --al
 | Fog cull (smart culling) | done | done | done | done | done | done | 26.1 | `fog-cull`: visible list filtered after `setupRender` (1.17) / `applyFrustum`; cylinder distance against the terrain fog recorded by the fog hooks |
 | Visibility-search throttle (smart culling) | done | done | vanilla | vanilla | vanilla | vanilla | vanilla | `search-throttle`: 1.17 `setupRender` as 1.16.5 (needsUpdate PUTFIELD ordinals 1/2); 1.18+ searches on a background thread |
 | Fast particles | done | done | done | done | done | done (to 1.21.8) | - | `particle-fast`, `frustum-cap`; 1.21.9+ extracts particle render states |
-| Visible-only animations, fast models | done | | | | | | | |
+| Visible-only animations | done | done | done | done | 1.21.4 | — | — | `anim` / `atlas-tick` / `section-compile`: per-atlas ticker→sprite map wraps `Tickable.tick` (1.17) / `Ticker.tickAndUpload` (1.19.3); sprites collected per build, taken by the CompiledChunk/CompiledSection created after it (1.19+); `VisibleSpritesMixin` marks the visible list once per atlas tick |
+| Fast models | done | | | | | | | |
 | Aetherium renderer (terrain pipeline) | done | | | | | | | shader-era rewrite per group, last |
 
 Scenery settings: the 1.21.6+ distance settings only move the render-distance fog range, so they

@@ -21,6 +21,8 @@ neoforge_version=unavailable (module disabled)
 
 ### Era transforms applied by the generated patch
 
+- `anim=v16`
+- `atlas-tick=v16`
 - `background=none`
 - `bg-threads=clamp`
 - `camera-get=getter`
@@ -49,10 +51,12 @@ neoforge_version=unavailable (module disabled)
 - `scroll=three`
 - `search-throttle=v16`
 - `section-api=v16`
+- `section-compile=v16`
 - `section-vis=list16`
 - `simdist=none`
 - `sky=v16`
 - `sound-click=event`
+- `sprite-u=d`
 - `vignette=render`
 - `zoom-cam=double`
 - `zoom=on`
@@ -95,8 +99,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
-- `common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java`
-- `common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java`
@@ -112,7 +114,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumCaptureMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java`
@@ -131,6 +132,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`

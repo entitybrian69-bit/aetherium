@@ -8,8 +8,18 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:atlas-tick-begin ticker
+import com.aetherium.perf.SpriteActivity;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.resources.ResourceLocation;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+// @era:atlas-tick-else v16
 //~ import com.aetherium.perf.SpriteActivity;
 //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 //~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -18,7 +28,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //~ import net.minecraft.resources.ResourceLocation;
 //~ import org.spongepowered.asm.mixin.Final;
 //~ import org.spongepowered.asm.mixin.Shadow;
-// @era:qol16-end
+// @era:atlas-tick-else tickable
+//~ import com.aetherium.perf.SpriteActivity;
+//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+//~ import java.util.IdentityHashMap;
+//~ import java.util.Map;
+//~ import net.minecraft.client.renderer.texture.Tickable;
+//~ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+//~ import net.minecraft.resources.ResourceLocation;
+//~ import org.spongepowered.asm.mixin.Final;
+//~ import org.spongepowered.asm.mixin.Shadow;
+//~ import org.spongepowered.asm.mixin.Unique;
+// @era:atlas-tick-else none
+// @era:atlas-tick-end
 
 /**
  * "Animated textures" off: the atlas tick advances and re-uploads every animated sprite (water,
@@ -39,8 +62,64 @@ public abstract class TextureAtlasMixin {
             ci.cancel();
         }
     }
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:atlas-tick-begin ticker
+    @Shadow
+    @Final
+    private ResourceLocation location;
+
+    /** Animation ticker -> its sprite, for this atlas (filled where vanilla creates the tickers). */
+    @Unique
+    private final Map<Object, TextureAtlasSprite> aetherium$tickerSprites = new IdentityHashMap<Object, TextureAtlasSprite>();
+
+    @Unique
+    private void aetherium$track(final TextureAtlasSprite sprite, final Object ticker) {
+        if (ticker == null) {
+            return;
+        }
+        this.aetherium$tickerSprites.put(ticker, sprite);
+        final Object tracked = sprite;
+        if (tracked instanceof SpriteActivity.Tracked) {
+            final boolean blocks = TextureAtlas.LOCATION_BLOCKS.equals(this.location);
+            // @era:sprite-name-begin contents
+            final String name = String.valueOf(sprite.contents().name());
+            // @era:sprite-name-else getname
+            //~ final String name = String.valueOf(sprite.getName());
+            // @era:sprite-name-end
+            SpriteActivity.track((SpriteActivity.Tracked) tracked, blocks && !SpriteActivity.alwaysAnimated(name));
+        }
+    }
+
+    @Inject(method = "cycleAnimationFrames", at = @At("TAIL"), require = 0)
+    private void aetherium$advanceTick(final CallbackInfo ci) {
+        if (TextureAtlas.LOCATION_BLOCKS.equals(this.location)) {
+            SpriteActivity.advance();
+        }
+    }
+
+    @Inject(method = "upload", at = @At("HEAD"), require = 0)
+    private void aetherium$forgetTickers(final CallbackInfo ci) {
+        this.aetherium$tickerSprites.clear();
+    }
+
+    @WrapOperation(method = "upload", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;createTicker()Lnet/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker;"),
+            require = 0)
+    private TextureAtlasSprite.Ticker aetherium$trackTicker(final TextureAtlasSprite sprite,
+                                                            final Operation<TextureAtlasSprite.Ticker> original) {
+        final TextureAtlasSprite.Ticker ticker = original.call(sprite);
+        this.aetherium$track(sprite, ticker);
+        return ticker;
+    }
+
+    @WrapOperation(method = "cycleAnimationFrames", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker;tickAndUpload()V"), require = 0)
+    private void aetherium$animateIfSeen(final TextureAtlasSprite.Ticker ticker, final Operation<Void> original) {
+        final TextureAtlasSprite sprite = this.aetherium$tickerSprites.get(ticker);
+        if (sprite == null || SpriteActivity.shouldAnimate(sprite)) {
+            original.call(ticker);
+        }
+    }
+    // @era:atlas-tick-else v16
 
     //~ @Shadow
     //~ @Final
@@ -77,5 +156,62 @@ public abstract class TextureAtlasMixin {
             //~ SpriteActivity.advance();
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:atlas-tick-else tickable
+    //~ @Shadow
+    //~ @Final
+    //~ private ResourceLocation location;
+
+    //~ /** Animation ticker -> its sprite, for this atlas (filled where vanilla creates the tickers). */
+    //~ @Unique
+    //~ private final Map<Object, TextureAtlasSprite> aetherium$tickerSprites = new IdentityHashMap<Object, TextureAtlasSprite>();
+
+    //~ @Unique
+    //~ private void aetherium$track(final TextureAtlasSprite sprite, final Object ticker) {
+        //~ if (ticker == null) {
+            //~ return;
+        //~ }
+        //~ this.aetherium$tickerSprites.put(ticker, sprite);
+        //~ final Object tracked = sprite;
+        //~ if (tracked instanceof SpriteActivity.Tracked) {
+            //~ final boolean blocks = TextureAtlas.LOCATION_BLOCKS.equals(this.location);
+            //~ // @era:sprite-name-begin getname
+            //~ final String name = String.valueOf(sprite.getName());
+            //~ // @era:sprite-name-else contents
+            //~ final String name = String.valueOf(sprite.contents().name());
+            //~ // @era:sprite-name-end
+            //~ SpriteActivity.track((SpriteActivity.Tracked) tracked, blocks && !SpriteActivity.alwaysAnimated(name));
+        //~ }
+    //~ }
+
+    //~ @Inject(method = "cycleAnimationFrames", at = @At("TAIL"), require = 0)
+    //~ private void aetherium$advanceTick(final CallbackInfo ci) {
+        //~ if (TextureAtlas.LOCATION_BLOCKS.equals(this.location)) {
+            //~ SpriteActivity.advance();
+        //~ }
+    //~ }
+
+    //~ @Inject(method = "reload", at = @At("HEAD"), require = 0)
+    //~ private void aetherium$forgetTickers(final CallbackInfo ci) {
+        //~ this.aetherium$tickerSprites.clear();
+    //~ }
+
+    //~ @WrapOperation(method = "reload", at = @At(value = "INVOKE",
+            //~ target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;getAnimationTicker()Lnet/minecraft/client/renderer/texture/Tickable;"),
+            //~ require = 0)
+    //~ private Tickable aetherium$trackTicker(final TextureAtlasSprite sprite, final Operation<Tickable> original) {
+        //~ final Tickable ticker = original.call(sprite);
+        //~ this.aetherium$track(sprite, ticker);
+        //~ return ticker;
+    //~ }
+
+    //~ @WrapOperation(method = "cycleAnimationFrames", at = @At(value = "INVOKE",
+            //~ target = "Lnet/minecraft/client/renderer/texture/Tickable;tick()V"), require = 0)
+    //~ private void aetherium$animateIfSeen(final Tickable ticker, final Operation<Void> original) {
+        //~ final TextureAtlasSprite sprite = this.aetherium$tickerSprites.get(ticker);
+        //~ if (sprite == null || SpriteActivity.shouldAnimate(sprite)) {
+            //~ original.call(ticker);
+        //~ }
+    //~ }
+    // @era:atlas-tick-else none
+    // @era:atlas-tick-end
 }

@@ -64,7 +64,7 @@ public final class AetheriumConfig {
     public final ConfigValue<Boolean> fastParticles = ConfigValue.bool(
             "performance.fast_particles", true, "Minecraft 1.16.5 to 1.21.8: particles behind you or off screen are skipped, and the rest are written to the particle batch without the temporary vectors and quaternion copies vanilla creates for every particle every frame. Looks identical.");
     public final ConfigValue<Boolean> visibleAnimations = ConfigValue.bool(
-            "performance.visible_animations", true, "Minecraft 1.16.5: only animated block textures you can see (in visible chunks, held or shown items, block entities, particles) keep animating; the rest pause, which saves their texture uploads every tick. Fire and portals always animate. If an animated texture from another mod stops moving, turn this off.");
+            "performance.visible_animations", true, "Minecraft 1.16.5 to 1.21.4: only animated block textures you can see (in visible chunks, held or shown items, block entities, particles) keep animating; the rest pause, which saves their texture uploads every tick. Fire and portals always animate. If an animated texture from another mod stops moving, turn this off.");
     public final ConfigValue<Boolean> fastModels = ConfigValue.bool(
             "performance.fast_models", true, "Minecraft 1.16.5: mob, player and block-entity models are written straight into the vertex buffer, without the temporary vector vanilla creates for every vertex and the per-vertex buffer calls. Same bytes as vanilla; outlines, enchantment glint and unusual buffers keep the vanilla path.");
     public final ConfigValue<Boolean> framePacing = ConfigValue.bool(

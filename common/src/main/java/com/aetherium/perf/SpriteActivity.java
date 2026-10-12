@@ -128,8 +128,26 @@ public final class SpriteActivity {
         t.aetheriumSetLastSeen(tick);
     }
 
+    /** Sprites of a build that ended before its compiled object was created (1.19+), per thread. */
+    private static final ThreadLocal<Object[]> PENDING = new ThreadLocal<Object[]>();
+
+    /** 1.19+: the section build on this thread ended; the compiled object created next takes its sprites. */
+    public static void endSectionPending() {
+        PENDING.set(endSection());
+    }
+
+    /** A compiled-section object is being created on this thread: the sprites of the build that just ended, or null. */
+    public static Object[] takePending() {
+        final Object[] sprites = PENDING.get();
+        if (sprites != null) {
+            PENDING.remove();
+        }
+        return sprites;
+    }
+
     /** A section build starts on this thread. */
     public static void beginSection() {
+        PENDING.remove();
         Collector c = COLLECTOR.get();
         if (c == null) {
             c = new Collector();

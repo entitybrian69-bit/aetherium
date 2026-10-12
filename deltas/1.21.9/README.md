@@ -21,6 +21,8 @@ neoforge_version=21.9.16-beta
 
 ### Era transforms applied by the generated patch
 
+- `anim=none`
+- `atlas-tick=none`
 - `background=render`
 - `be-render=extract`
 - `bg-threads=property`
@@ -50,6 +52,7 @@ neoforge_version=21.9.16-beta
 - `scroll=four`
 - `search-throttle=none`
 - `section-api=mesh`
+- `section-compile=none`
 - `section-vis=render-origin`
 - `simdist=sim`
 - `sky=renderer`
@@ -92,22 +95,30 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.9.t
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockParticleMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 

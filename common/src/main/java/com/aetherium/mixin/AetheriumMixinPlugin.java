@@ -33,10 +33,12 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     private static final String PACKAGE = "com.aetherium.mixin.core.";
 
     private static final Set<String> STREAMING_1_7 = Collections.unmodifiableSet(new java.util.HashSet<String>(
-            java.util.Arrays.asList("SpriteActivityMixin", "BakedQuadAccessor",
-                    "BlockSpriteUseMixin", "ItemSpriteUseMixin", "SectionSpritesMixin", "CompiledChunkSpritesMixin",
-                    "ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin", "Matrix3fAccessor",
+            java.util.Arrays.asList("ModelCubeMixin", "ModelPolygonMixin", "ModelVertexMixin", "Matrix3fAccessor",
                     "DefaultedVertexAccessor", "FastModelMixin")));
+
+    private static final Set<String> VISIBLE_ANIMATION_MIXINS = Collections.unmodifiableSet(new java.util.HashSet<String>(
+            java.util.Arrays.asList("SpriteActivityMixin", "BakedQuadAccessor", "BlockSpriteUseMixin",
+                    "ItemSpriteUseMixin", "SectionSpritesMixin", "CompiledChunkSpritesMixin")));
 
     /** Simple names of mixins that were actually applied (render thread reads, loader writes). */
     private static final Set<String> APPLIED = ConcurrentHashMap.newKeySet();
@@ -137,8 +139,14 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("FramePacingMixin".equals(simpleName)) {
             return Capabilities.FRAME_PACING;
         }
+        if (VISIBLE_ANIMATION_MIXINS.contains(simpleName)) {
+            return Capabilities.VISIBLE_ANIMATIONS;
+        }
+        if ("VisibleSpritesMixin".equals(simpleName)) {
+            return Capabilities.VISIBLE_ANIMATION_PASS;
+        }
         if (STREAMING_1_7.contains(simpleName)) {
-            // 1.7.0: smarter culling, fast particles, visible-only animations, fast models.
+            // 1.7.0 fast models.
             return Capabilities.STREAMING;
         }
         if ("ChunkPrepareMixin".equals(simpleName) || "BufferBuilderAccessor".equals(simpleName)) {

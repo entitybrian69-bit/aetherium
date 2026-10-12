@@ -3,71 +3,73 @@ package com.aetherium.mixin.core;
 import com.aetherium.perf.SpriteActivity;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
-//~ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-//~ import org.spongepowered.asm.mixin.Unique;
-//~ import org.spongepowered.asm.mixin.injection.At;
-// @era:qol16-end
+// @era:anim-begin v16|on
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+// @era:anim-else none
+// @era:anim-end
 
 /**
- * "Animate visible textures only" (1.16.5): tracking state per sprite, and every
- * {@code getU(double)} lookup counts as a use (fluids, block entities through
- * {@code SpriteCoordinateExpander}, breaking particles, the in-wall overlay). Meshed block faces,
- * items and block models drawn by entities are recorded from their quads instead. Applied only
- * where {@code Capabilities.STREAMING} is true.
+ * Visible-only animations: a sprite remembers whether it is tracked and when it was last drawn;
+ * reading its U coordinate (every quad that uses it) counts as a use. Applied only where
+ * {@code Capabilities.VISIBLE_ANIMATIONS} is true.
  */
 @Mixin(targets = "net.minecraft.client.renderer.texture.TextureAtlasSprite")
 public abstract class SpriteActivityMixin implements SpriteActivity.Tracked {
-    // @era:qol16-begin none
+    // @era:anim-begin v16|on
+    @Unique
+    private boolean aetherium$tracked;
+
+    @Unique
+    private int aetherium$lastSeen;
+
+    // @era:sprite-u-begin f
+    @ModifyReturnValue(method = "getU(F)F", at = @At("RETURN"), require = 0)
+    // @era:sprite-u-else d
+    //~ @ModifyReturnValue(method = "getU(D)F", at = @At("RETURN"), require = 0)
+    // @era:sprite-u-end
+    private float aetherium$touch(final float u) {
+        SpriteActivity.touch(this);
+        return u;
+    }
+
     @Override
     public boolean aetheriumTracked() {
-        return false;
+        return this.aetherium$tracked;
     }
 
     @Override
     public void aetheriumSetTracked(final boolean tracked) {
+        this.aetherium$tracked = tracked;
     }
 
     @Override
     public int aetheriumLastSeen() {
-        return 0;
+        return this.aetherium$lastSeen;
     }
 
     @Override
     public void aetheriumSetLastSeen(final int tick) {
+        this.aetherium$lastSeen = tick;
     }
-    // @era:qol16-else v16
-    //~ @Unique
-    //~ private boolean aetherium$tracked;
-
-    //~ @Unique
-    //~ private int aetherium$lastSeen;
-
-    //~ @ModifyReturnValue(method = "getU(D)F", at = @At("RETURN"), require = 0)
-    //~ private float aetherium$touch(final float u) {
-        //~ SpriteActivity.touch(this);
-        //~ return u;
-    //~ }
-
+    // @era:anim-else none
     //~ @Override
     //~ public boolean aetheriumTracked() {
-        //~ return this.aetherium$tracked;
+        //~ return false;
     //~ }
 
     //~ @Override
     //~ public void aetheriumSetTracked(final boolean tracked) {
-        //~ this.aetherium$tracked = tracked;
     //~ }
 
     //~ @Override
     //~ public int aetheriumLastSeen() {
-        //~ return this.aetherium$lastSeen;
+        //~ return 0;
     //~ }
 
     //~ @Override
     //~ public void aetheriumSetLastSeen(final int tick) {
-        //~ this.aetherium$lastSeen = tick;
     //~ }
-    // @era:qol16-end
+    // @era:anim-end
 }

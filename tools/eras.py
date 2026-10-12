@@ -100,6 +100,22 @@ ERAS = {
     # 1.17.1 (1.16.5 in StreamingLevelMixin; 1.17 needsUpdate PUTFIELD ordinals 0 camera moved,
     # 1 search start, 2 dirty section, as on 1.16.5); 1.18+ searches on a background thread.
     "search-throttle": [("v16", "..1.16.5"), ("bfs", "1.17..1.17.1"), ("none", "1.18..")],
+    # Visible-only animated textures (1.7.0): the whole feature to 1.21.4 (1.21.5 changes the
+    # tickers, quads and compiled sections).
+    "anim": [("v16", "..1.16.5"), ("on", "1.17..1.21.4"), ("none", "1.21.5..")],
+    # Atlas animation steps: 1.16.5 cycles sprites; 1.17 Tickable from getAnimationTicker (reload);
+    # 1.19.3 TextureAtlasSprite$Ticker from createTicker (upload), tickAndUpload()V; 1.21.5 takes a
+    # GpuTexture.
+    "atlas-tick": [("v16", "..1.16.5"), ("tickable", "1.17..1.19.2"), ("ticker", "1.19.3..1.21.4"),
+                   ("none", "1.21.5..")],
+    "sprite-name": [("getname", "..1.19.2"), ("contents", "1.19.3..")],
+    "sprite-u": [("d", "..1.20.1"), ("f", "1.20.2..")],
+    "item-quads": [("instance", "..1.21.3"), ("static", "1.21.4..")],
+    # Where a section's mesh is built: RebuildTask.compile with the CompiledChunk argument
+    # (..1.18.2); compile returning CompileResults, the CompiledChunk/CompiledSection created right
+    # after it in doTask on the same thread (1.19..1.20.6); SectionCompiler.compile (1.21..).
+    "section-compile": [("v16", "..1.16.5"), ("param17", "1.17..1.18.2"), ("rebuild19", "1.19..1.20.1"),
+                        ("rebuild202", "1.20.2..1.20.6"), ("compiler21", "1.21..1.21.4"), ("none", "1.21.5..")],
     "near-build": [("v16", "..1.17.1"), ("none", "1.18..")],
     # Entity yaw/pitch: public fields on 1.16.5, getYRot()/getXRot() from 1.17.
     "rot": [("fields", "..1.16.5"), ("getters", "1.17..")],

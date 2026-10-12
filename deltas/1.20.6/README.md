@@ -26,6 +26,7 @@ neoforge_version=20.6.141
 - `particle-fast=facing`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
+- `section-compile=rebuild202`
 - `sky=rb193`
 - `vignette=render`
 - `zoom-cam=double`
@@ -59,6 +60,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.6.t
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 

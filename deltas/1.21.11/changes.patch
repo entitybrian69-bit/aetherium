@@ -5,7 +5,7 @@
 # apply:  git apply --whitespace=nowarn deltas/1.21.11/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.11/changes.patch
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index b85753a..c78da81 100644
+index c9e98bc..8befeb1 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -127,10 +127,10 @@ public final class Capabilities {
@@ -38,6 +38,30 @@ index b85753a..c78da81 100644
      // @era:particle-fast-end
  
      /** Per-frame camera frustum from vanilla's own matrices (1.16.5 via StreamingLevelMixin). */
+@@ -181,16 +181,16 @@ public final class Capabilities {
+     // @era:search-throttle-end
+ 
+     /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
+-    // @era:anim-begin on
+-    public static final boolean VISIBLE_ANIMATIONS = true;
+-    /** The visible-section pass in VisibleSpritesMixin (1.16.5 marks them in StreamingLevelMixin). */
+-    public static final boolean VISIBLE_ANIMATION_PASS = true;
++    // @era:anim-begin none
++    public static final boolean VISIBLE_ANIMATIONS = false;
++    public static final boolean VISIBLE_ANIMATION_PASS = false;
++    // @era:anim-else on
++    //~ public static final boolean VISIBLE_ANIMATIONS = true;
++    //~ /** The visible-section pass in VisibleSpritesMixin (1.16.5 marks them in StreamingLevelMixin). */
++    //~ public static final boolean VISIBLE_ANIMATION_PASS = true;
+     // @era:anim-else v16
+     //~ public static final boolean VISIBLE_ANIMATIONS = true;
+     //~ public static final boolean VISIBLE_ANIMATION_PASS = false;
+-    // @era:anim-else none
+-    //~ public static final boolean VISIBLE_ANIMATIONS = false;
+-    //~ public static final boolean VISIBLE_ANIMATION_PASS = false;
+     // @era:anim-end
+ 
+     /** Fog controls, sky toggles and per-type particle toggles (every version since 1.8.0). */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 index e5e224a..02c8446 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
@@ -536,6 +560,39 @@ index 2a8d289..71eb00c 100644
 +    //~ }
      // @era:mesh-alloc-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java
+index 36cba9f..462825a 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java
+@@ -1,10 +1,10 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:anim-begin v16|on
+-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+-import org.spongepowered.asm.mixin.gen.Accessor;
+-// @era:anim-else none
++// @era:anim-begin none
++// @era:anim-else v16|on
++//~ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++//~ import org.spongepowered.asm.mixin.gen.Accessor;
+ // @era:anim-end
+ 
+ /**
+@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.block.model.BakedQuad")
+ public interface BakedQuadAccessor {
+-    // @era:anim-begin v16|on
+-    @Accessor("sprite")
+-    TextureAtlasSprite aetherium$sprite();
+-    // @era:anim-else none
++    // @era:anim-begin none
++    // @era:anim-else v16|on
++    //~ @Accessor("sprite")
++    //~ TextureAtlasSprite aetherium$sprite();
+     // @era:anim-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
 index db3bdf9..01b0073 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java
@@ -617,6 +674,91 @@ index 95ffc2a..4883a07 100644
      // @era:block-particles-end
      private void aetherium$blockParticles(final CallbackInfo ci) {
          if (!ParticleFilter.blockBreaking()) {
+diff --git a/common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java b/common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java
+index 33fb9ad..402c1f4 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java
+@@ -1,14 +1,14 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:anim-begin v16|on
+-import com.aetherium.perf.SpriteActivity;
+-import java.util.List;
+-import net.minecraft.client.renderer.block.model.BakedQuad;
+-import org.spongepowered.asm.mixin.Unique;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+-// @era:anim-else none
++// @era:anim-begin none
++// @era:anim-else v16|on
++//~ import com.aetherium.perf.SpriteActivity;
++//~ import java.util.List;
++//~ import net.minecraft.client.renderer.block.model.BakedQuad;
++//~ import org.spongepowered.asm.mixin.Unique;
++//~ import org.spongepowered.asm.mixin.injection.At;
++//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
+ // @era:anim-end
+ 
+ /**
+@@ -20,32 +20,32 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer")
+ public abstract class BlockSpriteUseMixin {
+-    // @era:anim-begin v16|on
+-    @ModifyVariable(method = {"renderModelFaceAO", "renderModelFaceFlat"}, at = @At("HEAD"), argsOnly = true,
+-            require = 0)
+-    private List<BakedQuad> aetherium$faceSprites(final List<BakedQuad> quads) {
+-        aetherium$touchAll(quads);
+-        return quads;
+-    }
++    // @era:anim-begin none
++    // @era:anim-else v16|on
++    //~ @ModifyVariable(method = {"renderModelFaceAO", "renderModelFaceFlat"}, at = @At("HEAD"), argsOnly = true,
++            //~ require = 0)
++    //~ private List<BakedQuad> aetherium$faceSprites(final List<BakedQuad> quads) {
++        //~ aetherium$touchAll(quads);
++        //~ return quads;
++    //~ }
+ 
+-    @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
+-    private static List<BakedQuad> aetherium$listSprites(final List<BakedQuad> quads) {
+-        aetherium$touchAll(quads);
+-        return quads;
+-    }
++    //~ @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
++    //~ private static List<BakedQuad> aetherium$listSprites(final List<BakedQuad> quads) {
++        //~ aetherium$touchAll(quads);
++        //~ return quads;
++    //~ }
+ 
+-    @Unique
+-    private static void aetherium$touchAll(final List<BakedQuad> quads) {
+-        for (int i = 0, n = quads.size(); i < n; i++) {
+-            final Object quad = quads.get(i);
+-            if (!(quad instanceof BakedQuadAccessor)) {
+-                // The accessor did not apply: nothing could be recorded, so animate everything.
+-                SpriteActivity.markBroken();
+-                return;
+-            }
+-            SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
+-        }
+-    }
+-    // @era:anim-else none
++    //~ @Unique
++    //~ private static void aetherium$touchAll(final List<BakedQuad> quads) {
++        //~ for (int i = 0, n = quads.size(); i < n; i++) {
++            //~ final Object quad = quads.get(i);
++            //~ if (!(quad instanceof BakedQuadAccessor)) {
++                //~ // The accessor did not apply: nothing could be recorded, so animate everything.
++                //~ SpriteActivity.markBroken();
++                //~ return;
++            //~ }
++            //~ SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
++        //~ }
++    //~ }
+     // @era:anim-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java b/common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java
 index 348c80a..397e449 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java
@@ -736,6 +878,99 @@ index 2279e5b..750a14d 100644
 -                //~ section.getSectionMesh() != CompiledSectionMesh.UNCOMPILED);
 -    //~ }
      // @era:section-api-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java
+index 69ce3d0..52a7f19 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java
+@@ -3,59 +3,59 @@ package com.aetherium.mixin.core;
+ import com.aetherium.perf.SectionSprites;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:anim-begin on
+-import com.aetherium.perf.SpriteActivity;
+-import org.spongepowered.asm.mixin.Unique;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:anim-begin none
++// @era:anim-else on
++//~ import com.aetherium.perf.SpriteActivity;
++//~ import org.spongepowered.asm.mixin.Unique;
++//~ import org.spongepowered.asm.mixin.injection.At;
++//~ import org.spongepowered.asm.mixin.injection.Inject;
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:anim-else v16
+ //~ import org.spongepowered.asm.mixin.Unique;
+-// @era:anim-else none
+ // @era:anim-end
+ 
+ /** The animated sprites a compiled section's mesh uses (CompiledChunk to 1.20.1, CompiledSection 1.20.2..1.21.4). */
+-// @era:section-api-begin srd
+-@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection")
++// @era:section-api-begin srd-ro|mesh|none
++@Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk")
++// @era:section-api-else srd
++//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$CompiledSection")
+ // @era:section-api-else v16|crd
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk")
+-// @era:section-api-else srd-ro|mesh|none
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk")
+ // @era:section-api-end
+ public abstract class CompiledChunkSpritesMixin implements SectionSprites {
+-    // @era:anim-begin v16|on
+-    @Unique
+-    private Object[] aetherium$sprites;
+-
++    // @era:anim-begin none
+     @Override
+     public Object[] aetheriumSprites() {
+-        return this.aetherium$sprites;
++        return null;
+     }
+ 
+     @Override
+     public void aetheriumSetSprites(final Object[] sprites) {
+-        this.aetherium$sprites = sprites;
+     }
+-    // @era:anim-else none
++    // @era:anim-else v16|on
++    //~ @Unique
++    //~ private Object[] aetherium$sprites;
++
+     //~ @Override
+     //~ public Object[] aetheriumSprites() {
+-        //~ return null;
++        //~ return this.aetherium$sprites;
+     //~ }
+ 
+     //~ @Override
+     //~ public void aetheriumSetSprites(final Object[] sprites) {
++        //~ this.aetherium$sprites = sprites;
+     //~ }
+     // @era:anim-end
+ 
+-    // @era:section-compile-begin rebuild19|rebuild202|compiler21
+-    /** 1.19+: doTask creates this right after the build on the same thread; it takes the build's sprites. */
+-    @Inject(method = "<init>()V", at = @At("RETURN"), require = 0)
+-    private void aetherium$takeSprites(final CallbackInfo ci) {
+-        final Object[] sprites = SpriteActivity.takePending();
+-        if (sprites != null) {
+-            this.aetherium$sprites = sprites;
+-        }
+-    }
+-    // @era:section-compile-else v16|param17|none
++    // @era:section-compile-begin v16|param17|none
++    // @era:section-compile-else rebuild19|rebuild202|compiler21
++    //~ /** 1.19+: doTask creates this right after the build on the same thread; it takes the build's sprites. */
++    //~ @Inject(method = "<init>()V", at = @At("RETURN"), require = 0)
++    //~ private void aetherium$takeSprites(final CallbackInfo ci) {
++        //~ final Object[] sprites = SpriteActivity.takePending();
++        //~ if (sprites != null) {
++            //~ this.aetherium$sprites = sprites;
++        //~ }
++    //~ }
+     // @era:section-compile-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java b/common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java
 index ad232af..291433f 100644
@@ -1192,6 +1427,82 @@ index 6051633..00f483b 100644
          //~ FrameFrustum.arm();
      //~ }
      // @era:frustum-cap-else none
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java b/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
+index 061ebc9..ebe2643 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
+@@ -1,41 +1,41 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:anim-begin v16|on
+-import com.aetherium.perf.SpriteActivity;
+-import java.util.List;
+-import net.minecraft.client.renderer.block.model.BakedQuad;
+-import org.spongepowered.asm.mixin.Unique;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+-// @era:anim-else none
++// @era:anim-begin none
++// @era:anim-else v16|on
++//~ import com.aetherium.perf.SpriteActivity;
++//~ import java.util.List;
++//~ import net.minecraft.client.renderer.block.model.BakedQuad;
++//~ import org.spongepowered.asm.mixin.Unique;
++//~ import org.spongepowered.asm.mixin.injection.At;
++//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
+ // @era:anim-end
+ 
+ /** Visible-only animations: item quads drawn this frame use their sprites (renderQuadList is static from 1.21.4). */
+ @Mixin(targets = "net.minecraft.client.renderer.entity.ItemRenderer")
+ public abstract class ItemSpriteUseMixin {
+-    // @era:anim-begin v16|on
+-    @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
+-    // @era:item-quads-begin instance
+-    private List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
+-    // @era:item-quads-else static
+-    //~ private static List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
+-    // @era:item-quads-end
+-        aetherium$touchAll(quads);
+-        return quads;
+-    }
++    // @era:anim-begin none
++    // @era:anim-else v16|on
++    //~ @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
++    //~ // @era:item-quads-begin instance
++    //~ private List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
++    //~ // @era:item-quads-else static
++    //~ //~ private static List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
++    //~ // @era:item-quads-end
++        //~ aetherium$touchAll(quads);
++        //~ return quads;
++    //~ }
+ 
+-    @Unique
+-    private static void aetherium$touchAll(final List<BakedQuad> quads) {
+-        for (int i = 0, n = quads.size(); i < n; i++) {
+-            final Object quad = quads.get(i);
+-            if (!(quad instanceof BakedQuadAccessor)) {
+-                SpriteActivity.markBroken();
+-                return;
+-            }
+-            SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
+-        }
+-    }
+-    // @era:anim-else none
++    //~ @Unique
++    //~ private static void aetherium$touchAll(final List<BakedQuad> quads) {
++        //~ for (int i = 0, n = quads.size(); i < n; i++) {
++            //~ final Object quad = quads.get(i);
++            //~ if (!(quad instanceof BakedQuadAccessor)) {
++                //~ SpriteActivity.markBroken();
++                //~ return;
++            //~ }
++            //~ SpriteActivity.touch(((BakedQuadAccessor) quad).aetherium$sprite());
++        //~ }
++    //~ }
+     // @era:anim-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java b/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
 index 1696686..d29c877 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java
@@ -1400,6 +1711,86 @@ index 1544ef9..d04d9a6 100644
 -    //~ }
      // @era:mesh-exec-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
+index 51b3c6e..462cfd4 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
+@@ -1,11 +1,12 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:section-compile-begin rebuild19|rebuild202|compiler21
+-import com.aetherium.perf.SpriteActivity;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:section-compile-begin none
++// @era:section-compile-else rebuild19|rebuild202|compiler21
++//~ import com.aetherium.perf.SpriteActivity;
++//~ import org.spongepowered.asm.mixin.injection.At;
++//~ import org.spongepowered.asm.mixin.injection.Inject;
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ // @era:section-compile-else v16|param17
+ //~ import com.aetherium.perf.SectionSprites;
+ //~ import com.aetherium.perf.SpriteActivity;
+@@ -16,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+-// @era:section-compile-else none
+ // @era:section-compile-end
+ 
+ /**
+@@ -25,28 +25,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+  * object is created right after the build on the same thread, which takes them
+  * ({@link CompiledChunkSpritesMixin}).
+  */
+-// @era:section-compile-begin compiler21
+-@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionCompiler")
++// @era:section-compile-begin none
++@Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
++// @era:section-compile-else compiler21
++//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionCompiler")
+ // @era:section-compile-else v16|param17
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+ // @era:section-compile-else rebuild19
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+ // @era:section-compile-else rebuild202
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask")
+-// @era:section-compile-else none
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+ // @era:section-compile-end
+ public abstract class SectionSpritesMixin {
+-    // @era:section-compile-begin rebuild19|rebuild202|compiler21
+-    @Inject(method = "compile", at = @At("HEAD"), require = 0)
+-    private void aetherium$beginSprites(final CallbackInfoReturnable<Object> cir) {
+-        SpriteActivity.beginSection();
+-    }
++    // @era:section-compile-begin none
++    // @era:section-compile-else rebuild19|rebuild202|compiler21
++    //~ @Inject(method = "compile", at = @At("HEAD"), require = 0)
++    //~ private void aetherium$beginSprites(final CallbackInfoReturnable<Object> cir) {
++        //~ SpriteActivity.beginSection();
++    //~ }
+ 
+-    @Inject(method = "compile", at = @At("RETURN"), require = 0)
+-    private void aetherium$endSprites(final CallbackInfoReturnable<Object> cir) {
+-        SpriteActivity.endSectionPending();
+-    }
++    //~ @Inject(method = "compile", at = @At("RETURN"), require = 0)
++    //~ private void aetherium$endSprites(final CallbackInfoReturnable<Object> cir) {
++        //~ SpriteActivity.endSectionPending();
++    //~ }
+     // @era:section-compile-else v16|param17
+     //~ @Inject(method = "compile", at = @At("HEAD"), require = 0)
+     //~ private void aetherium$beginSprites(final float x, final float y, final float z,
+@@ -66,6 +67,5 @@ public abstract class SectionSpritesMixin {
+             //~ ((SectionSprites) (Object) compiled).aetheriumSetSprites(sprites);
+         //~ }
+     //~ }
+-    // @era:section-compile-else none
+     // @era:section-compile-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
 index 7594ede..ebe6c74 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
@@ -1562,6 +1953,278 @@ index 7594ede..ebe6c74 100644
 -    // @era:sky-else renderer
      // @era:sky-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java b/common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java
+index 6a8704b..406f1bb 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java
+@@ -3,11 +3,11 @@ package com.aetherium.mixin.core;
+ import com.aetherium.perf.SpriteActivity;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:anim-begin v16|on
+-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+-import org.spongepowered.asm.mixin.Unique;
+-import org.spongepowered.asm.mixin.injection.At;
+-// @era:anim-else none
++// @era:anim-begin none
++// @era:anim-else v16|on
++//~ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
++//~ import org.spongepowered.asm.mixin.Unique;
++//~ import org.spongepowered.asm.mixin.injection.At;
+ // @era:anim-end
+ 
+ /**
+@@ -17,59 +17,59 @@ import org.spongepowered.asm.mixin.injection.At;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.texture.TextureAtlasSprite")
+ public abstract class SpriteActivityMixin implements SpriteActivity.Tracked {
+-    // @era:anim-begin v16|on
+-    @Unique
+-    private boolean aetherium$tracked;
+-
+-    @Unique
+-    private int aetherium$lastSeen;
+-
+-    // @era:sprite-u-begin f
+-    @ModifyReturnValue(method = "getU(F)F", at = @At("RETURN"), require = 0)
+-    // @era:sprite-u-else d
+-    //~ @ModifyReturnValue(method = "getU(D)F", at = @At("RETURN"), require = 0)
+-    // @era:sprite-u-end
+-    private float aetherium$touch(final float u) {
+-        SpriteActivity.touch(this);
+-        return u;
+-    }
+-
++    // @era:anim-begin none
+     @Override
+     public boolean aetheriumTracked() {
+-        return this.aetherium$tracked;
++        return false;
+     }
+ 
+     @Override
+     public void aetheriumSetTracked(final boolean tracked) {
+-        this.aetherium$tracked = tracked;
+     }
+ 
+     @Override
+     public int aetheriumLastSeen() {
+-        return this.aetherium$lastSeen;
++        return 0;
+     }
+ 
+     @Override
+     public void aetheriumSetLastSeen(final int tick) {
+-        this.aetherium$lastSeen = tick;
+     }
+-    // @era:anim-else none
++    // @era:anim-else v16|on
++    //~ @Unique
++    //~ private boolean aetherium$tracked;
++
++    //~ @Unique
++    //~ private int aetherium$lastSeen;
++
++    //~ // @era:sprite-u-begin f
++    //~ @ModifyReturnValue(method = "getU(F)F", at = @At("RETURN"), require = 0)
++    //~ // @era:sprite-u-else d
++    //~ //~ @ModifyReturnValue(method = "getU(D)F", at = @At("RETURN"), require = 0)
++    //~ // @era:sprite-u-end
++    //~ private float aetherium$touch(final float u) {
++        //~ SpriteActivity.touch(this);
++        //~ return u;
++    //~ }
++
+     //~ @Override
+     //~ public boolean aetheriumTracked() {
+-        //~ return false;
++        //~ return this.aetherium$tracked;
+     //~ }
+ 
+     //~ @Override
+     //~ public void aetheriumSetTracked(final boolean tracked) {
++        //~ this.aetherium$tracked = tracked;
+     //~ }
+ 
+     //~ @Override
+     //~ public int aetheriumLastSeen() {
+-        //~ return 0;
++        //~ return this.aetherium$lastSeen;
+     //~ }
+ 
+     //~ @Override
+     //~ public void aetheriumSetLastSeen(final int tick) {
++        //~ this.aetherium$lastSeen = tick;
+     //~ }
+     // @era:anim-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java b/common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java
+index 6e0fd24..172662b 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java
+@@ -8,17 +8,18 @@ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:atlas-tick-begin ticker
+-import com.aetherium.perf.SpriteActivity;
+-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-import java.util.IdentityHashMap;
+-import java.util.Map;
+-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+-import net.minecraft.resources.ResourceLocation;
+-import org.spongepowered.asm.mixin.Final;
+-import org.spongepowered.asm.mixin.Shadow;
+-import org.spongepowered.asm.mixin.Unique;
++// @era:atlas-tick-begin none
++// @era:atlas-tick-else ticker
++//~ import com.aetherium.perf.SpriteActivity;
++//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++//~ import java.util.IdentityHashMap;
++//~ import java.util.Map;
++//~ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++//~ import net.minecraft.resources.ResourceLocation;
++//~ import org.spongepowered.asm.mixin.Final;
++//~ import org.spongepowered.asm.mixin.Shadow;
++//~ import org.spongepowered.asm.mixin.Unique;
+ // @era:atlas-tick-else v16
+ //~ import com.aetherium.perf.SpriteActivity;
+ //~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+@@ -40,7 +41,6 @@ import org.spongepowered.asm.mixin.Unique;
+ //~ import org.spongepowered.asm.mixin.Final;
+ //~ import org.spongepowered.asm.mixin.Shadow;
+ //~ import org.spongepowered.asm.mixin.Unique;
+-// @era:atlas-tick-else none
+ // @era:atlas-tick-end
+ 
+ /**
+@@ -62,63 +62,64 @@ public abstract class TextureAtlasMixin {
+             ci.cancel();
+         }
+     }
+-    // @era:atlas-tick-begin ticker
+-    @Shadow
+-    @Final
+-    private ResourceLocation location;
+-
+-    /** Animation ticker -> its sprite, for this atlas (filled where vanilla creates the tickers). */
+-    @Unique
+-    private final Map<Object, TextureAtlasSprite> aetherium$tickerSprites = new IdentityHashMap<Object, TextureAtlasSprite>();
+-
+-    @Unique
+-    private void aetherium$track(final TextureAtlasSprite sprite, final Object ticker) {
+-        if (ticker == null) {
+-            return;
+-        }
+-        this.aetherium$tickerSprites.put(ticker, sprite);
+-        final Object tracked = sprite;
+-        if (tracked instanceof SpriteActivity.Tracked) {
+-            final boolean blocks = TextureAtlas.LOCATION_BLOCKS.equals(this.location);
+-            // @era:sprite-name-begin contents
+-            final String name = String.valueOf(sprite.contents().name());
+-            // @era:sprite-name-else getname
+-            //~ final String name = String.valueOf(sprite.getName());
+-            // @era:sprite-name-end
+-            SpriteActivity.track((SpriteActivity.Tracked) tracked, blocks && !SpriteActivity.alwaysAnimated(name));
+-        }
+-    }
++    // @era:atlas-tick-begin none
++    // @era:atlas-tick-else ticker
++    //~ @Shadow
++    //~ @Final
++    //~ private ResourceLocation location;
+ 
+-    @Inject(method = "cycleAnimationFrames", at = @At("TAIL"), require = 0)
+-    private void aetherium$advanceTick(final CallbackInfo ci) {
+-        if (TextureAtlas.LOCATION_BLOCKS.equals(this.location)) {
+-            SpriteActivity.advance();
+-        }
+-    }
++    //~ /** Animation ticker -> its sprite, for this atlas (filled where vanilla creates the tickers). */
++    //~ @Unique
++    //~ private final Map<Object, TextureAtlasSprite> aetherium$tickerSprites = new IdentityHashMap<Object, TextureAtlasSprite>();
+ 
+-    @Inject(method = "upload", at = @At("HEAD"), require = 0)
+-    private void aetherium$forgetTickers(final CallbackInfo ci) {
+-        this.aetherium$tickerSprites.clear();
+-    }
++    //~ @Unique
++    //~ private void aetherium$track(final TextureAtlasSprite sprite, final Object ticker) {
++        //~ if (ticker == null) {
++            //~ return;
++        //~ }
++        //~ this.aetherium$tickerSprites.put(ticker, sprite);
++        //~ final Object tracked = sprite;
++        //~ if (tracked instanceof SpriteActivity.Tracked) {
++            //~ final boolean blocks = TextureAtlas.LOCATION_BLOCKS.equals(this.location);
++            //~ // @era:sprite-name-begin contents
++            //~ final String name = String.valueOf(sprite.contents().name());
++            //~ // @era:sprite-name-else getname
++            //~ //~ final String name = String.valueOf(sprite.getName());
++            //~ // @era:sprite-name-end
++            //~ SpriteActivity.track((SpriteActivity.Tracked) tracked, blocks && !SpriteActivity.alwaysAnimated(name));
++        //~ }
++    //~ }
+ 
+-    @WrapOperation(method = "upload", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;createTicker()Lnet/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker;"),
+-            require = 0)
+-    private TextureAtlasSprite.Ticker aetherium$trackTicker(final TextureAtlasSprite sprite,
+-                                                            final Operation<TextureAtlasSprite.Ticker> original) {
+-        final TextureAtlasSprite.Ticker ticker = original.call(sprite);
+-        this.aetherium$track(sprite, ticker);
+-        return ticker;
+-    }
++    //~ @Inject(method = "cycleAnimationFrames", at = @At("TAIL"), require = 0)
++    //~ private void aetherium$advanceTick(final CallbackInfo ci) {
++        //~ if (TextureAtlas.LOCATION_BLOCKS.equals(this.location)) {
++            //~ SpriteActivity.advance();
++        //~ }
++    //~ }
+ 
+-    @WrapOperation(method = "cycleAnimationFrames", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker;tickAndUpload()V"), require = 0)
+-    private void aetherium$animateIfSeen(final TextureAtlasSprite.Ticker ticker, final Operation<Void> original) {
+-        final TextureAtlasSprite sprite = this.aetherium$tickerSprites.get(ticker);
+-        if (sprite == null || SpriteActivity.shouldAnimate(sprite)) {
+-            original.call(ticker);
+-        }
+-    }
++    //~ @Inject(method = "upload", at = @At("HEAD"), require = 0)
++    //~ private void aetherium$forgetTickers(final CallbackInfo ci) {
++        //~ this.aetherium$tickerSprites.clear();
++    //~ }
++
++    //~ @WrapOperation(method = "upload", at = @At(value = "INVOKE",
++            //~ target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;createTicker()Lnet/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker;"),
++            //~ require = 0)
++    //~ private TextureAtlasSprite.Ticker aetherium$trackTicker(final TextureAtlasSprite sprite,
++                                                            //~ final Operation<TextureAtlasSprite.Ticker> original) {
++        //~ final TextureAtlasSprite.Ticker ticker = original.call(sprite);
++        //~ this.aetherium$track(sprite, ticker);
++        //~ return ticker;
++    //~ }
++
++    //~ @WrapOperation(method = "cycleAnimationFrames", at = @At(value = "INVOKE",
++            //~ target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite$Ticker;tickAndUpload()V"), require = 0)
++    //~ private void aetherium$animateIfSeen(final TextureAtlasSprite.Ticker ticker, final Operation<Void> original) {
++        //~ final TextureAtlasSprite sprite = this.aetherium$tickerSprites.get(ticker);
++        //~ if (sprite == null || SpriteActivity.shouldAnimate(sprite)) {
++            //~ original.call(ticker);
++        //~ }
++    //~ }
+     // @era:atlas-tick-else v16
+ 
+     //~ @Shadow
+@@ -212,6 +213,5 @@ public abstract class TextureAtlasMixin {
+             //~ original.call(ticker);
+         //~ }
+     //~ }
+-    // @era:atlas-tick-else none
+     // @era:atlas-tick-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
 index f4b7685..56aed81 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
@@ -1612,6 +2275,207 @@ index f4b7685..56aed81 100644
              //~ out.mark(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
          //~ }
      //~ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java
+index 5e4240d..1da69c4 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java
+@@ -1,25 +1,25 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:anim-begin on
+-import com.aetherium.mixin.AetheriumMixinPlugin;
+-import com.aetherium.perf.SectionSprites;
+-import com.aetherium.perf.SpriteActivity;
+-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+-import java.util.List;
+-import org.spongepowered.asm.mixin.Final;
+-import org.spongepowered.asm.mixin.Shadow;
+-import org.spongepowered.asm.mixin.Unique;
+-import org.spongepowered.asm.mixin.injection.At;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:section-api-begin srd
+-import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+-// @era:section-api-else crd
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-// @era:section-api-else v16|srd-ro|mesh|none
+-// @era:section-api-end
+-// @era:anim-else v16|none
++// @era:anim-begin v16|none
++// @era:anim-else on
++//~ import com.aetherium.mixin.AetheriumMixinPlugin;
++//~ import com.aetherium.perf.SectionSprites;
++//~ import com.aetherium.perf.SpriteActivity;
++//~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
++//~ import java.util.List;
++//~ import org.spongepowered.asm.mixin.Final;
++//~ import org.spongepowered.asm.mixin.Shadow;
++//~ import org.spongepowered.asm.mixin.Unique;
++//~ import org.spongepowered.asm.mixin.injection.At;
++//~ import org.spongepowered.asm.mixin.injection.Inject;
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++//~ // @era:section-api-begin srd
++//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
++//~ // @era:section-api-else crd
++//~ //~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++//~ // @era:section-api-else v16|srd-ro|mesh|none
++//~ // @era:section-api-end
+ // @era:anim-end
+ 
+ /**
+@@ -29,82 +29,82 @@ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class VisibleSpritesMixin {
+-    // @era:anim-begin on
+-    // @era:fog-cull-begin section
+-    @Shadow
+-    @Final
+-    private ObjectArrayList<Object> visibleSections;
+-    // @era:fog-cull-else bfs
++    // @era:anim-begin v16|none
++    // @era:anim-else on
++    //~ // @era:fog-cull-begin section
+     //~ @Shadow
+     //~ @Final
+-    //~ private ObjectArrayList<Object> renderChunks;
+-    // @era:fog-cull-else info
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private ObjectArrayList<Object> renderChunksInFrustum;
+-    // @era:fog-cull-else none
+-    // @era:fog-cull-end
++    //~ private ObjectArrayList<Object> visibleSections;
++    //~ // @era:fog-cull-else bfs
++    //~ //~ @Shadow
++    //~ //~ @Final
++    //~ //~ private ObjectArrayList<Object> renderChunks;
++    //~ // @era:fog-cull-else info
++    //~ //~ @Shadow
++    //~ //~ @Final
++    //~ //~ private ObjectArrayList<Object> renderChunksInFrustum;
++    //~ // @era:fog-cull-else none
++    //~ // @era:fog-cull-end
+ 
+-    @Unique
+-    private static boolean aetherium$spriteHooksChecked;
++    //~ @Unique
++    //~ private static boolean aetherium$spriteHooksChecked;
+ 
+-    @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
+-    private void aetherium$visibleSprites(final CallbackInfo ci) {
+-        SpriteActivity.frame();
+-        if (!SpriteActivity.enabled() || !SpriteActivity.seenPassDue()) {
+-            return;
+-        }
+-        // @era:fog-cull-begin section
+-        final List<Object> list = aetherium$list(this.visibleSections);
+-        // @era:fog-cull-else bfs
+-        //~ final List<Object> list = aetherium$list(this.renderChunks);
+-        // @era:fog-cull-else info
+-        //~ final List<Object> list = aetherium$list(this.renderChunksInFrustum);
+-        // @era:fog-cull-else none
+-        //~ final List<Object> list = java.util.Collections.emptyList();
+-        // @era:fog-cull-end
+-        final int count = list.size();
+-        if (count == 0) {
+-            return;
+-        }
+-        if (!aetherium$spriteHooksChecked) {
+-            // Sections exist, so their mesh hooks had their chance to apply: without them visible
+-            // textures would pause, so everything keeps animating instead.
+-            aetherium$spriteHooksChecked = true;
+-            if (!AetheriumMixinPlugin.isApplied("SectionSpritesMixin")
+-                    || !AetheriumMixinPlugin.isApplied("CompiledChunkSpritesMixin")
+-                    || !AetheriumMixinPlugin.isApplied("BlockSpriteUseMixin")) {
+-                SpriteActivity.markBroken();
+-                return;
+-            }
+-        }
+-        for (int i = 0; i < count; i++) {
+-            final Object item = list.get(i);
+-            // @era:section-api-begin srd
+-            final Object compiled = ((SectionRenderDispatcher.RenderSection) item).getCompiled();
+-            // @era:section-api-else crd
+-            //~ if (!(item instanceof RenderChunkInfoAccessor)) {
++    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
++    //~ private void aetherium$visibleSprites(final CallbackInfo ci) {
++        //~ SpriteActivity.frame();
++        //~ if (!SpriteActivity.enabled() || !SpriteActivity.seenPassDue()) {
++            //~ return;
++        //~ }
++        //~ // @era:fog-cull-begin section
++        //~ final List<Object> list = aetherium$list(this.visibleSections);
++        //~ // @era:fog-cull-else bfs
++        //~ //~ final List<Object> list = aetherium$list(this.renderChunks);
++        //~ // @era:fog-cull-else info
++        //~ //~ final List<Object> list = aetherium$list(this.renderChunksInFrustum);
++        //~ // @era:fog-cull-else none
++        //~ //~ final List<Object> list = java.util.Collections.emptyList();
++        //~ // @era:fog-cull-end
++        //~ final int count = list.size();
++        //~ if (count == 0) {
++            //~ return;
++        //~ }
++        //~ if (!aetherium$spriteHooksChecked) {
++            //~ // Sections exist, so their mesh hooks had their chance to apply: without them visible
++            //~ // textures would pause, so everything keeps animating instead.
++            //~ aetherium$spriteHooksChecked = true;
++            //~ if (!AetheriumMixinPlugin.isApplied("SectionSpritesMixin")
++                    //~ || !AetheriumMixinPlugin.isApplied("CompiledChunkSpritesMixin")
++                    //~ || !AetheriumMixinPlugin.isApplied("BlockSpriteUseMixin")) {
++                //~ SpriteActivity.markBroken();
++                //~ return;
++            //~ }
++        //~ }
++        //~ for (int i = 0; i < count; i++) {
++            //~ final Object item = list.get(i);
++            //~ // @era:section-api-begin srd
++            //~ final Object compiled = ((SectionRenderDispatcher.RenderSection) item).getCompiled();
++            //~ // @era:section-api-else crd
++            //~ //~ if (!(item instanceof RenderChunkInfoAccessor)) {
++                //~ //~ SpriteActivity.markBroken();
++                //~ //~ return;
++            //~ //~ }
++            //~ //~ final ChunkRenderDispatcher.RenderChunk chunk = ((RenderChunkInfoAccessor) item).aetheriumChunk();
++            //~ //~ final Object compiled = chunk.getCompiledChunk();
++            //~ // @era:section-api-else v16|srd-ro|mesh|none
++            //~ //~ final Object compiled = null;
++            //~ // @era:section-api-end
++            //~ if (!(compiled instanceof SectionSprites)) {
+                 //~ SpriteActivity.markBroken();
+                 //~ return;
+             //~ }
+-            //~ final ChunkRenderDispatcher.RenderChunk chunk = ((RenderChunkInfoAccessor) item).aetheriumChunk();
+-            //~ final Object compiled = chunk.getCompiledChunk();
+-            // @era:section-api-else v16|srd-ro|mesh|none
+-            //~ final Object compiled = null;
+-            // @era:section-api-end
+-            if (!(compiled instanceof SectionSprites)) {
+-                SpriteActivity.markBroken();
+-                return;
+-            }
+-            SpriteActivity.seen(((SectionSprites) compiled).aetheriumSprites());
+-        }
+-    }
++            //~ SpriteActivity.seen(((SectionSprites) compiled).aetheriumSprites());
++        //~ }
++    //~ }
+ 
+-    @SuppressWarnings("unchecked")
+-    @Unique
+-    private static List<Object> aetherium$list(final Object vanilla) {
+-        return (List<Object>) vanilla;
+-    }
+-    // @era:anim-else v16|none
++    //~ @SuppressWarnings("unchecked")
++    //~ @Unique
++    //~ private static List<Object> aetherium$list(final Object vanilla) {
++        //~ return (List<Object>) vanilla;
++    //~ }
+     // @era:anim-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java
 index dd489bc..090bb2c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java

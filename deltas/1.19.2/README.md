@@ -21,6 +21,8 @@ neoforge_version=unavailable (module disabled)
 
 ### Era transforms applied by the generated patch
 
+- `anim=on`
+- `atlas-tick=tickable`
 - `background=none`
 - `bg-threads=property`
 - `camera-get=getter`
@@ -45,10 +47,13 @@ neoforge_version=unavailable (module disabled)
 - `scroll=three`
 - `search-throttle=none`
 - `section-api=crd`
+- `section-compile=rebuild19`
 - `section-vis=list18`
 - `simdist=sim`
 - `sky=rb19`
 - `sound-click=event`
+- `sprite-name=getname`
+- `sprite-u=d`
 - `vignette=render`
 - `zoom-cam=double`
 - `zoom=on`
@@ -90,6 +95,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.19.2.t
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
@@ -100,8 +106,12 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.19.2.t
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 
 ## Verifying this row before shipping it

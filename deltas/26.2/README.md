@@ -21,6 +21,8 @@ neoforge_version=26.2.0.89
 
 ### Era transforms applied by the generated patch
 
+- `anim=none`
+- `atlas-tick=none`
 - `background=extract`
 - `be-render=extract-flag`
 - `bg-threads=property`
@@ -61,6 +63,7 @@ neoforge_version=26.2.0.89
 - `scroll=four`
 - `search-throttle=none`
 - `section-api=none`
+- `section-compile=none`
 - `section-vis=render-origin`
 - `simdist=sim`
 - `sky=renderer`
@@ -111,11 +114,14 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java`
 - `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockEntityCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BlockParticleMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
@@ -125,6 +131,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumCaptureMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
@@ -132,8 +139,12 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`

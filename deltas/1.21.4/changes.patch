@@ -340,6 +340,25 @@ index cc1f564..1e90220 100644
      // @era:freelook-else align
      //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
              //~ target = "Lnet/minecraft/client/Camera;setRotation(FF)V", ordinal = 0), index = 0, require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java b/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
+index 061ebc9..d7ee60c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java
+@@ -16,10 +16,10 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
+ public abstract class ItemSpriteUseMixin {
+     // @era:anim-begin v16|on
+     @ModifyVariable(method = "renderQuadList", at = @At("HEAD"), argsOnly = true, require = 0)
+-    // @era:item-quads-begin instance
+-    private List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
+-    // @era:item-quads-else static
+-    //~ private static List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
++    // @era:item-quads-begin static
++    private static List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
++    // @era:item-quads-else instance
++    //~ private List<BakedQuad> aetherium$itemSprites(final List<BakedQuad> quads) {
+     // @era:item-quads-end
+         aetherium$touchAll(quads);
+         return quads;
 diff --git a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
 index 1544ef9..d04d9a6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java

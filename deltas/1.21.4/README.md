@@ -21,9 +21,11 @@ neoforge_version=21.4.158
 
 ### Era transforms applied by the generated patch
 
+- `anim=on`
 - `clouds=renderer`
 - `fog=params`
 - `freelook=minecart`
+- `item-quads=static`
 - `mesh-exec=tracing`
 - `occlusion-box=renderer`
 - `registry=builtin`
@@ -62,6 +64,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.4.t
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`

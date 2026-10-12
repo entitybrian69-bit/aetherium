@@ -334,6 +334,29 @@ index 0b2c6b1..120379c 100644
          //~ FrameHud.render(McCanvas.INSTANCE.begin(graphics));
      //~ }
      // @era:hud-else stack
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
+index 51b3c6e..98b8ce5 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
+@@ -25,14 +25,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+  * object is created right after the build on the same thread, which takes them
+  * ({@link CompiledChunkSpritesMixin}).
+  */
+-// @era:section-compile-begin compiler21
+-@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionCompiler")
++// @era:section-compile-begin rebuild202
++@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask")
++// @era:section-compile-else compiler21
++//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionCompiler")
+ // @era:section-compile-else v16|param17
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+ // @era:section-compile-else rebuild19
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+-// @era:section-compile-else rebuild202
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask")
+ // @era:section-compile-else none
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+ // @era:section-compile-end
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
 index 7594ede..63f6ea1 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java

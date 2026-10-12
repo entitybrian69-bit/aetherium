@@ -1,8 +1,12 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:section-compile-begin rebuild19|rebuild202|compiler21
+import com.aetherium.perf.SpriteActivity;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+// @era:section-compile-else v16|param17
 //~ import com.aetherium.perf.SectionSprites;
 //~ import com.aetherium.perf.SpriteActivity;
 //~ import java.util.Set;
@@ -12,18 +16,38 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-// @era:qol16-end
+// @era:section-compile-else none
+// @era:section-compile-end
 
 /**
- * Collects the animated sprites a chunk section's mesh uses while it is built (worker threads,
- * or the render thread for vanilla's synchronous rebuilds) and keeps them with the compiled
- * section, so the visible sections can mark them every tick (1.16.5). Applied only where
- * {@code Capabilities.STREAMING} is true.
+ * Visible-only animations: the animated sprites a section's mesh uses are collected while it is
+ * built. Through 1.18.2 they go straight onto the CompiledChunk argument; from 1.19 the compiled
+ * object is created right after the build on the same thread, which takes them
+ * ({@link CompiledChunkSpritesMixin}).
  */
-@Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+// @era:section-compile-begin compiler21
+@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionCompiler")
+// @era:section-compile-else v16|param17
+//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+// @era:section-compile-else rebuild19
+//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+// @era:section-compile-else rebuild202
+//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$RebuildTask")
+// @era:section-compile-else none
+//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+// @era:section-compile-end
 public abstract class SectionSpritesMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:section-compile-begin rebuild19|rebuild202|compiler21
+    @Inject(method = "compile", at = @At("HEAD"), require = 0)
+    private void aetherium$beginSprites(final CallbackInfoReturnable<Object> cir) {
+        SpriteActivity.beginSection();
+    }
+
+    @Inject(method = "compile", at = @At("RETURN"), require = 0)
+    private void aetherium$endSprites(final CallbackInfoReturnable<Object> cir) {
+        SpriteActivity.endSectionPending();
+    }
+    // @era:section-compile-else v16|param17
     //~ @Inject(method = "compile", at = @At("HEAD"), require = 0)
     //~ private void aetherium$beginSprites(final float x, final float y, final float z,
                                         //~ final ChunkRenderDispatcher.CompiledChunk compiled,
@@ -42,5 +66,6 @@ public abstract class SectionSpritesMixin {
             //~ ((SectionSprites) (Object) compiled).aetheriumSetSprites(sprites);
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:section-compile-else none
+    // @era:section-compile-end
 }

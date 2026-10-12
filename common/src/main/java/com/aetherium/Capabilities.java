@@ -180,6 +180,19 @@ public final class Capabilities {
     //~ public static final boolean SEARCH_THROTTLE = true;
     // @era:search-throttle-end
 
+    /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
+    // @era:anim-begin on
+    public static final boolean VISIBLE_ANIMATIONS = true;
+    /** The visible-section pass in VisibleSpritesMixin (1.16.5 marks them in StreamingLevelMixin). */
+    public static final boolean VISIBLE_ANIMATION_PASS = true;
+    // @era:anim-else v16
+    //~ public static final boolean VISIBLE_ANIMATIONS = true;
+    //~ public static final boolean VISIBLE_ANIMATION_PASS = false;
+    // @era:anim-else none
+    //~ public static final boolean VISIBLE_ANIMATIONS = false;
+    //~ public static final boolean VISIBLE_ANIMATION_PASS = false;
+    // @era:anim-end
+
     /** Fog controls, sky toggles and per-type particle toggles (every version since 1.8.0). */
     public static final boolean SCENERY_CONTROLS = true;
 
