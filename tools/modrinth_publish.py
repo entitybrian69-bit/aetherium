@@ -7,6 +7,7 @@ Environment:
   MODRINTH_TOKEN    personal access token with the "Create versions" scope (a repository secret)
   MODRINTH_PROJECT  project slug or id, e.g. aetherium-team_aerix
   DRY_RUN           "1" = check everything and print the plan, upload nothing
+  LOADERS           optional comma list (e.g. "fabric"): only jars of these loaders go to this project
 
 One Modrinth version per jar, numbered <mod>+<mc>-<loader> (e.g. 1.8.2+1.20.1-fabric). A version
 number that already exists on the project is skipped, so a re-run never duplicates anything and
@@ -101,6 +102,7 @@ def main():
     token = os.environ.get('MODRINTH_TOKEN', '').strip()
     project = os.environ.get('MODRINTH_PROJECT', '').strip()
     dry = os.environ.get('DRY_RUN', '0').strip() == '1'
+    only = {l.strip() for l in os.environ.get('LOADERS', '').split(',') if l.strip()}
     if not token:
         note('error', 'MODRINTH_TOKEN is not set: add it as a repository secret')
         return 1
@@ -134,6 +136,8 @@ def main():
         if not m:
             continue
         loader, ver, mc = m.groups()
+        if only and loader not in only:
+            continue
         if ver != mod_version:
             note('warning', '%s is not version %s, ignored' % (name, mod_version))
             continue
@@ -154,8 +158,9 @@ def main():
         else:
             plan.append((key, mc, loader, name, number))
 
-    note('notice', 'project %s (%s), "%s": %d jars found, %d already on Modrinth, %d to upload%s'
-         % (project, pid, proj.get('title'), len(jars), len(skipped), len(plan),
+    note('notice', 'project %s (%s), "%s": %d %sjars found, %d already on Modrinth, %d to upload%s'
+         % (project, pid, proj.get('title'), len(jars), '/'.join(sorted(only)) + ' ' if only else '',
+            len(skipped), len(plan),
             ' (DRY RUN, nothing uploaded)' if dry else ''))
     if unknown:
         note('error', 'Modrinth does not know these Minecraft versions, not uploaded: '

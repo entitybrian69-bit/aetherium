@@ -1,15 +1,21 @@
-# Publishes the jars of the current mod_version (gradle.properties) to Modrinth.
+# Publishes the jars of the current mod_version (gradle.properties) to Modrinth:
+#   Fabric jars   -> the main project, aetherium-team_aerix ("Aetherium")
+#   NeoForge jars -> its own project, "Aetherium NeoForge" (created as a draft if it is missing)
+# Modrinth refuses a file that already exists in another project, so NeoForge-only versions are
+# removed from the main project before they are uploaded to the NeoForge one.
 #
 # * Called by ship.yml after every release, so a new version reaches Modrinth automatically.
 # * Also runs on its own when this file or the publisher script changes (no rebuild needed: it
 #   takes the jars from the GitHub releases that already exist).
 # Versions already on Modrinth are skipped, so running it twice never duplicates anything.
-# Needs the MODRINTH_TOKEN repository secret (Modrinth PAT with the "Create versions" scope).
+# Needs the MODRINTH_TOKEN repository secret: a Modrinth PAT with the "Create versions" scope, plus
+# "Create projects" and "Delete versions" for the one-time NeoForge split.
 name: modrinth
 on:
   push:
     branches: [arena/46f241da-aetherium]
-    paths: ['.github/workflows/modrinth.yml', 'tools/modrinth_publish.py']
+    paths: ['.github/workflows/modrinth.yml', 'tools/modrinth_publish.py', 'tools/modrinth_project.py',
+            'tools/modrinth/**']
   workflow_call:
 
 permissions:
@@ -43,7 +49,24 @@ jobs:
             fi
           done
           ls -l dist
-      - name: upload
+      - name: make sure the NeoForge project exists
+        id: neo
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: python3 tools/modrinth_project.py ensure aetherium-neoforge "Aetherium NeoForge"
+      - name: take the NeoForge versions out of the main project
+        if: env.DRY_RUN != '1'
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: python3 tools/modrinth_project.py drop-loader "$MODRINTH_PROJECT" neoforge
+      - name: upload Fabric to the main project
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          LOADERS: fabric
+        run: python3 tools/modrinth_publish.py dist
+      - name: upload NeoForge to the NeoForge project
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_PROJECT: ${{ steps.neo.outputs.slug }}
+          LOADERS: neoforge
         run: python3 tools/modrinth_publish.py dist
