@@ -9,7 +9,7 @@ name: probe
 on:
   push:
     branches: [arena/46f241da-aetherium]
-    paths: ['.github/workflows/probe.yml', 'tools/probe_classes.txt', 'tools/probe_grep.txt', 'tools/probe_code.txt']
+    paths: ['.github/workflows/probe.yml', 'tools/probe_classes.txt', 'tools/probe_grep.txt', 'tools/probe_code.txt', 'tools/probe_methods.txt']
   workflow_dispatch:
 
 permissions:
@@ -117,6 +117,16 @@ jobs:
               javap -c -p -constants -cp "$jar:$cp_extra" "$cls" 2>/dev/null | awk -v rx="$rx" '
                 /^  [a-zA-Z].*[;{]$/ && $0 !~ /^  *[0-9]+:/ {m=$0}
                 $0 ~ rx {sub(/^ +/, "", $0); print m " :: " $0}' | head -300 >> "$file" || true
+            done
+          fi
+          if [ -f tools/probe_methods.txt ]; then
+            # <class> <regex>: the whole bytecode of every member whose declaration matches the regex.
+            grep -v '^#' tools/probe_methods.txt | while read -r cls rx; do
+              [ -z "$cls" ] && continue
+              echo "=== method $cls :: $rx" >> "$file"
+              javap -c -p -constants -cp "$jar:$cp_extra" "$cls" 2>/dev/null | awk -v rx="$rx" '
+                /^  [a-zA-Z].*[;{]$/ && $0 !~ /^  *[0-9]+:/ {on = ($0 ~ rx); n = 0; if (on) print "## " $0; next}
+                on && n < 600 {sub(/^ +/, "", $0); print; n++}' | head -4000 >> "$file" || true
             done
           fi
           echo "=== package listing (client.gui.screens, client.input, client, renderer, particle, model.geom, blaze3d)" >> "$file"
