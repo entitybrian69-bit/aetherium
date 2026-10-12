@@ -18,10 +18,10 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 584a005..99f95f6 100644
+index ee2bc6e..3ddffcd 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
-@@ -194,10 +194,14 @@ public final class Capabilities {
+@@ -204,10 +204,14 @@ public final class Capabilities {
      // @era:anim-end
  
      /** Fast mob/block-entity models (1.16.5..1.20.6, while BufferBuilder writes a plain ByteBuffer). */
@@ -39,7 +39,7 @@ index 584a005..99f95f6 100644
      // @era:model-fast-else joml
      //~ public static final boolean FAST_MODELS = true;
      //~ /** com.mojang.math.Matrix3f normal matrix (..1.19.2): Matrix3fAccessor. */
-@@ -208,10 +212,6 @@ public final class Capabilities {
+@@ -218,10 +222,6 @@ public final class Capabilities {
      //~ public static final boolean FAST_MODELS = true;
      //~ public static final boolean FAST_MODELS_MOJANG = true;
      //~ public static final boolean FAST_MODELS_TRUSTED = false;
@@ -1169,6 +1169,130 @@ index 2ec08d6..4207d13 100644
 +    // @era:model-fast-else v16|mojang|joml|none
      // @era:model-fast-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java
+index be1bd01..5862541 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java
+@@ -15,22 +15,22 @@ import org.spongepowered.asm.mixin.Unique;
+ import org.spongepowered.asm.mixin.injection.At;
+ // @era:section-cull-else v16|none
+ // @era:section-cull-end
+-// @era:section-cull-begin mesh21
+-import com.mojang.blaze3d.vertex.MeshData;
++// @era:section-cull-begin rendered19
++import com.mojang.blaze3d.vertex.BufferBuilder;
+ import com.mojang.blaze3d.vertex.VertexFormat;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.ModifyVariable;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:section-cull-else pop17
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import com.mojang.datafixers.util.Pair;
+-// @era:section-cull-else rendered19
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
++// @era:section-cull-else mesh21
++//~ import com.mojang.blaze3d.vertex.MeshData;
+ //~ import com.mojang.blaze3d.vertex.VertexFormat;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+ //~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:section-cull-else pop17
++//~ import com.mojang.blaze3d.vertex.BufferBuilder;
++//~ import com.mojang.blaze3d.vertex.VertexFormat;
++//~ import com.mojang.datafixers.util.Pair;
+ // @era:section-cull-else v16|none
+ // @era:section-cull-end
+ // @era:section-api-begin srd
+@@ -97,23 +97,16 @@ public abstract class SectionCullBufferMixin implements SectionCullAccess {
+     //~ }
+     // @era:section-cull-end
+ 
+-    // @era:section-cull-begin mesh21
++    // @era:section-cull-begin rendered19
+     @Unique
+     private boolean aetherium$sortNext;
+ 
+-    /** 1.21..1.21.4: a mesh without its own index buffer uses the shared sequential quad indices. */
++    /** 1.19..1.20.6: only meshes drawn with the shared sequential quad indices are reordered. */
+     @Inject(method = "upload", at = @At("HEAD"), require = 0)
+-    private void aetherium$checkUpload(final MeshData mesh, final CallbackInfo ci) {
+-        boolean eligible = false;
+-        if (this.aetherium$cullSection != null && mesh != null && mesh.indexBuffer() == null && SectionCull.sorting()) {
+-            try {
+-                eligible = mesh.drawState().mode() == VertexFormat.Mode.QUADS
+-                        && mesh.drawState().format().getVertexSize() == BLOCK_VERTEX_BYTES;
+-            } catch (final RuntimeException | LinkageError error) {
+-                SectionCull.fail(error);
+-            }
+-        }
+-        this.aetherium$sortNext = eligible;
++    private void aetherium$checkUpload(final BufferBuilder.RenderedBuffer mesh, final CallbackInfo ci) {
++        this.aetherium$sortNext = this.aetherium$cullSection != null && mesh != null
++                && mesh.drawState().sequentialIndex() && mesh.drawState().mode() == VertexFormat.Mode.QUADS
++                && mesh.drawState().format().getVertexSize() == BLOCK_VERTEX_BYTES;
+     }
+ 
+     @ModifyVariable(method = "uploadVertexBuffer", at = @At("HEAD"), argsOnly = true, require = 0)
+@@ -123,6 +116,32 @@ public abstract class SectionCullBufferMixin implements SectionCullAccess {
+         this.aetherium$sortUpload(data, eligible);
+         return data;
+     }
++    // @era:section-cull-else mesh21
++    //~ @Unique
++    //~ private boolean aetherium$sortNext;
++
++    //~ /** 1.21..1.21.4: a mesh without its own index buffer uses the shared sequential quad indices. */
++    //~ @Inject(method = "upload", at = @At("HEAD"), require = 0)
++    //~ private void aetherium$checkUpload(final MeshData mesh, final CallbackInfo ci) {
++        //~ boolean eligible = false;
++        //~ if (this.aetherium$cullSection != null && mesh != null && mesh.indexBuffer() == null && SectionCull.sorting()) {
++            //~ try {
++                //~ eligible = mesh.drawState().mode() == VertexFormat.Mode.QUADS
++                        //~ && mesh.drawState().format().getVertexSize() == BLOCK_VERTEX_BYTES;
++            //~ } catch (final RuntimeException | LinkageError error) {
++                //~ SectionCull.fail(error);
++            //~ }
++        //~ }
++        //~ this.aetherium$sortNext = eligible;
++    //~ }
++
++    //~ @ModifyVariable(method = "uploadVertexBuffer", at = @At("HEAD"), argsOnly = true, require = 0)
++    //~ private ByteBuffer aetherium$sortVertices(final ByteBuffer data) {
++        //~ final boolean eligible = this.aetherium$sortNext;
++        //~ this.aetherium$sortNext = false;
++        //~ this.aetherium$sortUpload(data, eligible);
++        //~ return data;
++    //~ }
+     // @era:section-cull-else pop17
+     //~ /** 1.17..1.18.2: the mesh leaves the builder here; a sequential-index mesh is vertices only. */
+     //~ @WrapOperation(method = "upload_", at = @At(value = "INVOKE",
+@@ -143,25 +162,6 @@ public abstract class SectionCullBufferMixin implements SectionCullAccess {
+         //~ this.aetherium$sortUpload(data, eligible);
+         //~ return popped;
+     //~ }
+-    // @era:section-cull-else rendered19
+-    //~ @Unique
+-    //~ private boolean aetherium$sortNext;
+-
+-    //~ /** 1.19..1.20.6: only meshes drawn with the shared sequential quad indices are reordered. */
+-    //~ @Inject(method = "upload", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$checkUpload(final BufferBuilder.RenderedBuffer mesh, final CallbackInfo ci) {
+-        //~ this.aetherium$sortNext = this.aetherium$cullSection != null && mesh != null
+-                //~ && mesh.drawState().sequentialIndex() && mesh.drawState().mode() == VertexFormat.Mode.QUADS
+-                //~ && mesh.drawState().format().getVertexSize() == BLOCK_VERTEX_BYTES;
+-    //~ }
+-
+-    //~ @ModifyVariable(method = "uploadVertexBuffer", at = @At("HEAD"), argsOnly = true, require = 0)
+-    //~ private ByteBuffer aetherium$sortVertices(final ByteBuffer data) {
+-        //~ final boolean eligible = this.aetherium$sortNext;
+-        //~ this.aetherium$sortNext = false;
+-        //~ this.aetherium$sortUpload(data, eligible);
+-        //~ return data;
+-    //~ }
+     // @era:section-cull-else v16|none
+     // @era:section-cull-end
+ 
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
 index 51b3c6e..98b8ce5 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java

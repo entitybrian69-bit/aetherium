@@ -29,6 +29,7 @@ neoforge_version=20.4.251
 - `fog-cull=section`
 - `frustum-cap=joml`
 - `hud=graphics-float`
+- `layer-sig=joml`
 - `light-hook=color`
 - `math=joml`
 - `mesh-alloc=v16`
@@ -43,6 +44,7 @@ neoforge_version=20.4.251
 - `search-throttle=none`
 - `section-api=srd`
 - `section-compile=rebuild202`
+- `section-cull=rendered19`
 - `section-vis=sections`
 - `simdist=sim`
 - `sky=rb193`
@@ -87,6 +89,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.4.t
 - `common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ModelPolygonMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`

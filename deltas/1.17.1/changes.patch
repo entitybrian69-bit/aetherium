@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 584a005..8e6f9c9 100644
+index ee2bc6e..83bc642 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -77,7 +77,7 @@ index 584a005..8e6f9c9 100644
      // @era:section-vis-end
  
      /** Aetherium's own terrain renderer exists for this version. */
-@@ -101,10 +101,10 @@ public final class Capabilities {
+@@ -111,10 +111,10 @@ public final class Capabilities {
       * Dirty sections near the camera are rebuilt on worker threads instead of the render thread,
       * and client light updates get a per-frame time budget (1.16.5's "build near" path).
       */
@@ -92,7 +92,7 @@ index 584a005..8e6f9c9 100644
      // @era:near-build-end
  
      /**
-@@ -162,22 +162,22 @@ public final class Capabilities {
+@@ -172,22 +172,22 @@ public final class Capabilities {
      // @era:fog-cull-end
  
      /** Which list the fog cull filters: RenderChunkInfo (1.17..1.20.1) or RenderSection (1.20.2..26.1). */
@@ -125,7 +125,7 @@ index 584a005..8e6f9c9 100644
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
-@@ -194,20 +194,20 @@ public final class Capabilities {
+@@ -204,20 +204,20 @@ public final class Capabilities {
      // @era:anim-end
  
      /** Fast mob/block-entity models (1.16.5..1.20.6, while BufferBuilder writes a plain ByteBuffer). */
@@ -3270,6 +3270,242 @@ index ec60b6a..201986e 100644
 +    // @era:search-throttle-else v16|none
      // @era:search-throttle-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java
+index be1bd01..1a7415c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java
+@@ -15,16 +15,16 @@ import org.spongepowered.asm.mixin.Unique;
+ import org.spongepowered.asm.mixin.injection.At;
+ // @era:section-cull-else v16|none
+ // @era:section-cull-end
+-// @era:section-cull-begin mesh21
+-import com.mojang.blaze3d.vertex.MeshData;
++// @era:section-cull-begin pop17
++import com.mojang.blaze3d.vertex.BufferBuilder;
+ import com.mojang.blaze3d.vertex.VertexFormat;
+-import org.spongepowered.asm.mixin.injection.Inject;
+-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:section-cull-else pop17
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.datafixers.util.Pair;
++// @era:section-cull-else mesh21
++//~ import com.mojang.blaze3d.vertex.MeshData;
+ //~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import com.mojang.datafixers.util.Pair;
++//~ import org.spongepowered.asm.mixin.injection.Inject;
++//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
++//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:section-cull-else rendered19
+ //~ import com.mojang.blaze3d.vertex.BufferBuilder;
+ //~ import com.mojang.blaze3d.vertex.VertexFormat;
+@@ -33,10 +33,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:section-cull-else v16|none
+ // @era:section-cull-end
+-// @era:section-api-begin srd
+-import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+-// @era:section-api-else crd
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++// @era:section-api-begin crd
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++// @era:section-api-else srd
++//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+ // @era:section-api-else v16|srd-ro|mesh|none
+ // @era:section-api-end
+ 
+@@ -97,51 +97,51 @@ public abstract class SectionCullBufferMixin implements SectionCullAccess {
+     //~ }
+     // @era:section-cull-end
+ 
+-    // @era:section-cull-begin mesh21
+-    @Unique
+-    private boolean aetherium$sortNext;
+-
+-    /** 1.21..1.21.4: a mesh without its own index buffer uses the shared sequential quad indices. */
+-    @Inject(method = "upload", at = @At("HEAD"), require = 0)
+-    private void aetherium$checkUpload(final MeshData mesh, final CallbackInfo ci) {
++    // @era:section-cull-begin pop17
++    /** 1.17..1.18.2: the mesh leaves the builder here; a sequential-index mesh is vertices only. */
++    @WrapOperation(method = "upload_", at = @At(value = "INVOKE",
++            target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;popNextBuffer()Lcom/mojang/datafixers/util/Pair;"),
++            require = 0)
++    private Pair<BufferBuilder.DrawState, ByteBuffer> aetherium$sortPopped(final BufferBuilder builder,
++            final Operation<Pair<BufferBuilder.DrawState, ByteBuffer>> original) {
++        final Pair<BufferBuilder.DrawState, ByteBuffer> popped = original.call(builder);
+         boolean eligible = false;
+-        if (this.aetherium$cullSection != null && mesh != null && mesh.indexBuffer() == null && SectionCull.sorting()) {
+-            try {
+-                eligible = mesh.drawState().mode() == VertexFormat.Mode.QUADS
+-                        && mesh.drawState().format().getVertexSize() == BLOCK_VERTEX_BYTES;
+-            } catch (final RuntimeException | LinkageError error) {
+-                SectionCull.fail(error);
+-            }
++        ByteBuffer data = null;
++        if (popped != null && this.aetherium$cullSection != null) {
++            final BufferBuilder.DrawState state = popped.getFirst();
++            data = popped.getSecond();
++            eligible = state != null && data != null && state.sequentialIndex() && !state.indexOnly()
++                    && state.mode() == VertexFormat.Mode.QUADS && data.remaining() == state.vertexBufferSize()
++                    && state.format().getVertexSize() == BLOCK_VERTEX_BYTES;
+         }
+-        this.aetherium$sortNext = eligible;
+-    }
+-
+-    @ModifyVariable(method = "uploadVertexBuffer", at = @At("HEAD"), argsOnly = true, require = 0)
+-    private ByteBuffer aetherium$sortVertices(final ByteBuffer data) {
+-        final boolean eligible = this.aetherium$sortNext;
+-        this.aetherium$sortNext = false;
+         this.aetherium$sortUpload(data, eligible);
+-        return data;
++        return popped;
+     }
+-    // @era:section-cull-else pop17
+-    //~ /** 1.17..1.18.2: the mesh leaves the builder here; a sequential-index mesh is vertices only. */
+-    //~ @WrapOperation(method = "upload_", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;popNextBuffer()Lcom/mojang/datafixers/util/Pair;"),
+-            //~ require = 0)
+-    //~ private Pair<BufferBuilder.DrawState, ByteBuffer> aetherium$sortPopped(final BufferBuilder builder,
+-            //~ final Operation<Pair<BufferBuilder.DrawState, ByteBuffer>> original) {
+-        //~ final Pair<BufferBuilder.DrawState, ByteBuffer> popped = original.call(builder);
++    // @era:section-cull-else mesh21
++    //~ @Unique
++    //~ private boolean aetherium$sortNext;
++
++    //~ /** 1.21..1.21.4: a mesh without its own index buffer uses the shared sequential quad indices. */
++    //~ @Inject(method = "upload", at = @At("HEAD"), require = 0)
++    //~ private void aetherium$checkUpload(final MeshData mesh, final CallbackInfo ci) {
+         //~ boolean eligible = false;
+-        //~ ByteBuffer data = null;
+-        //~ if (popped != null && this.aetherium$cullSection != null) {
+-            //~ final BufferBuilder.DrawState state = popped.getFirst();
+-            //~ data = popped.getSecond();
+-            //~ eligible = state != null && data != null && state.sequentialIndex() && !state.indexOnly()
+-                    //~ && state.mode() == VertexFormat.Mode.QUADS && data.remaining() == state.vertexBufferSize()
+-                    //~ && state.format().getVertexSize() == BLOCK_VERTEX_BYTES;
++        //~ if (this.aetherium$cullSection != null && mesh != null && mesh.indexBuffer() == null && SectionCull.sorting()) {
++            //~ try {
++                //~ eligible = mesh.drawState().mode() == VertexFormat.Mode.QUADS
++                        //~ && mesh.drawState().format().getVertexSize() == BLOCK_VERTEX_BYTES;
++            //~ } catch (final RuntimeException | LinkageError error) {
++                //~ SectionCull.fail(error);
++            //~ }
+         //~ }
++        //~ this.aetherium$sortNext = eligible;
++    //~ }
++
++    //~ @ModifyVariable(method = "uploadVertexBuffer", at = @At("HEAD"), argsOnly = true, require = 0)
++    //~ private ByteBuffer aetherium$sortVertices(final ByteBuffer data) {
++        //~ final boolean eligible = this.aetherium$sortNext;
++        //~ this.aetherium$sortNext = false;
+         //~ this.aetherium$sortUpload(data, eligible);
+-        //~ return popped;
++        //~ return data;
+     //~ }
+     // @era:section-cull-else rendered19
+     //~ @Unique
+@@ -178,10 +178,10 @@ public abstract class SectionCullBufferMixin implements SectionCullAccess {
+             final int bytes = SectionCull.indexBytes(type);
+             if (bytes > 0) {
+                 try {
+-                    // @era:section-api-begin srd
+-                    final BlockPos origin = ((SectionRenderDispatcher.RenderSection) this.aetherium$cullSection).getOrigin();
+-                    // @era:section-api-else crd
+-                    //~ final BlockPos origin = ((ChunkRenderDispatcher.RenderChunk) this.aetherium$cullSection).getOrigin();
++                    // @era:section-api-begin crd
++                    final BlockPos origin = ((ChunkRenderDispatcher.RenderChunk) this.aetherium$cullSection).getOrigin();
++                    // @era:section-api-else srd
++                    //~ final BlockPos origin = ((SectionRenderDispatcher.RenderSection) this.aetherium$cullSection).getOrigin();
+                     // @era:section-api-else v16|srd-ro|mesh|none
+                     //~ final BlockPos origin = null;
+                     // @era:section-api-end
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java
+index 663f24a..2526288 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java
+@@ -11,11 +11,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ // @era:section-cull-else v16|none
+ // @era:section-cull-end
+-// @era:layer-sig-begin nopose
+-import org.joml.Matrix4f;
+-// @era:layer-sig-else mojang
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.math.Matrix4f;
++// @era:layer-sig-begin mojang
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.math.Matrix4f;
++// @era:layer-sig-else nopose
++//~ import org.joml.Matrix4f;
+ // @era:layer-sig-else joml
+ //~ import com.mojang.blaze3d.vertex.PoseStack;
+ //~ import org.joml.Matrix4f;
+@@ -45,30 +45,30 @@ public abstract class SectionCullLayerMixin {
+     // @era:section-cull-else v16|none
+     // @era:section-cull-end
+ 
+-    // @era:layer-sig-begin nopose
+-    @Inject(method = "renderSectionLayer", at = @At("HEAD"), require = 0)
+-    private void aetherium$beginLayer(final RenderType type, final double camX, final double camY, final double camZ,
+-                                      final Matrix4f modelView, final Matrix4f projection, final CallbackInfo ci) {
++    // @era:layer-sig-begin mojang|joml
++    @Inject(method = {"renderChunkLayer", "renderSectionLayer"}, at = @At("HEAD"), require = 0)
++    private void aetherium$beginLayer(final RenderType type, final PoseStack poseStack, final double camX,
++                                      final double camY, final double camZ, final Matrix4f projection,
++                                      final CallbackInfo ci) {
+         SectionCull.beginLayer(aetherium$terrain(type), camX, camY, camZ);
+     }
+ 
+-    @Inject(method = "renderSectionLayer", at = @At("RETURN"), require = 0)
+-    private void aetherium$endLayer(final RenderType type, final double camX, final double camY, final double camZ,
+-                                    final Matrix4f modelView, final Matrix4f projection, final CallbackInfo ci) {
++    @Inject(method = {"renderChunkLayer", "renderSectionLayer"}, at = @At("RETURN"), require = 0)
++    private void aetherium$endLayer(final RenderType type, final PoseStack poseStack, final double camX,
++                                    final double camY, final double camZ, final Matrix4f projection,
++                                    final CallbackInfo ci) {
+         SectionCull.endLayer();
+     }
+-    // @era:layer-sig-else mojang|joml
+-    //~ @Inject(method = {"renderChunkLayer", "renderSectionLayer"}, at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$beginLayer(final RenderType type, final PoseStack poseStack, final double camX,
+-                                      //~ final double camY, final double camZ, final Matrix4f projection,
+-                                      //~ final CallbackInfo ci) {
++    // @era:layer-sig-else nopose
++    //~ @Inject(method = "renderSectionLayer", at = @At("HEAD"), require = 0)
++    //~ private void aetherium$beginLayer(final RenderType type, final double camX, final double camY, final double camZ,
++                                      //~ final Matrix4f modelView, final Matrix4f projection, final CallbackInfo ci) {
+         //~ SectionCull.beginLayer(aetherium$terrain(type), camX, camY, camZ);
+     //~ }
+ 
+-    //~ @Inject(method = {"renderChunkLayer", "renderSectionLayer"}, at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$endLayer(final RenderType type, final PoseStack poseStack, final double camX,
+-                                    //~ final double camY, final double camZ, final Matrix4f projection,
+-                                    //~ final CallbackInfo ci) {
++    //~ @Inject(method = "renderSectionLayer", at = @At("RETURN"), require = 0)
++    //~ private void aetherium$endLayer(final RenderType type, final double camX, final double camY, final double camZ,
++                                    //~ final Matrix4f modelView, final Matrix4f projection, final CallbackInfo ci) {
+         //~ SectionCull.endLayer();
+     //~ }
+     // @era:layer-sig-else v16|none
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java
+index 94e9107..6723e6d 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java
+@@ -21,10 +21,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  * created once with the section and reused for every rebuild. Applied only where
+  * {@code Capabilities.SECTION_CULL} is true.
+  */
+-// @era:section-api-begin srd
+-@Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection")
+-// @era:section-api-else v16|crd
+-//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
++// @era:section-api-begin v16|crd
++@Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
++// @era:section-api-else srd
++//~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection")
+ // @era:section-api-else srd-ro|mesh|none
+ //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection")
+ // @era:section-api-end
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
 index 1b68a9e..2db9349 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
@@ -4063,7 +4299,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index d412342..b4fe3ce 100644
+index 04dfaa7..1646fbe 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

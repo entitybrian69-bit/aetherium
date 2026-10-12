@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 
 /**
- * Aetherium's experimental terrain renderer (opt-in; Minecraft 1.16.5 only for now).
+ * Aetherium's terrain renderer on Minecraft 1.16.5 (on by default; 1.17..1.21.4 use SectionCull).
  *
  * <p>Vanilla 1.16.5 draws every chunk section of a layer with the fixed-function pipeline:
  * client-state vertex pointers, a push/load/mult/pop of the GL modelview matrix and a

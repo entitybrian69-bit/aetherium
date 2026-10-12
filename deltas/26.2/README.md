@@ -42,6 +42,7 @@ neoforge_version=26.2.0.89
 - `hud=none`
 - `input=events`
 - `keys=category-id`
+- `layer-sig=none`
 - `light-hook=none`
 - `loom-plugin-id->no-remap`
 - `mappings-line-removed`
@@ -65,6 +66,7 @@ neoforge_version=26.2.0.89
 - `search-throttle=none`
 - `section-api=none`
 - `section-compile=none`
+- `section-cull=none`
 - `section-vis=render-origin`
 - `simdist=sim`
 - `sky=renderer`
@@ -139,6 +141,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`

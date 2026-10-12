@@ -105,6 +105,14 @@ ERAS = {
     # Fast mob/block-entity models (1.7.0): BufferBuilder written directly while it is the old
     # ByteBuffer builder (..1.20.6); com.mojang.math to 1.19.2, joml from 1.19.3; 1.20.5 normalises
     # normals unless the pose's trustedNormals is set.
+    # The Aetherium renderer on 1.17..1.21.4 (SectionCull): mesh upload through popNextBuffer
+    # (..1.18.2), RenderedBuffer (1.19..1.20.6) or MeshData (1.21..1.21.4); 1.21.5 drops VertexBuffer.
+    "section-cull": [("v16", "..1.16.5"), ("pop17", "1.17..1.18.2"), ("rendered19", "1.19..1.20.6"),
+                     ("mesh21", "1.21..1.21.4"), ("none", "1.21.5..")],
+    # renderChunkLayer / renderSectionLayer: (RenderType, PoseStack, ddd, Matrix4f) with com.mojang.math
+    # (..1.19.2) or joml (1.19.3..1.20.4); 1.20.5 drops the PoseStack and takes two joml matrices.
+    "layer-sig": [("v16", "..1.16.5"), ("mojang", "1.17..1.19.2"), ("joml", "1.19.3..1.20.4"),
+                  ("nopose", "1.20.5..1.21.4"), ("none", "1.21.5..")],
     "model-fast": [("v16", "..1.16.5"), ("mojang", "1.17..1.19.2"), ("joml", "1.19.3..1.20.4"),
                    ("trusted", "1.20.5..1.20.6"), ("none", "1.21..")],
     "pose-normals": [("plain", "..1.20.4"), ("trusted", "1.20.5..")],

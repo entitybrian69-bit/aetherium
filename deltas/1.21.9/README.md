@@ -40,6 +40,7 @@ neoforge_version=21.9.16-beta
 - `hud=graphics-delta`
 - `input=events`
 - `keys=category-rl`
+- `layer-sig=none`
 - `light-hook=brightness`
 - `mesh-alloc=none`
 - `mesh-exec=tracing`
@@ -54,6 +55,7 @@ neoforge_version=21.9.16-beta
 - `search-throttle=none`
 - `section-api=mesh`
 - `section-compile=none`
+- `section-cull=none`
 - `section-vis=render-origin`
 - `simdist=sim`
 - `sky=renderer`
@@ -114,6 +116,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.9.t
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java`

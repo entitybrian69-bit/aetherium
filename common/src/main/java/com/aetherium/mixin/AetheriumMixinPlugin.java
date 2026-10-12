@@ -145,6 +145,10 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("VisibleSpritesMixin".equals(simpleName)) {
             return Capabilities.VISIBLE_ANIMATION_PASS;
         }
+        if ("SectionCullBufferMixin".equals(simpleName) || "SectionCullOwnerMixin".equals(simpleName)
+                || "SectionCullLayerMixin".equals(simpleName)) {
+            return Capabilities.SECTION_CULL;
+        }
         if (FAST_MODEL_MIXINS.contains(simpleName)) {
             return Capabilities.FAST_MODELS;
         }

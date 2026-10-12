@@ -90,6 +90,16 @@ public final class Capabilities {
     //~ public static final boolean AETHERIUM_RENDERER = true;
     // @era:chunk-renderer-end
 
+    /**
+     * The Aetherium renderer on 1.17..1.21.4: vanilla's section draws, with solid and cutout meshes
+     * sorted by face direction and drawn as the one index range that can face the camera.
+     */
+    // @era:section-cull-begin pop17|rendered19|mesh21
+    public static final boolean SECTION_CULL = true;
+    // @era:section-cull-else v16|none
+    //~ public static final boolean SECTION_CULL = false;
+    // @era:section-cull-end
+
     /** Zume-style zoom with rebindable keys (every version). */
     // @era:zoom-begin on
     public static final boolean ZOOM = true;

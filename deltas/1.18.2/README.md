@@ -35,6 +35,7 @@ neoforge_version=unavailable (module disabled)
 - `gui=stack`
 - `hud=stack`
 - `input=doubles`
+- `layer-sig=mojang`
 - `light-hook=color`
 - `math=mojang`
 - `mesh-alloc=v16`
@@ -53,6 +54,7 @@ neoforge_version=unavailable (module disabled)
 - `search-throttle=none`
 - `section-api=crd`
 - `section-compile=param17`
+- `section-cull=pop17`
 - `section-vis=list18`
 - `simdist=sim`
 - `sky=end17`
@@ -120,6 +122,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.18.2.t
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`

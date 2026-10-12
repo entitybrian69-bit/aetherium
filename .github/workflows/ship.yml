@@ -210,7 +210,7 @@ jobs:
           * \`aetherium-fabric-*\` goes in \`mods/\` and needs only Fabric Loader (no Fabric API).
           * \`aetherium-neoforge-*\` needs nothing extra. $([ "${{ matrix.neoforge }}" = no ] && echo "There is no NeoForge/Forge jar for this version: the porting row pins no NeoForge, so the loader shell is disabled by the delta.")
           * Each jar requires exactly Minecraft ${{ matrix.version }}: its version-specific code was selected and compiled for that version only.
-          * By default Aetherium makes no OpenGL calls of its own and adds no shaders. The exception is the opt-in, experimental Aetherium pipeline on 1.16.5 (Video Settings > Backend). It was built and unit-tested on CI, not launched on a GPU: read VERIFICATION.md before filing a rendering bug.
+          * The Aetherium renderer (Video Settings > Backend) is on by default on Minecraft 1.16.5 to 1.21.4: solid and cutout chunk meshes are grouped by face direction and each section draws only the faces that can point at you, never with more draw calls than vanilla. It falls back to vanilla on any error and stays off after a crash while it was drawing. 1.21.5 and newer keep vanilla's own chunk drawing. Aetherium adds no shaders. Built and unit-tested on CI: read VERIFICATION.md before filing a rendering bug.
           EOF
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false \

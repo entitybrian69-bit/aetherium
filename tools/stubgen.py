@@ -46,6 +46,11 @@ HINTS = {
     "net.minecraft.world.level.block.entity.TheEndPortalBlockEntity": ("net.minecraft.world.level.block.entity.BlockEntity", []),
     "net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity": ("net.minecraft.world.level.block.entity.TheEndPortalBlockEntity", []),
     "it.unimi.dsi.fastutil.objects.ObjectArrayList": (None, ["public T0 get(int);", "public int size();"]),
+    # 1.21+: a record (format, vertexCount, indexCount, mode, indexType) per its probed constructor;
+    # callers catch LinkageError in case an accessor name differs.
+    "com.mojang.blaze3d.vertex.MeshData$DrawState": (None, [
+        "public com.mojang.blaze3d.vertex.VertexFormat format();",
+        "public com.mojang.blaze3d.vertex.VertexFormat$Mode mode();"]),
     # joml is not on the probe classpath (a library jar); public API since joml 1.9.
     "org.joml.Quaternionf": (None, ["public float x;", "public float y;", "public float z;", "public float w;"]),
     "org.joml.Matrix4f": (None, ["public float[] get(float[]);"]),

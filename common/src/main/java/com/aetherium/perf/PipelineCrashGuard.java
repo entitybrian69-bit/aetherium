@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Turns the experimental terrain pipeline off after a session that ended while it was drawing.
+ * Turns the Aetherium terrain renderer off after a session that ended while it was drawing.
  *
  * <p>A crash inside a GL driver or translator (GL4ES, MobileGlues, LTW ...) kills the process
  * natively: no Java exception, no crash report, nothing the pipeline's own fallback can catch. So
