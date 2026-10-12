@@ -48,6 +48,8 @@ import java.nio.ByteOrder;
 public final class CompactTerrain {
 
     public static final int SOURCE_STRIDE = 32;
+    /** Vanilla's block vertex from 26.1: position, colour, uv0, light, and no normal. */
+    public static final int SOURCE_STRIDE_NO_NORMAL = 28;
     public static final int STRIDE = 16;
     /** Two triangles per quad: 0, 1, 2 and 2, 3, 0. */
     public static final int VERTICES_PER_QUAD = 6;
@@ -171,6 +173,102 @@ public final class CompactTerrain {
         out.position(0);
         out.limit(bytes);
         return out;
+    }
+
+    /**
+     * {@link #sortQuads} for vertices without a normal (26.1+: 28 bytes, position first). A quad's
+     * group comes from its geometry alone: the one axis its four corners share a coordinate on, and
+     * the side its winding faces. Solid and cutout terrain is drawn with back-face culling, which
+     * decides visibility from that same winding, so a group is only left out when the GPU would
+     * discard every face in it anyway.
+     *
+     * @return the reordered vertices (position 0, limit = bytes) or null for a partial quad
+     */
+    public static ByteBuffer sortQuadsByWinding(final ByteBuffer source, final Scratch scratch, final Layout layout) {
+        final ByteBuffer src = source.duplicate().order(ByteOrder.nativeOrder());
+        final int base = src.position();
+        final int bytes = src.remaining();
+        final int quadBytes = SOURCE_STRIDE_NO_NORMAL * 4;
+        if (bytes % quadBytes != 0) {
+            return null;
+        }
+        final int quads = bytes / quadBytes;
+        final byte[] groupOf = scratch.groups(quads);
+        final int[] count = new int[GROUPS];
+        final float[] plane = layout.plane;
+        for (int g = 0; g < GROUPS; g++) {
+            plane[g] = isMinPlane(g) ? Float.POSITIVE_INFINITY : Float.NEGATIVE_INFINITY;
+        }
+        for (int q = 0; q < quads; q++) {
+            final int quad = base + q * quadBytes;
+            final int group = classifyByWinding(src, quad);
+            groupOf[q] = (byte) group;
+            count[group]++;
+            if (group != ANY) {
+                final float p = src.getFloat(quad + SRC_POS + 4 * axisOf(group));
+                plane[group] = isMinPlane(group) ? Math.min(plane[group], p) : Math.max(plane[group], p);
+            }
+        }
+        final int[] start = layout.start;
+        start[0] = 0;
+        for (int g = 0; g < GROUPS; g++) {
+            start[g + 1] = start[g] + count[g];
+        }
+        final int[] cursor = new int[GROUPS];
+        System.arraycopy(start, 0, cursor, 0, GROUPS);
+        final ByteBuffer out = scratch.output(bytes);
+        for (int q = 0; q < quads; q++) {
+            final int from = base + q * quadBytes;
+            final int to = cursor[groupOf[q]]++ * quadBytes;
+            for (int i = 0; i < quadBytes; i += 8) {
+                out.putLong(to + i, src.getLong(from + i));
+            }
+        }
+        out.position(0);
+        out.limit(bytes);
+        return out;
+    }
+
+    /** Group of a quad of {@link #SOURCE_STRIDE_NO_NORMAL}-byte vertices, from its corners only. */
+    static int classifyByWinding(final ByteBuffer src, final int quad) {
+        final float x0 = src.getFloat(quad + SRC_POS);
+        final float y0 = src.getFloat(quad + SRC_POS + 4);
+        final float z0 = src.getFloat(quad + SRC_POS + 8);
+        boolean flatX = true;
+        boolean flatY = true;
+        boolean flatZ = true;
+        for (int v = 1; v < 4; v++) {
+            final int at = quad + v * SOURCE_STRIDE_NO_NORMAL + SRC_POS;
+            flatX &= src.getFloat(at) == x0;
+            flatY &= src.getFloat(at + 4) == y0;
+            flatZ &= src.getFloat(at + 8) == z0;
+        }
+        final int axis;
+        if (flatY && !flatX && !flatZ) {
+            axis = 1;
+        } else if (flatX && !flatY && !flatZ) {
+            axis = 0;
+        } else if (flatZ && !flatX && !flatY) {
+            axis = 2;
+        } else {
+            return ANY; // not perpendicular to one axis (plants, slopes), or degenerate
+        }
+        float winding = windingAlong(src, quad, SOURCE_STRIDE_NO_NORMAL, axis, 0, 1, 2);
+        if (winding == 0.0f) {
+            winding = windingAlong(src, quad, SOURCE_STRIDE_NO_NORMAL, axis, 0, 2, 3);
+        }
+        if (winding == 0.0f || winding != winding) {
+            return ANY;
+        }
+        final boolean positive = winding > 0.0f;
+        switch (axis) {
+            case 0:
+                return positive ? EAST : WEST;
+            case 1:
+                return positive ? UP : DOWN;
+            default:
+                return positive ? SOUTH : NORTH;
+        }
     }
 
     /**
@@ -355,9 +453,9 @@ public final class CompactTerrain {
                 return ANY; // not a plane perpendicular to the labelled axis (diagonal plants, slopes)
             }
         }
-        float winding = windingAlong(src, quad, axis, 0, 1, 2);
+        float winding = windingAlong(src, quad, SOURCE_STRIDE, axis, 0, 1, 2);
         if (winding == 0.0f) {
-            winding = windingAlong(src, quad, axis, 0, 2, 3);
+            winding = windingAlong(src, quad, SOURCE_STRIDE, axis, 0, 2, 3);
         }
         final boolean positive = group == UP || group == EAST || group == SOUTH;
         if (winding == 0.0f || (winding > 0.0f) != positive) {
@@ -399,10 +497,11 @@ public final class CompactTerrain {
     }
 
     /** Component of (b - a) x (c - a) along the axis: positive when the triangle faces +axis (CCW front). */
-    private static float windingAlong(final ByteBuffer src, final int quad, final int axis, final int a, final int b, final int c) {
-        final int ia = quad + a * SOURCE_STRIDE;
-        final int ib = quad + b * SOURCE_STRIDE;
-        final int ic = quad + c * SOURCE_STRIDE;
+    private static float windingAlong(final ByteBuffer src, final int quad, final int stride, final int axis, final int a,
+                                      final int b, final int c) {
+        final int ia = quad + a * stride;
+        final int ib = quad + b * stride;
+        final int ic = quad + c * stride;
         final float ax = src.getFloat(ia);
         final float ay = src.getFloat(ia + 4);
         final float az = src.getFloat(ia + 8);

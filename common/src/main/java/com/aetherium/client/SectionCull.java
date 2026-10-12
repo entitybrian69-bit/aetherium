@@ -4,9 +4,10 @@ import com.aetherium.perf.PipelineCrashGuard;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.render.CompactTerrain;
 import com.aetherium.util.AetheriumLog;
+import java.nio.ByteBuffer;
 
 /**
- * The Aetherium renderer on 1.17..1.21.4 (no Minecraft types; the mixins pass plain values).
+ * The Aetherium renderer on 1.17+ (no Minecraft types; the mixins pass plain values).
  *
  * <p>Vanilla keeps building, uploading, culling, ordering and drawing every section with its own
  * shaders, uniforms, vertex arrays and quad index buffer. Two things change for the solid,
@@ -169,6 +170,82 @@ public final class SectionCull {
         }
         frameQuadsDrawn += RUN_COUNT[0];
         return RANGE;
+    }
+
+    // ---- 1.21.5+: draw records (RenderPass$Draw) instead of per-buffer draws -------------------
+
+    private static boolean originSet;
+    private static int originX;
+    private static int originY;
+    private static int originZ;
+
+    /** Solid and cutout layers by enum name (1.21.6+ {@code ChunkSectionLayer}). */
+    public static boolean terrainLayerName(final String name) {
+        return "SOLID".equals(name) || "CUTOUT_MIPPED".equals(name) || "CUTOUT".equals(name);
+    }
+
+    /** Origin of the section whose draw record is built next (render thread). */
+    public static void setOrigin(final int x, final int y, final int z) {
+        originX = x;
+        originY = y;
+        originZ = z;
+        originSet = true;
+    }
+
+    /**
+     * 1.21.6+: start of the frame's chunk draw preparation; the camera vanilla subtracts from
+     * every section origin. Replaces {@link #frame} + {@link #beginLayer} for those versions.
+     */
+    public static void beginRecords(final double x, final double y, final double z) {
+        frame();
+        beginLayer(true, x, y, z);
+        originSet = false;
+    }
+
+    public static void endRecords() {
+        endLayer();
+        originSet = false;
+    }
+
+    /**
+     * How to build one section's draw record: sequential quad indices from {@code firstIndex} 0,
+     * {@code indexCount} of them, and the layout of the vertices behind it.
+     */
+    public static int planRecord(final CompactTerrain.Layout layout, final boolean sequential, final int firstIndex,
+                                 final int indexCount) {
+        if (!layerOn || !originSet || !sequential || firstIndex != 0 || layout == null) {
+            return FULL;
+        }
+        return plan(layout, originX, originY, originZ, indexCount);
+    }
+
+    /**
+     * 1.21.5+, any thread (chunk builders): reorders a finished solid / cutout mesh by face group
+     * in place. The caller has checked it is quads of vanilla's block vertex with sequential indices:
+     * 32 bytes with a normal (1.21.5..1.21.11) or 28 bytes without one (26.1+).
+     *
+     * @return the layout of the reordered vertices, or null when they were left as they were
+     */
+    public static CompactTerrain.Layout sortVertices(final ByteBuffer data, final boolean withNormals) {
+        if (data == null || !sorting()) {
+            return null;
+        }
+        try {
+            final CompactTerrain.Layout layout = new CompactTerrain.Layout();
+            final ByteBuffer sorted = withNormals
+                    ? CompactTerrain.sortQuads(data, CompactTerrain.scratch(), layout)
+                    : CompactTerrain.sortQuadsByWinding(data, CompactTerrain.scratch(), layout);
+            if (sorted == null || sorted.remaining() != data.remaining()) {
+                return null;
+            }
+            final ByteBuffer target = data.duplicate();
+            target.put(sorted);
+            noteSortedUpload();
+            return layout;
+        } catch (final RuntimeException | LinkageError error) {
+            fail(error);
+            return null;
+        }
     }
 
     /** First index of the range {@link #plan} chose (6 indices per quad). */

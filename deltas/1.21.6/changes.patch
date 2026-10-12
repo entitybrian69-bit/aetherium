@@ -5,10 +5,10 @@
 # apply:  git apply --whitespace=nowarn deltas/1.21.6/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.6/changes.patch
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index ee2bc6e..fee8e92 100644
+index 0e91579..fc4fcda 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
-@@ -94,10 +94,10 @@ public final class Capabilities {
+@@ -94,20 +94,20 @@ public final class Capabilities {
       * The Aetherium renderer on 1.17..1.21.4: vanilla's section draws, with solid and cutout meshes
       * sorted by face direction and drawn as the one index range that can face the camera.
       */
@@ -22,8 +22,37 @@ index ee2bc6e..fee8e92 100644
 +    //~ public static final boolean SECTION_CULL = true;
      // @era:section-cull-end
  
-     /** Zume-style zoom with rebindable keys (every version). */
-@@ -137,10 +137,10 @@ public final class Capabilities {
+     /**
+      * The Aetherium renderer on 1.21.5+: meshes sorted by face direction while they are built, and
+      * each section's draw record narrowed to the faces that can point at the camera.
+      */
+-    // @era:cull-new-begin old
+-    public static final boolean SECTION_CULL_MODERN = false;
+-    // @era:cull-new-else srd5|csm6|uber26|uber262|pearl
+-    //~ public static final boolean SECTION_CULL_MODERN = true;
++    // @era:cull-new-begin srd5|csm6|uber26|uber262|pearl
++    public static final boolean SECTION_CULL_MODERN = true;
++    // @era:cull-new-else old
++    //~ public static final boolean SECTION_CULL_MODERN = false;
+     // @era:cull-new-end
+ 
+     /** 1.21.5 flavour of {@link #SECTION_CULL_MODERN}: layouts handed to each layer's GPU buffers. */
+@@ -118,10 +118,10 @@ public final class Capabilities {
+     // @era:cull-new-end
+ 
+     /** 1.21.6+ flavour of {@link #SECTION_CULL_MODERN}: layouts kept by the compiled section mesh. */
+-    // @era:cull-new-begin old|srd5
+-    public static final boolean SECTION_CULL_MESH = false;
+-    // @era:cull-new-else csm6|uber26|uber262|pearl
+-    //~ public static final boolean SECTION_CULL_MESH = true;
++    // @era:cull-new-begin csm6|uber26|uber262|pearl
++    public static final boolean SECTION_CULL_MESH = true;
++    // @era:cull-new-else old|srd5
++    //~ public static final boolean SECTION_CULL_MESH = false;
+     // @era:cull-new-end
+ 
+     /** Some version of the Aetherium renderer exists for this version. */
+@@ -164,10 +164,10 @@ public final class Capabilities {
      public static final boolean MESH_THREADS = true;
  
      /** Allocation-free block meshing (reused BitSet / AO position); vanilla stopped allocating in 1.21.5. */
@@ -38,7 +67,7 @@ index ee2bc6e..fee8e92 100644
      // @era:mesh-alloc-end
  
      /** Rebuild coalescing (per-section dirty timestamps); 26.2 dropped the section dirty flag. */
-@@ -191,16 +191,16 @@ public final class Capabilities {
+@@ -218,16 +218,16 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -1394,6 +1423,350 @@ index be1bd01..822bd65 100644
 +    //~ }
      // @era:section-cull-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullCompiledMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullCompiledMixin.java
+index 5f323d8..b893c84 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionCullCompiledMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionCullCompiledMixin.java
+@@ -4,17 +4,17 @@ import com.aetherium.client.SectionCullLayersAccess;
+ import com.aetherium.render.CompactTerrain;
+ import org.spongepowered.asm.mixin.Mixin;
+ import org.spongepowered.asm.mixin.Unique;
+-// @era:cull-new-begin old|srd5
+-// @era:cull-new-else csm6|uber26|uber262
+-//~ import com.aetherium.client.SectionCullLayoutAccess;
+-//~ import com.mojang.blaze3d.vertex.MeshData;
+-//~ import java.util.Map;
+-//~ import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+-//~ import net.minecraft.client.renderer.chunk.SectionCompiler;
+-//~ import net.minecraft.client.renderer.chunk.TranslucencyPointOfView;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:cull-new-begin csm6|uber26|uber262
++import com.aetherium.client.SectionCullLayoutAccess;
++import com.mojang.blaze3d.vertex.MeshData;
++import java.util.Map;
++import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
++import net.minecraft.client.renderer.chunk.SectionCompiler;
++import net.minecraft.client.renderer.chunk.TranslucencyPointOfView;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:cull-new-else old|srd5
+ // @era:cull-new-else pearl
+ //~ import com.aetherium.client.SectionCullLayoutAccess;
+ //~ import com.mojang.blaze3d.vertex.MeshData;
+@@ -43,27 +43,27 @@ public abstract class SectionCullCompiledMixin implements SectionCullLayersAcces
+         return layouts != null && layerOrdinal >= 0 && layerOrdinal < layouts.length ? layouts[layerOrdinal] : null;
+     }
+ 
+-    // @era:cull-new-begin old|srd5
+-    // @era:cull-new-else csm6|uber26|uber262
+-    //~ @Inject(method = "<init>", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$keepLayouts(final TranslucencyPointOfView pointOfView, final SectionCompiler.Results results,
+-                                       //~ final CallbackInfo ci) {
+-        //~ CompactTerrain.Layout[] layouts = null;
+-        //~ for (final Map.Entry<ChunkSectionLayer, MeshData> entry : results.renderedLayers.entrySet()) {
+-            //~ final Object mesh = entry.getValue();
+-            //~ if (!(mesh instanceof SectionCullLayoutAccess)) {
+-                //~ continue;
+-            //~ }
+-            //~ final CompactTerrain.Layout layout = ((SectionCullLayoutAccess) mesh).aetheriumCullLayout();
+-            //~ if (layout != null) {
+-                //~ if (layouts == null) {
+-                    //~ layouts = new CompactTerrain.Layout[ChunkSectionLayer.values().length];
+-                //~ }
+-                //~ layouts[entry.getKey().ordinal()] = layout;
+-            //~ }
+-        //~ }
+-        //~ this.aetherium$layouts = layouts;
+-    //~ }
++    // @era:cull-new-begin csm6|uber26|uber262
++    @Inject(method = "<init>", at = @At("RETURN"), require = 0)
++    private void aetherium$keepLayouts(final TranslucencyPointOfView pointOfView, final SectionCompiler.Results results,
++                                       final CallbackInfo ci) {
++        CompactTerrain.Layout[] layouts = null;
++        for (final Map.Entry<ChunkSectionLayer, MeshData> entry : results.renderedLayers.entrySet()) {
++            final Object mesh = entry.getValue();
++            if (!(mesh instanceof SectionCullLayoutAccess)) {
++                continue;
++            }
++            final CompactTerrain.Layout layout = ((SectionCullLayoutAccess) mesh).aetheriumCullLayout();
++            if (layout != null) {
++                if (layouts == null) {
++                    layouts = new CompactTerrain.Layout[ChunkSectionLayer.values().length];
++                }
++                layouts[entry.getKey().ordinal()] = layout;
++            }
++        }
++        this.aetherium$layouts = layouts;
++    }
++    // @era:cull-new-else old|srd5
+     // @era:cull-new-else pearl
+     //~ @Inject(method = "<init>", at = @At("RETURN"), require = 0)
+     //~ private void aetherium$keepLayouts(final TranslucencyPointOfView pointOfView, final SectionCompiler.Results results,
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullDrawMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullDrawMixin.java
+index 6eea033..f3a9a7c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionCullDrawMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionCullDrawMixin.java
+@@ -1,7 +1,29 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:cull-new-begin old
++// @era:cull-new-begin csm6
++import com.aetherium.client.SectionCull;
++import com.aetherium.client.SectionCullLayersAccess;
++import com.aetherium.render.CompactTerrain;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import com.mojang.blaze3d.buffers.GpuBuffer;
++import com.mojang.blaze3d.systems.RenderPass;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import java.util.List;
++import java.util.function.BiConsumer;
++import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
++import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
++import net.minecraft.client.renderer.chunk.SectionBuffers;
++import net.minecraft.client.renderer.chunk.SectionMesh;
++import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
++import net.minecraft.core.BlockPos;
++import org.joml.Matrix4fc;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:cull-new-else old
+ // @era:cull-new-else srd5
+ //~ import com.aetherium.client.SectionCull;
+ //~ import com.aetherium.client.SectionCullLayoutAccess;
+@@ -22,28 +44,6 @@ import org.spongepowered.asm.mixin.Mixin;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:cull-new-else csm6
+-//~ import com.aetherium.client.SectionCull;
+-//~ import com.aetherium.client.SectionCullLayersAccess;
+-//~ import com.aetherium.render.CompactTerrain;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import com.mojang.blaze3d.buffers.GpuBuffer;
+-//~ import com.mojang.blaze3d.systems.RenderPass;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import java.util.List;
+-//~ import java.util.function.BiConsumer;
+-//~ import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+-//~ import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
+-//~ import net.minecraft.client.renderer.chunk.SectionBuffers;
+-//~ import net.minecraft.client.renderer.chunk.SectionMesh;
+-//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import org.joml.Matrix4fc;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+ // @era:cull-new-else uber26
+ //~ import com.aetherium.client.ClientHooks;
+ //~ import com.aetherium.client.SectionCull;
+@@ -126,40 +126,100 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class SectionCullDrawMixin {
+-    // @era:cull-new-begin old
+-    // @era:cull-new-else srd5|csm6|uber26|uber262|pearl
+-    //~ /** Face groups behind the draw record being built next, or null. */
+-    //~ @Unique
+-    //~ private static CompactTerrain.Layout aetherium$recordLayout;
+-    //~ /** A record built but left out (no face can point at the camera); dropped from the list. */
+-    //~ @Unique
+-    //~ private static Object aetherium$skipped;
++    // @era:cull-new-begin srd5|csm6|uber26|uber262|pearl
++    /** Face groups behind the draw record being built next, or null. */
++    @Unique
++    private static CompactTerrain.Layout aetherium$recordLayout;
++    /** A record built but left out (no face can point at the camera); dropped from the list. */
++    @Unique
++    private static Object aetherium$skipped;
+ 
+-    //~ @Unique
+-    //~ private static boolean aetherium$drop(final Object record) {
+-        //~ if (record != null && record == aetherium$skipped) {
+-            //~ aetherium$skipped = null;
+-            //~ return true;
+-        //~ }
+-        //~ return false;
+-    //~ }
++    @Unique
++    private static boolean aetherium$drop(final Object record) {
++        if (record != null && record == aetherium$skipped) {
++            aetherium$skipped = null;
++            return true;
++        }
++        return false;
++    }
+ 
+-    //~ /** First index and count for a record ({@code plan} RANGE), or the original ones. */
+-    //~ @Unique
+-    //~ private static int aetherium$plan(final boolean sequential, final int firstIndex, final int indexCount) {
+-        //~ final CompactTerrain.Layout layout = aetherium$recordLayout;
+-        //~ aetherium$recordLayout = null;
+-        //~ aetherium$skipped = null;
+-        //~ try {
+-            //~ return SectionCull.planRecord(layout, sequential, firstIndex, indexCount);
+-        //~ } catch (final RuntimeException error) {
+-            //~ SectionCull.fail(error);
+-            //~ return SectionCull.FULL;
+-        //~ }
+-    //~ }
++    /** First index and count for a record ({@code plan} RANGE), or the original ones. */
++    @Unique
++    private static int aetherium$plan(final boolean sequential, final int firstIndex, final int indexCount) {
++        final CompactTerrain.Layout layout = aetherium$recordLayout;
++        aetherium$recordLayout = null;
++        aetherium$skipped = null;
++        try {
++            return SectionCull.planRecord(layout, sequential, firstIndex, indexCount);
++        } catch (final RuntimeException error) {
++            SectionCull.fail(error);
++            return SectionCull.FULL;
++        }
++    }
++    // @era:cull-new-else old
+     // @era:cull-new-end
+ 
+-    // @era:cull-new-begin old
++    // @era:cull-new-begin csm6
++    @Inject(method = "prepareChunkRenders", at = @At("HEAD"), require = 0)
++    private void aetherium$beginRecords(final Matrix4fc modelView, final double camX, final double camY,
++                                        final double camZ, final CallbackInfoReturnable<ChunkSectionsToRender> cir) {
++        SectionCull.beginRecords(camX, camY, camZ);
++    }
++
++    @Inject(method = "prepareChunkRenders", at = @At("RETURN"), require = 0)
++    private void aetherium$endRecords(final Matrix4fc modelView, final double camX, final double camY,
++                                      final double camZ, final CallbackInfoReturnable<ChunkSectionsToRender> cir) {
++        SectionCull.endRecords();
++    }
++
++    @WrapOperation(method = "prepareChunkRenders", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection;getRenderOrigin()Lnet/minecraft/core/BlockPos;"),
++            require = 0)
++    private BlockPos aetherium$origin(final SectionRenderDispatcher.RenderSection section,
++                                      final Operation<BlockPos> original) {
++        final BlockPos origin = original.call(section);
++        SectionCull.setOrigin(origin.getX(), origin.getY(), origin.getZ());
++        return origin;
++    }
++
++    @WrapOperation(method = "prepareChunkRenders", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/SectionMesh;getBuffers(Lnet/minecraft/client/renderer/chunk/ChunkSectionLayer;)Lnet/minecraft/client/renderer/chunk/SectionBuffers;"),
++            require = 0)
++    private SectionBuffers aetherium$recordLayer(final SectionMesh mesh, final ChunkSectionLayer layer,
++                                                 final Operation<SectionBuffers> original) {
++        final Object raw = mesh;
++        aetherium$recordLayout = raw instanceof SectionCullLayersAccess && layer != null
++                && SectionCull.terrainLayerName(layer.name())
++                ? ((SectionCullLayersAccess) raw).aetheriumCullLayout(layer.ordinal()) : null;
++        return original.call(mesh, layer);
++    }
++
++    @WrapOperation(method = "prepareChunkRenders", at = @At(value = "NEW",
++            target = "com/mojang/blaze3d/systems/RenderPass$Draw"),
++            require = 0)
++    private RenderPass.Draw aetherium$narrow(final int slot, final GpuBuffer vertices, final GpuBuffer indices,
++                                             final VertexFormat.IndexType indexType, final int firstIndex,
++                                             final int indexCount, final BiConsumer uniforms,
++                                             final Operation<RenderPass.Draw> original) {
++        final int plan = aetherium$plan(indices == null, firstIndex, indexCount);
++        if (plan == SectionCull.RANGE) {
++            return original.call(slot, vertices, indices, indexType, SectionCull.rangeFirstIndex(),
++                    SectionCull.rangeIndexCount(), uniforms);
++        }
++        final RenderPass.Draw record = original.call(slot, vertices, indices, indexType, firstIndex, indexCount, uniforms);
++        if (plan == SectionCull.SKIP) {
++            aetherium$skipped = record;
++        }
++        return record;
++    }
++
++    @WrapOperation(method = "prepareChunkRenders", at = @At(value = "INVOKE",
++            target = "Ljava/util/List;add(Ljava/lang/Object;)Z"), require = 0)
++    private boolean aetherium$dropSkipped(final List<Object> list, final Object record,
++                                          final Operation<Boolean> original) {
++        return aetherium$drop(record) || original.call(list, record);
++    }
++    // @era:cull-new-else old
+     // @era:cull-new-else srd5
+     //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
+     //~ private void aetherium$cullFrame(final CallbackInfo ci) {
+@@ -227,66 +287,6 @@ public abstract class SectionCullDrawMixin {
+                                           //~ final Operation<Boolean> original) {
+         //~ return aetherium$drop(record) || original.call(list, record);
+     //~ }
+-    // @era:cull-new-else csm6
+-    //~ @Inject(method = "prepareChunkRenders", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$beginRecords(final Matrix4fc modelView, final double camX, final double camY,
+-                                        //~ final double camZ, final CallbackInfoReturnable<ChunkSectionsToRender> cir) {
+-        //~ SectionCull.beginRecords(camX, camY, camZ);
+-    //~ }
+-
+-    //~ @Inject(method = "prepareChunkRenders", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$endRecords(final Matrix4fc modelView, final double camX, final double camY,
+-                                      //~ final double camZ, final CallbackInfoReturnable<ChunkSectionsToRender> cir) {
+-        //~ SectionCull.endRecords();
+-    //~ }
+-
+-    //~ @WrapOperation(method = "prepareChunkRenders", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection;getRenderOrigin()Lnet/minecraft/core/BlockPos;"),
+-            //~ require = 0)
+-    //~ private BlockPos aetherium$origin(final SectionRenderDispatcher.RenderSection section,
+-                                      //~ final Operation<BlockPos> original) {
+-        //~ final BlockPos origin = original.call(section);
+-        //~ SectionCull.setOrigin(origin.getX(), origin.getY(), origin.getZ());
+-        //~ return origin;
+-    //~ }
+-
+-    //~ @WrapOperation(method = "prepareChunkRenders", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/SectionMesh;getBuffers(Lnet/minecraft/client/renderer/chunk/ChunkSectionLayer;)Lnet/minecraft/client/renderer/chunk/SectionBuffers;"),
+-            //~ require = 0)
+-    //~ private SectionBuffers aetherium$recordLayer(final SectionMesh mesh, final ChunkSectionLayer layer,
+-                                                 //~ final Operation<SectionBuffers> original) {
+-        //~ final Object raw = mesh;
+-        //~ aetherium$recordLayout = raw instanceof SectionCullLayersAccess && layer != null
+-                //~ && SectionCull.terrainLayerName(layer.name())
+-                //~ ? ((SectionCullLayersAccess) raw).aetheriumCullLayout(layer.ordinal()) : null;
+-        //~ return original.call(mesh, layer);
+-    //~ }
+-
+-    //~ @WrapOperation(method = "prepareChunkRenders", at = @At(value = "NEW",
+-            //~ target = "com/mojang/blaze3d/systems/RenderPass$Draw"),
+-            //~ require = 0)
+-    //~ private RenderPass.Draw aetherium$narrow(final int slot, final GpuBuffer vertices, final GpuBuffer indices,
+-                                             //~ final VertexFormat.IndexType indexType, final int firstIndex,
+-                                             //~ final int indexCount, final BiConsumer uniforms,
+-                                             //~ final Operation<RenderPass.Draw> original) {
+-        //~ final int plan = aetherium$plan(indices == null, firstIndex, indexCount);
+-        //~ if (plan == SectionCull.RANGE) {
+-            //~ return original.call(slot, vertices, indices, indexType, SectionCull.rangeFirstIndex(),
+-                    //~ SectionCull.rangeIndexCount(), uniforms);
+-        //~ }
+-        //~ final RenderPass.Draw record = original.call(slot, vertices, indices, indexType, firstIndex, indexCount, uniforms);
+-        //~ if (plan == SectionCull.SKIP) {
+-            //~ aetherium$skipped = record;
+-        //~ }
+-        //~ return record;
+-    //~ }
+-
+-    //~ @WrapOperation(method = "prepareChunkRenders", at = @At(value = "INVOKE",
+-            //~ target = "Ljava/util/List;add(Ljava/lang/Object;)Z"), require = 0)
+-    //~ private boolean aetherium$dropSkipped(final List<Object> list, final Object record,
+-                                          //~ final Operation<Boolean> original) {
+-        //~ return aetherium$drop(record) || original.call(list, record);
+-    //~ }
+     // @era:cull-new-else uber26
+     //~ @Inject(method = "prepareChunkRenders", at = @At("HEAD"), require = 0)
+     //~ private void aetherium$beginRecords(final Matrix4fc modelView,
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java
 index 663f24a..790c33c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java
@@ -1592,6 +1965,151 @@ index 94e9107..e99e05a 100644
 +        //~ }
 +    //~ }
      // @era:section-cull-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullSortMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullSortMixin.java
+index 5d6f6af..3a75064 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/SectionCullSortMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/SectionCullSortMixin.java
+@@ -1,21 +1,21 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:cull-new-begin old
+-// @era:cull-new-else srd5|csm6|uber26|uber262|pearl
+-//~ import com.aetherium.client.SectionCull;
+-//~ import com.aetherium.client.SectionCullLayoutAccess;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+-//~ import com.mojang.blaze3d.vertex.MeshData;
+-//~ import java.util.Map;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
++// @era:cull-new-begin srd5|csm6|uber26|uber262|pearl
++import com.aetherium.client.SectionCull;
++import com.aetherium.client.SectionCullLayoutAccess;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import com.mojang.blaze3d.vertex.DefaultVertexFormat;
++import com.mojang.blaze3d.vertex.MeshData;
++import java.util.Map;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++// @era:cull-new-else old
+ // @era:cull-new-end
+-// @era:cull-new-begin old
+-// @era:cull-new-else srd5|csm6|uber26|uber262
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
++// @era:cull-new-begin srd5|csm6|uber26|uber262
++import com.mojang.blaze3d.vertex.VertexFormat;
++// @era:cull-new-else old
+ // @era:cull-new-else pearl
+ //~ import com.mojang.renderpearl.api.vertex.VertexFormat;
+ // @era:cull-new-end
+@@ -33,45 +33,45 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionCompiler")
+ public abstract class SectionCullSortMixin {
+-    // @era:cull-new-begin old
+-    // @era:cull-new-else srd5|csm6|uber26|uber262|pearl
+-    //~ /** Vanilla's block vertex up to 1.21.11: position, colour, uv, light, normal, padding. */
+-    //~ @Unique
+-    //~ private static final int WITH_NORMAL = 32;
+-    //~ /** Vanilla's block vertex from 26.1: position, colour, uv, light. */
+-    //~ @Unique
+-    //~ private static final int WITHOUT_NORMAL = 28;
++    // @era:cull-new-begin srd5|csm6|uber26|uber262|pearl
++    /** Vanilla's block vertex up to 1.21.11: position, colour, uv, light, normal, padding. */
++    @Unique
++    private static final int WITH_NORMAL = 32;
++    /** Vanilla's block vertex from 26.1: position, colour, uv, light. */
++    @Unique
++    private static final int WITHOUT_NORMAL = 28;
+ 
+-    //~ @WrapOperation(method = "compile", at = @At(value = "INVOKE",
+-            //~ target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"), require = 0)
+-    //~ private Object aetherium$sortLayer(final Map<Object, Object> map, final Object layer, final Object mesh,
+-                                       //~ final Operation<Object> original) {
+-        //~ if (mesh instanceof MeshData && SectionCull.sorting() && aetherium$terrain(layer)) {
+-            //~ try {
+-                //~ final MeshData data = (MeshData) mesh;
+-                //~ final int stride = aetherium$blockStride(data);
+-                //~ if (stride != 0) {
+-                    //~ ((SectionCullLayoutAccess) mesh).aetheriumSetCullLayout(
+-                            //~ SectionCull.sortVertices(data.vertexBuffer(), stride == WITH_NORMAL));
+-                //~ }
+-            //~ } catch (final RuntimeException | LinkageError error) {
+-                //~ SectionCull.fail(error);
+-            //~ }
+-        //~ }
+-        //~ return original.call(map, layer, mesh);
+-    //~ }
++    @WrapOperation(method = "compile", at = @At(value = "INVOKE",
++            target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"), require = 0)
++    private Object aetherium$sortLayer(final Map<Object, Object> map, final Object layer, final Object mesh,
++                                       final Operation<Object> original) {
++        if (mesh instanceof MeshData && SectionCull.sorting() && aetherium$terrain(layer)) {
++            try {
++                final MeshData data = (MeshData) mesh;
++                final int stride = aetherium$blockStride(data);
++                if (stride != 0) {
++                    ((SectionCullLayoutAccess) mesh).aetheriumSetCullLayout(
++                            SectionCull.sortVertices(data.vertexBuffer(), stride == WITH_NORMAL));
++                }
++            } catch (final RuntimeException | LinkageError error) {
++                SectionCull.fail(error);
++            }
++        }
++        return original.call(map, layer, mesh);
++    }
++    // @era:cull-new-else old
+     // @era:cull-new-end
+ 
+-    // @era:cull-new-begin old
+-    // @era:cull-new-else srd5|csm6
+-    //~ /** Vertex size of a mesh this version's sorter takes, or 0 to leave it alone. */
+-    //~ @Unique
+-    //~ private static int aetherium$blockStride(final MeshData data) {
+-        //~ final MeshData.DrawState state = data.drawState();
+-        //~ final VertexFormat format = state.format();
+-        //~ return state.mode() == VertexFormat.Mode.QUADS && data.indexBuffer() == null
+-                //~ && format == DefaultVertexFormat.BLOCK && format.getVertexSize() == WITH_NORMAL ? WITH_NORMAL : 0;
+-    //~ }
++    // @era:cull-new-begin srd5|csm6
++    /** Vertex size of a mesh this version's sorter takes, or 0 to leave it alone. */
++    @Unique
++    private static int aetherium$blockStride(final MeshData data) {
++        final MeshData.DrawState state = data.drawState();
++        final VertexFormat format = state.format();
++        return state.mode() == VertexFormat.Mode.QUADS && data.indexBuffer() == null
++                && format == DefaultVertexFormat.BLOCK && format.getVertexSize() == WITH_NORMAL ? WITH_NORMAL : 0;
++    }
++    // @era:cull-new-else old
+     // @era:cull-new-else uber26
+     //~ /** Vertex size of a mesh this version's sorter takes, or 0 to leave it alone. */
+     //~ @Unique
+@@ -94,16 +94,16 @@ public abstract class SectionCullSortMixin {
+     //~ }
+     // @era:cull-new-end
+ 
+-    // @era:cull-new-begin old
++    // @era:cull-new-begin csm6|uber26|uber262|pearl
++    @Unique
++    private static boolean aetherium$terrain(final Object layer) {
++        return layer instanceof Enum && SectionCull.terrainLayerName(((Enum<?>) layer).name());
++    }
++    // @era:cull-new-else old
+     // @era:cull-new-else srd5
+     //~ @Unique
+     //~ private static boolean aetherium$terrain(final Object layer) {
+         //~ return layer == RenderType.solid() || layer == RenderType.cutoutMipped() || layer == RenderType.cutout();
+     //~ }
+-    // @era:cull-new-else csm6|uber26|uber262|pearl
+-    //~ @Unique
+-    //~ private static boolean aetherium$terrain(final Object layer) {
+-        //~ return layer instanceof Enum && SectionCull.terrainLayerName(((Enum<?>) layer).name());
+-    //~ }
+     // @era:cull-new-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
 index 51b3c6e..462cfd4 100644
@@ -2426,7 +2944,7 @@ index f85e6e7..5c91b44 100644
  //~ }
  // @era:zoom-fov-else camera
 diff --git a/gradle.properties b/gradle.properties
-index 072c719..7470c0d 100644
+index 323023a..bac1f00 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@ org.gradle.daemon=true

@@ -149,6 +149,16 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
                 || "SectionCullLayerMixin".equals(simpleName)) {
             return Capabilities.SECTION_CULL;
         }
+        if ("SectionCullMeshDataMixin".equals(simpleName) || "SectionCullSortMixin".equals(simpleName)
+                || "SectionCullDrawMixin".equals(simpleName)) {
+            return Capabilities.SECTION_CULL_MODERN;
+        }
+        if ("SectionCullBuffersMixin".equals(simpleName) || "SectionCullUploadMixin".equals(simpleName)) {
+            return Capabilities.SECTION_CULL_SRD;
+        }
+        if ("SectionCullCompiledMixin".equals(simpleName)) {
+            return Capabilities.SECTION_CULL_MESH;
+        }
         if (FAST_MODEL_MIXINS.contains(simpleName)) {
             return Capabilities.FAST_MODELS;
         }

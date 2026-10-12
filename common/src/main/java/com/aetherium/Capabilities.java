@@ -100,6 +100,33 @@ public final class Capabilities {
     //~ public static final boolean SECTION_CULL = false;
     // @era:section-cull-end
 
+    /**
+     * The Aetherium renderer on 1.21.5+: meshes sorted by face direction while they are built, and
+     * each section's draw record narrowed to the faces that can point at the camera.
+     */
+    // @era:cull-new-begin old
+    public static final boolean SECTION_CULL_MODERN = false;
+    // @era:cull-new-else srd5|csm6|uber26|uber262|pearl
+    //~ public static final boolean SECTION_CULL_MODERN = true;
+    // @era:cull-new-end
+
+    /** 1.21.5 flavour of {@link #SECTION_CULL_MODERN}: layouts handed to each layer's GPU buffers. */
+    // @era:cull-new-begin old|csm6|uber26|uber262|pearl
+    public static final boolean SECTION_CULL_SRD = false;
+    // @era:cull-new-else srd5
+    //~ public static final boolean SECTION_CULL_SRD = true;
+    // @era:cull-new-end
+
+    /** 1.21.6+ flavour of {@link #SECTION_CULL_MODERN}: layouts kept by the compiled section mesh. */
+    // @era:cull-new-begin old|srd5
+    public static final boolean SECTION_CULL_MESH = false;
+    // @era:cull-new-else csm6|uber26|uber262|pearl
+    //~ public static final boolean SECTION_CULL_MESH = true;
+    // @era:cull-new-end
+
+    /** Some version of the Aetherium renderer exists for this version. */
+    public static final boolean ANY_RENDERER = AETHERIUM_RENDERER || SECTION_CULL || SECTION_CULL_MODERN;
+
     /** Zume-style zoom with rebindable keys (every version). */
     // @era:zoom-begin on
     public static final boolean ZOOM = true;

@@ -28,6 +28,7 @@ neoforge_version=unavailable (module disabled)
 - `camera-get=getter`
 - `chunk-renderer=none`
 - `chunk-upload=crdbool`
+- `cull-new=old`
 - `fog-cull=bfs`
 - `fog=shader17`
 - `frustum-cap=mojang`

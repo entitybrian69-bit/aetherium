@@ -27,6 +27,7 @@ neoforge_version=unavailable (module disabled)
 - `camera-get=getter`
 - `chunk-renderer=none`
 - `chunk-upload=crd`
+- `cull-new=old`
 - `fog-cull=info`
 - `frustum-cap=joml`
 - `gui=graphics`

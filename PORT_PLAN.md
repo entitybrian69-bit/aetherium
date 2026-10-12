@@ -24,7 +24,7 @@ variant is only enabled once its targets are confirmed there and `stubcheck --al
 
 | feature | G0 | G1 | G2 | G3 | G4 | G5 | G6 | eras / notes |
 |---|---|---|---|---|---|---|---|---|
-| Renderer named "Aetherium renderer", on by default | done | done | done | done | 1.21.4 | — | — | `advanced.aetherium_renderer`; no "Experimental" label anywhere |
+| Renderer named "Aetherium renderer", on by default | done | done | done | done | done | done | done | `advanced.aetherium_renderer`; no "Experimental" label anywhere |
 | Even frame pacing | done | done | done | done | done | done | done | `pacing`: `RenderSystem.limitDisplayFPS` to 1.21.11; 26.x `FramerateLimiter` |
 | Zoom (Zume-style, 3 keys) | done | done | done | done | done | done | done | `zoom`, `keys`, `zoom-fov`, `zoom-cam`, `options` |
 | Freelook | done | done | done | done | done | done | done | `freelook`, `rot`; key via `ZoomKeys.newKey` |
@@ -41,7 +41,7 @@ variant is only enabled once its targets are confirmed there and `stubcheck --al
 | Fast particles | done | done | done | done | done | done (to 1.21.8) | - | `particle-fast`, `frustum-cap`; 1.21.9+ extracts particle render states |
 | Visible-only animations | done | done | done | done | 1.21.4 | — | — | `anim` / `atlas-tick` / `section-compile`: per-atlas ticker→sprite map wraps `Tickable.tick` (1.17) / `Ticker.tickAndUpload` (1.19.3); sprites collected per build, taken by the CompiledChunk/CompiledSection created after it (1.19+); `VisibleSpritesMixin` marks the visible list once per atlas tick |
 | Fast models | done | done | done | 1.20.6 | — | — | — | `model-fast` / `math` / `pose-normals`: ModelPart.compile written straight into the old ByteBuffer BufferBuilder (enum mode from 1.17, joml from 1.19.3, normals normalised for untrusted poses on 1.20.5-1.20.6); 1.21's BufferBuilder is already direct |
-| Aetherium renderer (terrain pipeline) | done | done | done | done | 1.21.4 | — | — | `section-cull` / `layer-sig` / `section-api`: SectionCull sorts solid + cutout meshes by face group on upload (popNextBuffer to 1.18.2, uploadVertexBuffer 1.19-1.21.4) and wraps `RenderSystem.drawElements` in the section draw with one `_drawElements` range (or a skip); falls back to vanilla on error. 1.21.5 drops VertexBuffer; 1.21.5+ keep vanilla grouping. Batched terrain (shared buffers) stays 1.16.5-only |
+| Aetherium renderer (terrain pipeline) | done | done | done | done | done | done | done (26.3: no skip) | `section-cull` / `layer-sig` / `section-api`: SectionCull sorts solid + cutout meshes by face group on upload (popNextBuffer to 1.18.2, uploadVertexBuffer 1.19-1.21.4) and wraps `RenderSystem.drawElements` in the section draw with one `_drawElements` range (or a skip); falls back to vanilla on error. 1.21.5+ (1.8.1, era `cull-new`): `SectionCullSortMixin` sorts in `SectionCompiler.compile` (32-byte vertices with normals to 1.21.11; 28-byte vertices without normals on 26.x, grouped by winding), layouts ride on `MeshData` → `SectionBuffers` at upload (1.21.5) or `CompiledSectionMesh` (1.21.6+), and `SectionCullDrawMixin` narrows the `RenderPass$Draw` record (26.3: `DynamicGpuData$IndexedDraw`; skips are dropped from the list except on 26.3). Batched terrain (shared buffers) stays 1.16.5-only |
 
 Scenery settings: the 1.21.6+ distance settings only move the render-distance fog range, so they
 never lift blindness, darkness or Nether fog (those live in the environmental range).

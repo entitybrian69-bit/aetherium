@@ -269,4 +269,58 @@ final class CompactTerrainTest {
         assertEquals(6, c2[0]);
         assertEquals(1, CompactTerrain.mergeRuns(new int[] {7}, new int[] {3}, 1, 0));
     }
+
+    /** 26.1+ block vertex: position, colour, uv0, light; no normal (28 bytes). */
+    private static void quad28(final ByteBuffer data, final float[][] corners, final float ox, final float oy, final float oz,
+                               final boolean reversed) {
+        for (int i = 0; i < 4; i++) {
+            final int v = reversed ? 3 - i : i;
+            data.putFloat(corners[v][0] + ox).putFloat(corners[v][1] + oy).putFloat(corners[v][2] + oz);
+            data.put((byte) 200).put((byte) 150).put((byte) 100).put((byte) 255);
+            data.putFloat(0.25f + v * 0.001f).putFloat(0.5f);
+            data.putShort((short) 16).putShort((short) 32);
+        }
+    }
+
+    @Test
+    @DisplayName("renderer 26.x: quads without normals are grouped by the side their winding faces")
+    void sortedByWinding() {
+        final ByteBuffer data = ByteBuffer.allocateDirect(16 * 4 * 28).order(ByteOrder.nativeOrder());
+        quad28(data, UP_FACE, 3, 4, 5, false);
+        quad28(data, DOWN_FACE, 3, 4, 5, false);
+        quad28(data, NORTH_FACE, 3, 4, 5, false);
+        quad28(data, SOUTH_FACE, 3, 4, 5, false);
+        quad28(data, WEST_FACE, 3, 4, 5, false);
+        quad28(data, EAST_FACE, 3, 4, 5, false);
+        quad28(data, UP_FACE, 3, 4, 5, true); // lava-style back face of the top: seen from below
+        quad28(data, new float[][] {{0, 0, 0}, {0, 1, 0}, {1, 1, 1}, {1, 0, 1}}, 0, 0, 0, false); // diagonal plant
+        data.flip();
+        final int quadBytes = 4 * CompactTerrain.SOURCE_STRIDE_NO_NORMAL;
+        assertEquals(CompactTerrain.UP, CompactTerrain.classifyByWinding(data, 0));
+        assertEquals(CompactTerrain.DOWN, CompactTerrain.classifyByWinding(data, quadBytes));
+        assertEquals(CompactTerrain.NORTH, CompactTerrain.classifyByWinding(data, 2 * quadBytes));
+        assertEquals(CompactTerrain.SOUTH, CompactTerrain.classifyByWinding(data, 3 * quadBytes));
+        assertEquals(CompactTerrain.WEST, CompactTerrain.classifyByWinding(data, 4 * quadBytes));
+        assertEquals(CompactTerrain.EAST, CompactTerrain.classifyByWinding(data, 5 * quadBytes));
+        assertEquals(CompactTerrain.DOWN, CompactTerrain.classifyByWinding(data, 6 * quadBytes), "reversed: faces down");
+        assertEquals(CompactTerrain.ANY, CompactTerrain.classifyByWinding(data, 7 * quadBytes), "diagonal: always drawn");
+
+        final CompactTerrain.Layout layout = new CompactTerrain.Layout();
+        final ByteBuffer out = CompactTerrain.sortQuadsByWinding(data, new CompactTerrain.Scratch(), layout);
+        assertNotNull(out);
+        assertEquals(data.remaining(), out.remaining());
+        assertEquals(8, layout.quads());
+        assertEquals(1, layout.quadsIn(CompactTerrain.UP));
+        assertEquals(2, layout.quadsIn(CompactTerrain.DOWN));
+        assertEquals(1, layout.quadsIn(CompactTerrain.ANY));
+        assertEquals(5.0f, layout.plane[CompactTerrain.UP], 0.0f, "top face at y = 4 + 1");
+        assertEquals(5.0f, layout.plane[CompactTerrain.DOWN], 0.0f, "highest down face: the reversed top");
+        // Same bytes, regrouped: the UP quad (source 0) is first, byte for byte.
+        for (int b = 0; b < quadBytes; b++) {
+            assertEquals(data.get(b), out.get(b), "byte " + b);
+        }
+        final ByteBuffer partial = data.duplicate().order(ByteOrder.nativeOrder());
+        partial.limit(partial.limit() - 28);
+        assertNull(CompactTerrain.sortQuadsByWinding(partial, new CompactTerrain.Scratch(), layout), "not whole quads");
+    }
 }

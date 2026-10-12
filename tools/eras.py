@@ -111,6 +111,12 @@ ERAS = {
                      ("mesh21", "1.21..1.21.4"), ("none", "1.21.5..")],
     # renderChunkLayer / renderSectionLayer: (RenderType, PoseStack, ddd, Matrix4f) with com.mojang.math
     # (..1.19.2) or joml (1.19.3..1.20.4); 1.20.5 drops the PoseStack and takes two joml matrices.
+    # The Aetherium renderer on 1.21.5+ (no VertexBuffer): meshes are sorted in SectionCompiler.compile
+    # on the worker; draws are RenderPass$Draw records built in renderSectionLayer (1.21.5, layouts on
+    # SectionBuffers) or prepareChunkRenders (1.21.6+, layouts on CompiledSectionMesh); 26.1 shares
+    # vertex buffers (baseVertex), 26.2 moves IndexType, 26.3 builds IndexedDraw groups (renderpearl).
+    "cull-new": [("old", "..1.21.4"), ("srd5", "1.21.5..1.21.5"), ("csm6", "1.21.6..1.21.11"),
+                 ("uber26", "26.1..26.1"), ("uber262", "26.2..26.2"), ("pearl", "26.3..")],
     "layer-sig": [("v16", "..1.16.5"), ("mojang", "1.17..1.19.2"), ("joml", "1.19.3..1.20.4"),
                   ("nopose", "1.20.5..1.21.4"), ("none", "1.21.5..")],
     "model-fast": [("v16", "..1.16.5"), ("mojang", "1.17..1.19.2"), ("joml", "1.19.3..1.20.4"),

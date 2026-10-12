@@ -31,6 +31,7 @@ neoforge_version=21.10.64
 - `chunk-renderer=none`
 - `chunk-upload=srd`
 - `clouds=renderer`
+- `cull-new=csm6`
 - `fog-cull=section`
 - `fog=buffer`
 - `freelook=minecart`
@@ -117,8 +118,11 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.10.
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullCompiledMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullDrawMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/SectionCullSortMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java`

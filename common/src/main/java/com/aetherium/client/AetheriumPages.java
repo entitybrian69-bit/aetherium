@@ -310,12 +310,12 @@ public final class AetheriumPages {
                     return cap + " FPS" + (ClientHooks.isThermalCapped() ? " (thermal)" : "");
                 }));
         page.add(bool("backend.chunk_renderer", "Aetherium renderer", config.aetheriumRenderer)
-                .availableWhen(() -> Capabilities.AETHERIUM_RENDERER || Capabilities.SECTION_CULL, NOT_ON_THIS_VERSION));
+                .availableWhen(() -> Capabilities.ANY_RENDERER, NOT_ON_THIS_VERSION));
         page.add(bool("backend.region_batching", "Batched terrain", config.regionBatching)
                 .availableWhen(() -> Capabilities.AETHERIUM_RENDERER, NOT_ON_THIS_VERSION));
         page.add(Setting.info("backend.chunk_renderer_state", "Chunk renderer",
                 "Which path draws solid and cutout terrain right now.",
-                () -> Capabilities.SECTION_CULL ? SectionCull.statusText() : ChunkRenderer.statusText()));
+                () -> Capabilities.SECTION_CULL || Capabilities.SECTION_CULL_MODERN ? SectionCull.statusText() : ChunkRenderer.statusText()));
         page.add(bool("backend.debug", "Debug logging", config.debugLogging));
         page.add(bool("backend.stutter_log", "Stutter log", config.stutterLog)
                 .availableWhen(() -> Capabilities.STUTTER_LOG, NOT_ON_THIS_VERSION));

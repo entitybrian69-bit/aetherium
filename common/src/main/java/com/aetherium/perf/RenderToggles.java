@@ -50,7 +50,7 @@ public final class RenderToggles {
         entityCulling = isActive && config.entityCulling.get().booleanValue();
         occlusionCulling = isActive && Capabilities.ENTITY_OCCLUSION && !occlusionBroken
                 && config.occlusionCulling.get().booleanValue();
-        aetheriumRenderer = isActive && (Capabilities.AETHERIUM_RENDERER || Capabilities.SECTION_CULL)
+        aetheriumRenderer = isActive && Capabilities.ANY_RENDERER
                 && config.aetheriumRenderer.get().booleanValue();
         regionBatching = config.regionBatching.get().booleanValue();
         final double distance = config.entityCullDistance.get().intValue();
