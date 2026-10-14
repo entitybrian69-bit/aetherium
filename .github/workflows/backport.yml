@@ -1,0 +1,46 @@
+# Aetherium Backport (Minecraft 1.12.2, Forge): build, probe, smoke test, release.
+# Results are committed back to backport/ci/out (logs cannot be downloaded from the dev sandbox).
+name: backport
+on:
+  push:
+    branches: [arena/46f241da-aetherium]
+    paths: ['backport/**', '.github/workflows/backport.yml', '!backport/ci/out/**', '!backport/probe/out/**']
+permissions:
+  contents: write
+concurrency:
+  group: backport-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: |
+            8
+            25
+      - uses: gradle/actions/setup-gradle@v4
+      - name: build and probe
+        run: bash backport/ci/run.sh
+      - name: status
+        run: |
+          s=$(cat backport/ci/out/build-status.txt)
+          echo "::notice::backport build exit $s"
+          head -c 3500 backport/ci/out/build-report.txt | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}' | sed 's/^/::notice::report%0A/'; echo
+      - name: commit results
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f backport/ci/out backport/probe/out 2>/dev/null || true
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -q -m "backport: CI results for ${GITHUB_SHA::7} [skip ci]"
+          for i in 1 2 3 4 5; do git pull -q --rebase origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && exit 0; sleep $((i*5)); done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backport-jar
+          path: backport/build/libs/*.jar
+          if-no-files-found: ignore
