@@ -55,6 +55,13 @@ public final class TerrainRenderer {
     /** Set by the upload hook right before {@code VertexBuffer.bufferData}, taken by it. */
     private static CompactTerrain.Layout pendingLayout;
 
+    /** Diagnostics (smoke test / bug reports): uploads seen and why meshes were not sorted. */
+    private static long seenUploads;
+    private static long rejectedFormat;
+    private static long rejectedOther;
+    private static long routedDraws;
+    private static long plannedDraws;
+
     private TerrainRenderer() {
     }
 
@@ -103,15 +110,18 @@ public final class TerrainRenderer {
      */
     public static void beforeUpload(final BufferBuilder buffer, final BlockRenderLayer layer) {
         pendingLayout = null;
+        seenUploads++;
         if (layer == null || layer == BlockRenderLayer.TRANSLUCENT || !sorting()) {
             return;
         }
         if (buffer.getDrawMode() != GL11.GL_QUADS || buffer.getVertexFormat() != DefaultVertexFormats.BLOCK
                 || DefaultVertexFormats.BLOCK.getSize() != CompactTerrain.SOURCE_STRIDE_NO_NORMAL) {
+            rejectedFormat++;
             return;
         }
         final int vertices = buffer.getVertexCount();
         if (vertices <= 0 || (vertices & 3) != 0) {
+            rejectedOther++;
             return;
         }
         final ByteBuffer data = buffer.getByteBuffer().duplicate();
@@ -144,6 +154,7 @@ public final class TerrainRenderer {
 
     /** Replaces {@code vertexBuffer.drawArrays(GL_QUADS)} for one chunk at {@code origin}. */
     public static void draw(final VertexBuffer buffer, final int mode, final BlockPos origin) {
+        routedDraws++;
         if (origin != null && (fogLayer || SectionCull.layerOn())) {
             try {
                 if (fogLayer && beyondFog(origin)) {
@@ -155,6 +166,7 @@ public final class TerrainRenderer {
                     final CompactTerrain.Layout layout = sorted.aetherium$layout();
                     final int count = sorted.aetherium$count();
                     if (layout != null && (count & 3) == 0) {
+                        plannedDraws++;
                         final int plan = SectionCull.plan(layout, origin.getX(), origin.getY(), origin.getZ(),
                                 count / 4 * 6);
                         if (plan == SectionCull.SKIP) {
@@ -209,6 +221,11 @@ public final class TerrainRenderer {
     }
 
     // ------------------------------------------------------------------ status
+
+    public static String diagnostics() {
+        return "uploads seen " + seenUploads + ", wrong format " + rejectedFormat + ", empty/odd " + rejectedOther
+                + ", chunk draws routed " + routedDraws + ", planned from a sorted layout " + plannedDraws;
+    }
 
     public static boolean isDrawing() {
         return drewLastFrame && enabled() && !SectionCull.hasFailed();

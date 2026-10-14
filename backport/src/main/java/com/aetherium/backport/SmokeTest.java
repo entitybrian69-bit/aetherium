@@ -77,6 +77,7 @@ public final class SmokeTest {
         switch (this.stage) {
             case 0:
                 if (mc.currentScreen instanceof GuiMainMenu) {
+                    mc.gameSettings.pauseOnLostFocus = false;
                     this.wait = 40;
                     this.stage = 1;
                 }
@@ -89,6 +90,9 @@ public final class SmokeTest {
                 this.stage = 2;
                 break;
             case 2:
+                if (mc.world != null && mc.player != null && mc.currentScreen instanceof net.minecraft.client.gui.GuiIngameMenu) {
+                    mc.displayGuiScreen(null);
+                }
                 if (mc.world != null && mc.player != null && mc.currentScreen == null) {
                     note("world joined");
                     mc.player.rotationPitch = 10.0f;
@@ -97,11 +101,38 @@ public final class SmokeTest {
                 }
                 break;
             case 3:
+                if (mc.currentScreen != null) {
+                    mc.displayGuiScreen(null);
+                    this.wait = 20;
+                    break;
+                }
                 shot(mc, "02-world");
+                note("player at " + mc.player.getPosition() + ", " + mc.renderGlobal.getDebugInfoRenders());
+                note("terrain: " + TerrainRenderer.diagnostics());
                 note(String.format(Locale.ROOT, "fps=%.1f frame=%.2fms p99=%.2fms",
                         Aetherium.frameStats().getFps(), Aetherium.frameStats().getFrameMs(),
                         Aetherium.frameStats().getP99Ms()));
                 note("renderer: " + TerrainRenderer.statusText());
+                // A/B: the same view drawn by vanilla.
+                com.aetherium.Aetherium.config().aetheriumRenderer.set(Boolean.FALSE);
+                com.aetherium.Aetherium.refreshState();
+                com.aetherium.client.VanillaOptions.reloadChunks();
+                this.wait = 200;
+                this.stage = 30;
+                break;
+            case 30:
+                shot(mc, "02-world-vanilla");
+                note("vanilla: " + mc.renderGlobal.getDebugInfoRenders());
+                com.aetherium.Aetherium.config().aetheriumRenderer.set(Boolean.TRUE);
+                com.aetherium.Aetherium.refreshState();
+                com.aetherium.client.VanillaOptions.reloadChunks();
+                this.wait = 200;
+                this.stage = 31;
+                break;
+            case 31:
+                shot(mc, "02-world-again");
+                note("renderer again: " + TerrainRenderer.statusText() + " | " + mc.renderGlobal.getDebugInfoRenders());
+                note("terrain: " + TerrainRenderer.diagnostics());
                 mc.displayGuiScreen(new GuiVideoSettings(new GuiOptions(null, mc.gameSettings), mc.gameSettings));
                 this.wait = TAB_TICKS;
                 this.stage = 4;
