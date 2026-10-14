@@ -1,0 +1,687 @@
+Compiled from "Block.java"
+public class net.minecraft.block.Block extends net.minecraftforge.registries.IForgeRegistryEntry$Impl<net.minecraft.block.Block> {
+  private static final net.minecraft.util.ResourceLocation AIR_ID;
+    descriptor: Lnet/minecraft/util/ResourceLocation;
+  public static final net.minecraft.util.registry.RegistryNamespacedDefaultedByKey<net.minecraft.util.ResourceLocation, net.minecraft.block.Block> REGISTRY;
+    descriptor: Lnet/minecraft/util/registry/RegistryNamespacedDefaultedByKey;
+  public static final net.minecraft.util.ObjectIntIdentityMap<net.minecraft.block.state.IBlockState> BLOCK_STATE_IDS;
+    descriptor: Lnet/minecraft/util/ObjectIntIdentityMap;
+  public static final net.minecraft.util.math.AxisAlignedBB FULL_BLOCK_AABB;
+    descriptor: Lnet/minecraft/util/math/AxisAlignedBB;
+  public static final net.minecraft.util.math.AxisAlignedBB NULL_AABB;
+    descriptor: Lnet/minecraft/util/math/AxisAlignedBB;
+  private net.minecraft.creativetab.CreativeTabs displayOnCreativeTab;
+    descriptor: Lnet/minecraft/creativetab/CreativeTabs;
+  protected boolean fullBlock;
+    descriptor: Z
+  protected int lightOpacity;
+    descriptor: I
+  protected boolean translucent;
+    descriptor: Z
+  protected int lightValue;
+    descriptor: I
+  protected boolean useNeighborBrightness;
+    descriptor: Z
+  protected float blockHardness;
+    descriptor: F
+  protected float blockResistance;
+    descriptor: F
+  protected boolean enableStats;
+    descriptor: Z
+  protected boolean needsRandomTick;
+    descriptor: Z
+  protected boolean hasTileEntity;
+    descriptor: Z
+  protected net.minecraft.block.SoundType blockSoundType;
+    descriptor: Lnet/minecraft/block/SoundType;
+  public float blockParticleGravity;
+    descriptor: F
+  protected final net.minecraft.block.material.Material material;
+    descriptor: Lnet/minecraft/block/material/Material;
+  protected final net.minecraft.block.material.MapColor blockMapColor;
+    descriptor: Lnet/minecraft/block/material/MapColor;
+  public float slipperiness;
+    descriptor: F
+  protected final net.minecraft.block.state.BlockStateContainer blockState;
+    descriptor: Lnet/minecraft/block/state/BlockStateContainer;
+  private net.minecraft.block.state.IBlockState defaultBlockState;
+    descriptor: Lnet/minecraft/block/state/IBlockState;
+  private java.lang.String translationKey;
+    descriptor: Ljava/lang/String;
+  protected java.lang.ThreadLocal<net.minecraft.entity.player.EntityPlayer> harvesters;
+    descriptor: Ljava/lang/ThreadLocal;
+  private java.lang.ThreadLocal<net.minecraft.block.state.IBlockState> silk_check_state;
+    descriptor: Ljava/lang/ThreadLocal;
+  protected static java.util.Random RANDOM;
+    descriptor: Ljava/util/Random;
+  private boolean isTileProvider;
+    descriptor: Z
+  private java.lang.String[] harvestTool;
+    descriptor: [Ljava/lang/String;
+  private int[] harvestLevel;
+    descriptor: [I
+  protected static java.lang.ThreadLocal<java.lang.Boolean> captureDrops;
+    descriptor: Ljava/lang/ThreadLocal;
+  protected static java.lang.ThreadLocal<net.minecraft.util.NonNullList<net.minecraft.item.ItemStack>> capturedDrops;
+    descriptor: Ljava/lang/ThreadLocal;
+  public static int getIdFromBlock(net.minecraft.block.Block);
+    descriptor: (Lnet/minecraft/block/Block;)I
+
+  public static int getStateId(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)I
+
+  public static net.minecraft.block.Block getBlockById(int);
+    descriptor: (I)Lnet/minecraft/block/Block;
+
+  public static net.minecraft.block.state.IBlockState getStateById(int);
+    descriptor: (I)Lnet/minecraft/block/state/IBlockState;
+
+  public static net.minecraft.block.Block getBlockFromItem(net.minecraft.item.Item);
+    descriptor: (Lnet/minecraft/item/Item;)Lnet/minecraft/block/Block;
+
+  public static net.minecraft.block.Block getBlockFromName(java.lang.String);
+    descriptor: (Ljava/lang/String;)Lnet/minecraft/block/Block;
+
+  public boolean isTopSolid(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public boolean isFullBlock(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public boolean canEntitySpawn(net.minecraft.block.state.IBlockState, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/Entity;)Z
+
+  public int getLightOpacity(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)I
+
+  public boolean isTranslucent(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public int getLightValue(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)I
+
+  public boolean getUseNeighborBrightness(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public net.minecraft.block.material.Material getMaterial(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Lnet/minecraft/block/material/Material;
+
+  public net.minecraft.block.material.MapColor getMapColor(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/material/MapColor;
+
+  public net.minecraft.block.state.IBlockState getStateFromMeta(int);
+    descriptor: (I)Lnet/minecraft/block/state/IBlockState;
+
+  public int getMetaFromState(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)I
+
+  public net.minecraft.block.state.IBlockState getActualState(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/state/IBlockState;
+
+  public net.minecraft.block.state.IBlockState withRotation(net.minecraft.block.state.IBlockState, net.minecraft.util.Rotation);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/Rotation;)Lnet/minecraft/block/state/IBlockState;
+
+  public net.minecraft.block.state.IBlockState withMirror(net.minecraft.block.state.IBlockState, net.minecraft.util.Mirror);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/Mirror;)Lnet/minecraft/block/state/IBlockState;
+
+  public net.minecraft.block.Block(net.minecraft.block.material.Material, net.minecraft.block.material.MapColor);
+    descriptor: (Lnet/minecraft/block/material/Material;Lnet/minecraft/block/material/MapColor;)V
+
+  public net.minecraft.block.Block(net.minecraft.block.material.Material);
+    descriptor: (Lnet/minecraft/block/material/Material;)V
+
+  protected net.minecraft.block.Block setSoundType(net.minecraft.block.SoundType);
+    descriptor: (Lnet/minecraft/block/SoundType;)Lnet/minecraft/block/Block;
+
+  public net.minecraft.block.Block setLightOpacity(int);
+    descriptor: (I)Lnet/minecraft/block/Block;
+
+  public net.minecraft.block.Block setLightLevel(float);
+    descriptor: (F)Lnet/minecraft/block/Block;
+
+  public net.minecraft.block.Block setResistance(float);
+    descriptor: (F)Lnet/minecraft/block/Block;
+
+  protected static boolean isExceptionBlockForAttaching(net.minecraft.block.Block);
+    descriptor: (Lnet/minecraft/block/Block;)Z
+
+  protected static boolean isExceptBlockForAttachWithPiston(net.minecraft.block.Block);
+    descriptor: (Lnet/minecraft/block/Block;)Z
+
+  public boolean isBlockNormalCube(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public boolean isNormalCube(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public boolean causesSuffocation(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public boolean isFullCube(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public boolean hasCustomBreakingProgress(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public boolean isPassable(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public net.minecraft.util.EnumBlockRenderType getRenderType(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Lnet/minecraft/util/EnumBlockRenderType;
+
+  public boolean isReplaceable(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public net.minecraft.block.Block setHardness(float);
+    descriptor: (F)Lnet/minecraft/block/Block;
+
+  public net.minecraft.block.Block setBlockUnbreakable();
+    descriptor: ()Lnet/minecraft/block/Block;
+
+  public float getBlockHardness(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)F
+
+  public net.minecraft.block.Block setTickRandomly(boolean);
+    descriptor: (Z)Lnet/minecraft/block/Block;
+
+  public boolean getTickRandomly();
+    descriptor: ()Z
+
+  public boolean hasTileEntity();
+    descriptor: ()Z
+
+  public net.minecraft.util.math.AxisAlignedBB getBoundingBox(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/math/AxisAlignedBB;
+
+  public int getPackedLightmapCoords(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)I
+
+  public boolean shouldSideBeRendered(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public net.minecraft.block.state.BlockFaceShape getBlockFaceShape(net.minecraft.world.IBlockAccess, net.minecraft.block.state.IBlockState, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Lnet/minecraft/block/state/BlockFaceShape;
+
+  public void addCollisionBoxToList(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.math.AxisAlignedBB, java.util.List<net.minecraft.util.math.AxisAlignedBB>, net.minecraft.entity.Entity, boolean);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/AxisAlignedBB;Ljava/util/List;Lnet/minecraft/entity/Entity;Z)V
+
+  protected static void addCollisionBoxToList(net.minecraft.util.math.BlockPos, net.minecraft.util.math.AxisAlignedBB, java.util.List<net.minecraft.util.math.AxisAlignedBB>, net.minecraft.util.math.AxisAlignedBB);
+    descriptor: (Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/AxisAlignedBB;Ljava/util/List;Lnet/minecraft/util/math/AxisAlignedBB;)V
+
+  public net.minecraft.util.math.AxisAlignedBB getCollisionBoundingBox(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/math/AxisAlignedBB;
+
+  public net.minecraft.util.math.AxisAlignedBB getSelectedBoundingBox(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/math/AxisAlignedBB;
+
+  public boolean isOpaqueCube(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public boolean canCollideCheck(net.minecraft.block.state.IBlockState, boolean);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Z)Z
+
+  public boolean isCollidable();
+    descriptor: ()Z
+
+  public void randomTick(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, java.util.Random);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Ljava/util/Random;)V
+
+  public void updateTick(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, java.util.Random);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Ljava/util/Random;)V
+
+  public void randomDisplayTick(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, java.util.Random);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Ljava/util/Random;)V
+
+  public void onPlayerDestroy(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)V
+
+  public void neighborChanged(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.Block, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/Block;Lnet/minecraft/util/math/BlockPos;)V
+
+  public int tickRate(net.minecraft.world.World);
+    descriptor: (Lnet/minecraft/world/World;)I
+
+  public void onBlockAdded(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)V
+
+  public void breakBlock(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)V
+
+  public int quantityDropped(java.util.Random);
+    descriptor: (Ljava/util/Random;)I
+
+  public net.minecraft.item.Item getItemDropped(net.minecraft.block.state.IBlockState, java.util.Random, int);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Ljava/util/Random;I)Lnet/minecraft/item/Item;
+
+  public float getPlayerRelativeBlockHardness(net.minecraft.block.state.IBlockState, net.minecraft.entity.player.EntityPlayer, net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)F
+
+  public final void dropBlockAsItem(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, int);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;I)V
+
+  public void dropBlockAsItemWithChance(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, float, int);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;FI)V
+
+  public static void spawnAsEntity(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.item.ItemStack);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/item/ItemStack;)V
+
+  public void dropXpOnBlockBreak(net.minecraft.world.World, net.minecraft.util.math.BlockPos, int);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;I)V
+
+  public int damageDropped(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)I
+
+  public float getExplosionResistance(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)F
+
+  public net.minecraft.util.math.RayTraceResult collisionRayTrace(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.math.Vec3d, net.minecraft.util.math.Vec3d);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/util/math/RayTraceResult;
+
+  protected net.minecraft.util.math.RayTraceResult rayTrace(net.minecraft.util.math.BlockPos, net.minecraft.util.math.Vec3d, net.minecraft.util.math.Vec3d, net.minecraft.util.math.AxisAlignedBB);
+    descriptor: (Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/AxisAlignedBB;)Lnet/minecraft/util/math/RayTraceResult;
+
+  public void onExplosionDestroy(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.world.Explosion);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/Explosion;)V
+
+  public net.minecraft.util.BlockRenderLayer getRenderLayer();
+    descriptor: ()Lnet/minecraft/util/BlockRenderLayer;
+
+  public boolean canPlaceBlockOnSide(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public boolean canPlaceBlockAt(net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean onBlockActivated(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.entity.player.EntityPlayer, net.minecraft.util.EnumHand, net.minecraft.util.EnumFacing, float, float, float);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/util/EnumHand;Lnet/minecraft/util/EnumFacing;FFF)Z
+
+  public void onEntityWalk(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)V
+
+  public net.minecraft.block.state.IBlockState getStateForPlacement(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing, float, float, float, int, net.minecraft.entity.EntityLivingBase);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;FFFILnet/minecraft/entity/EntityLivingBase;)Lnet/minecraft/block/state/IBlockState;
+
+  public void onBlockClicked(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/EntityPlayer;)V
+
+  public net.minecraft.util.math.Vec3d modifyAcceleration(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity, net.minecraft.util.math.Vec3d);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/util/math/Vec3d;
+
+  public int getWeakPower(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)I
+
+  public boolean canProvidePower(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public void onEntityCollision(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/Entity;)V
+
+  public int getStrongPower(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)I
+
+  public void harvestBlock(net.minecraft.world.World, net.minecraft.entity.player.EntityPlayer, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.tileentity.TileEntity, net.minecraft.item.ItemStack);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/tileentity/TileEntity;Lnet/minecraft/item/ItemStack;)V
+
+  protected boolean canSilkHarvest();
+    descriptor: ()Z
+
+  protected net.minecraft.item.ItemStack getSilkTouchDrop(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Lnet/minecraft/item/ItemStack;
+
+  public int quantityDroppedWithBonus(int, java.util.Random);
+    descriptor: (ILjava/util/Random;)I
+
+  public void onBlockPlacedBy(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.entity.EntityLivingBase, net.minecraft.item.ItemStack);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/item/ItemStack;)V
+
+  public boolean canSpawnInBlock();
+    descriptor: ()Z
+
+  public net.minecraft.block.Block setTranslationKey(java.lang.String);
+    descriptor: (Ljava/lang/String;)Lnet/minecraft/block/Block;
+
+  public java.lang.String getLocalizedName();
+    descriptor: ()Ljava/lang/String;
+
+  public java.lang.String getTranslationKey();
+    descriptor: ()Ljava/lang/String;
+
+  public boolean eventReceived(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, int, int);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;II)Z
+
+  public boolean getEnableStats();
+    descriptor: ()Z
+
+  protected net.minecraft.block.Block disableStats();
+    descriptor: ()Lnet/minecraft/block/Block;
+
+  public net.minecraft.block.material.EnumPushReaction getPushReaction(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Lnet/minecraft/block/material/EnumPushReaction;
+
+  public float getAmbientOcclusionLightValue(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)F
+
+  public void onFallenUpon(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity, float);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;F)V
+
+  public void onLanded(net.minecraft.world.World, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/entity/Entity;)V
+
+  public net.minecraft.item.ItemStack getItem(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)Lnet/minecraft/item/ItemStack;
+
+  public void getSubBlocks(net.minecraft.creativetab.CreativeTabs, net.minecraft.util.NonNullList<net.minecraft.item.ItemStack>);
+    descriptor: (Lnet/minecraft/creativetab/CreativeTabs;Lnet/minecraft/util/NonNullList;)V
+
+  public net.minecraft.creativetab.CreativeTabs getCreativeTab();
+    descriptor: ()Lnet/minecraft/creativetab/CreativeTabs;
+
+  public net.minecraft.block.Block setCreativeTab(net.minecraft.creativetab.CreativeTabs);
+    descriptor: (Lnet/minecraft/creativetab/CreativeTabs;)Lnet/minecraft/block/Block;
+
+  public void onBlockHarvested(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/player/EntityPlayer;)V
+
+  public void fillWithRain(net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)V
+
+  public boolean requiresUpdates();
+    descriptor: ()Z
+
+  public boolean canDropFromExplosion(net.minecraft.world.Explosion);
+    descriptor: (Lnet/minecraft/world/Explosion;)Z
+
+  public boolean isAssociatedBlock(net.minecraft.block.Block);
+    descriptor: (Lnet/minecraft/block/Block;)Z
+
+  public static boolean isEqualTo(net.minecraft.block.Block, net.minecraft.block.Block);
+    descriptor: (Lnet/minecraft/block/Block;Lnet/minecraft/block/Block;)Z
+
+  public boolean hasComparatorInputOverride(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public int getComparatorInputOverride(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)I
+
+  protected net.minecraft.block.state.BlockStateContainer createBlockState();
+    descriptor: ()Lnet/minecraft/block/state/BlockStateContainer;
+
+  public net.minecraft.block.state.BlockStateContainer getBlockState();
+    descriptor: ()Lnet/minecraft/block/state/BlockStateContainer;
+
+  protected final void setDefaultState(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)V
+
+  public final net.minecraft.block.state.IBlockState getDefaultState();
+    descriptor: ()Lnet/minecraft/block/state/IBlockState;
+
+  public net.minecraft.block.Block$EnumOffsetType getOffsetType();
+    descriptor: ()Lnet/minecraft/block/Block$EnumOffsetType;
+
+  public net.minecraft.util.math.Vec3d getOffset(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/math/Vec3d;
+
+  public net.minecraft.block.SoundType getSoundType();
+    descriptor: ()Lnet/minecraft/block/SoundType;
+
+  public java.lang.String toString();
+    descriptor: ()Ljava/lang/String;
+
+  public void addInformation(net.minecraft.item.ItemStack, net.minecraft.world.World, java.util.List<java.lang.String>, net.minecraft.client.util.ITooltipFlag);
+    descriptor: (Lnet/minecraft/item/ItemStack;Lnet/minecraft/world/World;Ljava/util/List;Lnet/minecraft/client/util/ITooltipFlag;)V
+
+  public float getSlipperiness(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)F
+
+  public void setDefaultSlipperiness(float);
+    descriptor: (F)V
+
+  public int getLightValue(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)I
+
+  public boolean isLadder(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.EntityLivingBase);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/EntityLivingBase;)Z
+
+  public boolean isNormalCube(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean doesSideBlockRendering(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public boolean isSideSolid(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public boolean isBurning(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean isAir(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean canHarvestBlock(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/EntityPlayer;)Z
+
+  public boolean removedByPlayer(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.player.EntityPlayer, boolean);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/EntityPlayer;Z)Z
+
+  public int getFlammability(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)I
+
+  public boolean isFlammable(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public int getFireSpreadSpeed(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)I
+
+  public boolean isFireSource(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public boolean hasTileEntity(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public net.minecraft.tileentity.TileEntity createTileEntity(net.minecraft.world.World, net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/block/state/IBlockState;)Lnet/minecraft/tileentity/TileEntity;
+
+  public int quantityDropped(net.minecraft.block.state.IBlockState, int, java.util.Random);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;ILjava/util/Random;)I
+
+  public java.util.List<net.minecraft.item.ItemStack> getDrops(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, int);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;I)Ljava/util/List;
+
+  public void getDrops(net.minecraft.util.NonNullList<net.minecraft.item.ItemStack>, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, int);
+    descriptor: (Lnet/minecraft/util/NonNullList;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;I)V
+
+  public boolean canSilkHarvest(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/player/EntityPlayer;)Z
+
+  public boolean canCreatureSpawn(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.EntityLiving$SpawnPlacementType);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/EntityLiving$SpawnPlacementType;)Z
+
+  public boolean isBed(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)Z
+
+  public net.minecraft.util.math.BlockPos getBedSpawnPosition(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/EntityPlayer;)Lnet/minecraft/util/math/BlockPos;
+
+  public void setBedOccupied(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.player.EntityPlayer, boolean);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/EntityPlayer;Z)V
+
+  public net.minecraft.util.EnumFacing getBedDirection(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/EnumFacing;
+
+  public boolean isBedFoot(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public void beginLeavesDecay(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)V
+
+  public boolean canSustainLeaves(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean isLeaves(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean canBeReplacedByLeaves(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean isWood(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean isReplaceableOreGen(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, com.google.common.base.Predicate<net.minecraft.block.state.IBlockState>);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lcom/google/common/base/Predicate;)Z
+
+  public float getExplosionResistance(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity, net.minecraft.world.Explosion);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;Lnet/minecraft/world/Explosion;)F
+
+  public void onBlockExploded(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.world.Explosion);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/Explosion;)V
+
+  public boolean canConnectRedstone(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public boolean canPlaceTorchOnTop(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public net.minecraft.item.ItemStack getPickBlock(net.minecraft.block.state.IBlockState, net.minecraft.util.math.RayTraceResult, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/RayTraceResult;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/EntityPlayer;)Lnet/minecraft/item/ItemStack;
+
+  public boolean isFoliage(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean addLandingEffects(net.minecraft.block.state.IBlockState, net.minecraft.world.WorldServer, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.entity.EntityLivingBase, int);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/WorldServer;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/EntityLivingBase;I)Z
+
+  public boolean addRunningEffects(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)Z
+
+  public boolean addHitEffects(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.RayTraceResult, net.minecraft.client.particle.ParticleManager);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/RayTraceResult;Lnet/minecraft/client/particle/ParticleManager;)Z
+
+  public boolean addDestroyEffects(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.client.particle.ParticleManager);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/particle/ParticleManager;)Z
+
+  public boolean canSustainPlant(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing, net.minecraftforge.common.IPlantable);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;Lnet/minecraftforge/common/IPlantable;)Z
+
+  public void onPlantGrow(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/BlockPos;)V
+
+  public boolean isFertile(net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public int getLightOpacity(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)I
+
+  public boolean canEntityDestroy(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)Z
+
+  public boolean isBeaconBase(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public boolean rotateBlock(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public net.minecraft.util.EnumFacing[] getValidRotations(net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)[Lnet/minecraft/util/EnumFacing;
+
+  public float getEnchantPowerBonus(net.minecraft.world.World, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)F
+
+  public boolean recolorBlock(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing, net.minecraft.item.EnumDyeColor);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;Lnet/minecraft/item/EnumDyeColor;)Z
+
+  public int getExpDrop(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, int);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;I)I
+
+  public void onNeighborChange(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/BlockPos;)V
+
+  public void observedNeighborChange(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.Block, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/Block;Lnet/minecraft/util/math/BlockPos;)V
+
+  public boolean shouldCheckWeakPower(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public boolean getWeakChanges(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Z
+
+  public void setHarvestLevel(java.lang.String, int);
+    descriptor: (Ljava/lang/String;I)V
+
+  public void setHarvestLevel(java.lang.String, int, net.minecraft.block.state.IBlockState);
+    descriptor: (Ljava/lang/String;ILnet/minecraft/block/state/IBlockState;)V
+
+  public java.lang.String getHarvestTool(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Ljava/lang/String;
+
+  public int getHarvestLevel(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)I
+
+  public boolean isToolEffective(java.lang.String, net.minecraft.block.state.IBlockState);
+    descriptor: (Ljava/lang/String;Lnet/minecraft/block/state/IBlockState;)Z
+
+  public net.minecraft.block.state.IBlockState getExtendedState(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/state/IBlockState;
+
+  public java.lang.Boolean isEntityInsideMaterial(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.entity.Entity, double, net.minecraft.block.material.Material, boolean);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/Entity;DLnet/minecraft/block/material/Material;Z)Ljava/lang/Boolean;
+
+  public java.lang.Boolean isAABBInsideMaterial(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.math.AxisAlignedBB, net.minecraft.block.material.Material);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/AxisAlignedBB;Lnet/minecraft/block/material/Material;)Ljava/lang/Boolean;
+
+  public java.lang.Boolean isAABBInsideLiquid(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.math.AxisAlignedBB);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/AxisAlignedBB;)Ljava/lang/Boolean;
+
+  public float getBlockLiquidHeight(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.block.material.Material);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/block/material/Material;)F
+
+  public boolean canRenderInLayer(net.minecraft.block.state.IBlockState, net.minecraft.util.BlockRenderLayer);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/BlockRenderLayer;)Z
+
+  protected net.minecraft.util.NonNullList<net.minecraft.item.ItemStack> captureDrops(boolean);
+    descriptor: (Z)Lnet/minecraft/util/NonNullList;
+
+  public net.minecraft.block.SoundType getSoundType(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)Lnet/minecraft/block/SoundType;
+
+  public float[] getBeaconColorMultiplier(net.minecraft.block.state.IBlockState, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/BlockPos;)[F
+
+  public net.minecraft.util.math.Vec3d getFogColor(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, net.minecraft.entity.Entity, net.minecraft.util.math.Vec3d, float);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;F)Lnet/minecraft/util/math/Vec3d;
+
+  public net.minecraft.block.state.IBlockState getStateAtViewpoint(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.math.Vec3d);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/block/state/IBlockState;
+
+  public net.minecraft.block.state.IBlockState getStateForPlacement(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing, float, float, float, int, net.minecraft.entity.EntityLivingBase, net.minecraft.util.EnumHand);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;FFFILnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/util/EnumHand;)Lnet/minecraft/block/state/IBlockState;
+
+  public boolean canBeConnectedTo(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public net.minecraft.pathfinding.PathNodeType getAiPathNodeType(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/pathfinding/PathNodeType;
+
+  public net.minecraft.pathfinding.PathNodeType getAiPathNodeType(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.entity.EntityLiving);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/EntityLiving;)Lnet/minecraft/pathfinding/PathNodeType;
+
+  public boolean doesSideBlockChestOpening(net.minecraft.block.state.IBlockState, net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z
+
+  public boolean isStickyBlock(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)Z
+
+  public static void registerBlocks();
+    descriptor: ()V
+
+  private static void registerBlock(int, net.minecraft.util.ResourceLocation, net.minecraft.block.Block);
+    descriptor: (ILnet/minecraft/util/ResourceLocation;Lnet/minecraft/block/Block;)V
+
+  private static void registerBlock(int, java.lang.String, net.minecraft.block.Block);
+    descriptor: (ILjava/lang/String;Lnet/minecraft/block/Block;)V
+
+  private static java.lang.Boolean lambda$static$0();
+    descriptor: ()Ljava/lang/Boolean;
+
+  static {};
+    descriptor: ()V
+}

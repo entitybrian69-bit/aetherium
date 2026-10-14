@@ -1,0 +1,108 @@
+Compiled from "ChunkRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher {
+  private static final org.apache.logging.log4j.Logger LOGGER;
+    descriptor: Lorg/apache/logging/log4j/Logger;
+  private static final int MAX_WORKERS_32_BIT;
+    descriptor: I
+  private static final com.mojang.blaze3d.vertex.VertexFormat VERTEX_FORMAT;
+    descriptor: Lcom/mojang/blaze3d/vertex/VertexFormat;
+  private final java.util.PriorityQueue<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask> toBatch;
+    descriptor: Ljava/util/PriorityQueue;
+  private final java.util.Queue<net.minecraft.client.renderer.ChunkBufferBuilderPack> freeBuffers;
+    descriptor: Ljava/util/Queue;
+  private final java.util.Queue<java.lang.Runnable> toUpload;
+    descriptor: Ljava/util/Queue;
+  private volatile int toBatchCount;
+    descriptor: I
+  private volatile int freeBufferCount;
+    descriptor: I
+  final net.minecraft.client.renderer.ChunkBufferBuilderPack fixedBuffers;
+    descriptor: Lnet/minecraft/client/renderer/ChunkBufferBuilderPack;
+  private final net.minecraft.util.thread.ProcessorMailbox<java.lang.Runnable> mailbox;
+    descriptor: Lnet/minecraft/util/thread/ProcessorMailbox;
+  private final java.util.concurrent.Executor executor;
+    descriptor: Ljava/util/concurrent/Executor;
+  net.minecraft.world.level.Level level;
+    descriptor: Lnet/minecraft/world/level/Level;
+  final net.minecraft.client.renderer.LevelRenderer renderer;
+    descriptor: Lnet/minecraft/client/renderer/LevelRenderer;
+  private net.minecraft.world.phys.Vec3 camera;
+    descriptor: Lnet/minecraft/world/phys/Vec3;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(net.minecraft.world.level.Level, net.minecraft.client.renderer.LevelRenderer, java.util.concurrent.Executor, boolean, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+    descriptor: (Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V
+
+  public void setLevel(net.minecraft.world.level.Level);
+    descriptor: (Lnet/minecraft/world/level/Level;)V
+
+  private void runTask();
+    descriptor: ()V
+
+  public java.lang.String getStats();
+    descriptor: ()Ljava/lang/String;
+
+  public int getToBatchCount();
+    descriptor: ()I
+
+  public int getToUpload();
+    descriptor: ()I
+
+  public int getFreeBufferCount();
+    descriptor: ()I
+
+  public void setCamera(net.minecraft.world.phys.Vec3);
+    descriptor: (Lnet/minecraft/world/phys/Vec3;)V
+
+  public net.minecraft.world.phys.Vec3 getCameraPosition();
+    descriptor: ()Lnet/minecraft/world/phys/Vec3;
+
+  public boolean uploadAllPendingUploads();
+    descriptor: ()Z
+
+  public void rebuildChunkSync(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;)V
+
+  public void blockUntilClear();
+    descriptor: ()V
+
+  public void schedule(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask;)V
+
+  public java.util.concurrent.CompletableFuture<java.lang.Void> uploadChunkLayer(com.mojang.blaze3d.vertex.BufferBuilder, com.mojang.blaze3d.vertex.VertexBuffer);
+    descriptor: (Lcom/mojang/blaze3d/vertex/BufferBuilder;Lcom/mojang/blaze3d/vertex/VertexBuffer;)Ljava/util/concurrent/CompletableFuture;
+
+  private java.util.concurrent.CompletableFuture<java.lang.Void> doUploadChunkLayer(com.mojang.blaze3d.vertex.BufferBuilder, com.mojang.blaze3d.vertex.VertexBuffer);
+    descriptor: (Lcom/mojang/blaze3d/vertex/BufferBuilder;Lcom/mojang/blaze3d/vertex/VertexBuffer;)Ljava/util/concurrent/CompletableFuture;
+
+  private void clearBatchQueue();
+    descriptor: ()V
+
+  public boolean isQueueEmpty();
+    descriptor: ()Z
+
+  public void dispose();
+    descriptor: ()V
+
+  private java.util.concurrent.CompletionStage method_22753(com.mojang.blaze3d.vertex.BufferBuilder, com.mojang.blaze3d.vertex.VertexBuffer, java.lang.Void);
+    descriptor: (Lcom/mojang/blaze3d/vertex/BufferBuilder;Lcom/mojang/blaze3d/vertex/VertexBuffer;Ljava/lang/Void;)Ljava/util/concurrent/CompletionStage;
+
+  private static void method_22764();
+    descriptor: ()V
+
+  private void method_23086(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask;)V
+
+  private void method_22755(net.minecraft.client.renderer.ChunkBufferBuilderPack, net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, java.lang.Throwable);
+    descriptor: (Lnet/minecraft/client/renderer/ChunkBufferBuilderPack;Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$ChunkTaskResult;Ljava/lang/Throwable;)V
+
+  private void method_23618(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$ChunkTaskResult, net.minecraft.client.renderer.ChunkBufferBuilderPack);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$ChunkTaskResult;Lnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V
+
+  private static java.util.concurrent.CompletionStage method_22757(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$ChunkCompileTask, net.minecraft.client.renderer.ChunkBufferBuilderPack, java.lang.Void);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$ChunkCompileTask;Lnet/minecraft/client/renderer/ChunkBufferBuilderPack;Ljava/lang/Void;)Ljava/util/concurrent/CompletionStage;
+
+  private static void method_22765();
+    descriptor: ()V
+
+  static {};
+    descriptor: ()V
+}

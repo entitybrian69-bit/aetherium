@@ -1,0 +1,959 @@
+Compiled from "Entity.java"
+public abstract class net.minecraft.entity.Entity implements net.minecraft.command.ICommandSender, net.minecraftforge.common.capabilities.ICapabilitySerializable<net.minecraft.nbt.NBTTagCompound> {
+  private static final org.apache.logging.log4j.Logger LOGGER;
+    descriptor: Lorg/apache/logging/log4j/Logger;
+  private static final java.util.List<net.minecraft.item.ItemStack> EMPTY_EQUIPMENT;
+    descriptor: Ljava/util/List;
+  private static final net.minecraft.util.math.AxisAlignedBB ZERO_AABB;
+    descriptor: Lnet/minecraft/util/math/AxisAlignedBB;
+  private static double renderDistanceWeight;
+    descriptor: D
+  private static int nextEntityID;
+    descriptor: I
+  private int entityId;
+    descriptor: I
+  public boolean preventEntitySpawning;
+    descriptor: Z
+  private final java.util.List<net.minecraft.entity.Entity> riddenByEntities;
+    descriptor: Ljava/util/List;
+  protected int rideCooldown;
+    descriptor: I
+  private net.minecraft.entity.Entity ridingEntity;
+    descriptor: Lnet/minecraft/entity/Entity;
+  public boolean forceSpawn;
+    descriptor: Z
+  public net.minecraft.world.World world;
+    descriptor: Lnet/minecraft/world/World;
+  public double prevPosX;
+    descriptor: D
+  public double prevPosY;
+    descriptor: D
+  public double prevPosZ;
+    descriptor: D
+  public double posX;
+    descriptor: D
+  public double posY;
+    descriptor: D
+  public double posZ;
+    descriptor: D
+  public double motionX;
+    descriptor: D
+  public double motionY;
+    descriptor: D
+  public double motionZ;
+    descriptor: D
+  public float rotationYaw;
+    descriptor: F
+  public float rotationPitch;
+    descriptor: F
+  public float prevRotationYaw;
+    descriptor: F
+  public float prevRotationPitch;
+    descriptor: F
+  private net.minecraft.util.math.AxisAlignedBB boundingBox;
+    descriptor: Lnet/minecraft/util/math/AxisAlignedBB;
+  public boolean onGround;
+    descriptor: Z
+  public boolean collidedHorizontally;
+    descriptor: Z
+  public boolean collidedVertically;
+    descriptor: Z
+  public boolean collided;
+    descriptor: Z
+  public boolean velocityChanged;
+    descriptor: Z
+  protected boolean isInWeb;
+    descriptor: Z
+  private boolean isOutsideBorder;
+    descriptor: Z
+  public boolean isDead;
+    descriptor: Z
+  public float width;
+    descriptor: F
+  public float height;
+    descriptor: F
+  public float prevDistanceWalkedModified;
+    descriptor: F
+  public float distanceWalkedModified;
+    descriptor: F
+  public float distanceWalkedOnStepModified;
+    descriptor: F
+  public float fallDistance;
+    descriptor: F
+  private int nextStepDistance;
+    descriptor: I
+  private float nextFlap;
+    descriptor: F
+  public double lastTickPosX;
+    descriptor: D
+  public double lastTickPosY;
+    descriptor: D
+  public double lastTickPosZ;
+    descriptor: D
+  public float stepHeight;
+    descriptor: F
+  public boolean noClip;
+    descriptor: Z
+  public float entityCollisionReduction;
+    descriptor: F
+  protected java.util.Random rand;
+    descriptor: Ljava/util/Random;
+  public int ticksExisted;
+    descriptor: I
+  private int fire;
+    descriptor: I
+  protected boolean inWater;
+    descriptor: Z
+  public int hurtResistantTime;
+    descriptor: I
+  protected boolean firstUpdate;
+    descriptor: Z
+  protected boolean isImmuneToFire;
+    descriptor: Z
+  protected net.minecraft.network.datasync.EntityDataManager dataManager;
+    descriptor: Lnet/minecraft/network/datasync/EntityDataManager;
+  protected static final net.minecraft.network.datasync.DataParameter<java.lang.Byte> FLAGS;
+    descriptor: Lnet/minecraft/network/datasync/DataParameter;
+  private static final net.minecraft.network.datasync.DataParameter<java.lang.Integer> AIR;
+    descriptor: Lnet/minecraft/network/datasync/DataParameter;
+  private static final net.minecraft.network.datasync.DataParameter<java.lang.String> CUSTOM_NAME;
+    descriptor: Lnet/minecraft/network/datasync/DataParameter;
+  private static final net.minecraft.network.datasync.DataParameter<java.lang.Boolean> CUSTOM_NAME_VISIBLE;
+    descriptor: Lnet/minecraft/network/datasync/DataParameter;
+  private static final net.minecraft.network.datasync.DataParameter<java.lang.Boolean> SILENT;
+    descriptor: Lnet/minecraft/network/datasync/DataParameter;
+  private static final net.minecraft.network.datasync.DataParameter<java.lang.Boolean> NO_GRAVITY;
+    descriptor: Lnet/minecraft/network/datasync/DataParameter;
+  public boolean addedToChunk;
+    descriptor: Z
+  public int chunkCoordX;
+    descriptor: I
+  public int chunkCoordY;
+    descriptor: I
+  public int chunkCoordZ;
+    descriptor: I
+  public long serverPosX;
+    descriptor: J
+  public long serverPosY;
+    descriptor: J
+  public long serverPosZ;
+    descriptor: J
+  public boolean ignoreFrustumCheck;
+    descriptor: Z
+  public boolean isAirBorne;
+    descriptor: Z
+  public int timeUntilPortal;
+    descriptor: I
+  protected boolean inPortal;
+    descriptor: Z
+  protected int portalCounter;
+    descriptor: I
+  public int dimension;
+    descriptor: I
+  protected net.minecraft.util.math.BlockPos lastPortalPos;
+    descriptor: Lnet/minecraft/util/math/BlockPos;
+  protected net.minecraft.util.math.Vec3d lastPortalVec;
+    descriptor: Lnet/minecraft/util/math/Vec3d;
+  protected net.minecraft.util.EnumFacing teleportDirection;
+    descriptor: Lnet/minecraft/util/EnumFacing;
+  private boolean invulnerable;
+    descriptor: Z
+  protected java.util.UUID entityUniqueID;
+    descriptor: Ljava/util/UUID;
+  protected java.lang.String cachedUniqueIdString;
+    descriptor: Ljava/lang/String;
+  private final net.minecraft.command.CommandResultStats cmdResultStats;
+    descriptor: Lnet/minecraft/command/CommandResultStats;
+  protected boolean glowing;
+    descriptor: Z
+  private final java.util.Set<java.lang.String> tags;
+    descriptor: Ljava/util/Set;
+  private boolean isPositionDirty;
+    descriptor: Z
+  private final double[] pistonDeltas;
+    descriptor: [D
+  private long pistonDeltasGameTime;
+    descriptor: J
+  public boolean updateBlocked;
+    descriptor: Z
+  private net.minecraft.nbt.NBTTagCompound customEntityData;
+    descriptor: Lnet/minecraft/nbt/NBTTagCompound;
+  public boolean captureDrops;
+    descriptor: Z
+  public java.util.ArrayList<net.minecraft.entity.item.EntityItem> capturedDrops;
+    descriptor: Ljava/util/ArrayList;
+  private net.minecraftforge.common.capabilities.CapabilityDispatcher capabilities;
+    descriptor: Lnet/minecraftforge/common/capabilities/CapabilityDispatcher;
+  private boolean isAddedToWorld;
+    descriptor: Z
+  public net.minecraft.entity.Entity(net.minecraft.world.World);
+    descriptor: (Lnet/minecraft/world/World;)V
+
+  public int getEntityId();
+    descriptor: ()I
+
+  public void setEntityId(int);
+    descriptor: (I)V
+
+  public java.util.Set<java.lang.String> getTags();
+    descriptor: ()Ljava/util/Set;
+
+  public boolean addTag(java.lang.String);
+    descriptor: (Ljava/lang/String;)Z
+
+  public boolean removeTag(java.lang.String);
+    descriptor: (Ljava/lang/String;)Z
+
+  public void onKillCommand();
+    descriptor: ()V
+
+  protected abstract void entityInit();
+    descriptor: ()V
+
+  public net.minecraft.network.datasync.EntityDataManager getDataManager();
+    descriptor: ()Lnet/minecraft/network/datasync/EntityDataManager;
+
+  public boolean equals(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)Z
+
+  public int hashCode();
+    descriptor: ()I
+
+  protected void preparePlayerToSpawn();
+    descriptor: ()V
+
+  public void setDead();
+    descriptor: ()V
+
+  public void setDropItemsWhenDead(boolean);
+    descriptor: (Z)V
+
+  protected void setSize(float, float);
+    descriptor: (FF)V
+
+  protected void setRotation(float, float);
+    descriptor: (FF)V
+
+  public void setPosition(double, double, double);
+    descriptor: (DDD)V
+
+  public void turn(float, float);
+    descriptor: (FF)V
+
+  public void onUpdate();
+    descriptor: ()V
+
+  public void onEntityUpdate();
+    descriptor: ()V
+
+  protected void decrementTimeUntilPortal();
+    descriptor: ()V
+
+  public int getMaxInPortalTime();
+    descriptor: ()I
+
+  protected void setOnFireFromLava();
+    descriptor: ()V
+
+  public void setFire(int);
+    descriptor: (I)V
+
+  public void extinguish();
+    descriptor: ()V
+
+  protected void outOfWorld();
+    descriptor: ()V
+
+  public boolean isOffsetPositionInLiquid(double, double, double);
+    descriptor: (DDD)Z
+
+  private boolean isLiquidPresentInAABB(net.minecraft.util.math.AxisAlignedBB);
+    descriptor: (Lnet/minecraft/util/math/AxisAlignedBB;)Z
+
+  public void move(net.minecraft.entity.MoverType, double, double, double);
+    descriptor: (Lnet/minecraft/entity/MoverType;DDD)V
+
+  public void resetPositionToBB();
+    descriptor: ()V
+
+  protected net.minecraft.util.SoundEvent getSwimSound();
+    descriptor: ()Lnet/minecraft/util/SoundEvent;
+
+  protected net.minecraft.util.SoundEvent getSplashSound();
+    descriptor: ()Lnet/minecraft/util/SoundEvent;
+
+  protected void doBlockCollisions();
+    descriptor: ()V
+
+  protected void onInsideBlock(net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/block/state/IBlockState;)V
+
+  protected void playStepSound(net.minecraft.util.math.BlockPos, net.minecraft.block.Block);
+    descriptor: (Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/Block;)V
+
+  protected float playFlySound(float);
+    descriptor: (F)F
+
+  protected boolean makeFlySound();
+    descriptor: ()Z
+
+  public void playSound(net.minecraft.util.SoundEvent, float, float);
+    descriptor: (Lnet/minecraft/util/SoundEvent;FF)V
+
+  public boolean isSilent();
+    descriptor: ()Z
+
+  public void setSilent(boolean);
+    descriptor: (Z)V
+
+  public boolean hasNoGravity();
+    descriptor: ()Z
+
+  public void setNoGravity(boolean);
+    descriptor: (Z)V
+
+  protected boolean canTriggerWalking();
+    descriptor: ()Z
+
+  protected void updateFallState(double, boolean, net.minecraft.block.state.IBlockState, net.minecraft.util.math.BlockPos);
+    descriptor: (DZLnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)V
+
+  public net.minecraft.util.math.AxisAlignedBB getCollisionBoundingBox();
+    descriptor: ()Lnet/minecraft/util/math/AxisAlignedBB;
+
+  protected void dealFireDamage(int);
+    descriptor: (I)V
+
+  public final boolean isImmuneToFire();
+    descriptor: ()Z
+
+  public void fall(float, float);
+    descriptor: (FF)V
+
+  public boolean isWet();
+    descriptor: ()Z
+
+  public boolean isInWater();
+    descriptor: ()Z
+
+  public boolean isOverWater();
+    descriptor: ()Z
+
+  public boolean handleWaterMovement();
+    descriptor: ()Z
+
+  protected void doWaterSplashEffect();
+    descriptor: ()V
+
+  public void spawnRunningParticles();
+    descriptor: ()V
+
+  protected void createRunningParticles();
+    descriptor: ()V
+
+  public boolean isInsideOfMaterial(net.minecraft.block.material.Material);
+    descriptor: (Lnet/minecraft/block/material/Material;)Z
+
+  public boolean isInLava();
+    descriptor: ()Z
+
+  public void moveRelative(float, float, float, float);
+    descriptor: (FFFF)V
+
+  public int getBrightnessForRender();
+    descriptor: ()I
+
+  public float getBrightness();
+    descriptor: ()F
+
+  public void setWorld(net.minecraft.world.World);
+    descriptor: (Lnet/minecraft/world/World;)V
+
+  public void setPositionAndRotation(double, double, double, float, float);
+    descriptor: (DDDFF)V
+
+  public void moveToBlockPosAndAngles(net.minecraft.util.math.BlockPos, float, float);
+    descriptor: (Lnet/minecraft/util/math/BlockPos;FF)V
+
+  public void setLocationAndAngles(double, double, double, float, float);
+    descriptor: (DDDFF)V
+
+  public float getDistance(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)F
+
+  public double getDistanceSq(double, double, double);
+    descriptor: (DDD)D
+
+  public double getDistanceSq(net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/util/math/BlockPos;)D
+
+  public double getDistanceSqToCenter(net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/util/math/BlockPos;)D
+
+  public double getDistance(double, double, double);
+    descriptor: (DDD)D
+
+  public double getDistanceSq(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)D
+
+  public void onCollideWithPlayer(net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/entity/player/EntityPlayer;)V
+
+  public void applyEntityCollision(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  public void addVelocity(double, double, double);
+    descriptor: (DDD)V
+
+  protected void markVelocityChanged();
+    descriptor: ()V
+
+  public boolean attackEntityFrom(net.minecraft.util.DamageSource, float);
+    descriptor: (Lnet/minecraft/util/DamageSource;F)Z
+
+  public net.minecraft.util.math.Vec3d getLook(float);
+    descriptor: (F)Lnet/minecraft/util/math/Vec3d;
+
+  protected final net.minecraft.util.math.Vec3d getVectorForRotation(float, float);
+    descriptor: (FF)Lnet/minecraft/util/math/Vec3d;
+
+  public net.minecraft.util.math.Vec3d getPositionEyes(float);
+    descriptor: (F)Lnet/minecraft/util/math/Vec3d;
+
+  public net.minecraft.util.math.RayTraceResult rayTrace(double, float);
+    descriptor: (DF)Lnet/minecraft/util/math/RayTraceResult;
+
+  public boolean canBeCollidedWith();
+    descriptor: ()Z
+
+  public boolean canBePushed();
+    descriptor: ()Z
+
+  public void awardKillScore(net.minecraft.entity.Entity, int, net.minecraft.util.DamageSource);
+    descriptor: (Lnet/minecraft/entity/Entity;ILnet/minecraft/util/DamageSource;)V
+
+  public boolean isInRangeToRender3d(double, double, double);
+    descriptor: (DDD)Z
+
+  public boolean isInRangeToRenderDist(double);
+    descriptor: (D)Z
+
+  public boolean writeToNBTAtomically(net.minecraft.nbt.NBTTagCompound);
+    descriptor: (Lnet/minecraft/nbt/NBTTagCompound;)Z
+
+  public boolean writeToNBTOptional(net.minecraft.nbt.NBTTagCompound);
+    descriptor: (Lnet/minecraft/nbt/NBTTagCompound;)Z
+
+  public static void registerFixes(net.minecraft.util.datafix.DataFixer);
+    descriptor: (Lnet/minecraft/util/datafix/DataFixer;)V
+
+  public net.minecraft.nbt.NBTTagCompound writeToNBT(net.minecraft.nbt.NBTTagCompound);
+    descriptor: (Lnet/minecraft/nbt/NBTTagCompound;)Lnet/minecraft/nbt/NBTTagCompound;
+
+  public void readFromNBT(net.minecraft.nbt.NBTTagCompound);
+    descriptor: (Lnet/minecraft/nbt/NBTTagCompound;)V
+
+  protected boolean shouldSetPosAfterLoading();
+    descriptor: ()Z
+
+  protected final java.lang.String getEntityString();
+    descriptor: ()Ljava/lang/String;
+
+  protected abstract void readEntityFromNBT(net.minecraft.nbt.NBTTagCompound);
+    descriptor: (Lnet/minecraft/nbt/NBTTagCompound;)V
+
+  protected abstract void writeEntityToNBT(net.minecraft.nbt.NBTTagCompound);
+    descriptor: (Lnet/minecraft/nbt/NBTTagCompound;)V
+
+  protected net.minecraft.nbt.NBTTagList newDoubleNBTList(double...);
+    descriptor: ([D)Lnet/minecraft/nbt/NBTTagList;
+
+  protected net.minecraft.nbt.NBTTagList newFloatNBTList(float...);
+    descriptor: ([F)Lnet/minecraft/nbt/NBTTagList;
+
+  public net.minecraft.entity.item.EntityItem dropItem(net.minecraft.item.Item, int);
+    descriptor: (Lnet/minecraft/item/Item;I)Lnet/minecraft/entity/item/EntityItem;
+
+  public net.minecraft.entity.item.EntityItem dropItemWithOffset(net.minecraft.item.Item, int, float);
+    descriptor: (Lnet/minecraft/item/Item;IF)Lnet/minecraft/entity/item/EntityItem;
+
+  public net.minecraft.entity.item.EntityItem entityDropItem(net.minecraft.item.ItemStack, float);
+    descriptor: (Lnet/minecraft/item/ItemStack;F)Lnet/minecraft/entity/item/EntityItem;
+
+  public boolean isEntityAlive();
+    descriptor: ()Z
+
+  public boolean isEntityInsideOpaqueBlock();
+    descriptor: ()Z
+
+  public boolean processInitialInteract(net.minecraft.entity.player.EntityPlayer, net.minecraft.util.EnumHand);
+    descriptor: (Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/util/EnumHand;)Z
+
+  public net.minecraft.util.math.AxisAlignedBB getCollisionBox(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/AxisAlignedBB;
+
+  public void updateRidden();
+    descriptor: ()V
+
+  public void updatePassenger(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  public void applyOrientationToEntity(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  public double getYOffset();
+    descriptor: ()D
+
+  public double getMountedYOffset();
+    descriptor: ()D
+
+  public boolean startRiding(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public boolean startRiding(net.minecraft.entity.Entity, boolean);
+    descriptor: (Lnet/minecraft/entity/Entity;Z)Z
+
+  protected boolean canBeRidden(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public void removePassengers();
+    descriptor: ()V
+
+  public void dismountRidingEntity();
+    descriptor: ()V
+
+  protected void addPassenger(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  protected void removePassenger(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  protected boolean canFitPassenger(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public void setPositionAndRotationDirect(double, double, double, float, float, int, boolean);
+    descriptor: (DDDFFIZ)V
+
+  public float getCollisionBorderSize();
+    descriptor: ()F
+
+  public net.minecraft.util.math.Vec3d getLookVec();
+    descriptor: ()Lnet/minecraft/util/math/Vec3d;
+
+  public net.minecraft.util.math.Vec2f getPitchYaw();
+    descriptor: ()Lnet/minecraft/util/math/Vec2f;
+
+  public net.minecraft.util.math.Vec3d getForward();
+    descriptor: ()Lnet/minecraft/util/math/Vec3d;
+
+  public void setPortal(net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/util/math/BlockPos;)V
+
+  public int getPortalCooldown();
+    descriptor: ()I
+
+  public void setVelocity(double, double, double);
+    descriptor: (DDD)V
+
+  public void handleStatusUpdate(byte);
+    descriptor: (B)V
+
+  public void performHurtAnimation();
+    descriptor: ()V
+
+  public java.lang.Iterable<net.minecraft.item.ItemStack> getHeldEquipment();
+    descriptor: ()Ljava/lang/Iterable;
+
+  public java.lang.Iterable<net.minecraft.item.ItemStack> getArmorInventoryList();
+    descriptor: ()Ljava/lang/Iterable;
+
+  public java.lang.Iterable<net.minecraft.item.ItemStack> getEquipmentAndArmor();
+    descriptor: ()Ljava/lang/Iterable;
+
+  public void setItemStackToSlot(net.minecraft.inventory.EntityEquipmentSlot, net.minecraft.item.ItemStack);
+    descriptor: (Lnet/minecraft/inventory/EntityEquipmentSlot;Lnet/minecraft/item/ItemStack;)V
+
+  public boolean isBurning();
+    descriptor: ()Z
+
+  public boolean isRiding();
+    descriptor: ()Z
+
+  public boolean isBeingRidden();
+    descriptor: ()Z
+
+  public boolean isSneaking();
+    descriptor: ()Z
+
+  public void setSneaking(boolean);
+    descriptor: (Z)V
+
+  public boolean isSprinting();
+    descriptor: ()Z
+
+  public void setSprinting(boolean);
+    descriptor: (Z)V
+
+  public boolean isGlowing();
+    descriptor: ()Z
+
+  public void setGlowing(boolean);
+    descriptor: (Z)V
+
+  public boolean isInvisible();
+    descriptor: ()Z
+
+  public boolean isInvisibleToPlayer(net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/entity/player/EntityPlayer;)Z
+
+  public net.minecraft.scoreboard.Team getTeam();
+    descriptor: ()Lnet/minecraft/scoreboard/Team;
+
+  public boolean isOnSameTeam(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public boolean isOnScoreboardTeam(net.minecraft.scoreboard.Team);
+    descriptor: (Lnet/minecraft/scoreboard/Team;)Z
+
+  public void setInvisible(boolean);
+    descriptor: (Z)V
+
+  protected boolean getFlag(int);
+    descriptor: (I)Z
+
+  protected void setFlag(int, boolean);
+    descriptor: (IZ)V
+
+  public int getAir();
+    descriptor: ()I
+
+  public void setAir(int);
+    descriptor: (I)V
+
+  public void onStruckByLightning(net.minecraft.entity.effect.EntityLightningBolt);
+    descriptor: (Lnet/minecraft/entity/effect/EntityLightningBolt;)V
+
+  public void onKillEntity(net.minecraft.entity.EntityLivingBase);
+    descriptor: (Lnet/minecraft/entity/EntityLivingBase;)V
+
+  protected boolean pushOutOfBlocks(double, double, double);
+    descriptor: (DDD)Z
+
+  public void setInWeb();
+    descriptor: ()V
+
+  public java.lang.String getName();
+    descriptor: ()Ljava/lang/String;
+
+  public net.minecraft.entity.Entity[] getParts();
+    descriptor: ()[Lnet/minecraft/entity/Entity;
+
+  public boolean isEntityEqual(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public float getRotationYawHead();
+    descriptor: ()F
+
+  public void setRotationYawHead(float);
+    descriptor: (F)V
+
+  public void setRenderYawOffset(float);
+    descriptor: (F)V
+
+  public boolean canBeAttackedWithItem();
+    descriptor: ()Z
+
+  public boolean hitByEntity(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public java.lang.String toString();
+    descriptor: ()Ljava/lang/String;
+
+  public boolean isEntityInvulnerable(net.minecraft.util.DamageSource);
+    descriptor: (Lnet/minecraft/util/DamageSource;)Z
+
+  public boolean getIsInvulnerable();
+    descriptor: ()Z
+
+  public void setEntityInvulnerable(boolean);
+    descriptor: (Z)V
+
+  public void copyLocationAndAnglesFrom(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  private void copyDataFromOld(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  public net.minecraft.entity.Entity changeDimension(int);
+    descriptor: (I)Lnet/minecraft/entity/Entity;
+
+  public net.minecraft.entity.Entity changeDimension(int, net.minecraftforge.common.util.ITeleporter);
+    descriptor: (ILnet/minecraftforge/common/util/ITeleporter;)Lnet/minecraft/entity/Entity;
+
+  public boolean isNonBoss();
+    descriptor: ()Z
+
+  public float getExplosionResistance(net.minecraft.world.Explosion, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState);
+    descriptor: (Lnet/minecraft/world/Explosion;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)F
+
+  public boolean canExplosionDestroyBlock(net.minecraft.world.Explosion, net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.block.state.IBlockState, float);
+    descriptor: (Lnet/minecraft/world/Explosion;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;F)Z
+
+  public int getMaxFallHeight();
+    descriptor: ()I
+
+  public net.minecraft.util.math.Vec3d getLastPortalVec();
+    descriptor: ()Lnet/minecraft/util/math/Vec3d;
+
+  public net.minecraft.util.EnumFacing getTeleportDirection();
+    descriptor: ()Lnet/minecraft/util/EnumFacing;
+
+  public boolean doesEntityNotTriggerPressurePlate();
+    descriptor: ()Z
+
+  public void addEntityCrashInfo(net.minecraft.crash.CrashReportCategory);
+    descriptor: (Lnet/minecraft/crash/CrashReportCategory;)V
+
+  public void setUniqueId(java.util.UUID);
+    descriptor: (Ljava/util/UUID;)V
+
+  public boolean canRenderOnFire();
+    descriptor: ()Z
+
+  public java.util.UUID getUniqueID();
+    descriptor: ()Ljava/util/UUID;
+
+  public java.lang.String getCachedUniqueIdString();
+    descriptor: ()Ljava/lang/String;
+
+  public boolean isPushedByWater();
+    descriptor: ()Z
+
+  public static double getRenderDistanceWeight();
+    descriptor: ()D
+
+  public static void setRenderDistanceWeight(double);
+    descriptor: (D)V
+
+  public net.minecraft.util.text.ITextComponent getDisplayName();
+    descriptor: ()Lnet/minecraft/util/text/ITextComponent;
+
+  public void setCustomNameTag(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public java.lang.String getCustomNameTag();
+    descriptor: ()Ljava/lang/String;
+
+  public boolean hasCustomName();
+    descriptor: ()Z
+
+  public void setAlwaysRenderNameTag(boolean);
+    descriptor: (Z)V
+
+  public boolean getAlwaysRenderNameTag();
+    descriptor: ()Z
+
+  public void setPositionAndUpdate(double, double, double);
+    descriptor: (DDD)V
+
+  public void notifyDataManagerChange(net.minecraft.network.datasync.DataParameter<?>);
+    descriptor: (Lnet/minecraft/network/datasync/DataParameter;)V
+
+  public boolean getAlwaysRenderNameTagForRender();
+    descriptor: ()Z
+
+  public net.minecraft.util.EnumFacing getHorizontalFacing();
+    descriptor: ()Lnet/minecraft/util/EnumFacing;
+
+  public net.minecraft.util.EnumFacing getAdjustedHorizontalFacing();
+    descriptor: ()Lnet/minecraft/util/EnumFacing;
+
+  protected net.minecraft.util.text.event.HoverEvent getHoverEvent();
+    descriptor: ()Lnet/minecraft/util/text/event/HoverEvent;
+
+  public boolean isSpectatedByPlayer(net.minecraft.entity.player.EntityPlayerMP);
+    descriptor: (Lnet/minecraft/entity/player/EntityPlayerMP;)Z
+
+  public net.minecraft.util.math.AxisAlignedBB getEntityBoundingBox();
+    descriptor: ()Lnet/minecraft/util/math/AxisAlignedBB;
+
+  public net.minecraft.util.math.AxisAlignedBB getRenderBoundingBox();
+    descriptor: ()Lnet/minecraft/util/math/AxisAlignedBB;
+
+  public void setEntityBoundingBox(net.minecraft.util.math.AxisAlignedBB);
+    descriptor: (Lnet/minecraft/util/math/AxisAlignedBB;)V
+
+  public float getEyeHeight();
+    descriptor: ()F
+
+  public boolean isOutsideBorder();
+    descriptor: ()Z
+
+  public void setOutsideBorder(boolean);
+    descriptor: (Z)V
+
+  public boolean replaceItemInInventory(int, net.minecraft.item.ItemStack);
+    descriptor: (ILnet/minecraft/item/ItemStack;)Z
+
+  public void sendMessage(net.minecraft.util.text.ITextComponent);
+    descriptor: (Lnet/minecraft/util/text/ITextComponent;)V
+
+  public boolean canUseCommand(int, java.lang.String);
+    descriptor: (ILjava/lang/String;)Z
+
+  public net.minecraft.util.math.BlockPos getPosition();
+    descriptor: ()Lnet/minecraft/util/math/BlockPos;
+
+  public net.minecraft.util.math.Vec3d getPositionVector();
+    descriptor: ()Lnet/minecraft/util/math/Vec3d;
+
+  public net.minecraft.world.World getEntityWorld();
+    descriptor: ()Lnet/minecraft/world/World;
+
+  public net.minecraft.entity.Entity getCommandSenderEntity();
+    descriptor: ()Lnet/minecraft/entity/Entity;
+
+  public boolean sendCommandFeedback();
+    descriptor: ()Z
+
+  public void setCommandStat(net.minecraft.command.CommandResultStats$Type, int);
+    descriptor: (Lnet/minecraft/command/CommandResultStats$Type;I)V
+
+  public net.minecraft.server.MinecraftServer getServer();
+    descriptor: ()Lnet/minecraft/server/MinecraftServer;
+
+  public net.minecraft.command.CommandResultStats getCommandStats();
+    descriptor: ()Lnet/minecraft/command/CommandResultStats;
+
+  public void setCommandStats(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  public net.minecraft.util.EnumActionResult applyPlayerInteraction(net.minecraft.entity.player.EntityPlayer, net.minecraft.util.math.Vec3d, net.minecraft.util.EnumHand);
+    descriptor: (Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/EnumHand;)Lnet/minecraft/util/EnumActionResult;
+
+  public boolean isImmuneToExplosions();
+    descriptor: ()Z
+
+  protected void applyEnchantments(net.minecraft.entity.EntityLivingBase, net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/entity/Entity;)V
+
+  public final boolean isAddedToWorld();
+    descriptor: ()Z
+
+  public void onAddedToWorld();
+    descriptor: ()V
+
+  public void onRemovedFromWorld();
+    descriptor: ()V
+
+  public net.minecraft.nbt.NBTTagCompound getEntityData();
+    descriptor: ()Lnet/minecraft/nbt/NBTTagCompound;
+
+  public boolean shouldRiderSit();
+    descriptor: ()Z
+
+  public net.minecraft.item.ItemStack getPickedResult(net.minecraft.util.math.RayTraceResult);
+    descriptor: (Lnet/minecraft/util/math/RayTraceResult;)Lnet/minecraft/item/ItemStack;
+
+  public java.util.UUID getPersistentID();
+    descriptor: ()Ljava/util/UUID;
+
+  public final void resetEntityId();
+    descriptor: ()V
+
+  public boolean shouldRenderInPass(int);
+    descriptor: (I)Z
+
+  public boolean isCreatureType(net.minecraft.entity.EnumCreatureType, boolean);
+    descriptor: (Lnet/minecraft/entity/EnumCreatureType;Z)Z
+
+  public boolean canRiderInteract();
+    descriptor: ()Z
+
+  public boolean shouldDismountInWater(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public boolean hasCapability(net.minecraftforge.common.capabilities.Capability<?>, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraftforge/common/capabilities/Capability;Lnet/minecraft/util/EnumFacing;)Z
+
+  public <T> T getCapability(net.minecraftforge.common.capabilities.Capability<T>, net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraftforge/common/capabilities/Capability;Lnet/minecraft/util/EnumFacing;)Ljava/lang/Object;
+
+  public void deserializeNBT(net.minecraft.nbt.NBTTagCompound);
+    descriptor: (Lnet/minecraft/nbt/NBTTagCompound;)V
+
+  public net.minecraft.nbt.NBTTagCompound serializeNBT();
+    descriptor: ()Lnet/minecraft/nbt/NBTTagCompound;
+
+  public boolean canTrample(net.minecraft.world.World, net.minecraft.block.Block, net.minecraft.util.math.BlockPos, float);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/block/Block;Lnet/minecraft/util/math/BlockPos;F)Z
+
+  public void addTrackingPlayer(net.minecraft.entity.player.EntityPlayerMP);
+    descriptor: (Lnet/minecraft/entity/player/EntityPlayerMP;)V
+
+  public void removeTrackingPlayer(net.minecraft.entity.player.EntityPlayerMP);
+    descriptor: (Lnet/minecraft/entity/player/EntityPlayerMP;)V
+
+  public float getRotatedYaw(net.minecraft.util.Rotation);
+    descriptor: (Lnet/minecraft/util/Rotation;)F
+
+  public float getMirroredYaw(net.minecraft.util.Mirror);
+    descriptor: (Lnet/minecraft/util/Mirror;)F
+
+  public boolean ignoreItemEntityData();
+    descriptor: ()Z
+
+  public boolean setPositionNonDirty();
+    descriptor: ()Z
+
+  public net.minecraft.entity.Entity getControllingPassenger();
+    descriptor: ()Lnet/minecraft/entity/Entity;
+
+  public java.util.List<net.minecraft.entity.Entity> getPassengers();
+    descriptor: ()Ljava/util/List;
+
+  public boolean isPassenger(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public java.util.Collection<net.minecraft.entity.Entity> getRecursivePassengers();
+    descriptor: ()Ljava/util/Collection;
+
+  public <T extends net.minecraft.entity.Entity> java.util.Collection<T> getRecursivePassengersByType(java.lang.Class<T>);
+    descriptor: (Ljava/lang/Class;)Ljava/util/Collection;
+
+  private <T extends net.minecraft.entity.Entity> void getRecursivePassengersByType(java.lang.Class<T>, java.util.Set<T>);
+    descriptor: (Ljava/lang/Class;Ljava/util/Set;)V
+
+  public net.minecraft.entity.Entity getLowestRidingEntity();
+    descriptor: ()Lnet/minecraft/entity/Entity;
+
+  public boolean isRidingSameEntity(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public boolean isRidingOrBeingRiddenBy(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)Z
+
+  public boolean canPassengerSteer();
+    descriptor: ()Z
+
+  public net.minecraft.entity.Entity getRidingEntity();
+    descriptor: ()Lnet/minecraft/entity/Entity;
+
+  public net.minecraft.block.material.EnumPushReaction getPushReaction();
+    descriptor: ()Lnet/minecraft/block/material/EnumPushReaction;
+
+  public net.minecraft.util.SoundCategory getSoundCategory();
+    descriptor: ()Lnet/minecraft/util/SoundCategory;
+
+  protected int getFireImmuneTicks();
+    descriptor: ()I
+
+  public void deserializeNBT(net.minecraft.nbt.NBTBase);
+    descriptor: (Lnet/minecraft/nbt/NBTBase;)V
+
+  public net.minecraft.nbt.NBTBase serializeNBT();
+    descriptor: ()Lnet/minecraft/nbt/NBTBase;
+
+  static {};
+    descriptor: ()V
+}
