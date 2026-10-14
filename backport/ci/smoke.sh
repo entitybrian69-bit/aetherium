@@ -17,5 +17,12 @@ for f in run/client/crash-reports/*.txt run/crash-reports/*.txt; do [ -f "$f" ] 
 head -c 300000 "$OUT/client.log" > "$OUT/client-head.log"; rm -f "$OUT/client.log"
 # shrink screenshots for the repo
 if command -v convert >/dev/null; then for p in "$OUT"/*.png; do [ -f "$p" ] && convert "$p" -resize 960x "$p"; done; fi
+S="$OUT/screenshots"
+if command -v compare >/dev/null && [ -f "$S/02-world.png" ] && [ -f "$S/02-world-vanilla.png" ]; then
+  # lower half only (terrain; clouds and the tutorial toast move between the shots)
+  for n in 02-world 02-world-vanilla 02-world-again; do convert "$S/$n.png" -gravity south -crop 100%x45%+0+60 +repage "/tmp/$n-low.png"; done
+  { echo -n "renderer vs vanilla RMSE: "; compare -metric RMSE /tmp/02-world-low.png /tmp/02-world-vanilla-low.png null: 2>&1; echo;
+    echo -n "renderer(again) vs vanilla RMSE: "; compare -metric RMSE /tmp/02-world-again-low.png /tmp/02-world-vanilla-low.png null: 2>&1; echo; } >> "$OUT/report.txt"
+fi
 ls -l "$OUT" > "$OUT/files.txt"
 grep -q PASS "$OUT/report.txt" 2>/dev/null

@@ -142,7 +142,10 @@ public final class TerrainRenderer {
     /** {@code VboRenderList.renderChunkLayer} HEAD. */
     public static void beginLayer(final BlockRenderLayer layer) {
         final boolean on = enabled();
-        SectionCull.beginLayer(on && layer != BlockRenderLayer.TRANSLUCENT, camX, camY, camZ);
+        // The container origin is the player's feet; the eye (height, bobbing, third person,
+        // freelook) lives in the camera matrix. Faces are culled against the true eye.
+        final boolean eye = on && loadEye();
+        SectionCull.beginLayer(on && eye && layer != BlockRenderLayer.TRANSLUCENT, eyeX, eyeY, eyeZ);
         fogLayer = on && fogLinear && RenderToggles.smartChunkCulling && loadForward();
         drewThisFrame |= on;
     }
@@ -190,11 +193,57 @@ public final class TerrainRenderer {
 
     /** The whole chunk is further along the view axis than the fog end (fully fogged). */
     private static boolean beyondFog(final BlockPos origin) {
-        final float cx = (float) (origin.getX() + HALF_CHUNK - camX);
-        final float cy = (float) (origin.getY() + HALF_CHUNK - camY);
-        final float cz = (float) (origin.getZ() + HALF_CHUNK - camZ);
+        final float cx = (float) (origin.getX() + HALF_CHUNK - eyeX);
+        final float cy = (float) (origin.getY() + HALF_CHUNK - eyeY);
+        final float cz = (float) (origin.getZ() + HALF_CHUNK - eyeZ);
         final float nearest = cx * fwdX + cy * fwdY + cz * fwdZ - fwdReach;
         return nearest > fogEnd + FOG_MARGIN;
+    }
+
+    private static double eyeX;
+    private static double eyeY;
+    private static double eyeZ;
+
+    /**
+     * Eye position in world space: container origin + (-M^-1 t) of the camera matrix captured by
+     * {@code ActiveRenderInfo} (general 3x3 inverse: the nausea effect scales the modelview).
+     */
+    private static boolean loadEye() {
+        if (!AetheriumMixinPlugin.isApplied("CameraMatrixAccessor")) {
+            return false;
+        }
+        final FloatBuffer m = com.aetherium.mixin.core.CameraMatrixAccessor.aetherium$modelview();
+        if (m == null || m.capacity() < 16) {
+            return false;
+        }
+        // column-major: a = M[row][col] = m[col*4 + row]
+        final double a00 = m.get(0), a10 = m.get(1), a20 = m.get(2);
+        final double a01 = m.get(4), a11 = m.get(5), a21 = m.get(6);
+        final double a02 = m.get(8), a12 = m.get(9), a22 = m.get(10);
+        final double tx = m.get(12), ty = m.get(13), tz = m.get(14);
+        final double c00 = a11 * a22 - a12 * a21;
+        final double c01 = a02 * a21 - a01 * a22;
+        final double c02 = a01 * a12 - a02 * a11;
+        final double c10 = a12 * a20 - a10 * a22;
+        final double c11 = a00 * a22 - a02 * a20;
+        final double c12 = a02 * a10 - a00 * a12;
+        final double c20 = a10 * a21 - a11 * a20;
+        final double c21 = a01 * a20 - a00 * a21;
+        final double c22 = a00 * a11 - a01 * a10;
+        final double det = a00 * c00 + a01 * c10 + a02 * c20;
+        if (!(Math.abs(det) > 1.0e-6) || Double.isNaN(tx + ty + tz)) {
+            return false;
+        }
+        final double ex = -(c00 * tx + c01 * ty + c02 * tz) / det;
+        final double ey = -(c10 * tx + c11 * ty + c12 * tz) / det;
+        final double ez = -(c20 * tx + c21 * ty + c22 * tz) / det;
+        if (Math.abs(ex) > 64.0 || Math.abs(ey) > 64.0 || Math.abs(ez) > 64.0) {
+            return false; // not the camera we expect (another mod's matrix): cull nothing
+        }
+        eyeX = camX + ex;
+        eyeY = camY + ey;
+        eyeZ = camZ + ez;
+        return true;
     }
 
     /** View direction from the camera matrix vanilla captured for this frame. */
