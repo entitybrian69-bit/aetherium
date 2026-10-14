@@ -27,5 +27,6 @@ public final class AetheriumBackport {
         ZoomKeys.register();
         FreelookHooks.register();
         MinecraftForge.EVENT_BUS.register(new ForgeEvents());
+        SmokeTest.installIfRequested();
     }
 }

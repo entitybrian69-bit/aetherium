@@ -435,3 +435,12 @@ jar {
                 'Implementation-Vendor': 'Team_Aerix')
     }
 }
+
+// Aetherium: CI smoke test (AETHERIUM_SMOKE=<dir> ./gradlew runClient). Inert otherwise.
+tasks.named('runClient', JavaExec).configure { JavaExec task ->
+    def smoke = System.getenv('AETHERIUM_SMOKE')
+    if (smoke) {
+        task.jvmArgs("-Daetherium.smoke=${smoke}", '-Dmixin.debug.export=false')
+        task.args('--width', '1280', '--height', '720')
+    }
+}

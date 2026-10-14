@@ -1,5 +1,7 @@
-# Aetherium Backport (Minecraft 1.12.2, Forge): build, probe, smoke test, release.
+# Aetherium Backport (Minecraft 1.12.2, Forge): build, probe, in-game smoke test, release.
 # Results are committed back to backport/ci/out (logs cannot be downloaded from the dev sandbox).
+# A commit message containing [backport-release] publishes the GitHub release and the Modrinth
+# version, but only after the build succeeded and the smoke test passed.
 name: backport
 on:
   push:
@@ -13,7 +15,11 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
+    outputs:
+      built: ${{ steps.status.outputs.built }}
+      smoke: ${{ steps.smoke.outputs.smoke }}
+      version: ${{ steps.status.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -26,11 +32,32 @@ jobs:
       - name: build and probe
         run: bash backport/ci/run.sh
       - name: status
+        id: status
         run: |
           s=$(cat backport/ci/out/build-status.txt)
           echo "::notice::backport build exit $s"
           head -c 3500 backport/ci/out/build-report.txt | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}' | sed 's/^/::notice::report%0A/'; echo
+          v=$(sed -n 's/^mod_version *= *//p' backport/gradle.properties | tr -d '\r ')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          jar=$(ls backport/build/libs/*.jar 2>/dev/null | grep -vE -- '-(dev|sources)\.jar$' | head -1)
+          if [ "$s" = 0 ] && [ -n "$jar" ]; then
+            mkdir -p dist && cp "$jar" "dist/aetherium-backport-$v+1.12.2.jar"
+            echo "built=1" >> "$GITHUB_OUTPUT"
+            unzip -l "dist/aetherium-backport-$v+1.12.2.jar" > backport/ci/out/jar-contents.txt
+          else
+            echo "built=0" >> "$GITHUB_OUTPUT"
+          fi
+      - name: smoke test (Xvfb + Mesa)
+        id: smoke
+        if: steps.status.outputs.built == '1'
+        run: |
+          sudo apt-get update -q >/dev/null
+          sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri libglu1-mesa imagemagick >/dev/null
+          if bash backport/ci/smoke.sh; then echo "smoke=1" >> "$GITHUB_OUTPUT"; r=PASS; else echo "smoke=0" >> "$GITHUB_OUTPUT"; r=FAIL; fi
+          echo "::notice::smoke $r (exit $(cat backport/ci/out/smoke/status.txt 2>/dev/null))"
+          cat backport/ci/out/smoke/report.txt 2>/dev/null | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}' | sed 's/^/::notice::smoke report%0A/'; echo
       - name: commit results
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -40,7 +67,39 @@ jobs:
           for i in 1 2 3 4 5; do git pull -q --rebase origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && exit 0; sleep $((i*5)); done
           exit 1
       - uses: actions/upload-artifact@v4
+        if: steps.status.outputs.built == '1'
         with:
           name: backport-jar
-          path: backport/build/libs/*.jar
-          if-no-files-found: ignore
+          path: dist/*.jar
+
+  release:
+    needs: build
+    if: contains(github.event.head_commit.message, '[backport-release]') && needs.build.outputs.built == '1' && needs.build.outputs.smoke == '1'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: backport-jar
+          path: dist
+      - name: GitHub release
+        run: |
+          tag="backport-v$VERSION+1.12.2"
+          jar="dist/aetherium-backport-$VERSION+1.12.2.jar"
+          notes=$(mktemp)
+          { echo "**Aetherium Backport $VERSION** for Minecraft 1.12.2 (Forge). Client-side only."; echo;
+            echo "Requires [MixinBooter](https://modrinth.com/mod/mixinbooter)."; echo;
+            cat backport/ci/modrinth/backport_changelog.md; } > "$notes"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$jar" --clobber
+          else
+            gh release create "$tag" "$jar" --target "$GITHUB_SHA" --title "Aetherium Backport $VERSION (1.12.2 Forge)" --notes-file "$notes" --latest=false
+          fi
+          echo "::notice::GITHUB release https://github.com/${{ github.repository }}/releases/tag/$tag"
+      - name: Modrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: python3 backport/ci/modrinth_backport.py "dist/aetherium-backport-$VERSION+1.12.2.jar"

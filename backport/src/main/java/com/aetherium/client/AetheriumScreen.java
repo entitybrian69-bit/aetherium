@@ -230,6 +230,13 @@ public final class AetheriumScreen extends GuiScreen implements ScreenHost, Aeth
         }
     }
 
+    /** CI smoke test only. */
+    public void selectTabForTest(final int index) {
+        if (this.view != null) {
+            this.view.selectTab(index);
+        }
+    }
+
     // ------------------------------------------------------------------ Actions
 
     @Override
