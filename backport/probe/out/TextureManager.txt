@@ -1,72 +1,43 @@
 Compiled from "TextureManager.java"
-public class net.minecraft.client.renderer.texture.TextureManager implements net.minecraft.server.packs.resources.PreparableReloadListener,java.lang.AutoCloseable {
-  private static final org.slf4j.Logger LOGGER;
-    descriptor: Lorg/slf4j/Logger;
-  private final java.util.Map<net.minecraft.resources.Identifier, net.minecraft.client.renderer.texture.AbstractTexture> byPath;
+public class net.minecraft.client.renderer.texture.TextureManager implements net.minecraft.client.renderer.texture.ITickable,net.minecraft.client.resources.IResourceManagerReloadListener {
+  private static final org.apache.logging.log4j.Logger LOGGER;
+    descriptor: Lorg/apache/logging/log4j/Logger;
+  public static final net.minecraft.util.ResourceLocation RESOURCE_LOCATION_EMPTY;
+    descriptor: Lnet/minecraft/util/ResourceLocation;
+  private final java.util.Map<net.minecraft.util.ResourceLocation, net.minecraft.client.renderer.texture.ITextureObject> mapTextureObjects;
     descriptor: Ljava/util/Map;
-  private final java.util.Set<net.minecraft.client.renderer.texture.TickableTexture> tickableTextures;
-    descriptor: Ljava/util/Set;
-  private final net.minecraft.server.packs.resources.ResourceManager resourceManager;
-    descriptor: Lnet/minecraft/server/packs/resources/ResourceManager;
-  public net.minecraft.client.renderer.texture.TextureManager(net.minecraft.server.packs.resources.ResourceManager);
-    descriptor: (Lnet/minecraft/server/packs/resources/ResourceManager;)V
+  private final java.util.List<net.minecraft.client.renderer.texture.ITickable> listTickables;
+    descriptor: Ljava/util/List;
+  private final java.util.Map<java.lang.String, java.lang.Integer> mapTextureCounters;
+    descriptor: Ljava/util/Map;
+  private final net.minecraft.client.resources.IResourceManager resourceManager;
+    descriptor: Lnet/minecraft/client/resources/IResourceManager;
+  public net.minecraft.client.renderer.texture.TextureManager(net.minecraft.client.resources.IResourceManager);
+    descriptor: (Lnet/minecraft/client/resources/IResourceManager;)V
 
-  public void registerAndLoad(net.minecraft.resources.Identifier, net.minecraft.client.renderer.texture.ReloadableTexture);
-    descriptor: (Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/renderer/texture/ReloadableTexture;)V
+  public void bindTexture(net.minecraft.util.ResourceLocation);
+    descriptor: (Lnet/minecraft/util/ResourceLocation;)V
 
-  private net.minecraft.client.renderer.texture.TextureContents loadContentsSafe(net.minecraft.resources.Identifier, net.minecraft.client.renderer.texture.ReloadableTexture);
-    descriptor: (Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/renderer/texture/ReloadableTexture;)Lnet/minecraft/client/renderer/texture/TextureContents;
+  public boolean loadTickableTexture(net.minecraft.util.ResourceLocation, net.minecraft.client.renderer.texture.ITickableTextureObject);
+    descriptor: (Lnet/minecraft/util/ResourceLocation;Lnet/minecraft/client/renderer/texture/ITickableTextureObject;)Z
 
-  public void registerForNextReload(net.minecraft.resources.Identifier);
-    descriptor: (Lnet/minecraft/resources/Identifier;)V
+  public boolean loadTexture(net.minecraft.util.ResourceLocation, net.minecraft.client.renderer.texture.ITextureObject);
+    descriptor: (Lnet/minecraft/util/ResourceLocation;Lnet/minecraft/client/renderer/texture/ITextureObject;)Z
 
-  public void register(net.minecraft.resources.Identifier, net.minecraft.client.renderer.texture.AbstractTexture);
-    descriptor: (Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/renderer/texture/AbstractTexture;)V
+  public net.minecraft.client.renderer.texture.ITextureObject getTexture(net.minecraft.util.ResourceLocation);
+    descriptor: (Lnet/minecraft/util/ResourceLocation;)Lnet/minecraft/client/renderer/texture/ITextureObject;
 
-  private void safeClose(net.minecraft.resources.Identifier, net.minecraft.client.renderer.texture.AbstractTexture);
-    descriptor: (Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/renderer/texture/AbstractTexture;)V
-
-  public net.minecraft.client.renderer.texture.AbstractTexture getTexture(net.minecraft.resources.Identifier);
-    descriptor: (Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/texture/AbstractTexture;
+  public net.minecraft.util.ResourceLocation getDynamicTextureLocation(java.lang.String, net.minecraft.client.renderer.texture.DynamicTexture);
+    descriptor: (Ljava/lang/String;Lnet/minecraft/client/renderer/texture/DynamicTexture;)Lnet/minecraft/util/ResourceLocation;
 
   public void tick();
     descriptor: ()V
 
-  public void release(net.minecraft.resources.Identifier);
-    descriptor: (Lnet/minecraft/resources/Identifier;)V
+  public void deleteTexture(net.minecraft.util.ResourceLocation);
+    descriptor: (Lnet/minecraft/util/ResourceLocation;)V
 
-  public void close();
-    descriptor: ()V
-
-  public java.util.concurrent.CompletableFuture<java.lang.Void> reload(net.minecraft.server.packs.resources.PreparableReloadListener$SharedState, java.util.concurrent.Executor, net.minecraft.server.packs.resources.PreparableReloadListener$PreparationBarrier, java.util.concurrent.Executor);
-    descriptor: (Lnet/minecraft/server/packs/resources/PreparableReloadListener$SharedState;Ljava/util/concurrent/Executor;Lnet/minecraft/server/packs/resources/PreparableReloadListener$PreparationBarrier;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;
-
-  public void dumpAllSheets(java.nio.file.Path);
-    descriptor: (Ljava/nio/file/Path;)V
-
-  private static net.minecraft.client.renderer.texture.TextureContents loadContents(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.client.renderer.texture.ReloadableTexture) throws java.io.IOException;
-    descriptor: (Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/client/renderer/texture/ReloadableTexture;)Lnet/minecraft/client/renderer/texture/TextureContents;
-
-  private static net.minecraft.client.renderer.texture.TextureManager$PendingReload scheduleLoad(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.client.renderer.texture.ReloadableTexture, java.util.concurrent.Executor);
-    descriptor: (Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/client/renderer/texture/ReloadableTexture;Ljava/util/concurrent/Executor;)Lnet/minecraft/client/renderer/texture/TextureManager$PendingReload;
-
-  private static net.minecraft.client.renderer.texture.TextureContents lambda$scheduleLoad$0(net.minecraft.server.packs.resources.ResourceManager, net.minecraft.client.renderer.texture.ReloadableTexture);
-    descriptor: (Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/client/renderer/texture/ReloadableTexture;)Lnet/minecraft/client/renderer/texture/TextureContents;
-
-  private static void lambda$dumpAllSheets$0(java.nio.file.Path, net.minecraft.resources.Identifier, net.minecraft.client.renderer.texture.AbstractTexture);
-    descriptor: (Ljava/nio/file/Path;Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/renderer/texture/AbstractTexture;)V
-
-  private static void lambda$reload$2(java.util.List, java.lang.Void);
-    descriptor: (Ljava/util/List;Ljava/lang/Void;)V
-
-  private static java.util.concurrent.CompletableFuture[] lambda$reload$1(int);
-    descriptor: (I)[Ljava/util/concurrent/CompletableFuture;
-
-  private static void lambda$reload$0(java.util.List, net.minecraft.server.packs.resources.ResourceManager, java.util.concurrent.Executor, net.minecraft.resources.Identifier, net.minecraft.client.renderer.texture.AbstractTexture);
-    descriptor: (Ljava/util/List;Lnet/minecraft/server/packs/resources/ResourceManager;Ljava/util/concurrent/Executor;Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/renderer/texture/AbstractTexture;)V
-
-  private static java.lang.String lambda$new$0();
-    descriptor: ()Ljava/lang/String;
+  public void onResourceManagerReload(net.minecraft.client.resources.IResourceManager);
+    descriptor: (Lnet/minecraft/client/resources/IResourceManager;)V
 
   static {};
     descriptor: ()V

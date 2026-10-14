@@ -1,74 +1,143 @@
 Compiled from "TextureAtlasSprite.java"
-public class net.minecraft.client.renderer.texture.TextureAtlasSprite implements net.minecraft.client.renderer.texture.UvMapping,java.lang.AutoCloseable {
-  private final net.minecraft.resources.Identifier atlasLocation;
-    descriptor: Lnet/minecraft/resources/Identifier;
-  private final net.minecraft.client.renderer.texture.SpriteContents contents;
-    descriptor: Lnet/minecraft/client/renderer/texture/SpriteContents;
-  private final int x;
+public class net.minecraft.client.renderer.texture.TextureAtlasSprite {
+  private final java.lang.String iconName;
+    descriptor: Ljava/lang/String;
+  protected java.util.List<int[][]> framesTextureData;
+    descriptor: Ljava/util/List;
+  protected int[][] interpolatedFrameData;
+    descriptor: [[I
+  private net.minecraft.client.resources.data.AnimationMetadataSection animationMetadata;
+    descriptor: Lnet/minecraft/client/resources/data/AnimationMetadataSection;
+  protected boolean rotated;
+    descriptor: Z
+  protected int originX;
     descriptor: I
-  private final int y;
+  protected int originY;
     descriptor: I
-  private final float u0;
-    descriptor: F
-  private final float u1;
-    descriptor: F
-  private final float v0;
-    descriptor: F
-  private final float v1;
-    descriptor: F
-  private final int padding;
+  protected int width;
     descriptor: I
-  protected net.minecraft.client.renderer.texture.TextureAtlasSprite(net.minecraft.resources.Identifier, net.minecraft.client.renderer.texture.SpriteContents, int, int, int, int, int);
-    descriptor: (Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/renderer/texture/SpriteContents;IIIII)V
+  protected int height;
+    descriptor: I
+  private float minU;
+    descriptor: F
+  private float maxU;
+    descriptor: F
+  private float minV;
+    descriptor: F
+  private float maxV;
+    descriptor: F
+  protected int frameCounter;
+    descriptor: I
+  protected int tickCounter;
+    descriptor: I
+  protected net.minecraft.client.renderer.texture.TextureAtlasSprite(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
 
-  public int getX();
+  protected static net.minecraft.client.renderer.texture.TextureAtlasSprite makeAtlasSprite(net.minecraft.util.ResourceLocation);
+    descriptor: (Lnet/minecraft/util/ResourceLocation;)Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;
+
+  public void initSprite(int, int, int, int, boolean);
+    descriptor: (IIIIZ)V
+
+  public void copyFrom(net.minecraft.client.renderer.texture.TextureAtlasSprite);
+    descriptor: (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V
+
+  public int getOriginX();
     descriptor: ()I
 
-  public int getY();
+  public int getOriginY();
     descriptor: ()I
 
-  public float getU0();
+  public int getIconWidth();
+    descriptor: ()I
+
+  public int getIconHeight();
+    descriptor: ()I
+
+  public float getMinU();
     descriptor: ()F
 
-  public float getU1();
+  public float getMaxU();
     descriptor: ()F
 
-  public net.minecraft.client.renderer.texture.SpriteContents contents();
-    descriptor: ()Lnet/minecraft/client/renderer/texture/SpriteContents;
+  public float getInterpolatedU(double);
+    descriptor: (D)F
 
-  public net.minecraft.client.renderer.texture.SpriteContents$AnimationState createAnimationState(com.mojang.renderpearl.api.buffers.GpuBufferSlice, int);
-    descriptor: (Lcom/mojang/renderpearl/api/buffers/GpuBufferSlice;I)Lnet/minecraft/client/renderer/texture/SpriteContents$AnimationState;
-
-  public com.mojang.blaze3d.platform.Transparency transparency();
-    descriptor: ()Lcom/mojang/blaze3d/platform/Transparency;
-
-  public float getU(float);
+  public float getUnInterpolatedU(float);
     descriptor: (F)F
 
-  public float getV0();
+  public float getMinV();
     descriptor: ()F
 
-  public float getV1();
+  public float getMaxV();
     descriptor: ()F
 
-  public float getV(float);
+  public float getInterpolatedV(double);
+    descriptor: (D)F
+
+  public float getUnInterpolatedV(float);
     descriptor: (F)F
 
-  public net.minecraft.resources.Identifier atlasLocation();
-    descriptor: ()Lnet/minecraft/resources/Identifier;
+  public java.lang.String getIconName();
+    descriptor: ()Ljava/lang/String;
+
+  public void updateAnimation();
+    descriptor: ()V
+
+  private void updateAnimationInterpolated();
+    descriptor: ()V
+
+  private int interpolateColor(double, int, int);
+    descriptor: (DII)I
+
+  public int[][] getFrameTextureData(int);
+    descriptor: (I)[[I
+
+  public int getFrameCount();
+    descriptor: ()I
+
+  public void setIconWidth(int);
+    descriptor: (I)V
+
+  public void setIconHeight(int);
+    descriptor: (I)V
+
+  public void loadSprite(net.minecraft.client.renderer.texture.PngSizeInfo, boolean) throws java.io.IOException;
+    descriptor: (Lnet/minecraft/client/renderer/texture/PngSizeInfo;Z)V
+
+  public void loadSpriteFrames(net.minecraft.client.resources.IResource, int) throws java.io.IOException;
+    descriptor: (Lnet/minecraft/client/resources/IResource;I)V
+
+  public void generateMipmaps(int);
+    descriptor: (I)V
+
+  private void allocateFrameTextureData(int);
+    descriptor: (I)V
+
+  private static int[][] getFrameTextureData(int[][], int, int, int);
+    descriptor: ([[IIII)[[I
+
+  public void clearFramesTextureData();
+    descriptor: ()V
+
+  public boolean hasAnimationMetadata();
+    descriptor: ()Z
+
+  public void setFramesTextureData(java.util.List<int[][]>);
+    descriptor: (Ljava/util/List;)V
+
+  private void resetSprite();
+    descriptor: ()V
 
   public java.lang.String toString();
     descriptor: ()Ljava/lang/String;
 
-  public void uploadFirstFrame(com.mojang.renderpearl.api.textures.GpuTexture, int);
-    descriptor: (Lcom/mojang/renderpearl/api/textures/GpuTexture;I)V
+  public boolean hasCustomLoader(net.minecraft.client.resources.IResourceManager, net.minecraft.util.ResourceLocation);
+    descriptor: (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/util/ResourceLocation;)Z
 
-  public boolean isAnimated();
-    descriptor: ()Z
+  public boolean load(net.minecraft.client.resources.IResourceManager, net.minecraft.util.ResourceLocation, java.util.function.Function<net.minecraft.util.ResourceLocation, net.minecraft.client.renderer.texture.TextureAtlasSprite>);
+    descriptor: (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/util/ResourceLocation;Ljava/util/function/Function;)Z
 
-  public void uploadSpriteUbo(java.nio.ByteBuffer, int, int, int, int, int);
-    descriptor: (Ljava/nio/ByteBuffer;IIIII)V
-
-  public void close();
-    descriptor: ()V
+  public java.util.Collection<net.minecraft.util.ResourceLocation> getDependencies();
+    descriptor: ()Ljava/util/Collection;
 }

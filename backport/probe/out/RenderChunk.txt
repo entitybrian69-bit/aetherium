@@ -1,22 +1,122 @@
 Compiled from "RenderChunk.java"
-class net.minecraft.client.renderer.chunk.RenderChunk {
-  private final java.util.Map<net.minecraft.core.BlockPos, net.minecraft.world.level.block.entity.BlockEntity> blockEntities;
-    descriptor: Ljava/util/Map;
-  private final java.util.List<net.minecraft.world.level.chunk.PalettedContainer<net.minecraft.world.level.block.state.BlockState>> sections;
-    descriptor: Ljava/util/List;
-  private final boolean debug;
+public class net.minecraft.client.renderer.chunk.RenderChunk {
+  private net.minecraft.world.World world;
+    descriptor: Lnet/minecraft/world/World;
+  private final net.minecraft.client.renderer.RenderGlobal renderGlobal;
+    descriptor: Lnet/minecraft/client/renderer/RenderGlobal;
+  public static int renderChunksUpdated;
+    descriptor: I
+  public net.minecraft.client.renderer.chunk.CompiledChunk compiledChunk;
+    descriptor: Lnet/minecraft/client/renderer/chunk/CompiledChunk;
+  private final java.util.concurrent.locks.ReentrantLock lockCompileTask;
+    descriptor: Ljava/util/concurrent/locks/ReentrantLock;
+  private final java.util.concurrent.locks.ReentrantLock lockCompiledChunk;
+    descriptor: Ljava/util/concurrent/locks/ReentrantLock;
+  private net.minecraft.client.renderer.chunk.ChunkCompileTaskGenerator compileTask;
+    descriptor: Lnet/minecraft/client/renderer/chunk/ChunkCompileTaskGenerator;
+  private final java.util.Set<net.minecraft.tileentity.TileEntity> setTileEntities;
+    descriptor: Ljava/util/Set;
+  private final int index;
+    descriptor: I
+  private final java.nio.FloatBuffer modelviewMatrix;
+    descriptor: Ljava/nio/FloatBuffer;
+  private final net.minecraft.client.renderer.vertex.VertexBuffer[] vertexBuffers;
+    descriptor: [Lnet/minecraft/client/renderer/vertex/VertexBuffer;
+  public net.minecraft.util.math.AxisAlignedBB boundingBox;
+    descriptor: Lnet/minecraft/util/math/AxisAlignedBB;
+  private int frameIndex;
+    descriptor: I
+  private boolean needsUpdate;
     descriptor: Z
-  private final net.minecraft.world.level.chunk.LevelChunk wrapped;
-    descriptor: Lnet/minecraft/world/level/chunk/LevelChunk;
-  net.minecraft.client.renderer.chunk.RenderChunk(net.minecraft.world.level.chunk.LevelChunk);
-    descriptor: (Lnet/minecraft/world/level/chunk/LevelChunk;)V
+  private final net.minecraft.util.math.BlockPos$MutableBlockPos position;
+    descriptor: Lnet/minecraft/util/math/BlockPos$MutableBlockPos;
+  private final net.minecraft.util.math.BlockPos$MutableBlockPos[] mapEnumFacing;
+    descriptor: [Lnet/minecraft/util/math/BlockPos$MutableBlockPos;
+  private boolean needsImmediateUpdate;
+    descriptor: Z
+  private net.minecraft.world.ChunkCache worldView;
+    descriptor: Lnet/minecraft/world/ChunkCache;
+  public net.minecraft.client.renderer.chunk.RenderChunk(net.minecraft.world.World, net.minecraft.client.renderer.RenderGlobal, int);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/client/renderer/RenderGlobal;I)V
 
-  public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(net.minecraft.core.BlockPos);
-    descriptor: (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/entity/BlockEntity;
+  public boolean setFrameIndex(int);
+    descriptor: (I)Z
 
-  public net.minecraft.world.level.block.state.BlockState getBlockState(net.minecraft.core.BlockPos);
-    descriptor: (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;
+  public net.minecraft.client.renderer.vertex.VertexBuffer getVertexBufferByLayer(int);
+    descriptor: (I)Lnet/minecraft/client/renderer/vertex/VertexBuffer;
 
-  private java.lang.String method_39961(int, int, int) throws java.lang.Exception;
-    descriptor: (III)Ljava/lang/String;
+  public void setPosition(int, int, int);
+    descriptor: (III)V
+
+  public void resortTransparency(float, float, float, net.minecraft.client.renderer.chunk.ChunkCompileTaskGenerator);
+    descriptor: (FFFLnet/minecraft/client/renderer/chunk/ChunkCompileTaskGenerator;)V
+
+  public void rebuildChunk(float, float, float, net.minecraft.client.renderer.chunk.ChunkCompileTaskGenerator);
+    descriptor: (FFFLnet/minecraft/client/renderer/chunk/ChunkCompileTaskGenerator;)V
+
+  protected void finishCompileTask();
+    descriptor: ()V
+
+  public java.util.concurrent.locks.ReentrantLock getLockCompileTask();
+    descriptor: ()Ljava/util/concurrent/locks/ReentrantLock;
+
+  public net.minecraft.client.renderer.chunk.ChunkCompileTaskGenerator makeCompileTaskChunk();
+    descriptor: ()Lnet/minecraft/client/renderer/chunk/ChunkCompileTaskGenerator;
+
+  private void rebuildWorldView();
+    descriptor: ()V
+
+  public net.minecraft.client.renderer.chunk.ChunkCompileTaskGenerator makeCompileTaskTransparency();
+    descriptor: ()Lnet/minecraft/client/renderer/chunk/ChunkCompileTaskGenerator;
+
+  protected double getDistanceSq();
+    descriptor: ()D
+
+  private void preRenderBlocks(net.minecraft.client.renderer.BufferBuilder, net.minecraft.util.math.BlockPos);
+    descriptor: (Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/util/math/BlockPos;)V
+
+  private void postRenderBlocks(net.minecraft.util.BlockRenderLayer, float, float, float, net.minecraft.client.renderer.BufferBuilder, net.minecraft.client.renderer.chunk.CompiledChunk);
+    descriptor: (Lnet/minecraft/util/BlockRenderLayer;FFFLnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/client/renderer/chunk/CompiledChunk;)V
+
+  private void initModelviewMatrix();
+    descriptor: ()V
+
+  public void multModelviewMatrix();
+    descriptor: ()V
+
+  public net.minecraft.client.renderer.chunk.CompiledChunk getCompiledChunk();
+    descriptor: ()Lnet/minecraft/client/renderer/chunk/CompiledChunk;
+
+  public void setCompiledChunk(net.minecraft.client.renderer.chunk.CompiledChunk);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/CompiledChunk;)V
+
+  public void stopCompileTask();
+    descriptor: ()V
+
+  public void deleteGlResources();
+    descriptor: ()V
+
+  public net.minecraft.util.math.BlockPos getPosition();
+    descriptor: ()Lnet/minecraft/util/math/BlockPos;
+
+  public void setNeedsUpdate(boolean);
+    descriptor: (Z)V
+
+  public void clearNeedsUpdate();
+    descriptor: ()V
+
+  public boolean needsUpdate();
+    descriptor: ()Z
+
+  public boolean needsImmediateUpdate();
+    descriptor: ()Z
+
+  protected net.minecraft.world.ChunkCache createRegionRenderCache(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.util.math.BlockPos, int);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/BlockPos;I)Lnet/minecraft/world/ChunkCache;
+
+  public net.minecraft.util.math.BlockPos getBlockPosOffset16(net.minecraft.util.EnumFacing);
+    descriptor: (Lnet/minecraft/util/EnumFacing;)Lnet/minecraft/util/math/BlockPos;
+
+  public net.minecraft.world.World getWorld();
+    descriptor: ()Lnet/minecraft/world/World;
 }
