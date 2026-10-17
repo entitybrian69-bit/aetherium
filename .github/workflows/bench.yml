@@ -90,6 +90,12 @@ jobs:
               }
           }
           GRADLE
+          # Mojang's asset CDN fails now and then (DownloadException): fetch the assets first, with retries.
+          for attempt in 1 2 3 4; do
+            gradle --no-daemon --console=plain :fabric:downloadAssets -Paetherium.enableRunConfigs=true \
+              > "$RUNNER_TEMP/assets.log" 2>&1 && break
+            echo "asset download attempt $attempt failed"; sleep $((attempt * 20))
+          done
           timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24" \
             gradle --no-daemon --console=plain --info -I "$RUNNER_TEMP/run17.gradle" :fabric:runClient -Paetherium.enableRunConfigs=true \
             > "$RUNNER_TEMP/client.log" 2>&1
