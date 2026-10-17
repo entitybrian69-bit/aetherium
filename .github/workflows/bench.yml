@@ -74,6 +74,9 @@ jobs:
           rm -rf "$out" && mkdir -p "$out"
           cd "$RUNNER_TEMP/tree"
           export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=3.3COMPAT
+          # The 1.16.5 row pins Fabric Loader 0.14.24, but the nested MixinExtras 0.5.3 requires >= 0.14.25
+          # (players run current loaders); the dev run uses a current loader that still supports 1.16.5.
+          LOADER=0.16.14
           export JAVA_TOOL_OPTIONS="-Daetherium.autobench=$out"
           # Groovy init script (resolved at run time, so no build-script compile risk): run on Java 17.
           cat > "$RUNNER_TEMP/run17.gradle" <<'GRADLE'
@@ -92,12 +95,12 @@ jobs:
           GRADLE
           # Mojang's asset CDN fails now and then (DownloadException): fetch the assets first, with retries.
           for attempt in 1 2 3 4; do
-            gradle --no-daemon --console=plain :fabric:downloadAssets -Paetherium.enableRunConfigs=true \
+            gradle --no-daemon --console=plain :fabric:downloadAssets -Paetherium.enableRunConfigs=true -Pfabric_loader_version=$LOADER \
               > "$RUNNER_TEMP/assets.log" 2>&1 && break
             echo "asset download attempt $attempt failed"; sleep $((attempt * 20))
           done
           timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24" \
-            gradle --no-daemon --console=plain --info -I "$RUNNER_TEMP/run17.gradle" :fabric:runClient -Paetherium.enableRunConfigs=true \
+            gradle --no-daemon --console=plain --info -I "$RUNNER_TEMP/run17.gradle" :fabric:runClient -Paetherium.enableRunConfigs=true -Pfabric_loader_version=$LOADER \
             > "$RUNNER_TEMP/client.log" 2>&1
           echo "exit $?" > "$out/status.txt"
           grep -nE "Aetherium|aetherium|ERROR|FATAL|Exception|Caused by|OpenGL|GL_RENDERER|Mixin apply|mixin" "$RUNNER_TEMP/client.log" \
