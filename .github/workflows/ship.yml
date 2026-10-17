@@ -32,6 +32,8 @@ on:
       - '.github/workflows/modrinth-admin.yml'
       - 'backport/**'
       - '.github/workflows/backport.yml'
+      - '.github/workflows/curseforge.yml'
+      - 'tools/curseforge/**'
   workflow_dispatch:
     inputs:
       only:
@@ -327,6 +329,13 @@ jobs:
     # already on Modrinth, so the next run fills in anything missing.
     if: always() && needs.ship.result != 'cancelled'
     uses: ./.github/workflows/modrinth.yml
+    secrets: inherit
+
+  curseforge:
+    name: publish to CurseForge
+    needs: ship
+    if: always() && needs.ship.result != 'cancelled'
+    uses: ./.github/workflows/curseforge.yml
     secrets: inherit
 
   downloads:

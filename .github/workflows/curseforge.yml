@@ -1,0 +1,60 @@
+# Publishes the latest jars to CurseForge (three projects, like on Modrinth):
+#   Fabric -> "Aetherium", NeoForge -> "Aetherium NeoForge", 1.12.2 Forge -> "Aetherium Backport".
+# Project IDs: tools/curseforge/projects.json (null = skipped). Token: CURSEFORGE_TOKEN secret.
+# Runs when the CurseForge files change, and after every ship.yml release. The jars come from the
+# GitHub releases that already exist; tools/curseforge/uploaded.json records what went up, so a
+# re-run never uploads a jar twice.
+name: curseforge
+on:
+  push:
+    branches: [arena/46f241da-aetherium]
+    paths: ['.github/workflows/curseforge.yml', 'tools/curseforge/**', '!tools/curseforge/uploaded.json']
+  workflow_call:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: curseforge
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: upload to CurseForge
+    runs-on: ubuntu-latest
+    env:
+      DRY_RUN: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: fetch the jars from the GitHub releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mod=$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')
+          mkdir -p dist
+          for ver in $(python3 -c "import json; print(' '.join(r['version'] for r in json.load(open('tools/porting_pins.json'))['rows']))"); do
+            gh release download "v$mod+$ver" --repo "$GITHUB_REPOSITORY" -p 'aetherium-*.jar' -D dist --clobber \
+              || echo "::warning::no release v$mod+$ver yet, skipped"
+          done
+          bp=$(sed -n 's/^mod_version *= *//p' backport/gradle.properties | tr -d '[:space:]')
+          gh release download "backport-v$bp+1.12.2" --repo "$GITHUB_REPOSITORY" -p 'aetherium-backport-*.jar' -D dist --clobber \
+            || echo "::warning::no backport release backport-v$bp+1.12.2 yet, skipped"
+          ls dist | wc -l
+      - name: upload
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+        run: python3 tools/curseforge/publish.py dist
+      - name: record what was uploaded
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/curseforge/uploaded.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -q -m "curseforge: record uploads [skip ci]"
+          for i in 1 2 3 4 5; do git pull -q --rebase origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && exit 0; sleep $((i*5)); done
+          exit 1

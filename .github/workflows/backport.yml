@@ -103,3 +103,8 @@ jobs:
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         run: python3 backport/ci/modrinth_backport.py "dist/aetherium-backport-$VERSION+1.12.2.jar"
+
+  curseforge:
+    needs: release
+    uses: ./.github/workflows/curseforge.yml
+    secrets: inherit
