@@ -78,6 +78,12 @@ jobs:
           # Groovy init script (resolved at run time, so no build-script compile risk): run on Java 17.
           cat > "$RUNNER_TEMP/run17.gradle" <<'GRADLE'
           allprojects { p ->
+              // The shipped jar nests MixinExtras (include); a dev run needs it on the runtime classpath.
+              p.afterEvaluate {
+                  if (p.name == 'fabric') {
+                      p.dependencies.add('runtimeOnly', "io.github.llamalad7:mixinextras-fabric:${p.property('mixin_extras_version')}")
+                  }
+              }
               p.tasks.matching { it.name == 'runClient' }.configureEach { t ->
                   def toolchains = p.extensions.getByType(JavaToolchainService)
                   t.javaLauncher.set(toolchains.launcherFor { it.languageVersion.set(JavaLanguageVersion.of(17)) })
