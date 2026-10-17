@@ -9,7 +9,7 @@ name: probe
 on:
   push:
     branches: [arena/46f241da-aetherium]
-    paths: ['.github/workflows/probe.yml', 'tools/probe_classes.txt', 'tools/probe_grep.txt', 'tools/probe_code.txt', 'tools/probe_methods.txt']
+    paths: ['.github/workflows/probe.yml', 'tools/probe_only.txt', 'tools/probe_classes.txt', 'tools/probe_grep.txt', 'tools/probe_code.txt', 'tools/probe_methods.txt']
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,12 @@ jobs:
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json
+          import os
           rows = json.load(open('tools/porting_pins.json'))['rows']
+          # tools/probe_only.txt (one version per line) limits a probe to those rows.
+          if os.path.exists('tools/probe_only.txt'):
+              only = {l.strip() for l in open('tools/probe_only.txt') if l.strip() and not l.startswith('#')}
+              rows = [r for r in rows if r['version'] in only]
           picks = []
           for row in rows:
               target = int(row.get('java') or 21)
@@ -104,7 +109,7 @@ jobs:
             tail -60 "$RUNNER_TEMP/setup.log" >> "$file"
             exit 0
           fi
-          cp_extra=$(find "$HOME/.gradle/caches/modules-2/files-2.1" -name '*.jar' \( -path '*blaze3d*' -o -path '*com.mojang*' -o -path '*lwjgl*' -o -path '*joml*' \) 2>/dev/null | tr '\n' ':')
+          cp_extra=$(find "$HOME/.gradle/caches/modules-2/files-2.1" -name '*.jar' \( -path '*blaze3d*' -o -path '*com.mojang*' -o -path '*lwjgl*' -o -path '*joml*' -o -path '*com.google.guava*' -o -path '*it.unimi.dsi*' \) 2>/dev/null | tr '\n' ':')
           while read -r cls; do
             [ -z "$cls" ] && continue
             echo "=== $cls" >> "$file"
