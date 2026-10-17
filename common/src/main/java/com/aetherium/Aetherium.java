@@ -176,6 +176,7 @@ public final class Aetherium {
         }
 
         final AndroidEnvironment android = AndroidEnvironment.probe(config);
+        com.aetherium.client.TerrainRegions.setTranslated(android.isAndroid());
         SUBSYSTEMS.set(new Subsystems(config, store, new FrameStats(), conflicts, android, platform));
         BenchmarkRecorder.start();
 

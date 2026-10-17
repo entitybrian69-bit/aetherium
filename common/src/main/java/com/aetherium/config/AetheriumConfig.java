@@ -51,6 +51,8 @@ public final class AetheriumConfig {
             "performance.animated_textures", true, "Animate water, lava, fire, portals and other animated block textures. Off skips every animation texture upload, a large saving on mobile GL layers.");
     public final ConfigValue<Integer> blockEntityDistance = ConfigValue.intRange(
             "performance.block_entity_distance", 64, 16, 64, false, "Chests, signs, banners, heads and other block entities farther than this many blocks are not drawn (64 = vanilla; beacon beams are exempt).");
+    public final ConfigValue<Integer> renderScale = ConfigValue.intRange(
+            "performance.render_scale", 100, 50, 100, false, "Draw the 3D world at this percentage of the window resolution and scale it up to the window; the HUD, menus and text stay sharp. 100 = full resolution. Lower values give a large FPS gain when the graphics chip is the limit (phones, integrated graphics, high resolutions). Not used with Fabulous graphics or while a glowing entity is on screen.");
     public final ConfigValue<Boolean> smoothChunkLoading = ConfigValue.bool(
             "performance.smooth_chunk_loading", true, "Spread finished chunk meshes over several frames instead of uploading them all in one frame, which removes the stutter while chunks load or generate.");
     public final ConfigValue<Boolean> threadedChunkBuilder = ConfigValue.bool(

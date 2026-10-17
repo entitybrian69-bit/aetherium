@@ -57,6 +57,16 @@ public final class Capabilities {
     //~ public static final boolean SMOOTH_CHUNK_UPLOADS = false;
     // @era:chunk-upload-end
 
+    /**
+     * The 3D world can be drawn into a smaller framebuffer and scaled up (1.9.0; 1.16.5 for now,
+     * where {@code Minecraft.mainRenderTarget} can be swapped around {@code GameRenderer.renderLevel}).
+     */
+    // @era:render-scale-begin none
+    public static final boolean RENDER_SCALE = false;
+    // @era:render-scale-else target
+    //~ public static final boolean RENDER_SCALE = true;
+    // @era:render-scale-end
+
     /** Atlas texture animation can be paused ({@code TextureAtlas.tick} exists on every version). */
     public static final boolean TEXTURE_ANIMATION_TOGGLE = true;
 

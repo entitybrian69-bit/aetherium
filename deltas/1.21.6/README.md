@@ -47,6 +47,7 @@ neoforge_version=21.6.20-beta
 - `particle-fast=inner`
 - `qol16=none`
 - `registry=builtin`
+- `render-scale=none`
 - `search-throttle=none`
 - `section-api=mesh`
 - `section-compile=none`

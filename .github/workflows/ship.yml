@@ -34,6 +34,8 @@ on:
       - '.github/workflows/backport.yml'
       - '.github/workflows/curseforge.yml'
       - 'tools/curseforge/**'
+      - '.github/workflows/bench.yml'
+      - 'bench/**'
   workflow_dispatch:
     inputs:
       only:
@@ -57,6 +59,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.picks.outputs.matrix }}
+      # 'true' when every version ships; a partial (ship-only / single version) run is a GitHub-only
+      # test build: prerelease, no Modrinth/CurseForge upload, DOWNLOADS.md left alone.
+      full: ${{ steps.picks.outputs.full }}
     steps:
       - uses: actions/checkout@v4
       - id: picks
@@ -99,6 +104,7 @@ jobs:
               print('matrix=[]', file=sys.stderr)
               sys.exit(1)
           print('matrix=' + json.dumps(picks, separators=(',', ':')))
+          print('full=' + ('true' if len(picks) == len(rows) else 'false'))
           print(f"planned {len(picks)} legs", file=sys.stderr)
           PY
 
@@ -220,15 +226,16 @@ jobs:
           * \`aetherium-fabric-*\` goes in \`mods/\` and needs only Fabric Loader (no Fabric API).
           * \`aetherium-neoforge-*\` needs nothing extra. $([ "${{ matrix.neoforge }}" = no ] && echo "There is no NeoForge/Forge jar for this version: the porting row pins no NeoForge, so the loader shell is disabled by the delta.")
           * Each jar requires exactly Minecraft ${{ matrix.version }}: its version-specific code was selected and compiled for that version only.
-          * The Aetherium renderer (Video Settings > Backend) is on by default on every version (1.16.5 to 26.3): solid and cutout chunk meshes are grouped by face direction and each section draws only the faces that can point at you, never with more draw calls than vanilla. New in 1.8.1: Minecraft 1.21.5 to 26.3 (meshes are grouped on the chunk builder threads, and each section's draw is narrowed to its visible faces; on 26.3 a section facing fully away still draws). It falls back to vanilla on any error and stays off after a crash while it was drawing. Aetherium adds no shaders. Built and unit-tested on CI: read VERIFICATION.md before filing a rendering bug.
+          * New in 1.9.0 (Minecraft 1.16.5): exact face skipping in batched terrain (every face group pointing away is skipped instead of being merged back in), a Render scale slider (Video Settings > Performance: draw the 3D world at 50-100% of the window resolution, the HUD stays sharp), and a CI benchmark that measures every change in-game. $([ "${{ needs.plan.outputs.full }}" = true ] || echo "**Test build:** published on GitHub only, not on Modrinth or CurseForge.")
+          * The Aetherium renderer (Video Settings > Backend) is on by default on every version (1.16.5 to 26.3): solid and cutout chunk meshes are grouped by face direction and each section draws only the faces that can point at you, never with more draw calls than vanilla. It falls back to vanilla on any error and stays off after a crash while it was drawing. Aetherium adds no shaders. Built and unit-tested on CI: read VERIFICATION.md before filing a rendering bug.
           EOF
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false \
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=${{ needs.plan.outputs.full != 'true' }} \
               --target "$GITHUB_SHA" --title "Aetherium $MOD_VERSION (Minecraft ${{ matrix.version }})" \
               --notes-file notes.md
             gh release upload "$tag" --repo "$GITHUB_REPOSITORY" --clobber $assets
           else
-            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false \
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=${{ needs.plan.outputs.full != 'true' }} \
               --target "$GITHUB_SHA" --title "Aetherium $MOD_VERSION (Minecraft ${{ matrix.version }})" \
               --notes-file notes.md $assets
           fi
@@ -324,24 +331,25 @@ jobs:
 
   modrinth:
     name: publish to Modrinth
-    needs: ship
+    needs: [plan, ship]
     # Publish whatever shipped, even if one leg failed; the publisher skips versions that are
-    # already on Modrinth, so the next run fills in anything missing.
-    if: always() && needs.ship.result != 'cancelled'
+    # already on Modrinth, so the next run fills in anything missing. Partial (test) ships stay
+    # on GitHub only.
+    if: always() && needs.ship.result != 'cancelled' && needs.plan.outputs.full == 'true'
     uses: ./.github/workflows/modrinth.yml
     secrets: inherit
 
   curseforge:
     name: publish to CurseForge
-    needs: ship
-    if: always() && needs.ship.result != 'cancelled'
+    needs: [plan, ship]
+    if: always() && needs.ship.result != 'cancelled' && needs.plan.outputs.full == 'true'
     uses: ./.github/workflows/curseforge.yml
     secrets: inherit
 
   downloads:
     name: write DOWNLOADS.md from the releases that exist
-    needs: ship
-    if: always()
+    needs: [plan, ship]
+    if: always() && needs.plan.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -52,6 +52,7 @@ neoforge_version=21.10.64
 - `particle-fast=none`
 - `qol16=none`
 - `registry=builtin`
+- `render-scale=none`
 - `scroll=four`
 - `search-throttle=none`
 - `section-api=mesh`

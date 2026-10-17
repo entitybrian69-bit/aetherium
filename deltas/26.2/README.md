@@ -61,6 +61,7 @@ neoforge_version=26.2.0.89
 - `registry=builtin`
 - `reload=invalidate`
 - `remapJar-block-removed`
+- `render-scale=none`
 - `screen-owner=gui`
 - `screen-pkg=options`
 - `scroll=four`

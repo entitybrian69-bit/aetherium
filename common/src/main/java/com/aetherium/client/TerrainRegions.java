@@ -52,6 +52,21 @@ public final class TerrainRegions {
      * 512 quads (1.7.1, was 128). Through GL4ES a draw call costs more than shading that many vertices.
      */
     static final int MERGE_GAP_VERTICES = 2048;
+    /**
+     * Desktop drivers (1.9.0): a draw call is cheap next to shading hidden quads, so only gaps of up
+     * to 64 quads are drawn through; GL translators (Android) keep {@link #MERGE_GAP_VERTICES}.
+     */
+    static final int MERGE_GAP_VERTICES_DESKTOP = 256;
+    private static volatile int mergeGap = MERGE_GAP_VERTICES;
+
+    /** Picks the merge gap for the GL in use: {@code translated} = a GL translator (Android). */
+    public static void setTranslated(final boolean translated) {
+        mergeGap = translated ? MERGE_GAP_VERTICES : MERGE_GAP_VERTICES_DESKTOP;
+    }
+
+    static int mergeGap() {
+        return mergeGap;
+    }
 
     /** GL buffer calls; replaced in unit tests. */
     public interface Buffers {
@@ -415,7 +430,7 @@ public final class TerrainRegions {
         int draws = 0;
         for (int i = 0, n = QUEUED.size(); i < n; i++) {
             final RegionPage page = QUEUED.get(i);
-            draws += page.ranges.merge(MERGE_GAP_VERTICES, page.alloc, DRAW_MAX_VERTICES);
+            draws += page.ranges.merge(mergeGap, page.alloc, DRAW_MAX_VERTICES);
         }
         drawsLastLayer = draws;
         pagesLastLayer = QUEUED.size();

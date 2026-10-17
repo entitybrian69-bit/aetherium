@@ -23,6 +23,7 @@ neoforge_version=unavailable (module disabled)
 
 - `anim=v16`
 - `atlas-tick=v16`
+- `autobench=create`
 - `background=none`
 - `bg-threads=clamp`
 - `camera-get=getter`
@@ -48,6 +49,7 @@ neoforge_version=unavailable (module disabled)
 - `qol16=v16`
 - `registry=static`
 - `reload=all-changed`
+- `render-scale=target`
 - `rot=fields`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
@@ -96,10 +98,12 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/resources/aetherium-common.mixins.json`
 - `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
+- `common/src/main/java/com/aetherium/client/AutoBench.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/client/FreelookHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/QolHooks.java`
+- `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
@@ -117,7 +121,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/FogStateMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumCaptureMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/GlowSeenMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java`
@@ -128,6 +134,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/RenderScaleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullLayerMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java`

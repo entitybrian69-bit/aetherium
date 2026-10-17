@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 0e91579..9852615 100644
+index 5ccccfe..832c602 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -47,7 +47,22 @@ index 0e91579..9852615 100644
      // @era:simdist-end
  
      /** Finished chunk meshes can be spread over several frames (upload queue is hookable). */
-@@ -64,10 +64,10 @@ public final class Capabilities {
+@@ -61,10 +61,10 @@ public final class Capabilities {
+      * The 3D world can be drawn into a smaller framebuffer and scaled up (1.9.0; 1.16.5 for now,
+      * where {@code Minecraft.mainRenderTarget} can be swapped around {@code GameRenderer.renderLevel}).
+      */
+-    // @era:render-scale-begin none
+-    public static final boolean RENDER_SCALE = false;
+-    // @era:render-scale-else target
+-    //~ public static final boolean RENDER_SCALE = true;
++    // @era:render-scale-begin target
++    public static final boolean RENDER_SCALE = true;
++    // @era:render-scale-else none
++    //~ public static final boolean RENDER_SCALE = false;
+     // @era:render-scale-end
+ 
+     /** Atlas texture animation can be paused ({@code TextureAtlas.tick} exists on every version). */
+@@ -74,10 +74,10 @@ public final class Capabilities {
      public static final boolean BLOCK_ENTITY_CULL = true;
  
      /** The worker pool is sized by the {@code max.bg.threads} property (1.18+) rather than the Util mixin. */
@@ -62,7 +77,7 @@ index 0e91579..9852615 100644
      // @era:bg-threads-end
  
      /**
-@@ -77,27 +77,27 @@ public final class Capabilities {
+@@ -87,27 +87,27 @@ public final class Capabilities {
      public static final boolean ENTITY_OCCLUSION = true;
  
      /** The visible list holds {@code LevelRenderer$RenderChunkInfo} (1.16.5-1.20.1) rather than sections. */
@@ -102,7 +117,7 @@ index 0e91579..9852615 100644
      // @era:section-cull-end
  
      /**
-@@ -138,20 +138,20 @@ public final class Capabilities {
+@@ -148,20 +148,20 @@ public final class Capabilities {
       * Dirty sections near the camera are rebuilt on worker threads instead of the render thread,
       * and client light updates get a per-frame time budget (1.16.5's "build near" path).
       */
@@ -131,7 +146,7 @@ index 0e91579..9852615 100644
      // @era:qol16-end
  
      /** Per-frame budget for queued packet tasks ({@code Minecraft.runTick}); every version. */
-@@ -185,29 +185,29 @@ public final class Capabilities {
+@@ -195,29 +195,29 @@ public final class Capabilities {
      // @era:particle-fast-end
  
      /** Per-frame camera frustum from vanilla's own matrices (1.16.5 via StreamingLevelMixin). */
@@ -174,7 +189,7 @@ index 0e91579..9852615 100644
      // @era:fog-cull-end
  
      /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */
-@@ -218,33 +218,33 @@ public final class Capabilities {
+@@ -228,33 +228,33 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -307,11 +322,700 @@ index e5e224a..a041b7e 100644
      //~ }
      // @era:scroll-end
  
+diff --git a/common/src/main/java/com/aetherium/client/AutoBench.java b/common/src/main/java/com/aetherium/client/AutoBench.java
+index 9b13f41..6190731 100644
+--- a/common/src/main/java/com/aetherium/client/AutoBench.java
++++ b/common/src/main/java/com/aetherium/client/AutoBench.java
+@@ -1,34 +1,34 @@
+ package com.aetherium.client;
+ 
+ import net.minecraft.client.Minecraft;
+-// @era:autobench-begin none
+-// @era:autobench-else create
+-//~ import java.io.File;
+-//~ import java.io.IOException;
+-//~ import java.lang.management.GarbageCollectorMXBean;
+-//~ import java.lang.management.ManagementFactory;
+-//~ import java.nio.charset.StandardCharsets;
+-//~ import java.nio.file.Files;
+-//~ import java.util.ArrayList;
+-//~ import java.util.List;
+-//~ import java.util.Locale;
++// @era:autobench-begin create
++import java.io.File;
++import java.io.IOException;
++import java.lang.management.GarbageCollectorMXBean;
++import java.lang.management.ManagementFactory;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Locale;
+ 
+-//~ import com.aetherium.Aetherium;
+-//~ import com.aetherium.config.AetheriumConfig;
+-//~ import com.aetherium.hud.BenchStats;
+-//~ import com.aetherium.util.AetheriumLog;
++import com.aetherium.Aetherium;
++import com.aetherium.config.AetheriumConfig;
++import com.aetherium.hud.BenchStats;
++import com.aetherium.util.AetheriumLog;
+ 
+-//~ import net.minecraft.client.Screenshot;
+-//~ import net.minecraft.client.gui.screens.TitleScreen;
+-//~ import net.minecraft.client.gui.screens.worldselection.WorldPreset;
+-//~ import net.minecraft.client.player.LocalPlayer;
+-//~ import net.minecraft.core.RegistryAccess;
+-//~ import net.minecraft.world.Difficulty;
+-//~ import net.minecraft.world.level.DataPackConfig;
+-//~ import net.minecraft.world.level.GameRules;
+-//~ import net.minecraft.world.level.GameType;
+-//~ import net.minecraft.world.level.LevelSettings;
+-//~ import net.minecraft.world.level.levelgen.WorldGenSettings;
++import net.minecraft.client.Screenshot;
++import net.minecraft.client.gui.screens.TitleScreen;
++import net.minecraft.client.gui.screens.worldselection.WorldPreset;
++import net.minecraft.client.player.LocalPlayer;
++import net.minecraft.core.RegistryAccess;
++import net.minecraft.world.Difficulty;
++import net.minecraft.world.level.DataPackConfig;
++import net.minecraft.world.level.GameRules;
++import net.minecraft.world.level.GameType;
++import net.minecraft.world.level.LevelSettings;
++import net.minecraft.world.level.levelgen.WorldGenSettings;
++// @era:autobench-else none
+ // @era:autobench-end
+ 
+ /**
+@@ -44,69 +44,69 @@ public final class AutoBench {
+     public static final String PROPERTY = "aetherium.autobench";
+     public static final boolean ACTIVE = System.getProperty(PROPERTY) != null;
+ 
+-    // @era:autobench-begin none
+-    // @era:autobench-else create
+-    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(AutoBench.class);
+-    //~ private static final long SEED = 7_294_105_550_031L;
+-    //~ private static final String WORLD = "aetherium-bench";
+-    //~ private static final int RENDER_DISTANCE = 8;
+-    //~ /** Whole run, in client ticks (25 minutes): after that the partial report is written. */
+-    //~ private static final int MAX_TICKS = 25 * 60 * 20;
+-    //~ /** Degrees per second the camera turns while a static scenario is measured. */
+-    //~ private static final float SPIN_DEG_PER_SECOND = 36.0F;
+-    //~ private static final float PITCH = 12.0F;
+-    //~ /** Blocks per tick while flying into new terrain (20 blocks/s, about elytra speed). */
+-    //~ private static final double FLY_SPEED = 1.0;
++    // @era:autobench-begin create
++    private static final AetheriumLog LOGGER = AetheriumLog.of(AutoBench.class);
++    private static final long SEED = 7_294_105_550_031L;
++    private static final String WORLD = "aetherium-bench";
++    private static final int RENDER_DISTANCE = 8;
++    /** Whole run, in client ticks (25 minutes): after that the partial report is written. */
++    private static final int MAX_TICKS = 25 * 60 * 20;
++    /** Degrees per second the camera turns while a static scenario is measured. */
++    private static final float SPIN_DEG_PER_SECOND = 36.0F;
++    private static final float PITCH = 12.0F;
++    /** Blocks per tick while flying into new terrain (20 blocks/s, about elytra speed). */
++    private static final double FLY_SPEED = 1.0;
+ 
+-    //~ private static final class Scenario {
+-        //~ final String id;
+-        //~ final String label;
+-        //~ final boolean aetherium;
+-        //~ final int scale;
+-        //~ /** 0 = turn in place, +1/-1 = fly along +X/-X. */
+-        //~ final int fly;
+-        //~ final int seconds;
+-        //~ final boolean reported;
++    private static final class Scenario {
++        final String id;
++        final String label;
++        final boolean aetherium;
++        final int scale;
++        /** 0 = turn in place, +1/-1 = fly along +X/-X. */
++        final int fly;
++        final int seconds;
++        final boolean reported;
+ 
+-        //~ Scenario(final String id, final String label, final boolean aetherium, final int scale, final int fly,
+-                 //~ final int seconds, final boolean reported) {
+-            //~ this.id = id;
+-            //~ this.label = label;
+-            //~ this.aetherium = aetherium;
+-            //~ this.scale = scale;
+-            //~ this.fly = fly;
+-            //~ this.seconds = seconds;
+-            //~ this.reported = reported;
+-        //~ }
+-    //~ }
++        Scenario(final String id, final String label, final boolean aetherium, final int scale, final int fly,
++                 final int seconds, final boolean reported) {
++            this.id = id;
++            this.label = label;
++            this.aetherium = aetherium;
++            this.scale = scale;
++            this.fly = fly;
++            this.seconds = seconds;
++            this.reported = reported;
++        }
++    }
+ 
+-    //~ private static final Scenario[] SCENARIOS = {
+-        //~ new Scenario("warmup", "Warm-up", true, 100, 0, 15, false),
+-        //~ new Scenario("vanilla", "Vanilla renderer (Aetherium off)", false, 100, 0, 20, true),
+-        //~ new Scenario("aetherium", "Aetherium 1.9.0 (defaults)", true, 100, 0, 20, true),
+-        //~ new Scenario("scale70", "Aetherium + render scale 70%", true, 70, 0, 20, true),
+-        //~ new Scenario("fly-vanilla", "Flying into new terrain, Aetherium off", false, 100, 1, 20, true),
+-        //~ new Scenario("fly-aetherium", "Flying into new terrain, Aetherium on", true, 100, -1, 20, true),
+-    //~ };
++    private static final Scenario[] SCENARIOS = {
++        new Scenario("warmup", "Warm-up", true, 100, 0, 15, false),
++        new Scenario("vanilla", "Vanilla renderer (Aetherium off)", false, 100, 0, 20, true),
++        new Scenario("aetherium", "Aetherium 1.9.0 (defaults)", true, 100, 0, 20, true),
++        new Scenario("scale70", "Aetherium + render scale 70%", true, 70, 0, 20, true),
++        new Scenario("fly-vanilla", "Flying into new terrain, Aetherium off", false, 100, 1, 20, true),
++        new Scenario("fly-aetherium", "Flying into new terrain, Aetherium on", true, 100, -1, 20, true),
++    };
+ 
+-    //~ private enum Phase { TITLE, LOADING, SETUP, SETTLE, MEASURE, SHOT, DONE, STOPPED }
++    private enum Phase { TITLE, LOADING, SETUP, SETTLE, MEASURE, SHOT, DONE, STOPPED }
+ 
+-    //~ private static Phase phase = Phase.TITLE;
+-    //~ private static int ticks;
+-    //~ private static int phaseTicks;
+-    //~ private static int scenario;
+-    //~ private static int quietTicks;
+-    //~ private static double baseX;
+-    //~ private static double baseY;
+-    //~ private static double baseZ;
+-    //~ private static long measureStart;
+-    //~ private static long[] frames = new long[1 << 16];
+-    //~ private static int frameCount;
+-    //~ private static long gcCountStart;
+-    //~ private static long gcMillisStart;
+-    //~ private static final List<String> ROWS = new ArrayList<>();
+-    //~ private static final List<String> JSON = new ArrayList<>();
+-    //~ private static final List<String> NOTES = new ArrayList<>();
++    private static Phase phase = Phase.TITLE;
++    private static int ticks;
++    private static int phaseTicks;
++    private static int scenario;
++    private static int quietTicks;
++    private static double baseX;
++    private static double baseY;
++    private static double baseZ;
++    private static long measureStart;
++    private static long[] frames = new long[1 << 16];
++    private static int frameCount;
++    private static long gcCountStart;
++    private static long gcMillisStart;
++    private static final List<String> ROWS = new ArrayList<>();
++    private static final List<String> JSON = new ArrayList<>();
++    private static final List<String> NOTES = new ArrayList<>();
++    // @era:autobench-else none
+     // @era:autobench-end
+ 
+     private AutoBench() {
+@@ -117,24 +117,24 @@ public final class AutoBench {
+         if (!ACTIVE) {
+             return;
+         }
+-        // @era:autobench-begin none
+-        // @era:autobench-else create
+-        //~ if (phase != Phase.MEASURE) {
+-            //~ return;
+-        //~ }
+-        //~ if (frameCount < frames.length) {
+-            //~ frames[frameCount++] = frameNanos;
+-        //~ }
+-        //~ final Scenario s = SCENARIOS[scenario];
+-        //~ final LocalPlayer player = Minecraft.getInstance().player;
+-        //~ if (player != null && s.fly == 0) {
+-            //~ final float seconds = (System.nanoTime() - measureStart) / 1e9F;
+-            //~ final float yaw = (seconds * SPIN_DEG_PER_SECOND) % 360.0F;
+-            //~ player.yRot = yaw;
+-            //~ player.yRotO = yaw;
+-            //~ player.xRot = PITCH;
+-            //~ player.xRotO = PITCH;
+-        //~ }
++        // @era:autobench-begin create
++        if (phase != Phase.MEASURE) {
++            return;
++        }
++        if (frameCount < frames.length) {
++            frames[frameCount++] = frameNanos;
++        }
++        final Scenario s = SCENARIOS[scenario];
++        final LocalPlayer player = Minecraft.getInstance().player;
++        if (player != null && s.fly == 0) {
++            final float seconds = (System.nanoTime() - measureStart) / 1e9F;
++            final float yaw = (seconds * SPIN_DEG_PER_SECOND) % 360.0F;
++            player.yRot = yaw;
++            player.yRotO = yaw;
++            player.xRot = PITCH;
++            player.xRotO = PITCH;
++        }
++        // @era:autobench-else none
+         // @era:autobench-end
+     }
+ 
+@@ -143,234 +143,234 @@ public final class AutoBench {
+         if (!ACTIVE) {
+             return;
+         }
+-        // @era:autobench-begin none
+-        // @era:autobench-else create
+-        //~ if (phase == Phase.STOPPED) {
+-            //~ return;
+-        //~ }
+-        //~ ticks++;
+-        //~ phaseTicks++;
+-        //~ try {
+-            //~ if (ticks > MAX_TICKS && phase != Phase.DONE) {
+-                //~ NOTES.add("Timed out in phase " + phase + " (scenario " + SCENARIOS[Math.min(scenario, SCENARIOS.length - 1)].id + ").");
+-                //~ enter(Phase.DONE);
+-            //~ }
+-            //~ step(mc);
+-        //~ } catch (final Throwable error) {
+-            //~ LOGGER.error("Auto benchmark failed", error);
+-            //~ NOTES.add("Failed in phase " + phase + ": " + error);
+-            //~ writeReport(mc);
+-            //~ phase = Phase.STOPPED;
+-            //~ mc.stop();
+-        //~ }
++        // @era:autobench-begin create
++        if (phase == Phase.STOPPED) {
++            return;
++        }
++        ticks++;
++        phaseTicks++;
++        try {
++            if (ticks > MAX_TICKS && phase != Phase.DONE) {
++                NOTES.add("Timed out in phase " + phase + " (scenario " + SCENARIOS[Math.min(scenario, SCENARIOS.length - 1)].id + ").");
++                enter(Phase.DONE);
++            }
++            step(mc);
++        } catch (final Throwable error) {
++            LOGGER.error("Auto benchmark failed", error);
++            NOTES.add("Failed in phase " + phase + ": " + error);
++            writeReport(mc);
++            phase = Phase.STOPPED;
++            mc.stop();
++        }
++        // @era:autobench-else none
+         // @era:autobench-end
+     }
+ 
+-    // @era:autobench-begin none
+-    // @era:autobench-else create
+-    //~ private static void enter(final Phase next) {
+-        //~ phase = next;
+-        //~ phaseTicks = 0;
+-    //~ }
++    // @era:autobench-begin create
++    private static void enter(final Phase next) {
++        phase = next;
++        phaseTicks = 0;
++    }
+ 
+-    //~ private static void step(final Minecraft mc) {
+-        //~ switch (phase) {
+-            //~ case TITLE:
+-                //~ if (mc.getOverlay() == null && mc.screen instanceof TitleScreen && phaseTicks > 40) {
+-                    //~ mc.options.pauseOnLostFocus = false;
+-                    //~ mc.options.renderDistance = RENDER_DISTANCE;
+-                    //~ mc.options.framerateLimit = 260;
+-                    //~ mc.options.enableVsync = false;
+-                    //~ mc.getWindow().updateVsync(false);
+-                    //~ final RegistryAccess.RegistryHolder registries = RegistryAccess.builtin();
+-                    //~ final LevelSettings settings = new LevelSettings(WORLD, GameType.SPECTATOR, false,
+-                            //~ Difficulty.PEACEFUL, true, new GameRules(), DataPackConfig.DEFAULT);
+-                    //~ final WorldGenSettings generator = WorldPreset.NORMAL.create(registries, SEED, true, false);
+-                    //~ LOGGER.info("Auto benchmark: creating world {}", WORLD);
+-                    //~ enter(Phase.LOADING);
+-                    //~ mc.createLevel(WORLD, settings, registries, generator);
+-                //~ }
+-                //~ break;
+-            //~ case LOADING:
+-                //~ if (mc.level != null && mc.player != null) {
+-                    //~ if (mc.screen != null) {
+-                        //~ mc.setScreen(null);
+-                    //~ }
+-                    //~ if (phaseTicks > 40) {
+-                        //~ final LocalPlayer player = mc.player;
+-                        //~ player.chat("/gamerule doDaylightCycle false");
+-                        //~ player.chat("/gamerule doWeatherCycle false");
+-                        //~ player.chat("/time set 6000");
+-                        //~ player.chat("/weather clear");
+-                        //~ player.chat("/tp @s ~ ~40 ~ 0 0");
+-                        //~ enter(Phase.SETUP);
+-                    //~ }
+-                //~ }
+-                //~ break;
+-            //~ case SETUP:
+-                //~ if (mc.player == null) {
+-                    //~ break;
+-                //~ }
+-                //~ if (mc.screen != null) {
+-                    //~ mc.setScreen(null);
+-                //~ }
+-                //~ if (scenario == 0 && phaseTicks < 40) {
+-                    //~ break;
+-                //~ }
+-                //~ if (scenario == 0) {
+-                    //~ baseX = mc.player.getX();
+-                    //~ baseY = mc.player.getY();
+-                    //~ baseZ = mc.player.getZ();
+-                //~ }
+-                //~ apply(mc, SCENARIOS[scenario]);
+-                //~ enter(Phase.SETTLE);
+-                //~ quietTicks = 0;
+-                //~ break;
+-            //~ case SETTLE:
+-                //~ if (mc.screen != null) {
+-                    //~ mc.setScreen(null);
+-                //~ }
+-                //~ holdAtBase(mc);
+-                //~ quietTicks = mc.levelRenderer.hasRenderedAllChunks() ? quietTicks + 1 : 0;
+-                //~ // At least 5 s, then 2 s with nothing left to build; never more than 120 s.
+-                //~ if ((phaseTicks > 100 && quietTicks > 40) || phaseTicks > 2400) {
+-                    //~ if (phaseTicks > 2400) {
+-                        //~ NOTES.add(SCENARIOS[scenario].id + ": chunks still building after 120 s; measured anyway.");
+-                    //~ }
+-                    //~ startMeasure();
+-                //~ }
+-                //~ break;
+-            //~ case MEASURE: {
+-                //~ final Scenario s = SCENARIOS[scenario];
+-                //~ if (s.fly != 0 && mc.player != null) {
+-                    //~ final LocalPlayer player = mc.player;
+-                    //~ player.yRot = s.fly > 0 ? -90.0F : 90.0F;
+-                    //~ player.yRotO = player.yRot;
+-                    //~ player.xRot = 0.0F;
+-                    //~ player.xRotO = 0.0F;
+-                    //~ player.setPos(player.getX() + s.fly * FLY_SPEED, baseY, baseZ);
+-                //~ }
+-                //~ if (System.nanoTime() - measureStart >= s.seconds * 1_000_000_000L) {
+-                    //~ finishMeasure(mc, s);
+-                    //~ enter(Phase.SHOT);
+-                //~ }
+-                //~ break;
+-            //~ }
+-            //~ case SHOT: {
+-                //~ final Scenario s = SCENARIOS[scenario];
+-                //~ if (s.fly == 0) {
+-                    //~ holdAtBase(mc);
+-                //~ }
+-                //~ if (phaseTicks == 30 && s.reported && s.fly == 0) {
+-                    //~ Screenshot.grab(mc.gameDirectory, "bench-" + s.id + ".png", mc.getWindow().getWidth(),
+-                            //~ mc.getWindow().getHeight(), mc.getMainRenderTarget(), message -> { });
+-                //~ }
+-                //~ if (phaseTicks > 40) {
+-                    //~ scenario++;
+-                    //~ enter(scenario < SCENARIOS.length ? Phase.SETUP : Phase.DONE);
+-                //~ }
+-                //~ break;
+-            //~ }
+-            //~ case DONE:
+-                //~ if (phaseTicks == 1) {
+-                    //~ writeReport(mc);
+-                //~ }
+-                //~ if (phaseTicks > 60) {
+-                    //~ phase = Phase.STOPPED;
+-                    //~ LOGGER.info("Auto benchmark finished, closing the game");
+-                    //~ mc.stop();
+-                //~ }
+-                //~ break;
+-            //~ default:
+-                //~ break;
+-        //~ }
+-    //~ }
++    private static void step(final Minecraft mc) {
++        switch (phase) {
++            case TITLE:
++                if (mc.getOverlay() == null && mc.screen instanceof TitleScreen && phaseTicks > 40) {
++                    mc.options.pauseOnLostFocus = false;
++                    mc.options.renderDistance = RENDER_DISTANCE;
++                    mc.options.framerateLimit = 260;
++                    mc.options.enableVsync = false;
++                    mc.getWindow().updateVsync(false);
++                    final RegistryAccess.RegistryHolder registries = RegistryAccess.builtin();
++                    final LevelSettings settings = new LevelSettings(WORLD, GameType.SPECTATOR, false,
++                            Difficulty.PEACEFUL, true, new GameRules(), DataPackConfig.DEFAULT);
++                    final WorldGenSettings generator = WorldPreset.NORMAL.create(registries, SEED, true, false);
++                    LOGGER.info("Auto benchmark: creating world {}", WORLD);
++                    enter(Phase.LOADING);
++                    mc.createLevel(WORLD, settings, registries, generator);
++                }
++                break;
++            case LOADING:
++                if (mc.level != null && mc.player != null) {
++                    if (mc.screen != null) {
++                        mc.setScreen(null);
++                    }
++                    if (phaseTicks > 40) {
++                        final LocalPlayer player = mc.player;
++                        player.chat("/gamerule doDaylightCycle false");
++                        player.chat("/gamerule doWeatherCycle false");
++                        player.chat("/time set 6000");
++                        player.chat("/weather clear");
++                        player.chat("/tp @s ~ ~40 ~ 0 0");
++                        enter(Phase.SETUP);
++                    }
++                }
++                break;
++            case SETUP:
++                if (mc.player == null) {
++                    break;
++                }
++                if (mc.screen != null) {
++                    mc.setScreen(null);
++                }
++                if (scenario == 0 && phaseTicks < 40) {
++                    break;
++                }
++                if (scenario == 0) {
++                    baseX = mc.player.getX();
++                    baseY = mc.player.getY();
++                    baseZ = mc.player.getZ();
++                }
++                apply(mc, SCENARIOS[scenario]);
++                enter(Phase.SETTLE);
++                quietTicks = 0;
++                break;
++            case SETTLE:
++                if (mc.screen != null) {
++                    mc.setScreen(null);
++                }
++                holdAtBase(mc);
++                quietTicks = mc.levelRenderer.hasRenderedAllChunks() ? quietTicks + 1 : 0;
++                // At least 5 s, then 2 s with nothing left to build; never more than 120 s.
++                if ((phaseTicks > 100 && quietTicks > 40) || phaseTicks > 2400) {
++                    if (phaseTicks > 2400) {
++                        NOTES.add(SCENARIOS[scenario].id + ": chunks still building after 120 s; measured anyway.");
++                    }
++                    startMeasure();
++                }
++                break;
++            case MEASURE: {
++                final Scenario s = SCENARIOS[scenario];
++                if (s.fly != 0 && mc.player != null) {
++                    final LocalPlayer player = mc.player;
++                    player.yRot = s.fly > 0 ? -90.0F : 90.0F;
++                    player.yRotO = player.yRot;
++                    player.xRot = 0.0F;
++                    player.xRotO = 0.0F;
++                    player.setPos(player.getX() + s.fly * FLY_SPEED, baseY, baseZ);
++                }
++                if (System.nanoTime() - measureStart >= s.seconds * 1_000_000_000L) {
++                    finishMeasure(mc, s);
++                    enter(Phase.SHOT);
++                }
++                break;
++            }
++            case SHOT: {
++                final Scenario s = SCENARIOS[scenario];
++                if (s.fly == 0) {
++                    holdAtBase(mc);
++                }
++                if (phaseTicks == 30 && s.reported && s.fly == 0) {
++                    Screenshot.grab(mc.gameDirectory, "bench-" + s.id + ".png", mc.getWindow().getWidth(),
++                            mc.getWindow().getHeight(), mc.getMainRenderTarget(), message -> { });
++                }
++                if (phaseTicks > 40) {
++                    scenario++;
++                    enter(scenario < SCENARIOS.length ? Phase.SETUP : Phase.DONE);
++                }
++                break;
++            }
++            case DONE:
++                if (phaseTicks == 1) {
++                    writeReport(mc);
++                }
++                if (phaseTicks > 60) {
++                    phase = Phase.STOPPED;
++                    LOGGER.info("Auto benchmark finished, closing the game");
++                    mc.stop();
++                }
++                break;
++            default:
++                break;
++        }
++    }
+ 
+-    //~ private static void apply(final Minecraft mc, final Scenario s) {
+-        //~ final AetheriumConfig config = Aetherium.config();
+-        //~ config.enabled.set(Boolean.valueOf(s.aetherium));
+-        //~ config.renderScale.set(Integer.valueOf(s.scale));
+-        //~ Aetherium.refreshState();
+-        //~ if (mc.player != null) {
+-            //~ mc.player.setPos(baseX, baseY, baseZ);
+-        //~ }
+-        //~ // Every scenario starts from a full rebuild so they are measured alike.
+-        //~ mc.levelRenderer.allChanged();
+-        //~ LOGGER.info("Auto benchmark: scenario {}", s.id);
+-    //~ }
++    private static void apply(final Minecraft mc, final Scenario s) {
++        final AetheriumConfig config = Aetherium.config();
++        config.enabled.set(Boolean.valueOf(s.aetherium));
++        config.renderScale.set(Integer.valueOf(s.scale));
++        Aetherium.refreshState();
++        if (mc.player != null) {
++            mc.player.setPos(baseX, baseY, baseZ);
++        }
++        // Every scenario starts from a full rebuild so they are measured alike.
++        mc.levelRenderer.allChanged();
++        LOGGER.info("Auto benchmark: scenario {}", s.id);
++    }
+ 
+-    //~ private static void holdAtBase(final Minecraft mc) {
+-        //~ final LocalPlayer player = mc.player;
+-        //~ if (player == null) {
+-            //~ return;
+-        //~ }
+-        //~ player.setPos(baseX, baseY, baseZ);
+-        //~ player.yRot = 0.0F;
+-        //~ player.yRotO = 0.0F;
+-        //~ player.xRot = PITCH;
+-        //~ player.xRotO = PITCH;
+-    //~ }
++    private static void holdAtBase(final Minecraft mc) {
++        final LocalPlayer player = mc.player;
++        if (player == null) {
++            return;
++        }
++        player.setPos(baseX, baseY, baseZ);
++        player.yRot = 0.0F;
++        player.yRotO = 0.0F;
++        player.xRot = PITCH;
++        player.xRotO = PITCH;
++    }
+ 
+-    //~ private static void startMeasure() {
+-        //~ frameCount = 0;
+-        //~ gcCountStart = gcCount();
+-        //~ gcMillisStart = gcMillis();
+-        //~ measureStart = System.nanoTime();
+-        //~ enter(Phase.MEASURE);
+-    //~ }
++    private static void startMeasure() {
++        frameCount = 0;
++        gcCountStart = gcCount();
++        gcMillisStart = gcMillis();
++        measureStart = System.nanoTime();
++        enter(Phase.MEASURE);
++    }
+ 
+-    //~ private static void finishMeasure(final Minecraft mc, final Scenario s) {
+-        //~ final BenchStats stats = BenchStats.of(frames, frameCount);
+-        //~ LOGGER.info("Auto benchmark: {} -> {}", s.id, stats.markdownRow(s.label));
+-        //~ if (!s.reported) {
+-            //~ return;
+-        //~ }
+-        //~ ROWS.add(stats.markdownRow(s.label));
+-        //~ JSON.add(stats.json(s.id));
+-        //~ NOTES.add(String.format(Locale.ROOT, "%s: %d GC collections, %d ms in GC; renderer: %s; regions: %s; render scale: %d%%",
+-                //~ s.id, gcCount() - gcCountStart, gcMillis() - gcMillisStart, ChunkRenderer.statusText(),
+-                //~ TerrainRegions.status(), RenderScale.lastPercent()));
+-    //~ }
++    private static void finishMeasure(final Minecraft mc, final Scenario s) {
++        final BenchStats stats = BenchStats.of(frames, frameCount);
++        LOGGER.info("Auto benchmark: {} -> {}", s.id, stats.markdownRow(s.label));
++        if (!s.reported) {
++            return;
++        }
++        ROWS.add(stats.markdownRow(s.label));
++        JSON.add(stats.json(s.id));
++        NOTES.add(String.format(Locale.ROOT, "%s: %d GC collections, %d ms in GC; renderer: %s; regions: %s; render scale: %d%%",
++                s.id, gcCount() - gcCountStart, gcMillis() - gcMillisStart, ChunkRenderer.statusText(),
++                TerrainRegions.status(), RenderScale.lastPercent()));
++    }
+ 
+-    //~ private static long gcCount() {
+-        //~ long total = 0L;
+-        //~ for (final GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
+-            //~ total += Math.max(0L, bean.getCollectionCount());
+-        //~ }
+-        //~ return total;
+-    //~ }
++    private static long gcCount() {
++        long total = 0L;
++        for (final GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
++            total += Math.max(0L, bean.getCollectionCount());
++        }
++        return total;
++    }
+ 
+-    //~ private static long gcMillis() {
+-        //~ long total = 0L;
+-        //~ for (final GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
+-            //~ total += Math.max(0L, bean.getCollectionTime());
+-        //~ }
+-        //~ return total;
+-    //~ }
++    private static long gcMillis() {
++        long total = 0L;
++        for (final GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
++            total += Math.max(0L, bean.getCollectionTime());
++        }
++        return total;
++    }
+ 
+-    //~ private static void writeReport(final Minecraft mc) {
+-        //~ try {
+-            //~ final File dir = new File(System.getProperty(PROPERTY));
+-            //~ dir.mkdirs();
+-            //~ final StringBuilder md = new StringBuilder();
+-            //~ md.append("# Aetherium auto benchmark (1.16.5)\n\n");
+-            //~ md.append(String.format(Locale.ROOT, "Window %dx%d, render distance %d, seed %d, GPU: %s, Java %s, %d CPUs.\n\n",
+-                    //~ mc.getWindow().getWidth(), mc.getWindow().getHeight(), RENDER_DISTANCE, SEED, GlInfo.renderer(),
+-                    //~ System.getProperty("java.version"), Runtime.getRuntime().availableProcessors()));
+-            //~ md.append(BenchStats.markdownHeader()).append('\n');
+-            //~ for (final String row : ROWS) {
+-                //~ md.append(row).append('\n');
+-            //~ }
+-            //~ md.append("\n## Notes\n\n");
+-            //~ for (final String note : NOTES) {
+-                //~ md.append("- ").append(note).append('\n');
+-            //~ }
+-            //~ Files.write(new File(dir, "report.md").toPath(), md.toString().getBytes(StandardCharsets.UTF_8));
+-            //~ Files.write(new File(dir, "results.json").toPath(),
+-                    //~ ("[" + String.join(",\n", JSON) + "]\n").getBytes(StandardCharsets.UTF_8));
+-        //~ } catch (final IOException | RuntimeException error) {
+-            //~ LOGGER.error("Auto benchmark: could not write the report", error);
+-        //~ }
+-    //~ }
++    private static void writeReport(final Minecraft mc) {
++        try {
++            final File dir = new File(System.getProperty(PROPERTY));
++            dir.mkdirs();
++            final StringBuilder md = new StringBuilder();
++            md.append("# Aetherium auto benchmark (1.16.5)\n\n");
++            md.append(String.format(Locale.ROOT, "Window %dx%d, render distance %d, seed %d, GPU: %s, Java %s, %d CPUs.\n\n",
++                    mc.getWindow().getWidth(), mc.getWindow().getHeight(), RENDER_DISTANCE, SEED, GlInfo.renderer(),
++                    System.getProperty("java.version"), Runtime.getRuntime().availableProcessors()));
++            md.append(BenchStats.markdownHeader()).append('\n');
++            for (final String row : ROWS) {
++                md.append(row).append('\n');
++            }
++            md.append("\n## Notes\n\n");
++            for (final String note : NOTES) {
++                md.append("- ").append(note).append('\n');
++            }
++            Files.write(new File(dir, "report.md").toPath(), md.toString().getBytes(StandardCharsets.UTF_8));
++            Files.write(new File(dir, "results.json").toPath(),
++                    ("[" + String.join(",\n", JSON) + "]\n").getBytes(StandardCharsets.UTF_8));
++        } catch (final IOException | RuntimeException error) {
++            LOGGER.error("Auto benchmark: could not write the report", error);
++        }
++    }
++    // @era:autobench-else none
+     // @era:autobench-end
+ }
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index bccc384..0c49a03 100644
+index 0fcbb01..775d6fc 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -389,10 +389,10 @@ public final class ClientHooks {
+@@ -391,10 +391,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -326,7 +1030,7 @@ index bccc384..0c49a03 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -427,10 +427,10 @@ public final class ClientHooks {
+@@ -429,10 +429,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -605,6 +1309,194 @@ index 9307dc9..164bf65 100644
      // @era:qol16-end
  
      /**
+diff --git a/common/src/main/java/com/aetherium/client/ScaledRenderTarget.java b/common/src/main/java/com/aetherium/client/ScaledRenderTarget.java
+index 10c82b3..da83c24 100644
+--- a/common/src/main/java/com/aetherium/client/ScaledRenderTarget.java
++++ b/common/src/main/java/com/aetherium/client/ScaledRenderTarget.java
+@@ -1,10 +1,10 @@
+ package com.aetherium.client;
+ 
+-// @era:render-scale-begin none
+-// @era:render-scale-else target
+-//~ import com.aetherium.mixin.core.MainTargetAccessor;
+-//~ import com.mojang.blaze3d.pipeline.RenderTarget;
+-//~ import net.minecraft.client.Minecraft;
++// @era:render-scale-begin target
++import com.aetherium.mixin.core.MainTargetAccessor;
++import com.mojang.blaze3d.pipeline.RenderTarget;
++import net.minecraft.client.Minecraft;
++// @era:render-scale-else none
+ // @era:render-scale-end
+ 
+ /**
+@@ -15,90 +15,90 @@ package com.aetherium.client;
+  * target is put back and this one is drawn over it, filtered, at window size. The entity
+  * outline pass, post effects and the GUI then run at full resolution as usual.
+  */
+-// @era:render-scale-begin none
+-public final class ScaledRenderTarget {
+-    private ScaledRenderTarget() {
+-    }
+-}
+-// @era:render-scale-else target
+-//~ public final class ScaledRenderTarget extends RenderTarget {
+-    //~ /** GL_LINEAR: smooth upscale. RenderTarget.createBuffers resets the filter to GL_NEAREST. */
+-    //~ private static final int LINEAR = 9729;
++// @era:render-scale-begin target
++public final class ScaledRenderTarget extends RenderTarget {
++    /** GL_LINEAR: smooth upscale. RenderTarget.createBuffers resets the filter to GL_NEAREST. */
++    private static final int LINEAR = 9729;
+ 
+-    //~ private static ScaledRenderTarget instance;
+-    //~ private static RenderTarget swapped;
++    private static ScaledRenderTarget instance;
++    private static RenderTarget swapped;
+ 
+-    //~ private ScaledRenderTarget(final int width, final int height) {
+-        //~ super(width, height, true, Minecraft.ON_OSX);
+-        //~ this.setFilterMode(LINEAR);
+-    //~ }
++    private ScaledRenderTarget(final int width, final int height) {
++        super(width, height, true, Minecraft.ON_OSX);
++        this.setFilterMode(LINEAR);
++    }
+ 
+-    //~ /**
+-     //~ * Vanilla rebinds the main target with {@code bindWrite(false)} after its outline pass,
+-     //~ * relying on the viewport already matching the window. Always set our own viewport.
+-     //~ */
+-    //~ @Override
+-    //~ public void bindWrite(final boolean setViewport) {
+-        //~ super.bindWrite(true);
+-    //~ }
++    /**
++     * Vanilla rebinds the main target with {@code bindWrite(false)} after its outline pass,
++     * relying on the viewport already matching the window. Always set our own viewport.
++     */
++    @Override
++    public void bindWrite(final boolean setViewport) {
++        super.bindWrite(true);
++    }
+ 
+-    //~ private void ensureSize(final int width, final int height) {
+-        //~ if (width != this.width || height != this.height) {
+-            //~ this.resize(width, height, Minecraft.ON_OSX);
+-            //~ this.setFilterMode(LINEAR);
+-        //~ }
+-    //~ }
++    private void ensureSize(final int width, final int height) {
++        if (width != this.width || height != this.height) {
++            this.resize(width, height, Minecraft.ON_OSX);
++            this.setFilterMode(LINEAR);
++        }
++    }
+ 
+-    //~ /** {@code GameRenderer.renderLevel} HEAD. */
+-    //~ public static void begin(final Minecraft minecraft) {
+-        //~ if (swapped != null) {
+-            //~ // The previous world pass threw before RETURN: put the real target back first.
+-            //~ restore(minecraft);
+-        //~ }
+-        //~ final int percent = RenderScale.beginFrame(Minecraft.useShaderTransparency());
+-        //~ if (percent >= 100) {
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ final MainTargetAccessor access = (MainTargetAccessor) minecraft;
+-            //~ final RenderTarget main = access.aetheriumMainTarget();
+-            //~ final int width = RenderScale.scaled(main.width, percent);
+-            //~ final int height = RenderScale.scaled(main.height, percent);
+-            //~ if (instance == null) {
+-                //~ instance = new ScaledRenderTarget(width, height);
+-            //~ } else {
+-                //~ instance.ensureSize(width, height);
+-            //~ }
+-            //~ swapped = main;
+-            //~ access.aetheriumSetMainTarget(instance);
+-            //~ instance.bindWrite(true);
+-        //~ } catch (final Throwable error) {
+-            //~ restore(minecraft);
+-            //~ RenderScale.fail(error);
+-        //~ }
+-    //~ }
++    /** {@code GameRenderer.renderLevel} HEAD. */
++    public static void begin(final Minecraft minecraft) {
++        if (swapped != null) {
++            // The previous world pass threw before RETURN: put the real target back first.
++            restore(minecraft);
++        }
++        final int percent = RenderScale.beginFrame(Minecraft.useShaderTransparency());
++        if (percent >= 100) {
++            return;
++        }
++        try {
++            final MainTargetAccessor access = (MainTargetAccessor) minecraft;
++            final RenderTarget main = access.aetheriumMainTarget();
++            final int width = RenderScale.scaled(main.width, percent);
++            final int height = RenderScale.scaled(main.height, percent);
++            if (instance == null) {
++                instance = new ScaledRenderTarget(width, height);
++            } else {
++                instance.ensureSize(width, height);
++            }
++            swapped = main;
++            access.aetheriumSetMainTarget(instance);
++            instance.bindWrite(true);
++        } catch (final Throwable error) {
++            restore(minecraft);
++            RenderScale.fail(error);
++        }
++    }
+ 
+-    //~ /** {@code GameRenderer.renderLevel} RETURN: put the real target back and draw the frame into it. */
+-    //~ public static void end(final Minecraft minecraft) {
+-        //~ if (swapped == null) {
+-            //~ return;
+-        //~ }
+-        //~ final RenderTarget main = swapped;
+-        //~ restore(minecraft);
+-        //~ try {
+-            //~ main.bindWrite(true);
+-            //~ instance.blitToScreen(main.width, main.height);
+-        //~ } catch (final Throwable error) {
+-            //~ RenderScale.fail(error);
+-        //~ }
+-    //~ }
++    /** {@code GameRenderer.renderLevel} RETURN: put the real target back and draw the frame into it. */
++    public static void end(final Minecraft minecraft) {
++        if (swapped == null) {
++            return;
++        }
++        final RenderTarget main = swapped;
++        restore(minecraft);
++        try {
++            main.bindWrite(true);
++            instance.blitToScreen(main.width, main.height);
++        } catch (final Throwable error) {
++            RenderScale.fail(error);
++        }
++    }
+ 
+-    //~ private static void restore(final Minecraft minecraft) {
+-        //~ final RenderTarget main = swapped;
+-        //~ swapped = null;
+-        //~ if (main != null) {
+-            //~ ((MainTargetAccessor) minecraft).aetheriumSetMainTarget(main);
+-        //~ }
++    private static void restore(final Minecraft minecraft) {
++        final RenderTarget main = swapped;
++        swapped = null;
++        if (main != null) {
++            ((MainTargetAccessor) minecraft).aetheriumSetMainTarget(main);
++        }
++    }
++}
++// @era:render-scale-else none
++//~ public final class ScaledRenderTarget {
++    //~ private ScaledRenderTarget() {
+     //~ }
+ //~ }
+ // @era:render-scale-end
 diff --git a/common/src/main/java/com/aetherium/client/SceneryHooks.java b/common/src/main/java/com/aetherium/client/SceneryHooks.java
 index b967978..20461bf 100644
 --- a/common/src/main/java/com/aetherium/client/SceneryHooks.java
@@ -1782,7 +2674,7 @@ index 59c83cc..3a85d0c 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-index 153e3f4..8862e06 100644
+index da0b0d3..18bc8e4 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 @@ -1,33 +1,33 @@
@@ -1847,7 +2739,7 @@ index 153e3f4..8862e06 100644
  // @era:chunk-renderer-end
  import net.minecraft.client.renderer.LevelRenderer;
  
-@@ -55,224 +55,224 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -55,225 +55,225 @@ import org.spongepowered.asm.mixin.Mixin;
  @Mixin(LevelRenderer.class)
  public abstract class ChunkRendererMixin {
  
@@ -2087,8 +2979,9 @@ index 153e3f4..8862e06 100644
 -                //~ }
 -                //~ final TerrainRegions.Slot slot = access.aetheriumSlot();
 -                //~ if (slot != null) {
--                    //~ // Batched: queue the ranges that can face the camera; the page draws them below.
--                    //~ final int runs = ChunkRenderer.compatibleRuns(access.aetheriumSortedLayout(),
+-                    //~ // Batched: queue the exact runs that can face the camera (1.9.0); the page draws
+-                    //~ // them below and joins only small gaps (TerrainRegions.mergeGap).
+-                    //~ final int runs = ChunkRenderer.compatibleRunsExact(access.aetheriumSortedLayout(),
 -                            //~ (float) (slot.originX() - camX), (float) (slot.originY() - camY), (float) (slot.originZ() - camZ));
 -                    //~ if (runs < 0) {
 -                        //~ TerrainRegions.queueAll(slot);
@@ -2185,8 +3078,9 @@ index 153e3f4..8862e06 100644
 +                }
 +                final TerrainRegions.Slot slot = access.aetheriumSlot();
 +                if (slot != null) {
-+                    // Batched: queue the ranges that can face the camera; the page draws them below.
-+                    final int runs = ChunkRenderer.compatibleRuns(access.aetheriumSortedLayout(),
++                    // Batched: queue the exact runs that can face the camera (1.9.0); the page draws
++                    // them below and joins only small gaps (TerrainRegions.mergeGap).
++                    final int runs = ChunkRenderer.compatibleRunsExact(access.aetheriumSortedLayout(),
 +                            (float) (slot.originX() - camX), (float) (slot.originY() - camY), (float) (slot.originZ() - camZ));
 +                    if (runs < 0) {
 +                        TerrainRegions.queueAll(slot);
@@ -3320,6 +4214,52 @@ index f5a4665..9f250de 100644
 -    // @era:frustum-cap-else none
      // @era:frustum-cap-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/GlowSeenMixin.java b/common/src/main/java/com/aetherium/mixin/core/GlowSeenMixin.java
+index eefdbe5..ec22169 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/GlowSeenMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/GlowSeenMixin.java
+@@ -2,26 +2,26 @@ package com.aetherium.mixin.core;
+ 
+ import net.minecraft.client.Minecraft;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:render-scale-begin none
+-// @era:render-scale-else target
+-//~ import com.aetherium.client.RenderScale;
+-//~ import net.minecraft.world.entity.Entity;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:render-scale-begin target
++import com.aetherium.client.RenderScale;
++import net.minecraft.world.entity.Entity;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:render-scale-else none
+ // @era:render-scale-end
+ 
+ /** Render scale holds full resolution while outlined (glowing) entities are drawn. */
+ @Mixin(Minecraft.class)
+ public abstract class GlowSeenMixin {
+ 
+-    // @era:render-scale-begin none
+-    // @era:render-scale-else target
+-    //~ @Inject(method = "shouldEntityAppearGlowing", at = @At("RETURN"))
+-    //~ private void aetherium$glowSeen(final Entity entity, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ if (cir.getReturnValueZ()) {
+-            //~ RenderScale.glowing();
+-        //~ }
+-    //~ }
++    // @era:render-scale-begin target
++    @Inject(method = "shouldEntityAppearGlowing", at = @At("RETURN"))
++    private void aetherium$glowSeen(final Entity entity, final CallbackInfoReturnable<Boolean> cir) {
++        if (cir.getReturnValueZ()) {
++            RenderScale.glowing();
++        }
++    }
++    // @era:render-scale-else none
+     // @era:render-scale-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
 index 0b2c6b1..531f6bc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/GuiMixin.java
@@ -3358,6 +4298,47 @@ index 0b2c6b1..531f6bc 100644
      //~ }
      // @era:hud-else extractor
      //~ @Inject(method = "extractRenderState", at = @At("TAIL"), require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java b/common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java
+index 9b0e5b7..2033635 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java
+@@ -2,24 +2,24 @@ package com.aetherium.mixin.core;
+ 
+ import net.minecraft.client.Minecraft;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:render-scale-begin none
+-// @era:render-scale-else target
+-//~ import com.mojang.blaze3d.pipeline.RenderTarget;
+-//~ import org.spongepowered.asm.mixin.Mutable;
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:render-scale-begin target
++import com.mojang.blaze3d.pipeline.RenderTarget;
++import org.spongepowered.asm.mixin.Mutable;
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:render-scale-else none
+ // @era:render-scale-end
+ 
+ /** {@code Minecraft.mainRenderTarget}, swapped by render scale around the world pass (ScaledRenderTarget). */
+ @Mixin(Minecraft.class)
+ public interface MainTargetAccessor {
+ 
+-    // @era:render-scale-begin none
+-    // @era:render-scale-else target
+-    //~ @Accessor("mainRenderTarget")
+-    //~ RenderTarget aetheriumMainTarget();
++    // @era:render-scale-begin target
++    @Accessor("mainRenderTarget")
++    RenderTarget aetheriumMainTarget();
+ 
+-    //~ @Mutable
+-    //~ @Accessor("mainRenderTarget")
+-    //~ void aetheriumSetMainTarget(RenderTarget target);
++    @Mutable
++    @Accessor("mainRenderTarget")
++    void aetheriumSetMainTarget(RenderTarget target);
++    // @era:render-scale-else none
+     // @era:render-scale-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java b/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java
 index b06d54a..2c5ff92 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/Matrix3fAccessor.java
@@ -4021,6 +5002,64 @@ index 0c9cdbc..592d8eb 100644
 +        //~ return null;
      //~ }
      // @era:section-vis-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderScaleMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderScaleMixin.java
+index 6d0db9a..2c28277 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/RenderScaleMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/RenderScaleMixin.java
+@@ -2,14 +2,14 @@ package com.aetherium.mixin.core;
+ 
+ import net.minecraft.client.renderer.GameRenderer;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:render-scale-begin none
+-// @era:render-scale-else target
+-//~ import com.aetherium.client.ScaledRenderTarget;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:render-scale-begin target
++import com.aetherium.client.ScaledRenderTarget;
++import com.mojang.blaze3d.vertex.PoseStack;
++import net.minecraft.client.Minecraft;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:render-scale-else none
+ // @era:render-scale-end
+ 
+ /**
+@@ -20,18 +20,18 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(GameRenderer.class)
+ public abstract class RenderScaleMixin {
+ 
+-    // @era:render-scale-begin none
+-    // @era:render-scale-else target
+-    //~ @Inject(method = "renderLevel", at = @At("HEAD"))
+-    //~ private void aetherium$scaleBegin(final float partialTick, final long finishNanos, final PoseStack pose,
+-                                      //~ final CallbackInfo ci) {
+-        //~ ScaledRenderTarget.begin(Minecraft.getInstance());
+-    //~ }
++    // @era:render-scale-begin target
++    @Inject(method = "renderLevel", at = @At("HEAD"))
++    private void aetherium$scaleBegin(final float partialTick, final long finishNanos, final PoseStack pose,
++                                      final CallbackInfo ci) {
++        ScaledRenderTarget.begin(Minecraft.getInstance());
++    }
+ 
+-    //~ @Inject(method = "renderLevel", at = @At("RETURN"))
+-    //~ private void aetherium$scaleEnd(final float partialTick, final long finishNanos, final PoseStack pose,
+-                                    //~ final CallbackInfo ci) {
+-        //~ ScaledRenderTarget.end(Minecraft.getInstance());
+-    //~ }
++    @Inject(method = "renderLevel", at = @At("RETURN"))
++    private void aetherium$scaleEnd(final float partialTick, final long finishNanos, final PoseStack pose,
++                                    final CallbackInfo ci) {
++        ScaledRenderTarget.end(Minecraft.getInstance());
++    }
++    // @era:render-scale-else none
+     // @era:render-scale-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java
 index be1bd01..822bd65 100644
@@ -6385,7 +7424,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index fa85de9..08b8ab7 100644
+index 7743fc1..3261f38 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -6398,7 +7437,7 @@ index fa85de9..08b8ab7 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 00e7445..43db9fd 100644
+index c6fdfb4..27eb242 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

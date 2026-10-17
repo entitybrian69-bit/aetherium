@@ -47,6 +47,7 @@ neoforge_version=unavailable (module disabled)
 - `pose-normals=plain`
 - `qol16=none`
 - `registry=static`
+- `render-scale=none`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`

@@ -101,6 +101,7 @@ public final class ClientHooks {
             final FrameStats stats = sub.frameStats;
             stats.record(now - last);
             BenchmarkRecorder.onFrame(stats);
+            AutoBench.onFrame(now - last);
         }
     }
 
@@ -207,6 +208,7 @@ public final class ClientHooks {
 
     /** Minecraft.tick TAIL. */
     public static void onClientTick(final Minecraft mc) {
+        AutoBench.tick(mc);
         final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
         if (sub == null) {
             return;

@@ -188,8 +188,9 @@ public abstract class ChunkRendererMixin {
                 //~ }
                 //~ final TerrainRegions.Slot slot = access.aetheriumSlot();
                 //~ if (slot != null) {
-                    //~ // Batched: queue the ranges that can face the camera; the page draws them below.
-                    //~ final int runs = ChunkRenderer.compatibleRuns(access.aetheriumSortedLayout(),
+                    //~ // Batched: queue the exact runs that can face the camera (1.9.0); the page draws
+                    //~ // them below and joins only small gaps (TerrainRegions.mergeGap).
+                    //~ final int runs = ChunkRenderer.compatibleRunsExact(access.aetheriumSortedLayout(),
                             //~ (float) (slot.originX() - camX), (float) (slot.originY() - camY), (float) (slot.originZ() - camZ));
                     //~ if (runs < 0) {
                         //~ TerrainRegions.queueAll(slot);

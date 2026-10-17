@@ -699,6 +699,31 @@ public final class ChunkRenderer {
         return runs;
     }
 
+    /**
+     * Batched sections (1.9.0): the exact runs that can face the camera, not joined into one span.
+     * The region page draws them back to back and {@link TerrainRegions} joins only small gaps, so
+     * the hidden face groups between two visible ones are no longer drawn and the draw count stays
+     * per page, not per run.
+     */
+    public static int compatibleRunsExact(final CompactTerrain.Layout layout, final float dx, final float dy,
+                                          final float dz) {
+        if (layout == null) {
+            return -1;
+        }
+        final int quads = layout.quads();
+        if (quads == 0) {
+            return 0;
+        }
+        final int mask = CompactTerrain.visibleGroups(layout.plane, -dx, -dy, -dz);
+        final int runs = CompactTerrain.runs(layout, mask, RUN_FIRST, RUN_COUNT);
+        for (int r = 0; r < runs; r++) {
+            compactQuadsDrawn += RUN_COUNT[r];
+        }
+        compactQuadsTotal += quads;
+        compactSectionsLastLayer++;
+        return runs;
+    }
+
     /** First vertex of range {@code r} (vanilla quads: 4 vertices each). */
     public static int runFirstVertex(final int r) {
         return RUN_FIRST[r] * 4;

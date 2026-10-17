@@ -22,6 +22,8 @@ public final class RenderToggles {
     public static volatile boolean aetheriumRenderer;
     /** Batch the pipeline's terrain into shared region buffers (TerrainRegions). */
     public static volatile boolean regionBatching = true;
+    /** 1.9.0: percentage of the window resolution the 3D world is drawn at (100 = full; RenderScale). */
+    public static volatile int renderScale = 100;
     /** Percentage of particles kept, 0..100. */
     public static volatile int particleKeep = 100;
     public static volatile boolean hideWeather;
@@ -55,6 +57,7 @@ public final class RenderToggles {
         regionBatching = config.regionBatching.get().booleanValue();
         final double distance = config.entityCullDistance.get().intValue();
         entityCullDistanceSq = distance * distance;
+        renderScale = isActive && Capabilities.RENDER_SCALE ? config.renderScale.get().intValue() : 100;
         particleKeep = isActive ? config.particleDensity.get().intValue() : 100;
         hideWeather = isActive && !config.weather.get().booleanValue();
         hideVignette = isActive && !config.vignette.get().booleanValue();

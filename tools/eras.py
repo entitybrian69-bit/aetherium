@@ -64,6 +64,10 @@ ERAS = {
                     ("render-origin", "1.21.5..")],
     "occlusion-box": [("entity", "..1.21.1"), ("renderer", "1.21.2..26.2"), ("renderer-tick", "26.3..")],
     "chunk-renderer": [("gl16", "..1.16.5"), ("none", "1.17..")],
+    # 1.9.0, 1.16.5 only for testing: render scale (GameRenderer.renderLevel swaps Minecraft.mainRenderTarget)
+    "render-scale": [("target", "..1.16.5"), ("none", "1.17..")],
+    # 1.9.0, 1.16.5 only: the self-driving CI benchmark (Minecraft.createLevel(String, LevelSettings, ...))
+    "autobench": [("create", "..1.16.5"), ("none", "1.17..")],
     # Zume-style zoom (ZoomKeys + Zoom*Mixin, KeyMappingAccessor, OptionsMixin key list): every version.
     "zoom": [("on", "..")],
     # KeyMapping(String, int, <category>): a String plus the CATEGORY_SORT_ORDER table until 1.21.8,

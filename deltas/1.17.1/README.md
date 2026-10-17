@@ -50,6 +50,7 @@ neoforge_version=unavailable (module disabled)
 - `qol16=none`
 - `registry=static`
 - `reload=all-changed`
+- `render-scale=none`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`

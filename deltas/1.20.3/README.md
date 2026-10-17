@@ -40,6 +40,7 @@ neoforge_version=unavailable (module disabled)
 - `particle-fast=facing`
 - `pose-normals=plain`
 - `qol16=none`
+- `render-scale=none`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `search-throttle=none`

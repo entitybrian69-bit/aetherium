@@ -44,6 +44,7 @@ neoforge_version=21.5.81
 - `particle-fast=inner`
 - `qol16=none`
 - `registry=builtin`
+- `render-scale=none`
 - `search-throttle=none`
 - `section-api=srd-ro`
 - `section-compile=none`

@@ -267,6 +267,9 @@ public final class AetheriumPages {
                         v -> v >= BlockEntityCull.VANILLA ? "Vanilla (64)" : v + " blocks")
                 .presetMember()
                 .availableWhen(() -> Capabilities.BLOCK_ENTITY_CULL, NOT_ON_THIS_VERSION));
+        page.add(intSlider("perf.render_scale", "Render scale", config.renderScale, 5,
+                        v -> v >= 100 ? "100% (full)" : v + "%")
+                .availableWhen(() -> Capabilities.RENDER_SCALE, NOT_ON_THIS_VERSION));
         page.add(bool("perf.smooth_streaming", "Smooth terrain streaming", config.smoothStreaming)
                 .availableWhen(() -> Capabilities.PACKET_BUDGET || Capabilities.MESH_THREADS, NOT_ON_THIS_VERSION));
         page.add(bool("perf.coalesce_rebuilds", "Merge chunk rebuilds", config.coalesceRebuilds)

@@ -39,6 +39,7 @@ neoforge_version=20.6.141
 - `particle-fast=facing`
 - `pose-normals=trusted`
 - `qol16=none`
+- `render-scale=none`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `search-throttle=none`

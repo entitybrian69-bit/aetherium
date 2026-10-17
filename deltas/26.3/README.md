@@ -62,6 +62,7 @@ neoforge_version=26.3.0.64-beta
 - `registry=builtin`
 - `reload=invalidate`
 - `remapJar-block-removed`
+- `render-scale=none`
 - `screen-owner=gui`
 - `screen-pkg=options`
 - `scroll=four`

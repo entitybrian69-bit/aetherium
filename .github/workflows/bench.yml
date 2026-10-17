@@ -1,0 +1,103 @@
+name: bench
+
+# 1.9.0: self-driving in-game benchmark of the 1.16.5 Fabric build under Xvfb + Mesa llvmpipe.
+# runClient with -Daetherium.autobench=<dir> (com.aetherium.client.AutoBench): the game creates a
+# fixed-seed world, measures vanilla vs Aetherium vs render scale vs flying into new terrain,
+# screenshots each scenario, writes report.md/results.json and quits. The results are committed to
+# bench/1.16.5/ so they can be read without job logs.
+#
+# llvmpipe is a CPU rasterizer on a 4-core runner: absolute FPS says nothing about a real GPU, the
+# ratios between scenarios measured in the same run are what this is for.
+
+on:
+  push:
+    branches: [arena/46f241da-aetherium]
+    paths:
+      - 'common/**'
+      - 'fabric/**'
+      - 'deltas/1.16.5/**'
+      - '.github/workflows/bench.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.caching=true
+
+jobs:
+  bench:
+    name: 1.16.5 auto benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.4.1
+          cache-read-only: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: materialize the 1.16.5 tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/tree"
+          mkdir -p "$work"
+          git ls-files -z | xargs -0 -I{} cp --parents {} "$work"/
+          cd "$work"
+          git apply --whitespace=nowarn deltas/1.16.5/changes.patch
+      - name: run the game
+        shell: bash
+        run: |
+          set -uo pipefail
+          sudo apt-get update -q >/dev/null
+          sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri libglu1-mesa imagemagick >/dev/null
+          out="$GITHUB_WORKSPACE/bench/1.16.5"
+          rm -rf "$out" && mkdir -p "$out"
+          cd "$RUNNER_TEMP/tree"
+          export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=3.3COMPAT
+          export JAVA_TOOL_OPTIONS="-Daetherium.autobench=$out"
+          timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24" \
+            gradle --no-daemon --console=plain :fabric:runClient -Paetherium.enableRunConfigs=true \
+            > "$RUNNER_TEMP/client.log" 2>&1
+          echo "exit $?" > "$out/status.txt"
+          grep -nE "Aetherium|aetherium|ERROR|FATAL|Exception|Caused by|OpenGL|GL_RENDERER|Mixin apply|mixin" "$RUNNER_TEMP/client.log" \
+            | grep -v Download | head -400 > "$out/client-report.txt" || true
+          tail -120 "$RUNNER_TEMP/client.log" > "$out/client-tail.txt"
+          run=fabric/run
+          for f in "$run"/crash-reports/*.txt; do [ -f "$f" ] && head -c 60000 "$f" > "$out/crash-$(basename "$f")"; done
+          [ -f "$run/logs/aetherium-stutter.log" ] && head -c 200000 "$run/logs/aetherium-stutter.log" > "$out/stutter.log"
+          for p in "$run"/screenshots/bench-*.png; do
+            [ -f "$p" ] || continue
+            convert "$p" -resize 960x "$out/$(basename "$p" .png).jpg"
+          done
+          if [ -f "$out/report.md" ]; then
+            body=$(sed -e 's/%/%25/g' -e 's/$/%0A/' "$out/report.md" | tr -d '\n\r' | head -c 3500)
+            printf '::notice::bench report%%0A%s\n' "$body"
+          else
+            echo "::error::no report.md: see bench/1.16.5/client-tail.txt"
+            body=$(sed -e 's/%/%25/g' -e 's/$/%0A/' "$out/client-tail.txt" | tail -40 | tr -d '\n\r' | head -c 3500)
+            printf '::warning::client tail%%0A%s\n' "$body"
+          fi
+          ls -l "$out" > "$out/files.txt"
+      - name: commit results
+        if: always()
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f bench/1.16.5 2>/dev/null || true
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -q -m "bench: 1.16.5 auto benchmark for ${GITHUB_SHA::7} [skip ci]"
+          for i in 1 2 3 4 5; do git pull -q --rebase origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && exit 0; sleep $((i*5)); done
+          exit 1

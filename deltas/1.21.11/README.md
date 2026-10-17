@@ -54,6 +54,7 @@ neoforge_version=21.11.45
 - `qol16=none`
 - `registry=builtin`
 - `reload=all-changed`
+- `render-scale=none`
 - `scroll=four`
 - `search-throttle=none`
 - `section-api=mesh`

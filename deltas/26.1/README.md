@@ -59,6 +59,7 @@ neoforge_version=26.1.2.115
 - `registry=builtin`
 - `reload=all-changed`
 - `remapJar-block-removed`
+- `render-scale=none`
 - `scroll=four`
 - `search-throttle=none`
 - `section-api=mesh`

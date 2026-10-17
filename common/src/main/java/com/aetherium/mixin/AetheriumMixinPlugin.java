@@ -95,6 +95,10 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
             // dynamic lights switch on and off live.
             return Capabilities.DYNAMIC_LIGHTS;
         }
+        if ("RenderScaleMixin".equals(simpleName) || "MainTargetAccessor".equals(simpleName)
+                || "GlowSeenMixin".equals(simpleName)) {
+            return Capabilities.RENDER_SCALE;
+        }
         if ("OptionInstanceMixin".equals(simpleName)) {
             return Capabilities.GAMMA_INSTANCE;
         }
