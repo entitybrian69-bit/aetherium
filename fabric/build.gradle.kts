@@ -48,7 +48,9 @@ loom {
     // block to calls verified against Loom's own docs/example mod; add the rest only with a source.
     if (project.property("aetherium.enableRunConfigs").toString().toBoolean()) {
         runs {
-            create("client") {
+            // Loom registers "client" and "server" itself (CI 2026-10-17: create("client") failed with
+            // "a RunConfigSettings with that name already exists"); configure the existing one.
+            named("client") {
                 client()
             }
         }
