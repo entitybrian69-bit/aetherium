@@ -59,7 +59,8 @@ jobs:
       - name: run the game
         shell: bash
         run: |
-          set -uo pipefail
+          # GitHub runs `shell: bash` with -e: switch it off so the logs are collected whatever the game did.
+          set +e -u -o pipefail
           sudo apt-get update -q >/dev/null
           sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri libglu1-mesa imagemagick >/dev/null
           out="$GITHUB_WORKSPACE/bench/1.16.5"
