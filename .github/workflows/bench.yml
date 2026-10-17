@@ -43,6 +43,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '8'
+      # 1.16.5 compiles for Java 8, but the game is launched on 17: Loom passes the run classpath in
+      # an @argfile, which a Java 8 launcher does not understand ("Could not find or load main class
+      # net.fabricmc.devlaunchinjector.Main"). Minecraft 1.16.5 and Fabric Loader 0.14 run on 17.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -68,13 +75,24 @@ jobs:
           cd "$RUNNER_TEMP/tree"
           export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=3.3COMPAT
           export JAVA_TOOL_OPTIONS="-Daetherium.autobench=$out"
+          # Groovy init script (resolved at run time, so no build-script compile risk): run on Java 17.
+          cat > "$RUNNER_TEMP/run17.gradle" <<'GRADLE'
+          allprojects { p ->
+              p.tasks.matching { it.name == 'runClient' }.configureEach { t ->
+                  def toolchains = p.extensions.getByType(JavaToolchainService)
+                  t.javaLauncher.set(toolchains.launcherFor { it.languageVersion.set(JavaLanguageVersion.of(17)) })
+              }
+          }
+          GRADLE
           timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24" \
-            gradle --no-daemon --console=plain :fabric:runClient -Paetherium.enableRunConfigs=true \
+            gradle --no-daemon --console=plain --info -I "$RUNNER_TEMP/run17.gradle" :fabric:runClient -Paetherium.enableRunConfigs=true \
             > "$RUNNER_TEMP/client.log" 2>&1
           echo "exit $?" > "$out/status.txt"
           grep -nE "Aetherium|aetherium|ERROR|FATAL|Exception|Caused by|OpenGL|GL_RENDERER|Mixin apply|mixin" "$RUNNER_TEMP/client.log" \
             | grep -v Download | head -400 > "$out/client-report.txt" || true
           tail -120 "$RUNNER_TEMP/client.log" > "$out/client-tail.txt"
+          grep -m3 "Starting process 'command" "$RUNNER_TEMP/client.log" | cut -c1-4000 > "$out/command.txt" || true
+          grep -nE "FAILED|What went wrong|Could not|BUILD" "$RUNNER_TEMP/client.log" | head -40 > "$out/gradle-errors.txt" || true
           run=fabric/run
           for f in "$run"/crash-reports/*.txt; do [ -f "$f" ] && head -c 60000 "$f" > "$out/crash-$(basename "$f")"; done
           [ -f "$run/logs/aetherium-stutter.log" ] && head -c 200000 "$run/logs/aetherium-stutter.log" > "$out/stutter.log"
