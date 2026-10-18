@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 5ccccfe..f106cc8 100644
+index 76fd6ed..ab5f352 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -51,10 +51,10 @@ public final class Capabilities {
@@ -86,7 +86,7 @@ index 5ccccfe..f106cc8 100644
      // @era:cull-new-end
  
      /** Some version of the Aetherium renderer exists for this version. */
-@@ -174,10 +174,10 @@ public final class Capabilities {
+@@ -185,10 +185,10 @@ public final class Capabilities {
      public static final boolean MESH_THREADS = true;
  
      /** Allocation-free block meshing (reused BitSet / AO position); vanilla stopped allocating in 1.21.5. */
@@ -101,7 +101,7 @@ index 5ccccfe..f106cc8 100644
      // @era:mesh-alloc-end
  
      /** Rebuild coalescing (per-section dirty timestamps); 26.2 dropped the section dirty flag. */
-@@ -188,17 +188,17 @@ public final class Capabilities {
+@@ -199,17 +199,17 @@ public final class Capabilities {
      // @era:section-api-end
  
      /** Allocation-free, frustum-culled camera-facing particles (1.16.5..1.21.8). */
@@ -127,7 +127,7 @@ index 5ccccfe..f106cc8 100644
      // @era:frustum-cap-end
  
      /** Visible sections wholly inside the fog are skipped (1.17..26.1; 1.16.5 culls in STREAMING). */
-@@ -228,16 +228,16 @@ public final class Capabilities {
+@@ -239,16 +239,16 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -4171,7 +4171,7 @@ index f85e6e7..a00bf0e 100644
 -//~ }
  // @era:zoom-fov-end
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 7743fc1..7df7d7e 100644
+index dad7351..f314b3c 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -4184,7 +4184,7 @@ index 7743fc1..7df7d7e 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/fabric/build.gradle.kts b/fabric/build.gradle.kts
-index fb64f73..ff3af2c 100644
+index 99dff0f..3f82017 100644
 --- a/fabric/build.gradle.kts
 +++ b/fabric/build.gradle.kts
 @@ -63,16 +63,16 @@ repositories {
@@ -4210,8 +4210,8 @@ index fb64f73..ff3af2c 100644
  
      // Mixin plugin + extras are provided by the loader at runtime; we only need
      // them to compile against, then we embed the API surface we actually use.
-@@ -113,10 +113,7 @@ tasks.processResources {
-     }
+@@ -124,10 +124,7 @@ tasks.named<Jar>("sourcesJar") {
+     exclude("com/terraformersmc/**")
  }
  
 -tasks.withType<net.fabricmc.loom.task.RemapJarTask> {

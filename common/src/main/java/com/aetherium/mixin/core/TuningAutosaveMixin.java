@@ -1,16 +1,16 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin v16
-import com.aetherium.client.FlightPreload;
-import com.aetherium.perf.Tuning;
-import java.util.function.BooleanSupplier;
-import net.minecraft.server.MinecraftServer;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-else none
+// @era:qol16-begin none
+// @era:qol16-else v16
+//~ import com.aetherium.client.FlightPreload;
+//~ import com.aetherium.perf.Tuning;
+//~ import java.util.function.BooleanSupplier;
+//~ import net.minecraft.server.MinecraftServer;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Inject;
+//~ import org.spongepowered.asm.mixin.injection.Redirect;
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:qol16-end
 
 /**
@@ -24,25 +24,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(targets = "net.minecraft.server.MinecraftServer")
 public abstract class TuningAutosaveMixin {
-    // @era:qol16-begin v16
-    @Redirect(method = "tickServer", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/server/MinecraftServer;saveAllChunks(ZZZ)Z"), require = 0)
-    private boolean aetherium$autosave(final MinecraftServer server, final boolean suppressLog,
-                                       final boolean flush, final boolean force) {
-        Tuning.autosaving = true;
-        try {
-            return server.saveAllChunks(suppressLog, flush, force);
-        } finally {
-            Tuning.autosaving = false;
-        }
-    }
+    // @era:qol16-begin none
+    // @era:qol16-else v16
+    //~ @Redirect(method = "tickServer", at = @At(value = "INVOKE",
+            //~ target = "Lnet/minecraft/server/MinecraftServer;saveAllChunks(ZZZ)Z"), require = 0)
+    //~ private boolean aetherium$autosave(final MinecraftServer server, final boolean suppressLog,
+                                       //~ final boolean flush, final boolean force) {
+        //~ Tuning.autosaving = true;
+        //~ try {
+            //~ return server.saveAllChunks(suppressLog, flush, force);
+        //~ } finally {
+            //~ Tuning.autosaving = false;
+        //~ }
+    //~ }
 
-    @Inject(method = "tickServer", at = @At("TAIL"), require = 0)
-    private void aetherium$flight(final BooleanSupplier hasTime, final CallbackInfo ci) {
-        if (Tuning.flightPreload) {
-            FlightPreload.tick((MinecraftServer) (Object) this);
-        }
-    }
-    // @era:qol16-else none
+    //~ @Inject(method = "tickServer", at = @At("TAIL"), require = 0)
+    //~ private void aetherium$flight(final BooleanSupplier hasTime, final CallbackInfo ci) {
+        //~ if (Tuning.flightPreload) {
+            //~ FlightPreload.tick((MinecraftServer) (Object) this);
+        //~ }
+    //~ }
     // @era:qol16-end
 }

@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 5ccccfe..f80ccff 100644
+index 76fd6ed..989f015 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -16,24 +16,24 @@ package com.aetherium;
@@ -123,7 +123,7 @@ index 5ccccfe..f80ccff 100644
      // @era:cull-new-end
  
      /** Some version of the Aetherium renderer exists for this version. */
-@@ -174,50 +174,50 @@ public final class Capabilities {
+@@ -185,50 +185,50 @@ public final class Capabilities {
      public static final boolean MESH_THREADS = true;
  
      /** Allocation-free block meshing (reused BitSet / AO position); vanilla stopped allocating in 1.21.5. */
@@ -199,7 +199,7 @@ index 5ccccfe..f80ccff 100644
      // @era:fog-cull-end
  
      /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */
-@@ -228,16 +228,16 @@ public final class Capabilities {
+@@ -239,16 +239,16 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -387,10 +387,10 @@ index e5e224a..903075d 100644
      // @era:input-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 0fcbb01..c3d3f5e 100644
+index 742efc9..da0b6bb 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -404,27 +404,27 @@ public final class ClientHooks {
+@@ -433,27 +433,27 @@ public final class ClientHooks {
          if (mc == null || mc.gameRenderer == null) {
              return null;
          }
@@ -4633,7 +4633,7 @@ index f85e6e7..a00bf0e 100644
 -//~ }
  // @era:zoom-fov-end
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 7743fc1..7df7d7e 100644
+index dad7351..f314b3c 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -4646,7 +4646,7 @@ index 7743fc1..7df7d7e 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/fabric/build.gradle.kts b/fabric/build.gradle.kts
-index fb64f73..ff3af2c 100644
+index 99dff0f..3f82017 100644
 --- a/fabric/build.gradle.kts
 +++ b/fabric/build.gradle.kts
 @@ -63,16 +63,16 @@ repositories {
@@ -4672,8 +4672,8 @@ index fb64f73..ff3af2c 100644
  
      // Mixin plugin + extras are provided by the loader at runtime; we only need
      // them to compile against, then we embed the API surface we actually use.
-@@ -113,10 +113,7 @@ tasks.processResources {
-     }
+@@ -124,10 +124,7 @@ tasks.named<Jar>("sourcesJar") {
+     exclude("com/terraformersmc/**")
  }
  
 -tasks.withType<net.fabricmc.loom.task.RemapJarTask> {

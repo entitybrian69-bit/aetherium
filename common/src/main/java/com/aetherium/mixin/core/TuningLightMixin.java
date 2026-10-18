@@ -1,15 +1,15 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin v16
-import com.aetherium.client.SkullLookup;
-import com.aetherium.client.TuningClient;
-import net.minecraft.core.SectionPos;
-import net.minecraft.world.level.LightLayer;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-else none
+// @era:qol16-begin none
+// @era:qol16-else v16
+//~ import com.aetherium.client.SkullLookup;
+//~ import com.aetherium.client.TuningClient;
+//~ import net.minecraft.core.SectionPos;
+//~ import net.minecraft.world.level.LightLayer;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Inject;
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:qol16-end
 
 /**
@@ -20,13 +20,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(targets = "net.minecraft.client.multiplayer.ClientChunkCache")
 public abstract class TuningLightMixin {
-    // @era:qol16-begin v16
-    @Inject(method = "onLightUpdate", at = @At("HEAD"), cancellable = true, require = 0)
-    private void aetherium$merge(final LightLayer layer, final SectionPos pos, final CallbackInfo ci) {
-        if (SkullLookup.onClientThread() && TuningClient.deferLight(pos)) {
-            ci.cancel();
-        }
-    }
-    // @era:qol16-else none
+    // @era:qol16-begin none
+    // @era:qol16-else v16
+    //~ @Inject(method = "onLightUpdate", at = @At("HEAD"), cancellable = true, require = 0)
+    //~ private void aetherium$merge(final LightLayer layer, final SectionPos pos, final CallbackInfo ci) {
+        //~ if (SkullLookup.onClientThread() && TuningClient.deferLight(pos)) {
+            //~ ci.cancel();
+        //~ }
+    //~ }
     // @era:qol16-end
 }

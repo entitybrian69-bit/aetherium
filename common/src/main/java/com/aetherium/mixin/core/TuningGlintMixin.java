@@ -1,11 +1,11 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin v16
-import com.aetherium.perf.Tuning;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-// @era:qol16-else none
+// @era:qol16-begin none
+// @era:qol16-else v16
+//~ import com.aetherium.perf.Tuning;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 // @era:qol16-end
 
 /**
@@ -14,12 +14,12 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  */
 @Mixin(targets = "net.minecraft.client.renderer.entity.ItemRenderer")
 public abstract class TuningGlintMixin {
-    // @era:qol16-begin v16
-    @ModifyVariable(method = {"getFoilBuffer", "getFoilBufferDirect", "getArmorFoilBuffer"}, at = @At("HEAD"),
-            argsOnly = true, ordinal = 1, require = 0)
-    private static boolean aetherium$glint(final boolean foil) {
-        return foil && Tuning.glint;
-    }
-    // @era:qol16-else none
+    // @era:qol16-begin none
+    // @era:qol16-else v16
+    //~ @ModifyVariable(method = {"getFoilBuffer", "getFoilBufferDirect", "getArmorFoilBuffer"}, at = @At("HEAD"),
+            //~ argsOnly = true, ordinal = 1, require = 0)
+    //~ private static boolean aetherium$glint(final boolean foil) {
+        //~ return foil && Tuning.glint;
+    //~ }
     // @era:qol16-end
 }
