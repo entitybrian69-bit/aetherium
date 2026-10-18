@@ -1,13 +1,13 @@
 package com.aetherium.client;
 
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-color-filter-begin none
+// @era:t-color-filter-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.aetherium.util.AetheriumLog;
 //~ import com.mojang.blaze3d.pipeline.RenderTarget;
 //~ import net.minecraft.client.Minecraft;
 //~ import org.lwjgl.opengl.GL20;
-// @era:qol16-end
+// @era:t-color-filter-end
 
 /**
  * Colour filter (1.11.0, Minecraft 1.16.5): a light "shader pack" that grades the finished world
@@ -32,8 +32,8 @@ public final class ColorFilter {
         {0.92F, 1.22F, 0.025F, 0.65F, -0.02F}, // cinematic
     };
 
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-color-filter-begin none
+    // @era:t-color-filter-else v16
     //~ private static final AetheriumLog LOGGER = AetheriumLog.of(ColorFilter.class);
     //~ private static final int GL_VERTEX_SHADER = 0x8B31;
     //~ private static final int GL_FRAGMENT_SHADER = 0x8B30;
@@ -162,5 +162,5 @@ public final class ColorFilter {
             //~ mc.getMainRenderTarget().bindWrite(true);
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-color-filter-end
 }

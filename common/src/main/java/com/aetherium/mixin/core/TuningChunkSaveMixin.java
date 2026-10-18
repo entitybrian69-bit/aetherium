@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-chunk-save-begin none
+// @era:t-chunk-save-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 //~ import java.util.ArrayDeque;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-chunk-save-end
 
 /**
  * Smooth autosave (1.10.0, Minecraft 1.16.5, single player): the periodic autosave serializes
@@ -27,8 +27,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.server.level.ChunkMap")
 public abstract class TuningChunkSaveMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-chunk-save-begin none
+    // @era:t-chunk-save-else v16
     //~ @Unique
     //~ private static final int AETHERIUM$PER_TICK = 16;
     //~ @Unique
@@ -91,5 +91,5 @@ public abstract class TuningChunkSaveMixin {
             //~ }
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-chunk-save-end
 }

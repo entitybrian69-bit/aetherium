@@ -8,6 +8,7 @@ import com.aetherium.config.ConfigValue;
 import com.aetherium.gui.AetheriumView;
 import com.aetherium.gui.Page;
 import com.aetherium.gui.PixelArt;
+import com.aetherium.perf.TuningSupport;
 import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.perf.Tuning;
@@ -359,7 +360,8 @@ public final class AetheriumPages {
     }
 
     private static Setting tuningRow(final Setting setting) {
-        return setting.availableWhen(() -> Capabilities.TUNING, NOT_ON_THIS_VERSION);
+        final String key = setting.id;
+        return setting.availableWhen(() -> TuningSupport.option(key), NOT_ON_THIS_VERSION);
     }
 
     // ------------------------------------------------------------------ Backend

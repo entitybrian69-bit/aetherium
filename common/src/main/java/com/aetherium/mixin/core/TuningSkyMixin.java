@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-sky-begin none
+// @era:t-sky-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.vertex.BufferBuilder;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
 //~ import org.spongepowered.asm.mixin.injection.Slice;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-sky-end
 
 /**
  * Sky and clouds in {@code LevelRenderer} (1.12.0, Minecraft 1.16.5).
@@ -34,8 +34,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
 public abstract class TuningSkyMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-sky-begin none
+    // @era:t-sky-else v16
     //~ @Shadow
     //~ private boolean generateClouds;
 
@@ -106,5 +106,5 @@ public abstract class TuningSkyMixin {
     //~ private int aetherium$cloudsTo(final int vanilla) {
         //~ return aetherium$cloudCells;
     //~ }
-    // @era:qol16-end
+    // @era:t-sky-end
 }

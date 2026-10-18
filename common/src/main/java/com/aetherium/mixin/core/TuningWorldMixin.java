@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-world-begin none
+// @era:t-world-else v16
 //~ import com.aetherium.client.ColorFilter;
 //~ import com.aetherium.client.WorldCache;
 //~ import com.aetherium.perf.Tuning;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import net.minecraft.client.renderer.GameRenderer;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-world-end
 
 /**
  * The world pass of {@code GameRenderer.render} (1.11.0, Minecraft 1.16.5): behind a menu the
@@ -25,8 +25,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.GameRenderer")
 public abstract class TuningWorldMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-world-begin none
+    // @era:t-world-else v16
     //~ @Redirect(method = "render(FJZ)V", at = @At(value = "INVOKE",
             //~ target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V"),
             //~ require = 0)
@@ -43,5 +43,5 @@ public abstract class TuningWorldMixin {
         //~ ColorFilter.apply(mc);
         //~ WorldCache.capture(mc);
     //~ }
-    // @era:qol16-end
+    // @era:t-world-end
 }

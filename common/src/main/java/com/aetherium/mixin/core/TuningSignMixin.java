@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-sign-begin none
+// @era:t-sign-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
 //~ import com.mojang.math.Matrix4f;
@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-sign-end
 
 /**
  * Sign text culling (1.11.0, Minecraft 1.16.5): beyond the entity detail distance a sign is drawn
@@ -27,8 +27,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.blockentity.SignRenderer")
 public abstract class TuningSignMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-sign-begin none
+    // @era:t-sign-else v16
     //~ /** Render thread only: the sign being drawn is beyond the detail distance. */
     //~ @Unique
     //~ private static boolean aetherium$far;
@@ -63,5 +63,5 @@ public abstract class TuningSignMixin {
         //~ }
         //~ return font.drawInBatch(text, x, y, color, shadow, pose, buffers, seeThrough, background, light);
     //~ }
-    // @era:qol16-end
+    // @era:t-sign-end
 }

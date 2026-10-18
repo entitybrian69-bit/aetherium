@@ -1,14 +1,14 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-server-idle-begin none
+// @era:t-server-idle-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import java.util.concurrent.locks.LockSupport;
 //~ import net.minecraft.server.MinecraftServer;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-server-idle-end
 
 /**
  * Calmer built-in server (1.12.0, Minecraft 1.16.5): between ticks the server thread waits in
@@ -20,8 +20,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.util.thread.BlockableEventLoop")
 public abstract class TuningServerIdleMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-server-idle-begin none
+    // @era:t-server-idle-else v16
     //~ @Redirect(method = "waitForTasks", at = @At(value = "INVOKE",
             //~ target = "Ljava/util/concurrent/locks/LockSupport;parkNanos(Ljava/lang/Object;J)V"), require = 0)
     //~ private void aetherium$park(final Object blocker, final long nanos) {
@@ -31,5 +31,5 @@ public abstract class TuningServerIdleMixin {
             //~ LockSupport.parkNanos(blocker, nanos);
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-server-idle-end
 }

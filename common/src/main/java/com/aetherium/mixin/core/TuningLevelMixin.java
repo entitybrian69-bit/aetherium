@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-level-begin none
+// @era:t-level-else v16
 //~ import com.aetherium.client.ChunkInfoOrigin;
 //~ import com.aetherium.client.FarTerrain;
 //~ import com.aetherium.client.OceanFloor;
@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-level-end
 
 /**
  * 1.10.0 tuning hooks in {@code LevelRenderer} (Minecraft 1.16.5; {@code Capabilities.TUNING}):
@@ -39,8 +39,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
 public abstract class TuningLevelMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-level-begin none
+    // @era:t-level-else v16
     //~ @Shadow
     //~ private ClientLevel level;
 
@@ -166,5 +166,5 @@ public abstract class TuningLevelMixin {
             //~ list.subList(kept, n).clear();
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-level-end
 }

@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-light-begin none
+// @era:t-light-else v16
 //~ import com.aetherium.client.FarTerrain;
 //~ import com.aetherium.client.OceanFloor;
 //~ import com.aetherium.client.SkullLookup;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-// @era:qol16-end
+// @era:t-light-end
 
 /**
  * Merged light rebuilds (1.10.0, Minecraft 1.16.5): every light change marks its section for a
@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.multiplayer.ClientChunkCache")
 public abstract class TuningLightMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-light-begin none
+    // @era:t-light-else v16
     //~ @Inject(method = "onLightUpdate", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$merge(final LightLayer layer, final SectionPos pos, final CallbackInfo ci) {
         //~ if (SkullLookup.onClientThread() && TuningClient.deferLight(pos)) {
@@ -39,5 +39,5 @@ public abstract class TuningLightMixin {
         //~ FarTerrain.capture(cir.getReturnValue());
         //~ OceanFloor.capture(cir.getReturnValue());
     //~ }
-    // @era:qol16-end
+    // @era:t-light-end
 }

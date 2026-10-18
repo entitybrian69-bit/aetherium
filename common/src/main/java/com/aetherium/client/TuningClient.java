@@ -3,8 +3,8 @@ package com.aetherium.client;
 import com.aetherium.perf.Tuning;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-client-begin none
+// @era:t-client-else v16
 //~ import it.unimi.dsi.fastutil.longs.LongIterator;
 //~ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 //~ import net.minecraft.client.gui.screens.ChatScreen;
@@ -22,7 +22,7 @@ import net.minecraft.client.gui.screens.Screen;
 //~ import net.minecraft.world.level.block.PipeBlock;
 //~ import net.minecraft.world.level.block.state.BlockState;
 //~ import org.lwjgl.glfw.GLFW;
-// @era:qol16-end
+// @era:t-client-end
 
 /**
  * Client side of the 1.10.0 tuning options (Minecraft 1.16.5; {@code Capabilities.TUNING}). Every
@@ -44,7 +44,7 @@ public final class TuningClient {
     private TuningClient() {
     }
 
-    // @era:qol16-begin none
+    // @era:t-client-begin none
     public static int frameCap(final Minecraft mc) {
         return 0;
     }
@@ -60,7 +60,7 @@ public final class TuningClient {
 
     public static void configured(final Minecraft mc) {
     }
-    // @era:qol16-else v16
+    // @era:t-client-else v16
     //~ private static final long GC_SPACING_NANOS = 10_000_000_000L;
     //~ private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
     //~ private static long lastGc;
@@ -218,5 +218,5 @@ public final class TuningClient {
     //~ public static double distanceToCamera(final Entity entity) {
         //~ return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
     //~ }
-    // @era:qol16-end
+    // @era:t-client-end
 }

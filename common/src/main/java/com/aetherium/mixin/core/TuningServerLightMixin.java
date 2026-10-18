@@ -1,12 +1,12 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-server-light-begin none
+// @era:t-server-light-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-server-light-end
 
 /**
  * Faster singleplayer lighting (1.12.0, Minecraft 1.16.5): the server's light thread takes
@@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.server.level.ThreadedLevelLightEngine")
 public abstract class TuningServerLightMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-server-light-begin none
+    // @era:t-server-light-else v16
     //~ private static final int BATCH = 64;
 
     //~ @Redirect(method = "runUpdate", at = @At(value = "INVOKE", target = "Ljava/lang/Math;min(II)I"), require = 0)
     //~ private int aetherium$batch(final int queued, final int perBatch) {
         //~ return Math.min(queued, Tuning.serverLighting ? Math.max(perBatch, BATCH) : perBatch);
     //~ }
-    // @era:qol16-end
+    // @era:t-server-light-end
 }

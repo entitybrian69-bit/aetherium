@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-portal-begin none
+// @era:t-portal-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import net.minecraft.core.BlockPos;
 //~ import net.minecraft.resources.ResourceKey;
@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-portal-end
 
 /**
  * Portal preloading (1.12.0, Minecraft 1.16.5, singleplayer): while a player stands in a Nether
@@ -30,8 +30,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.world.entity.Entity")
 public abstract class TuningPortalMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-portal-begin none
+    // @era:t-portal-else v16
     //~ @Shadow
     //~ public Level level;
 
@@ -85,5 +85,5 @@ public abstract class TuningPortalMixin {
     //~ private static int aetherium$clamp(final double value, final int limit) {
         //~ return (int) Math.max(-limit, Math.min(limit, value));
     //~ }
-    // @era:qol16-end
+    // @era:t-portal-end
 }

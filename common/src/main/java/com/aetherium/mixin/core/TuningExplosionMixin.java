@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-explosion-begin none
+// @era:t-explosion-else v16
 //~ import com.aetherium.perf.ExplosionBudget;
 //~ import com.aetherium.perf.Tuning;
 //~ import net.minecraft.core.particles.ParticleOptions;
@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import net.minecraft.world.level.Level;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-explosion-end
 
 /**
  * Explosion particles (1.10.0, Minecraft 1.16.5): beyond the per-tick budget an explosion shows
@@ -19,8 +19,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.world.level.Explosion")
 public abstract class TuningExplosionMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-explosion-begin none
+    // @era:t-explosion-else v16
     //~ @Redirect(method = "finalizeExplosion", at = @At(value = "INVOKE",
             //~ target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"),
             //~ require = 0)
@@ -33,5 +33,5 @@ public abstract class TuningExplosionMixin {
         //~ }
         //~ level.addParticle(shown, x, y, z, dx, dy, dz);
     //~ }
-    // @era:qol16-end
+    // @era:t-explosion-end
 }

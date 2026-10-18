@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-gl-state-begin none
+// @era:t-gl-state-else v16
 //~ import com.aetherium.perf.RenderMods;
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.platform.GlStateManager;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-gl-state-end
 
 /**
  * GL call trimming in {@code GlStateManager} (1.12.0, Minecraft 1.16.5; render thread only).
@@ -39,8 +39,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
 public abstract class TuningGlStateMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-gl-state-begin none
+    // @era:t-gl-state-else v16
     //~ private static final int GL_FRAMEBUFFER = 36160;
     //~ private static final int GL_VERTEX_ARRAY = 32884;
     //~ private static final int GL_NORMAL_ARRAY = 32885;
@@ -164,5 +164,5 @@ public abstract class TuningGlStateMixin {
         //~ aetherium$overlayTexture = texture;
         //~ aetherium$overlaySize = size;
     //~ }
-    // @era:qol16-end
+    // @era:t-gl-state-end
 }

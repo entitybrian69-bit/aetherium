@@ -211,6 +211,7 @@ public final class ClientHooks {
     /** Minecraft.tick TAIL. */
     public static void onClientTick(final Minecraft mc) {
         AutoBench.tick(mc);
+        com.aetherium.mixin.SmokeTest.tick();
         final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
         if (sub == null) {
             return;

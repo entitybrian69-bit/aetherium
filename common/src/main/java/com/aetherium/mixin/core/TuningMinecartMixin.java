@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-minecart-begin none
+// @era:t-minecart-else v16
 //~ import com.aetherium.client.TuningClient;
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.Shadow;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-minecart-end
 
 /**
  * Entity detail distance (1.10.0, Minecraft 1.16.5): the block shown inside a minecart (chest,
@@ -21,8 +21,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.entity.MinecartRenderer")
 public abstract class TuningMinecartMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-minecart-begin none
+    // @era:t-minecart-else v16
     //~ @Shadow
     //~ protected abstract void renderMinecartContents(AbstractMinecart cart, float partialTicks, BlockState state,
                                                    //~ PoseStack poseStack, MultiBufferSource buffers, int light);
@@ -39,5 +39,5 @@ public abstract class TuningMinecartMixin {
         //~ }
         //~ this.renderMinecartContents(cart, partialTicks, state, poseStack, buffers, light);
     //~ }
-    // @era:qol16-end
+    // @era:t-minecart-end
 }

@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-shadow-begin none
+// @era:t-shadow-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
 //~ import net.minecraft.client.renderer.MultiBufferSource;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.Shadow;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-shadow-end
 
 /**
  * Entity detail distance (1.10.0, Minecraft 1.16.5): no round shadow under mobs, items and other
@@ -21,8 +21,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.entity.EntityRenderDispatcher")
 public abstract class TuningShadowMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-shadow-begin none
+    // @era:t-shadow-else v16
     //~ @Shadow
     //~ public abstract double distanceToSqr(Entity entity);
 
@@ -44,5 +44,5 @@ public abstract class TuningShadowMixin {
         //~ }
         //~ renderShadow(poseStack, buffers, entity, strength, partialTicks, level, radius);
     //~ }
-    // @era:qol16-end
+    // @era:t-shadow-end
 }

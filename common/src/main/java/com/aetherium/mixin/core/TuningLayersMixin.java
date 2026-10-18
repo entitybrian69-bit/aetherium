@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-layers-begin none
+// @era:t-layers-else v16
 //~ import com.aetherium.client.TuningClient;
 //~ import com.aetherium.perf.ModelLod;
 //~ import com.aetherium.perf.Tuning;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-layers-end
 
 /**
  * Entity detail distance (1.10.0, Minecraft 1.16.5): beyond the distance, mobs and armor stands are
@@ -32,8 +32,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.entity.LivingEntityRenderer")
 public abstract class TuningLayersMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-layers-begin none
+    // @era:t-layers-else v16
     //~ /** Mob model detail levels (1.11.0): the level for this mob's model parts. */
     //~ @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             //~ at = @At("HEAD"), require = 0)
@@ -72,5 +72,5 @@ public abstract class TuningLayersMixin {
         //~ layer.render(poseStack, buffers, light, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks,
                 //~ netHeadYaw, headPitch);
     //~ }
-    // @era:qol16-end
+    // @era:t-layers-end
 }

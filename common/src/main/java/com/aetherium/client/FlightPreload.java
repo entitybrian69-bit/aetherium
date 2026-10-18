@@ -1,7 +1,7 @@
 package com.aetherium.client;
 
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-flight-preload-begin none
+// @era:t-flight-preload-else v16
 //~ import java.util.Comparator;
 //~ import java.util.List;
 //~ import net.minecraft.server.MinecraftServer;
@@ -9,7 +9,7 @@ package com.aetherium.client;
 //~ import net.minecraft.server.level.TicketType;
 //~ import net.minecraft.world.level.ChunkPos;
 //~ import net.minecraft.world.phys.Vec3;
-// @era:qol16-end
+// @era:t-flight-preload-end
 
 /**
  * Elytra look-ahead (1.10.0, Minecraft 1.16.5, single player): while a player glides fast, the
@@ -21,8 +21,8 @@ public final class FlightPreload {
     private FlightPreload() {
     }
 
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-flight-preload-begin none
+    // @era:t-flight-preload-else v16
     //~ /** Ticks of flight to look ahead (2 s). */
     //~ private static final int LOOK_AHEAD_TICKS = 40;
     //~ /** Only while gliding faster than 0.5 blocks per tick (10 m/s). */
@@ -51,5 +51,5 @@ public final class FlightPreload {
             //~ player.getLevel().getChunkSource().addRegionTicket(FLIGHT, target, 2, target);
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-flight-preload-end
 }

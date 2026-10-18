@@ -1,7 +1,7 @@
 package com.aetherium.client;
 
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-grass-quads-begin none
+// @era:t-grass-quads-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import java.util.ArrayList;
 //~ import java.util.List;
@@ -9,7 +9,7 @@ package com.aetherium.client;
 //~ import net.minecraft.core.Direction;
 //~ import net.minecraft.world.level.block.Blocks;
 //~ import net.minecraft.world.level.block.state.BlockState;
-// @era:qol16-end
+// @era:t-grass-quads-end
 
 /**
  * Fast grass (1.12.0, Minecraft 1.16.5, off by default): the sides of a grass block are drawn as
@@ -28,8 +28,8 @@ public final class GrassQuads {
     private GrassQuads() {
     }
 
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-grass-quads-begin none
+    // @era:t-grass-quads-else v16
     //~ private static final int MAX_PAIRS = 64;
 
     //~ /** Alternating source list, filtered list. Replaced as a whole, never mutated. */
@@ -97,5 +97,5 @@ public final class GrassQuads {
     //~ public static void clear() {
         //~ cache = new Object[0];
     //~ }
-    // @era:qol16-end
+    // @era:t-grass-quads-end
 }

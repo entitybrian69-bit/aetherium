@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-cull-begin none
+// @era:t-cull-else v16
 //~ import com.aetherium.client.OceanFloor;
 //~ import com.aetherium.perf.Tuning;
 //~ import net.minecraft.client.renderer.LevelRenderer;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import net.minecraft.core.Direction;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-cull-end
 
 /**
  * The visibility search of {@code LevelRenderer.setupRender} (1.12.0, Minecraft 1.16.5).
@@ -31,8 +31,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
 public abstract class TuningCullMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-cull-begin none
+    // @era:t-cull-else v16
     //~ @Redirect(method = "setupRender", at = @At(value = "INVOKE",
             //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;getRelativeFrom(Lnet/minecraft/core/BlockPos;Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;Lnet/minecraft/core/Direction;)Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;"),
             //~ require = 0)
@@ -69,5 +69,5 @@ public abstract class TuningCullMixin {
         //~ final int cam = camera.getZ() >> 4;
         //~ return sz > 0 ? from < cam : from > cam;
     //~ }
-    // @era:qol16-end
+    // @era:t-cull-end
 }

@@ -3,8 +3,8 @@ package com.aetherium.mixin.core;
 import com.aetherium.client.SkullOwnerAccess;
 import com.mojang.authlib.GameProfile;
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-skull-begin none
+// @era:t-skull-else v16
 //~ import com.aetherium.client.SkullLookup;
 //~ import com.aetherium.perf.Tuning;
 //~ import com.google.common.collect.Multimap;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.Shadow;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-skull-end
 
 /**
  * Async player-head skins (1.10.0, Minecraft 1.16.5): see {@link com.aetherium.client.SkullLookup}.
@@ -24,11 +24,11 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.world.level.block.entity.SkullBlockEntity")
 public abstract class TuningSkullMixin implements SkullOwnerAccess {
-    // @era:qol16-begin none
+    // @era:t-skull-begin none
     @Override
     public void aetherium$profileFilled(final GameProfile requested, final GameProfile filled) {
     }
-    // @era:qol16-else v16
+    // @era:t-skull-else v16
     //~ @Shadow
     //~ private static GameProfileCache profileCache;
 
@@ -59,5 +59,5 @@ public abstract class TuningSkullMixin implements SkullOwnerAccess {
             //~ ((BlockEntity) (Object) this).setChanged();
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-skull-end
 }

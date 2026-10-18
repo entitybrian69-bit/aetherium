@@ -56,6 +56,8 @@ env:
 jobs:
   plan:
     name: which versions, which toolchain
+    # [no-ship] in the head commit message: a test push (smoke test, probe), nothing is released.
+    if: ${{ !contains(github.event.head_commit.message, '[no-ship]') }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.picks.outputs.matrix }}

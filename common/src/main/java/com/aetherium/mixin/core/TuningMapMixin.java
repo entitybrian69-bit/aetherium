@@ -1,15 +1,15 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-map-begin none
+// @era:t-map-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import org.spongepowered.asm.mixin.Shadow;
 //~ import org.spongepowered.asm.mixin.Unique;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-map-end
 
 /**
  * Map updates (1.10.0, Minecraft 1.16.5): a map texture is re-uploaded at most 4 times per second.
@@ -20,8 +20,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.gui.MapRenderer$MapInstance")
 public abstract class TuningMapMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-map-begin none
+    // @era:t-map-else v16
     //~ @Unique
     //~ private static final long AETHERIUM$SPACING_NANOS = 250_000_000L;
 
@@ -64,5 +64,5 @@ public abstract class TuningMapMixin {
             //~ }
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-map-end
 }

@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-name-tag-begin none
+// @era:t-name-tag-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
 //~ import net.minecraft.client.renderer.MultiBufferSource;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.Shadow;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-name-tag-end
 
 /**
  * Entity detail distance (1.10.0, Minecraft 1.16.5): name tags of named mobs and armor stands are
@@ -23,8 +23,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.entity.EntityRenderer")
 public abstract class TuningNameTagMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-name-tag-begin none
+    // @era:t-name-tag-else v16
     //~ @Shadow
     //~ @Final
     //~ protected EntityRenderDispatcher entityRenderDispatcher;
@@ -44,5 +44,5 @@ public abstract class TuningNameTagMixin {
         //~ }
         //~ this.renderNameTag(entity, name, poseStack, buffers, light);
     //~ }
-    // @era:qol16-end
+    // @era:t-name-tag-end
 }

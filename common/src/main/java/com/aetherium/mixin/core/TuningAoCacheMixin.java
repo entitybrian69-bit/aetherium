@@ -1,14 +1,14 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-ao-cache-begin none
+// @era:t-ao-cache-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
 //~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-ao-cache-end
 
 /**
  * Bigger smooth-lighting cache (1.12.0, Minecraft 1.16.5): while a chunk is built, each builder
@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer$Cache")
 public abstract class TuningAoCacheMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-ao-cache-begin none
+    // @era:t-ao-cache-else v16
     //~ private static final int VANILLA = 100;
     //~ private static final int LIMIT = 320;
 
@@ -47,5 +47,5 @@ public abstract class TuningAoCacheMixin {
     //~ private int aetherium$brightnessSize(final Long2FloatLinkedOpenHashMap map) {
         //~ return aetherium$full(map.size());
     //~ }
-    // @era:qol16-end
+    // @era:t-ao-cache-end
 }

@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-autosave-begin none
+// @era:t-autosave-else v16
 //~ import com.aetherium.client.FlightPreload;
 //~ import com.aetherium.perf.Tuning;
 //~ import java.util.function.BooleanSupplier;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-autosave-end
 
 /**
  * Integrated server hooks (1.10.0, Minecraft 1.16.5):
@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.server.MinecraftServer")
 public abstract class TuningAutosaveMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-autosave-begin none
+    // @era:t-autosave-else v16
     //~ @Redirect(method = "tickServer", at = @At(value = "INVOKE",
             //~ target = "Lnet/minecraft/server/MinecraftServer;saveAllChunks(ZZZ)Z"), require = 0)
     //~ private boolean aetherium$autosave(final MinecraftServer server, final boolean suppressLog,
@@ -44,5 +44,5 @@ public abstract class TuningAutosaveMixin {
             //~ FlightPreload.tick((MinecraftServer) (Object) this);
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-autosave-end
 }

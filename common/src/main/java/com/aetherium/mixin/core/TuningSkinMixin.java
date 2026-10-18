@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-skin-begin none
+// @era:t-skin-else v16
 //~ import com.aetherium.util.AetheriumLog;
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.platform.NativeImage;
@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-skin-end
 
 /**
  * Background skin loading (1.12.0, Minecraft 1.16.5): when a player skin or cape is already in the
@@ -38,8 +38,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.texture.HttpTexture")
 public abstract class TuningSkinMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-skin-begin none
+    // @era:t-skin-else v16
     //~ @Unique
     //~ private static final AetheriumLog LOGGER = AetheriumLog.of(TuningSkinMixin.class);
 
@@ -87,5 +87,5 @@ public abstract class TuningSkinMixin {
         //~ }, Util.backgroundExecutor());
         //~ ci.cancel();
     //~ }
-    // @era:qol16-end
+    // @era:t-skin-end
 }

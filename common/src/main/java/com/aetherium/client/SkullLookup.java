@@ -1,7 +1,7 @@
 package com.aetherium.client;
 
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-skull-lookup-begin none
+// @era:t-skull-lookup-else v16
 //~ import com.aetherium.util.AetheriumLog;
 //~ import com.mojang.authlib.GameProfile;
 //~ import com.mojang.authlib.minecraft.MinecraftSessionService;
@@ -9,7 +9,7 @@ package com.aetherium.client;
 //~ import java.util.concurrent.Executors;
 //~ import java.util.concurrent.ThreadFactory;
 //~ import net.minecraft.client.Minecraft;
-// @era:qol16-end
+// @era:t-skull-lookup-end
 
 /**
  * Async player-head skins (1.10.0, Minecraft 1.16.5). Vanilla fetches the skin of a player head
@@ -25,8 +25,8 @@ public final class SkullLookup {
     private SkullLookup() {
     }
 
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-skull-lookup-begin none
+    // @era:t-skull-lookup-else v16
     //~ private static final AetheriumLog LOG = AetheriumLog.of(SkullLookup.class);
     //~ private static ExecutorService executor;
 
@@ -76,5 +76,5 @@ public final class SkullLookup {
             //~ }
         //~ });
     //~ }
-    // @era:qol16-end
+    // @era:t-skull-lookup-end
 }

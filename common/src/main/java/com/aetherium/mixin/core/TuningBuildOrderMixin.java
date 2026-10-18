@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-build-order-begin none
+// @era:t-build-order-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.math.Vector3f;
 //~ import net.minecraft.client.Camera;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import net.minecraft.world.phys.Vec3;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-build-order-end
 
 /**
  * Build chunks in view first (1.12.0, Minecraft 1.16.5): the chunk build queue is a priority
@@ -23,8 +23,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
 public abstract class TuningBuildOrderMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-build-order-begin none
+    // @era:t-build-order-else v16
     //~ @Redirect(method = "createCompileTask", at = @At(value = "INVOKE",
             //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;getDistToPlayerSqr()D"),
             //~ require = 0)
@@ -43,5 +43,5 @@ public abstract class TuningBuildOrderMixin {
         //~ final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
         //~ return distSq * (1.0 + 0.75 * (1.0 - cos));
     //~ }
-    // @era:qol16-end
+    // @era:t-build-order-end
 }

@@ -1,8 +1,8 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-leaf-cull-begin none
+// @era:t-leaf-cull-else v16
 //~ import com.aetherium.client.TuningClient;
 //~ import com.aetherium.perf.Tuning;
 //~ import net.minecraft.core.BlockPos;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import net.minecraft.world.level.block.state.BlockState;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
-// @era:qol16-end
+// @era:t-leaf-cull-end
 
 /**
  * Leaf culling (1.10.0, Minecraft 1.16.5): leaf faces buried inside a tree are not meshed.
@@ -28,8 +28,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer")
 public abstract class TuningLeafCullMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-leaf-cull-begin none
+    // @era:t-leaf-cull-else v16
     //~ @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
             //~ target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z"),
             //~ require = 0)
@@ -45,5 +45,5 @@ public abstract class TuningLeafCullMixin {
         //~ return !(block == Blocks.CHORUS_PLANT && Tuning.endOptimizations
                 //~ && TuningClient.chorusFaceHidden(state, level, pos, side));
     //~ }
-    // @era:qol16-end
+    // @era:t-leaf-cull-end
 }

@@ -1,7 +1,7 @@
 package com.aetherium.client;
 
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-ocean-floor-begin none
+// @era:t-ocean-floor-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 //~ import net.minecraft.client.Camera;
@@ -13,7 +13,7 @@ package com.aetherium.client;
 //~ import net.minecraft.world.level.ChunkPos;
 //~ import net.minecraft.world.level.chunk.LevelChunk;
 //~ import net.minecraft.world.level.levelgen.Heightmap;
-// @era:qol16-end
+// @era:t-ocean-floor-end
 
 /**
  * Ocean floor culling (1.12.0, Minecraft 1.16.5, off by default): while the camera is above the
@@ -30,8 +30,8 @@ public final class OceanFloor {
     private OceanFloor() {
     }
 
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-ocean-floor-begin none
+    // @era:t-ocean-floor-else v16
     //~ private static final int NOT_OCEAN = Integer.MIN_VALUE;
     //~ private static final int MARGIN = 8;
     //~ private static final int MAX_CHUNKS = 65536;
@@ -105,5 +105,5 @@ public final class OceanFloor {
         //~ FLOOR.clear();
         //~ active = false;
     //~ }
-    // @era:qol16-end
+    // @era:t-ocean-floor-end
 }

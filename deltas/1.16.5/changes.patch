@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 76fd6ed..83bbe8b 100644
+index 6665c91..55e13d9 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -146,22 +146,7 @@ index 76fd6ed..83bbe8b 100644
      // @era:qol16-end
  
      /**
-@@ -169,10 +169,10 @@ public final class Capabilities {
-      * culling, leaves, weather, explosions, light merging, smooth autosave and more). Minecraft
-      * 1.16.5 only for now; every other version keeps 1.9.x behaviour.
-      */
--    // @era:qol16-begin none
--    public static final boolean TUNING = false;
--    // @era:qol16-else v16
--    //~ public static final boolean TUNING = true;
-+    // @era:qol16-begin v16
-+    public static final boolean TUNING = true;
-+    // @era:qol16-else none
-+    //~ public static final boolean TUNING = false;
-     // @era:qol16-end
- 
-     /** Per-frame budget for queued packet tasks ({@code Minecraft.runTick}); every version. */
-@@ -206,29 +206,29 @@ public final class Capabilities {
+@@ -202,29 +202,29 @@ public final class Capabilities {
      // @era:particle-fast-end
  
      /** Per-frame camera frustum from vanilla's own matrices (1.16.5 via StreamingLevelMixin). */
@@ -204,7 +189,7 @@ index 76fd6ed..83bbe8b 100644
      // @era:fog-cull-end
  
      /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */
-@@ -239,33 +239,33 @@ public final class Capabilities {
+@@ -235,33 +235,33 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -1102,10 +1087,10 @@ index b52e5ad..dcc73b2 100644
      // @era:autobench-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index b99e56a..b54fb34 100644
+index 47a4f16..8ea5f8d 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -424,10 +424,10 @@ public final class ClientHooks {
+@@ -425,10 +425,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -1120,7 +1105,7 @@ index b99e56a..b54fb34 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -462,10 +462,10 @@ public final class ClientHooks {
+@@ -463,10 +463,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -1136,41 +1121,41 @@ index b99e56a..b54fb34 100644
      }
  }
 diff --git a/common/src/main/java/com/aetherium/client/ColorFilter.java b/common/src/main/java/com/aetherium/client/ColorFilter.java
-index dd0200e..e1de07c 100644
+index 1530212..547d8ea 100644
 --- a/common/src/main/java/com/aetherium/client/ColorFilter.java
 +++ b/common/src/main/java/com/aetherium/client/ColorFilter.java
 @@ -1,12 +1,12 @@
  package com.aetherium.client;
  
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-color-filter-begin none
+-// @era:t-color-filter-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.aetherium.util.AetheriumLog;
 -//~ import com.mojang.blaze3d.pipeline.RenderTarget;
 -//~ import net.minecraft.client.Minecraft;
 -//~ import org.lwjgl.opengl.GL20;
-+// @era:qol16-begin v16
++// @era:t-color-filter-begin v16
 +import com.aetherium.perf.Tuning;
 +import com.aetherium.util.AetheriumLog;
 +import com.mojang.blaze3d.pipeline.RenderTarget;
 +import net.minecraft.client.Minecraft;
 +import org.lwjgl.opengl.GL20;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-color-filter-else none
+ // @era:t-color-filter-end
  
  /**
 @@ -32,135 +32,135 @@ public final class ColorFilter {
          {0.92F, 1.22F, 0.025F, 0.65F, -0.02F}, // cinematic
      };
  
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-color-filter-begin none
+-    // @era:t-color-filter-else v16
 -    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(ColorFilter.class);
 -    //~ private static final int GL_VERTEX_SHADER = 0x8B31;
 -    //~ private static final int GL_FRAGMENT_SHADER = 0x8B30;
 -    //~ private static final int GL_COMPILE_STATUS = 0x8B81;
 -    //~ private static final int GL_LINK_STATUS = 0x8B82;
-+    // @era:qol16-begin v16
++    // @era:t-color-filter-begin v16
 +    private static final AetheriumLog LOGGER = AetheriumLog.of(ColorFilter.class);
 +    private static final int GL_VERTEX_SHADER = 0x8B31;
 +    private static final int GL_FRAGMENT_SHADER = 0x8B30;
@@ -1415,18 +1400,18 @@ index dd0200e..e1de07c 100644
 +            mc.getMainRenderTarget().bindWrite(true);
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-color-filter-else none
+     // @era:t-color-filter-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrain.java b/common/src/main/java/com/aetherium/client/FarTerrain.java
-index 417b306..52cfb4f 100644
+index 8ab4c43..0cf028d 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrain.java
 +++ b/common/src/main/java/com/aetherium/client/FarTerrain.java
 @@ -1,47 +1,47 @@
  package com.aetherium.client;
  
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-far-terrain-begin none
+-// @era:t-far-terrain-else v16
 -//~ import com.aetherium.mixin.core.TuningLevelAccessor;
 -//~ import com.aetherium.mixin.core.TuningViewAreaAccessor;
 -//~ import com.aetherium.perf.FarTerrainMesh;
@@ -1467,7 +1452,7 @@ index 417b306..52cfb4f 100644
 -//~ import net.minecraft.world.level.material.MaterialColor;
 -//~ import net.minecraft.world.phys.Vec3;
 -//~ import org.lwjgl.opengl.GL11;
-+// @era:qol16-begin v16
++// @era:t-far-terrain-begin v16
 +import com.aetherium.mixin.core.TuningLevelAccessor;
 +import com.aetherium.mixin.core.TuningViewAreaAccessor;
 +import com.aetherium.perf.FarTerrainMesh;
@@ -1508,18 +1493,18 @@ index 417b306..52cfb4f 100644
 +import net.minecraft.world.level.material.MaterialColor;
 +import net.minecraft.world.phys.Vec3;
 +import org.lwjgl.opengl.GL11;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-far-terrain-else none
+ // @era:t-far-terrain-end
  
  /**
 @@ -67,453 +67,453 @@ public final class FarTerrain {
      private FarTerrain() {
      }
  
--    // @era:qol16-begin none
+-    // @era:t-far-terrain-begin none
 -    public static void levelChanged() {
 -    }
--    // @era:qol16-else v16
+-    // @era:t-far-terrain-else v16
 -    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(FarTerrain.class);
 -    //~ private static final int MAX_CHUNKS = 16384;
 -    //~ /** 32000 vertices: gl4es splits GL_QUADS draws above that. */
@@ -1531,7 +1516,7 @@ index 417b306..52cfb4f 100644
 -    //~ private static final int GL_CULL_FACE = 0x0B44;
 -    //~ private static final int GL_FOG = 0x0B60;
 -    //~ private static final boolean SHADER_MOD = present("net.coderbot.iris.Iris") || present("net.optifine.Config");
-+    // @era:qol16-begin v16
++    // @era:t-far-terrain-begin v16
 +    private static final AetheriumLog LOGGER = AetheriumLog.of(FarTerrain.class);
 +    private static final int MAX_CHUNKS = 16384;
 +    /** 32000 vertices: gl4es splits GL_QUADS draws above that. */
@@ -2382,20 +2367,20 @@ index 417b306..52cfb4f 100644
 +            return this.used;
 +        }
 +    }
-+    // @era:qol16-else none
++    // @era:t-far-terrain-else none
 +    //~ public static void levelChanged() {
      //~ }
-     // @era:qol16-end
+     // @era:t-far-terrain-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/FlightPreload.java b/common/src/main/java/com/aetherium/client/FlightPreload.java
-index 31caec3..fd274d4 100644
+index 85de891..1fa1c49 100644
 --- a/common/src/main/java/com/aetherium/client/FlightPreload.java
 +++ b/common/src/main/java/com/aetherium/client/FlightPreload.java
 @@ -1,14 +1,14 @@
  package com.aetherium.client;
  
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-flight-preload-begin none
+-// @era:t-flight-preload-else v16
 -//~ import java.util.Comparator;
 -//~ import java.util.List;
 -//~ import net.minecraft.server.MinecraftServer;
@@ -2403,7 +2388,7 @@ index 31caec3..fd274d4 100644
 -//~ import net.minecraft.server.level.TicketType;
 -//~ import net.minecraft.world.level.ChunkPos;
 -//~ import net.minecraft.world.phys.Vec3;
-+// @era:qol16-begin v16
++// @era:t-flight-preload-begin v16
 +import java.util.Comparator;
 +import java.util.List;
 +import net.minecraft.server.MinecraftServer;
@@ -2411,23 +2396,23 @@ index 31caec3..fd274d4 100644
 +import net.minecraft.server.level.TicketType;
 +import net.minecraft.world.level.ChunkPos;
 +import net.minecraft.world.phys.Vec3;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-flight-preload-else none
+ // @era:t-flight-preload-end
  
  /**
 @@ -21,35 +21,35 @@ public final class FlightPreload {
      private FlightPreload() {
      }
  
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-flight-preload-begin none
+-    // @era:t-flight-preload-else v16
 -    //~ /** Ticks of flight to look ahead (2 s). */
 -    //~ private static final int LOOK_AHEAD_TICKS = 40;
 -    //~ /** Only while gliding faster than 0.5 blocks per tick (10 m/s). */
 -    //~ private static final double MIN_SPEED_SQ = 0.25;
 -    //~ private static final TicketType<ChunkPos> FLIGHT =
 -            //~ TicketType.create("aetherium_flight", Comparator.comparingLong(ChunkPos::toLong), 100);
-+    // @era:qol16-begin v16
++    // @era:t-flight-preload-begin v16
 +    /** Ticks of flight to look ahead (2 s). */
 +    private static final int LOOK_AHEAD_TICKS = 40;
 +    /** Only while gliding faster than 0.5 blocks per tick (10 m/s). */
@@ -2477,8 +2462,8 @@ index 31caec3..fd274d4 100644
 +            player.getLevel().getChunkSource().addRegionTicket(FLIGHT, target, 2, target);
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-flight-preload-else none
+     // @era:t-flight-preload-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/FreelookHooks.java b/common/src/main/java/com/aetherium/client/FreelookHooks.java
 index 33b0e53..0e6e7db 100644
@@ -2500,14 +2485,14 @@ index 33b0e53..0e6e7db 100644
              restoreCamera = null;
              forcedCamera = null;
 diff --git a/common/src/main/java/com/aetherium/client/GrassQuads.java b/common/src/main/java/com/aetherium/client/GrassQuads.java
-index 48e7942..e69e913 100644
+index ac2e32b..52cc84c 100644
 --- a/common/src/main/java/com/aetherium/client/GrassQuads.java
 +++ b/common/src/main/java/com/aetherium/client/GrassQuads.java
 @@ -1,14 +1,14 @@
  package com.aetherium.client;
  
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-grass-quads-begin none
+-// @era:t-grass-quads-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import java.util.ArrayList;
 -//~ import java.util.List;
@@ -2515,7 +2500,7 @@ index 48e7942..e69e913 100644
 -//~ import net.minecraft.core.Direction;
 -//~ import net.minecraft.world.level.block.Blocks;
 -//~ import net.minecraft.world.level.block.state.BlockState;
-+// @era:qol16-begin v16
++// @era:t-grass-quads-begin v16
 +import com.aetherium.perf.Tuning;
 +import java.util.ArrayList;
 +import java.util.List;
@@ -2523,18 +2508,18 @@ index 48e7942..e69e913 100644
 +import net.minecraft.core.Direction;
 +import net.minecraft.world.level.block.Blocks;
 +import net.minecraft.world.level.block.state.BlockState;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-grass-quads-else none
+ // @era:t-grass-quads-end
  
  /**
 @@ -28,74 +28,74 @@ public final class GrassQuads {
      private GrassQuads() {
      }
  
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-grass-quads-begin none
+-    // @era:t-grass-quads-else v16
 -    //~ private static final int MAX_PAIRS = 64;
-+    // @era:qol16-begin v16
++    // @era:t-grass-quads-begin v16
 +    private static final int MAX_PAIRS = 64;
  
 -    //~ /** Alternating source list, filtered list. Replaced as a whole, never mutated. */
@@ -2663,8 +2648,8 @@ index 48e7942..e69e913 100644
 +    public static void clear() {
 +        cache = new Object[0];
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-grass-quads-else none
+     // @era:t-grass-quads-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/McCanvas.java b/common/src/main/java/com/aetherium/client/McCanvas.java
 index afb236d..ffe04fe 100644
@@ -2818,14 +2803,14 @@ index afb236d..ffe04fe 100644
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
 diff --git a/common/src/main/java/com/aetherium/client/OceanFloor.java b/common/src/main/java/com/aetherium/client/OceanFloor.java
-index abb0374..3d23540 100644
+index 93472dd..8fd447e 100644
 --- a/common/src/main/java/com/aetherium/client/OceanFloor.java
 +++ b/common/src/main/java/com/aetherium/client/OceanFloor.java
 @@ -1,18 +1,18 @@
  package com.aetherium.client;
  
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-ocean-floor-begin none
+-// @era:t-ocean-floor-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 -//~ import net.minecraft.client.Camera;
@@ -2837,7 +2822,7 @@ index abb0374..3d23540 100644
 -//~ import net.minecraft.world.level.ChunkPos;
 -//~ import net.minecraft.world.level.chunk.LevelChunk;
 -//~ import net.minecraft.world.level.levelgen.Heightmap;
-+// @era:qol16-begin v16
++// @era:t-ocean-floor-begin v16
 +import com.aetherium.perf.Tuning;
 +import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 +import net.minecraft.client.Camera;
@@ -2849,23 +2834,23 @@ index abb0374..3d23540 100644
 +import net.minecraft.world.level.ChunkPos;
 +import net.minecraft.world.level.chunk.LevelChunk;
 +import net.minecraft.world.level.levelgen.Heightmap;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-ocean-floor-else none
+ // @era:t-ocean-floor-end
  
  /**
 @@ -30,80 +30,80 @@ public final class OceanFloor {
      private OceanFloor() {
      }
  
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-ocean-floor-begin none
+-    // @era:t-ocean-floor-else v16
 -    //~ private static final int NOT_OCEAN = Integer.MIN_VALUE;
 -    //~ private static final int MARGIN = 8;
 -    //~ private static final int MAX_CHUNKS = 65536;
 -    //~ private static final Long2IntLinkedOpenHashMap FLOOR = new Long2IntLinkedOpenHashMap();
 -    //~ /** This frame: option on, camera above the sea surface and not inside a fluid. */
 -    //~ private static boolean active;
-+    // @era:qol16-begin v16
++    // @era:t-ocean-floor-begin v16
 +    private static final int NOT_OCEAN = Integer.MIN_VALUE;
 +    private static final int MARGIN = 8;
 +    private static final int MAX_CHUNKS = 65536;
@@ -2999,8 +2984,8 @@ index abb0374..3d23540 100644
 +        FLOOR.clear();
 +        active = false;
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-ocean-floor-else none
+     // @era:t-ocean-floor-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
 index 7f92c9e..626efa3 100644
@@ -3505,14 +3490,14 @@ index 5d253f5..297027d 100644
              category = Integer.valueOf(ParticleFilter.categoryOf(id == null ? null : id.toString()));
              CATEGORY.put(type, category);
 diff --git a/common/src/main/java/com/aetherium/client/SkullLookup.java b/common/src/main/java/com/aetherium/client/SkullLookup.java
-index 1484fb6..e0a2b5b 100644
+index 19eaaca..143e8fa 100644
 --- a/common/src/main/java/com/aetherium/client/SkullLookup.java
 +++ b/common/src/main/java/com/aetherium/client/SkullLookup.java
 @@ -1,14 +1,14 @@
  package com.aetherium.client;
  
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-skull-lookup-begin none
+-// @era:t-skull-lookup-else v16
 -//~ import com.aetherium.util.AetheriumLog;
 -//~ import com.mojang.authlib.GameProfile;
 -//~ import com.mojang.authlib.minecraft.MinecraftSessionService;
@@ -3520,7 +3505,7 @@ index 1484fb6..e0a2b5b 100644
 -//~ import java.util.concurrent.Executors;
 -//~ import java.util.concurrent.ThreadFactory;
 -//~ import net.minecraft.client.Minecraft;
-+// @era:qol16-begin v16
++// @era:t-skull-lookup-begin v16
 +import com.aetherium.util.AetheriumLog;
 +import com.mojang.authlib.GameProfile;
 +import com.mojang.authlib.minecraft.MinecraftSessionService;
@@ -3528,19 +3513,19 @@ index 1484fb6..e0a2b5b 100644
 +import java.util.concurrent.Executors;
 +import java.util.concurrent.ThreadFactory;
 +import net.minecraft.client.Minecraft;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-skull-lookup-else none
+ // @era:t-skull-lookup-end
  
  /**
 @@ -25,56 +25,56 @@ public final class SkullLookup {
      private SkullLookup() {
      }
  
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-skull-lookup-begin none
+-    // @era:t-skull-lookup-else v16
 -    //~ private static final AetheriumLog LOG = AetheriumLog.of(SkullLookup.class);
 -    //~ private static ExecutorService executor;
-+    // @era:qol16-begin v16
++    // @era:t-skull-lookup-begin v16
 +    private static final AetheriumLog LOG = AetheriumLog.of(SkullLookup.class);
 +    private static ExecutorService executor;
  
@@ -3634,19 +3619,19 @@ index 1484fb6..e0a2b5b 100644
 +            }
 +        });
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-skull-lookup-else none
+     // @era:t-skull-lookup-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/TuningClient.java b/common/src/main/java/com/aetherium/client/TuningClient.java
-index 8d3f4c2..5ed87fd 100644
+index c817efc..cc98ad7 100644
 --- a/common/src/main/java/com/aetherium/client/TuningClient.java
 +++ b/common/src/main/java/com/aetherium/client/TuningClient.java
 @@ -3,25 +3,25 @@ package com.aetherium.client;
  import com.aetherium.perf.Tuning;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.screens.Screen;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-client-begin none
+-// @era:t-client-else v16
 -//~ import it.unimi.dsi.fastutil.longs.LongIterator;
 -//~ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 -//~ import net.minecraft.client.gui.screens.ChatScreen;
@@ -3664,7 +3649,7 @@ index 8d3f4c2..5ed87fd 100644
 -//~ import net.minecraft.world.level.block.PipeBlock;
 -//~ import net.minecraft.world.level.block.state.BlockState;
 -//~ import org.lwjgl.glfw.GLFW;
-+// @era:qol16-begin v16
++// @era:t-client-begin v16
 +import it.unimi.dsi.fastutil.longs.LongIterator;
 +import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 +import net.minecraft.client.gui.screens.ChatScreen;
@@ -3682,16 +3667,16 @@ index 8d3f4c2..5ed87fd 100644
 +import net.minecraft.world.level.block.PipeBlock;
 +import net.minecraft.world.level.block.state.BlockState;
 +import org.lwjgl.glfw.GLFW;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-client-else none
+ // @era:t-client-end
  
  /**
 @@ -44,179 +44,179 @@ public final class TuningClient {
      private TuningClient() {
      }
  
--    // @era:qol16-begin none
-+    // @era:qol16-begin v16
+-    // @era:t-client-begin none
++    // @era:t-client-begin v16
 +    private static final long GC_SPACING_NANOS = 10_000_000_000L;
 +    private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
 +    private static long lastGc;
@@ -3849,7 +3834,7 @@ index 8d3f4c2..5ed87fd 100644
 +    public static double distanceToCamera(final Entity entity) {
 +        return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
      }
--    // @era:qol16-else v16
+-    // @era:t-client-else v16
 -    //~ private static final long GC_SPACING_NANOS = 10_000_000_000L;
 -    //~ private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
 -    //~ private static long lastGc;
@@ -3863,7 +3848,7 @@ index 8d3f4c2..5ed87fd 100644
 -     //~ * The frame-rate cap these options want right now (0 = none). Read on the client tick, so it
 -     //~ * follows focus changes and opened menus within 50 ms.
 -     //~ */
-+    // @era:qol16-else none
++    // @era:t-client-else none
      //~ public static int frameCap(final Minecraft mc) {
 -        //~ if (!Tuning.on || AutoBench.ACTIVE) {
 -            //~ return 0;
@@ -4008,7 +3993,7 @@ index 8d3f4c2..5ed87fd 100644
 -    //~ public static double distanceToCamera(final Entity entity) {
 -        //~ return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
      //~ }
-     // @era:qol16-end
+     // @era:t-client-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/UiSounds.java b/common/src/main/java/com/aetherium/client/UiSounds.java
 index f0c97dc..823ad0d 100644
@@ -4798,44 +4783,44 @@ index a561e63..e5c6f9f 100644
      // @era:options-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/WorldCache.java b/common/src/main/java/com/aetherium/client/WorldCache.java
-index 9d903f6..dbf5532 100644
+index 74ad0d4..a0d3495 100644
 --- a/common/src/main/java/com/aetherium/client/WorldCache.java
 +++ b/common/src/main/java/com/aetherium/client/WorldCache.java
 @@ -1,13 +1,13 @@
  package com.aetherium.client;
  
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-world-cache-begin none
+-// @era:t-world-cache-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.aetherium.util.AetheriumLog;
 -//~ import com.mojang.blaze3d.pipeline.RenderTarget;
 -//~ import net.minecraft.client.Minecraft;
 -//~ import net.minecraft.client.gui.screens.ChatScreen;
 -//~ import net.minecraft.client.gui.screens.Screen;
-+// @era:qol16-begin v16
++// @era:t-world-cache-begin v16
 +import com.aetherium.perf.Tuning;
 +import com.aetherium.util.AetheriumLog;
 +import com.mojang.blaze3d.pipeline.RenderTarget;
 +import net.minecraft.client.Minecraft;
 +import net.minecraft.client.gui.screens.ChatScreen;
 +import net.minecraft.client.gui.screens.Screen;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-world-cache-else none
+ // @era:t-world-cache-end
  
  /**
 @@ -27,101 +27,101 @@ public final class WorldCache {
      private WorldCache() {
      }
  
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-world-cache-begin none
+-    // @era:t-world-cache-else v16
 -    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
 -    //~ private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
 -    //~ private static RenderTarget cache;
 -    //~ private static boolean valid;
 -    //~ private static long lastCapture;
 -    //~ private static boolean broken;
-+    // @era:qol16-begin v16
++    // @era:t-world-cache-begin v16
 +    private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
 +    private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
 +    private static RenderTarget cache;
@@ -5013,8 +4998,8 @@ index 9d903f6..dbf5532 100644
 +            // the framebuffer is freed with the GL context
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-world-cache-else none
+     // @era:t-world-cache-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
 index cfdb6bb..bc8b2a4 100644
@@ -6895,53 +6880,53 @@ index 0b2c6b1..531f6bc 100644
      // @era:hud-else extractor
      //~ @Inject(method = "extractRenderState", at = @At("TAIL"), require = 0)
 diff --git a/common/src/main/java/com/aetherium/mixin/core/LazyDataFixersMixin.java b/common/src/main/java/com/aetherium/mixin/core/LazyDataFixersMixin.java
-index ed9ab05..31541e6 100644
+index 8dd618a..2a9fdba 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/LazyDataFixersMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/LazyDataFixersMixin.java
 @@ -1,14 +1,14 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-lazy-data-fixers-begin none
+-// @era:t-lazy-data-fixers-else v16
 -//~ import com.aetherium.perf.NoOpExecutor;
 -//~ import com.mojang.datafixers.DataFixer;
 -//~ import com.mojang.datafixers.DataFixerBuilder;
 -//~ import java.util.concurrent.Executor;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-lazy-data-fixers-begin v16
 +import com.aetherium.perf.NoOpExecutor;
 +import com.mojang.datafixers.DataFixer;
 +import com.mojang.datafixers.DataFixerBuilder;
 +import java.util.concurrent.Executor;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-lazy-data-fixers-else none
+ // @era:t-lazy-data-fixers-end
  
  /**
 @@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.util.datafix.DataFixers")
  public abstract class LazyDataFixersMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-lazy-data-fixers-begin none
+-    // @era:t-lazy-data-fixers-else v16
 -    //~ @Redirect(method = "createFixerUpper", at = @At(value = "INVOKE",
 -            //~ target = "Lcom/mojang/datafixers/DataFixerBuilder;build(Ljava/util/concurrent/Executor;)Lcom/mojang/datafixers/DataFixer;"),
 -            //~ require = 0)
 -    //~ private static DataFixer aetherium$lazy(final DataFixerBuilder builder, final Executor executor) {
 -        //~ return builder.build(NoOpExecutor.INSTANCE);
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-lazy-data-fixers-begin v16
 +    @Redirect(method = "createFixerUpper", at = @At(value = "INVOKE",
 +            target = "Lcom/mojang/datafixers/DataFixerBuilder;build(Ljava/util/concurrent/Executor;)Lcom/mojang/datafixers/DataFixer;"),
 +            require = 0)
 +    private static DataFixer aetherium$lazy(final DataFixerBuilder builder, final Executor executor) {
 +        return builder.build(NoOpExecutor.INSTANCE);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-lazy-data-fixers-else none
+     // @era:t-lazy-data-fixers-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java b/common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java
 index 9b0e5b7..2033635 100644
@@ -9061,39 +9046,39 @@ index 6e0fd24..3cd130b 100644
      //~ @Shadow
      //~ @Final
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningAoCacheMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningAoCacheMixin.java
-index 7ed1433..42f0571 100644
+index 7d56a0d..22e91f9 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningAoCacheMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningAoCacheMixin.java
 @@ -1,13 +1,13 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-ao-cache-begin none
+-// @era:t-ao-cache-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
 -//~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-ao-cache-begin v16
 +import com.aetherium.perf.Tuning;
 +import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
 +import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-ao-cache-else none
+ // @era:t-ao-cache-end
  
  /**
 @@ -24,28 +24,28 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer$Cache")
  public abstract class TuningAoCacheMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-ao-cache-begin none
+-    // @era:t-ao-cache-else v16
 -    //~ private static final int VANILLA = 100;
 -    //~ private static final int LIMIT = 320;
-+    // @era:qol16-begin v16
++    // @era:t-ao-cache-begin v16
 +    private static final int VANILLA = 100;
 +    private static final int LIMIT = 320;
  
@@ -9131,19 +9116,19 @@ index 7ed1433..42f0571 100644
 +    private int aetherium$brightnessSize(final Long2FloatLinkedOpenHashMap map) {
 +        return aetherium$full(map.size());
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-ao-cache-else none
+     // @era:t-ao-cache-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java
-index 2f280f3..45769fd 100644
+index 2989e94..6276c27 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java
 @@ -1,16 +1,16 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-autosave-begin none
+-// @era:t-autosave-else v16
 -//~ import com.aetherium.client.FlightPreload;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import java.util.function.BooleanSupplier;
@@ -9152,7 +9137,7 @@ index 2f280f3..45769fd 100644
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-autosave-begin v16
 +import com.aetherium.client.FlightPreload;
 +import com.aetherium.perf.Tuning;
 +import java.util.function.BooleanSupplier;
@@ -9161,16 +9146,16 @@ index 2f280f3..45769fd 100644
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.Redirect;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-autosave-else none
+ // @era:t-autosave-end
  
  /**
 @@ -24,25 +24,25 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.server.MinecraftServer")
  public abstract class TuningAutosaveMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-autosave-begin none
+-    // @era:t-autosave-else v16
 -    //~ @Redirect(method = "tickServer", at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/server/MinecraftServer;saveAllChunks(ZZZ)Z"), require = 0)
 -    //~ private boolean aetherium$autosave(final MinecraftServer server, final boolean suppressLog,
@@ -9182,7 +9167,7 @@ index 2f280f3..45769fd 100644
 -            //~ Tuning.autosaving = false;
 -        //~ }
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-autosave-begin v16
 +    @Redirect(method = "tickServer", at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/server/MinecraftServer;saveAllChunks(ZZZ)Z"), require = 0)
 +    private boolean aetherium$autosave(final MinecraftServer server, final boolean suppressLog,
@@ -9207,90 +9192,90 @@ index 2f280f3..45769fd 100644
 +            FlightPreload.tick((MinecraftServer) (Object) this);
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-autosave-else none
+     // @era:t-autosave-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningBeamMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningBeamMixin.java
-index dbced7b..fae8d08 100644
+index 34ee1a0..d0865b6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningBeamMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningBeamMixin.java
 @@ -1,12 +1,12 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-beam-begin none
+-// @era:t-beam-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-beam-begin v16
 +import com.aetherium.perf.Tuning;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-beam-else none
+ // @era:t-beam-end
  
  /**
 @@ -15,13 +15,13 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.entity.EnderDragonRenderer")
  public abstract class TuningBeamMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-beam-begin none
+-    // @era:t-beam-else v16
 -    //~ @Inject(method = "renderCrystalBeams", at = @At("HEAD"), cancellable = true, require = 0)
 -    //~ private static void aetherium$beams(final CallbackInfo ci) {
 -        //~ if (!Tuning.crystalBeams) {
 -            //~ ci.cancel();
 -        //~ }
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-beam-begin v16
 +    @Inject(method = "renderCrystalBeams", at = @At("HEAD"), cancellable = true, require = 0)
 +    private static void aetherium$beams(final CallbackInfo ci) {
 +        if (!Tuning.crystalBeams) {
 +            ci.cancel();
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-beam-else none
+     // @era:t-beam-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java
-index 2b32642..1833202 100644
+index 4c2f092..372d534 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java
 @@ -1,13 +1,13 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-block-entity-begin none
+-// @era:t-block-entity-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import net.minecraft.world.level.block.entity.BlockEntity;
 -//~ import org.spongepowered.asm.mixin.Shadow;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-block-entity-begin v16
 +import com.aetherium.perf.Tuning;
 +import net.minecraft.world.level.block.entity.BlockEntity;
 +import org.spongepowered.asm.mixin.Shadow;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-block-entity-else none
+ // @era:t-block-entity-end
  
  /**
 @@ -18,22 +18,22 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher")
  public abstract class TuningBlockEntityMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-block-entity-begin none
+-    // @era:t-block-entity-else v16
 -    //~ @Shadow
 -    //~ private static void tryRender(final BlockEntity blockEntity, final Runnable action) {
 -        //~ throw new AssertionError();
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-block-entity-begin v16
 +    @Shadow
 +    private static void tryRender(final BlockEntity blockEntity, final Runnable action) {
 +        throw new AssertionError();
@@ -9316,19 +9301,19 @@ index 2b32642..1833202 100644
 +        }
 +        tryRender(blockEntity, action);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-block-entity-else none
+     // @era:t-block-entity-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java
-index 49b9b2b..daf9dcb 100644
+index 825c727..9553724 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java
 @@ -1,17 +1,17 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-build-order-begin none
+-// @era:t-build-order-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.math.Vector3f;
 -//~ import net.minecraft.client.Camera;
@@ -9338,7 +9323,7 @@ index 49b9b2b..daf9dcb 100644
 -//~ import net.minecraft.world.phys.Vec3;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-build-order-begin v16
 +import com.aetherium.perf.Tuning;
 +import com.mojang.math.Vector3f;
 +import net.minecraft.client.Camera;
@@ -9348,16 +9333,16 @@ index 49b9b2b..daf9dcb 100644
 +import net.minecraft.world.phys.Vec3;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-build-order-else none
+ // @era:t-build-order-end
  
  /**
 @@ -23,25 +23,25 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
  public abstract class TuningBuildOrderMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-build-order-begin none
+-    // @era:t-build-order-else v16
 -    //~ @Redirect(method = "createCompileTask", at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;getDistToPlayerSqr()D"),
 -            //~ require = 0)
@@ -9376,7 +9361,7 @@ index 49b9b2b..daf9dcb 100644
 -        //~ final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
 -        //~ return distSq * (1.0 + 0.75 * (1.0 - cos));
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-build-order-begin v16
 +    @Redirect(method = "createCompileTask", at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;getDistToPlayerSqr()D"),
 +            require = 0)
@@ -9395,19 +9380,19 @@ index 49b9b2b..daf9dcb 100644
 +        final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
 +        return distSq * (1.0 + 0.75 * (1.0 - cos));
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-build-order-else none
+     // @era:t-build-order-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
-index 43bfb4b..9412989 100644
+index 9ed1bc4..09175f8 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
 @@ -1,21 +1,21 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-chunk-save-begin none
+-// @era:t-chunk-save-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 -//~ import java.util.ArrayDeque;
@@ -9421,7 +9406,7 @@ index 43bfb4b..9412989 100644
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-chunk-save-begin v16
 +import com.aetherium.perf.Tuning;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 +import java.util.ArrayDeque;
@@ -9435,21 +9420,21 @@ index 43bfb4b..9412989 100644
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-chunk-save-else none
+ // @era:t-chunk-save-end
  
  /**
 @@ -27,69 +27,69 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.server.level.ChunkMap")
  public abstract class TuningChunkSaveMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-chunk-save-begin none
+-    // @era:t-chunk-save-else v16
 -    //~ @Unique
 -    //~ private static final int AETHERIUM$PER_TICK = 16;
 -    //~ @Unique
 -    //~ private static final int AETHERIUM$MIN_PER_TICK = 2;
-+    // @era:qol16-begin v16
++    // @era:t-chunk-save-begin v16
 +    @Unique
 +    private static final int AETHERIUM$PER_TICK = 16;
 +    @Unique
@@ -9565,19 +9550,19 @@ index 43bfb4b..9412989 100644
 +            }
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-chunk-save-else none
+     // @era:t-chunk-save-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
-index 22eaeeb..7cbc009 100644
+index 5da92d1..58b9891 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
 @@ -1,16 +1,16 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-cull-begin none
+-// @era:t-cull-else v16
 -//~ import com.aetherium.client.OceanFloor;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import net.minecraft.client.renderer.LevelRenderer;
@@ -9586,7 +9571,7 @@ index 22eaeeb..7cbc009 100644
 -//~ import net.minecraft.core.Direction;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-cull-begin v16
 +import com.aetherium.client.OceanFloor;
 +import com.aetherium.perf.Tuning;
 +import net.minecraft.client.renderer.LevelRenderer;
@@ -9595,16 +9580,16 @@ index 22eaeeb..7cbc009 100644
 +import net.minecraft.core.Direction;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-cull-else none
+ // @era:t-cull-end
  
  /**
 @@ -31,43 +31,43 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class TuningCullMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-cull-begin none
+-    // @era:t-cull-else v16
 -    //~ @Redirect(method = "setupRender", at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;getRelativeFrom(Lnet/minecraft/core/BlockPos;Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;Lnet/minecraft/core/Direction;)Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;"),
 -            //~ require = 0)
@@ -9621,7 +9606,7 @@ index 22eaeeb..7cbc009 100644
 -        //~ }
 -        //~ return next;
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-cull-begin v16
 +    @Redirect(method = "setupRender", at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/client/renderer/LevelRenderer;getRelativeFrom(Lnet/minecraft/core/BlockPos;Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;Lnet/minecraft/core/Direction;)Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;"),
 +            require = 0)
@@ -9677,19 +9662,19 @@ index 22eaeeb..7cbc009 100644
 +        final int cam = camera.getZ() >> 4;
 +        return sz > 0 ? from < cam : from > cam;
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-cull-else none
+     // @era:t-cull-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java
-index e4da167..d466c73 100644
+index 30eb23c..4729e2f 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java
 @@ -1,15 +1,15 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-explosion-begin none
+-// @era:t-explosion-else v16
 -//~ import com.aetherium.perf.ExplosionBudget;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import net.minecraft.core.particles.ParticleOptions;
@@ -9697,7 +9682,7 @@ index e4da167..d466c73 100644
 -//~ import net.minecraft.world.level.Level;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-explosion-begin v16
 +import com.aetherium.perf.ExplosionBudget;
 +import com.aetherium.perf.Tuning;
 +import net.minecraft.core.particles.ParticleOptions;
@@ -9705,16 +9690,16 @@ index e4da167..d466c73 100644
 +import net.minecraft.world.level.Level;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-explosion-else none
+ // @era:t-explosion-end
  
  /**
 @@ -19,19 +19,19 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.world.level.Explosion")
  public abstract class TuningExplosionMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-explosion-begin none
+-    // @era:t-explosion-else v16
 -    //~ @Redirect(method = "finalizeExplosion", at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"),
 -            //~ require = 0)
@@ -9727,7 +9712,7 @@ index e4da167..d466c73 100644
 -        //~ }
 -        //~ level.addParticle(shown, x, y, z, dx, dy, dz);
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-explosion-begin v16
 +    @Redirect(method = "finalizeExplosion", at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"),
 +            require = 0)
@@ -9740,42 +9725,42 @@ index e4da167..d466c73 100644
 +        }
 +        level.addParticle(shown, x, y, z, dx, dy, dz);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-explosion-else none
+     // @era:t-explosion-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
-index 8e1e04d..5a3f1f7 100644
+index d796eca..9321a1b 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
 @@ -1,14 +1,14 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-frame-item-begin none
+-// @era:t-frame-item-else v16
 -//~ import com.aetherium.client.TuningClient;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import net.minecraft.world.entity.decoration.ItemFrame;
 -//~ import net.minecraft.world.item.ItemStack;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-frame-item-begin v16
 +import com.aetherium.client.TuningClient;
 +import com.aetherium.perf.Tuning;
 +import net.minecraft.world.entity.decoration.ItemFrame;
 +import net.minecraft.world.item.ItemStack;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-frame-item-else none
+ // @era:t-frame-item-end
  
  /**
 @@ -21,18 +21,18 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.entity.ItemFrameRenderer")
  public abstract class TuningFrameItemMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-frame-item-begin none
+-    // @era:t-frame-item-else v16
 -    //~ @Redirect(method = "render(Lnet/minecraft/world/entity/decoration/ItemFrame;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 -            //~ at = @At(value = "INVOKE",
 -                    //~ target = "Lnet/minecraft/world/entity/decoration/ItemFrame;getItem()Lnet/minecraft/world/item/ItemStack;",
@@ -9787,7 +9772,7 @@ index 8e1e04d..5a3f1f7 100644
 -        //~ }
 -        //~ return frame.getItem();
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-frame-item-begin v16
 +    @Redirect(method = "render(Lnet/minecraft/world/entity/decoration/ItemFrame;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 +            at = @At(value = "INVOKE",
 +                    target = "Lnet/minecraft/world/entity/decoration/ItemFrame;getItem()Lnet/minecraft/world/item/ItemStack;",
@@ -9799,19 +9784,19 @@ index 8e1e04d..5a3f1f7 100644
 +        }
 +        return frame.getItem();
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-frame-item-else none
+     // @era:t-frame-item-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
-index 42a0976..8876a89 100644
+index 3f96cfe..56c3d21 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
 @@ -1,20 +1,20 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-gl-state-begin none
+-// @era:t-gl-state-else v16
 -//~ import com.aetherium.perf.RenderMods;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.platform.GlStateManager;
@@ -9824,7 +9809,7 @@ index 42a0976..8876a89 100644
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-gl-state-begin v16
 +import com.aetherium.perf.RenderMods;
 +import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.platform.GlStateManager;
@@ -9837,21 +9822,21 @@ index 42a0976..8876a89 100644
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.Redirect;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-gl-state-else none
+ // @era:t-gl-state-end
  
  /**
 @@ -39,130 +39,130 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
  public abstract class TuningGlStateMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-gl-state-begin none
+-    // @era:t-gl-state-else v16
 -    //~ private static final int GL_FRAMEBUFFER = 36160;
 -    //~ private static final int GL_VERTEX_ARRAY = 32884;
 -    //~ private static final int GL_NORMAL_ARRAY = 32885;
 -    //~ private static final int GL_COLOR_ARRAY = 32886;
-+    // @era:qol16-begin v16
++    // @era:t-gl-state-begin v16
 +    private static final int GL_FRAMEBUFFER = 36160;
 +    private static final int GL_VERTEX_ARRAY = 32884;
 +    private static final int GL_NORMAL_ARRAY = 32885;
@@ -10081,60 +10066,60 @@ index 42a0976..8876a89 100644
 +        aetherium$overlayTexture = texture;
 +        aetherium$overlaySize = size;
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-gl-state-else none
+     // @era:t-gl-state-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
-index 333016c..a93e143 100644
+index 6805ce3..3364a59 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
 @@ -1,11 +1,11 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-glint-begin none
+-// @era:t-glint-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
-+// @era:qol16-begin v16
++// @era:t-glint-begin v16
 +import com.aetherium.perf.Tuning;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.ModifyVariable;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-glint-else none
+ // @era:t-glint-end
  
  /**
 @@ -14,12 +14,12 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.entity.ItemRenderer")
  public abstract class TuningGlintMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-glint-begin none
+-    // @era:t-glint-else v16
 -    //~ @ModifyVariable(method = {"getFoilBuffer", "getFoilBufferDirect", "getArmorFoilBuffer"}, at = @At("HEAD"),
 -            //~ argsOnly = true, ordinal = 1, require = 0)
 -    //~ private static boolean aetherium$glint(final boolean foil) {
 -        //~ return foil && Tuning.glint;
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-glint-begin v16
 +    @ModifyVariable(method = {"getFoilBuffer", "getFoilBufferDirect", "getArmorFoilBuffer"}, at = @At("HEAD"),
 +            argsOnly = true, ordinal = 1, require = 0)
 +    private static boolean aetherium$glint(final boolean foil) {
 +        return foil && Tuning.glint;
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-glint-else none
+     // @era:t-glint-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java
-index f8929c0..b35f4b1 100644
+index 9dc93fd..83994b7 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java
 @@ -1,30 +1,30 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-grass-begin none
+-// @era:t-grass-else v16
 -//~ import com.aetherium.client.GrassQuads;
 -//~ import java.util.List;
 -//~ import java.util.Random;
@@ -10144,7 +10129,7 @@ index f8929c0..b35f4b1 100644
 -//~ import net.minecraft.world.level.block.state.BlockState;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-grass-begin v16
 +import com.aetherium.client.GrassQuads;
 +import java.util.List;
 +import java.util.Random;
@@ -10154,14 +10139,14 @@ index f8929c0..b35f4b1 100644
 +import net.minecraft.world.level.block.state.BlockState;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-grass-else none
+ // @era:t-grass-end
  
  /** Fast grass (1.12.0, Minecraft 1.16.5): see {@link com.aetherium.client.GrassQuads}. */
  @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer")
  public abstract class TuningGrassMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-grass-begin none
+-    // @era:t-grass-else v16
 -    //~ @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/client/resources/model/BakedModel;getQuads(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Ljava/util/Random;)Ljava/util/List;"),
 -            //~ require = 0)
@@ -10169,7 +10154,7 @@ index f8929c0..b35f4b1 100644
 -            //~ final Random random) {
 -        //~ return GrassQuads.filter(model.getQuads(state, side, random), state, side);
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-grass-begin v16
 +    @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/client/resources/model/BakedModel;getQuads(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Ljava/util/Random;)Ljava/util/List;"),
 +            require = 0)
@@ -10177,38 +10162,38 @@ index f8929c0..b35f4b1 100644
 +            final Random random) {
 +        return GrassQuads.filter(model.getQuads(state, side, random), state, side);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-grass-else none
+     // @era:t-grass-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java
-index 4dcb17c..b2fa18c 100644
+index ab1b92f..9d536e7 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java
 @@ -1,24 +1,24 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-http-textureacc-begin none
+-// @era:t-http-textureacc-else v16
 -//~ import com.mojang.blaze3d.platform.NativeImage;
 -//~ import java.io.InputStream;
 -//~ import org.spongepowered.asm.mixin.gen.Invoker;
-+// @era:qol16-begin v16
++// @era:t-http-textureacc-begin v16
 +import com.mojang.blaze3d.platform.NativeImage;
 +import java.io.InputStream;
 +import org.spongepowered.asm.mixin.gen.Invoker;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-http-textureacc-else none
+ // @era:t-http-textureacc-end
  
  /** Background skin loading (1.12.0, Minecraft 1.16.5): the private decode and hand-over steps of {@code HttpTexture}. */
  @Mixin(targets = "net.minecraft.client.renderer.texture.HttpTexture")
  public interface TuningHttpTextureAccessor {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-http-textureacc-begin none
+-    // @era:t-http-textureacc-else v16
 -    //~ /** Reads the PNG and converts a legacy 64x32 skin; null (logged) when the file is broken. */
 -    //~ @Invoker("load")
 -    //~ NativeImage aetherium$read(InputStream in);
-+    // @era:qol16-begin v16
++    // @era:t-http-textureacc-begin v16
 +    /** Reads the PNG and converts a legacy 64x32 skin; null (logged) when the file is broken. */
 +    @Invoker("load")
 +    NativeImage aetherium$read(InputStream in);
@@ -10219,19 +10204,19 @@ index 4dcb17c..b2fa18c 100644
 +    /** Runs the download callback and queues the upload on the render thread. */
 +    @Invoker("loadCallback")
 +    void aetherium$loaded(NativeImage image);
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-http-textureacc-else none
+     // @era:t-http-textureacc-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
-index a3ddc1e..de348b6 100644
+index 427cb48..4711768 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
 @@ -1,27 +1,27 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-layers-begin none
+-// @era:t-layers-else v16
 -//~ import com.aetherium.client.TuningClient;
 -//~ import com.aetherium.perf.ModelLod;
 -//~ import com.aetherium.perf.Tuning;
@@ -10251,7 +10236,7 @@ index a3ddc1e..de348b6 100644
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-layers-begin v16
 +import com.aetherium.client.TuningClient;
 +import com.aetherium.perf.ModelLod;
 +import com.aetherium.perf.Tuning;
@@ -10271,16 +10256,16 @@ index a3ddc1e..de348b6 100644
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.Redirect;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-layers-else none
+ // @era:t-layers-end
  
  /**
 @@ -32,45 +32,45 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.entity.LivingEntityRenderer")
  public abstract class TuningLayersMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-layers-begin none
+-    // @era:t-layers-else v16
 -    //~ /** Mob model detail levels (1.11.0): the level for this mob's model parts. */
 -    //~ @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 -            //~ at = @At("HEAD"), require = 0)
@@ -10293,7 +10278,7 @@ index a3ddc1e..de348b6 100644
 -        //~ }
 -        //~ ModelLod.begin(TuningClient.distanceToCamera(entity), entity instanceof Player || entity instanceof ArmorStand);
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-layers-begin v16
 +    /** Mob model detail levels (1.11.0): the level for this mob's model parts. */
 +    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 +            at = @At("HEAD"), require = 0)
@@ -10356,19 +10341,19 @@ index a3ddc1e..de348b6 100644
 +        layer.render(poseStack, buffers, light, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks,
 +                netHeadYaw, headPitch);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-layers-else none
+     // @era:t-layers-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java
-index 7e4f77f..9d934f3 100644
+index 7053893..c050bb7 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java
 @@ -1,19 +1,19 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-leaf-cull-begin none
+-// @era:t-leaf-cull-else v16
 -//~ import com.aetherium.client.TuningClient;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import net.minecraft.core.BlockPos;
@@ -10380,7 +10365,7 @@ index 7e4f77f..9d934f3 100644
 -//~ import net.minecraft.world.level.block.state.BlockState;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-leaf-cull-begin v16
 +import com.aetherium.client.TuningClient;
 +import com.aetherium.perf.Tuning;
 +import net.minecraft.core.BlockPos;
@@ -10392,16 +10377,16 @@ index 7e4f77f..9d934f3 100644
 +import net.minecraft.world.level.block.state.BlockState;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-leaf-cull-else none
+ // @era:t-leaf-cull-end
  
  /**
 @@ -28,22 +28,22 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer")
  public abstract class TuningLeafCullMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-leaf-cull-begin none
+-    // @era:t-leaf-cull-else v16
 -    //~ @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z"),
 -            //~ require = 0)
@@ -10417,7 +10402,7 @@ index 7e4f77f..9d934f3 100644
 -        //~ return !(block == Blocks.CHORUS_PLANT && Tuning.endOptimizations
 -                //~ && TuningClient.chorusFaceHidden(state, level, pos, side));
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-leaf-cull-begin v16
 +    @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z"),
 +            require = 0)
@@ -10433,36 +10418,36 @@ index 7e4f77f..9d934f3 100644
 +        return !(block == Blocks.CHORUS_PLANT && Tuning.endOptimizations
 +                && TuningClient.chorusFaceHidden(state, level, pos, side));
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-leaf-cull-else none
+     // @era:t-leaf-cull-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLeavesMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLeavesMixin.java
-index 7fef441..7640a8f 100644
+index 25e70fc..e96feab 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLeavesMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLeavesMixin.java
 @@ -1,11 +1,11 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-leaves-begin none
+-// @era:t-leaves-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
-+// @era:qol16-begin v16
++// @era:t-leaves-begin v16
 +import com.aetherium.perf.Tuning;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.ModifyVariable;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-leaves-else none
+ // @era:t-leaves-end
  
  /**
 @@ -15,14 +15,14 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.ItemBlockRenderTypes")
  public abstract class TuningLeavesMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-leaves-begin none
+-    // @era:t-leaves-else v16
 -    //~ @ModifyVariable(method = "setFancy", at = @At("HEAD"), argsOnly = true, require = 0)
 -    //~ private static boolean aetherium$leaves(final boolean fancy) {
 -        //~ final int mode = Tuning.leaves;
@@ -10470,7 +10455,7 @@ index 7fef441..7640a8f 100644
 -        //~ Tuning.leavesFancy = result;
 -        //~ return result;
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-leaves-begin v16
 +    @ModifyVariable(method = "setFancy", at = @At("HEAD"), argsOnly = true, require = 0)
 +    private static boolean aetherium$leaves(final boolean fancy) {
 +        final int mode = Tuning.leaves;
@@ -10478,45 +10463,45 @@ index 7fef441..7640a8f 100644
 +        Tuning.leavesFancy = result;
 +        return result;
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-leaves-else none
+     // @era:t-leaves-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
-index 48a70ad..bd3b35e 100644
+index d8deaa3..c2dcba3 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
 @@ -1,14 +1,14 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-levelacc-begin none
+-// @era:t-levelacc-else v16
 -//~ import net.minecraft.client.renderer.ViewArea;
 -//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 -//~ import net.minecraft.core.BlockPos;
 -//~ import net.minecraft.core.Direction;
 -//~ import org.spongepowered.asm.mixin.gen.Accessor;
 -//~ import org.spongepowered.asm.mixin.gen.Invoker;
-+// @era:qol16-begin v16
++// @era:t-levelacc-begin v16
 +import net.minecraft.client.renderer.ViewArea;
 +import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 +import net.minecraft.core.BlockPos;
 +import net.minecraft.core.Direction;
 +import org.spongepowered.asm.mixin.gen.Accessor;
 +import org.spongepowered.asm.mixin.gen.Invoker;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-levelacc-else none
+ // @era:t-levelacc-end
  
  /**
 @@ -17,14 +17,14 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public interface TuningLevelAccessor {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-levelacc-begin none
+-    // @era:t-levelacc-else v16
 -    //~ @Accessor("viewArea")
 -    //~ ViewArea aetherium$viewArea();
-+    // @era:qol16-begin v16
++    // @era:t-levelacc-begin v16
 +    @Accessor("viewArea")
 +    ViewArea aetherium$viewArea();
  
@@ -10528,19 +10513,19 @@ index 48a70ad..bd3b35e 100644
 +    @Invoker("getRelativeFrom")
 +    ChunkRenderDispatcher.RenderChunk aetherium$relativeFrom(BlockPos camera, ChunkRenderDispatcher.RenderChunk from,
 +                                                             Direction direction);
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-levelacc-else none
+     // @era:t-levelacc-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
-index 4dfa337..5da3dbf 100644
+index c004a9f..25d8fd6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
 @@ -1,35 +1,35 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-level-begin none
+-// @era:t-level-else v16
 -//~ import com.aetherium.client.ChunkInfoOrigin;
 -//~ import com.aetherium.client.FarTerrain;
 -//~ import com.aetherium.client.OceanFloor;
@@ -10568,7 +10553,7 @@ index 4dfa337..5da3dbf 100644
 -//~ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-level-begin v16
 +import com.aetherium.client.ChunkInfoOrigin;
 +import com.aetherium.client.FarTerrain;
 +import com.aetherium.client.OceanFloor;
@@ -10596,19 +10581,19 @@ index 4dfa337..5da3dbf 100644
 +import org.spongepowered.asm.mixin.injection.ModifyConstant;
 +import org.spongepowered.asm.mixin.injection.Redirect;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-level-else none
+ // @era:t-level-end
  
  /**
 @@ -39,132 +39,132 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class TuningLevelMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-level-begin none
+-    // @era:t-level-else v16
 -    //~ @Shadow
 -    //~ private ClientLevel level;
-+    // @era:qol16-begin v16
++    // @era:t-level-begin v16
 +    @Shadow
 +    private ClientLevel level;
  
@@ -10847,19 +10832,19 @@ index 4dfa337..5da3dbf 100644
 +            list.subList(kept, n).clear();
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-level-else none
+     // @era:t-level-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
-index 3f61ac3..d6281a3 100644
+index 9d013dd..dc3aceb 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
 @@ -1,19 +1,19 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-light-begin none
+-// @era:t-light-else v16
 -//~ import com.aetherium.client.FarTerrain;
 -//~ import com.aetherium.client.OceanFloor;
 -//~ import com.aetherium.client.SkullLookup;
@@ -10871,7 +10856,7 @@ index 3f61ac3..d6281a3 100644
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-+// @era:qol16-begin v16
++// @era:t-light-begin v16
 +import com.aetherium.client.FarTerrain;
 +import com.aetherium.client.OceanFloor;
 +import com.aetherium.client.SkullLookup;
@@ -10883,23 +10868,23 @@ index 3f61ac3..d6281a3 100644
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-light-else none
+ // @era:t-light-end
  
  /**
 @@ -24,20 +24,20 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.multiplayer.ClientChunkCache")
  public abstract class TuningLightMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-light-begin none
+-    // @era:t-light-else v16
 -    //~ @Inject(method = "onLightUpdate", at = @At("HEAD"), cancellable = true, require = 0)
 -    //~ private void aetherium$merge(final LightLayer layer, final SectionPos pos, final CallbackInfo ci) {
 -        //~ if (SkullLookup.onClientThread() && TuningClient.deferLight(pos)) {
 -            //~ ci.cancel();
 -        //~ }
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-light-begin v16
 +    @Inject(method = "onLightUpdate", at = @At("HEAD"), cancellable = true, require = 0)
 +    private void aetherium$merge(final LightLayer layer, final SectionPos pos, final CallbackInfo ci) {
 +        if (SkullLookup.onClientThread() && TuningClient.deferLight(pos)) {
@@ -10919,19 +10904,19 @@ index 3f61ac3..d6281a3 100644
 +        FarTerrain.capture(cir.getReturnValue());
 +        OceanFloor.capture(cir.getReturnValue());
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-light-else none
+     // @era:t-light-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLightmapMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLightmapMixin.java
-index f9d10e3..3347e5c 100644
+index ca03b6e..1b20c44 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLightmapMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLightmapMixin.java
 @@ -1,16 +1,16 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-lightmap-begin none
+-// @era:t-lightmap-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import net.minecraft.client.Minecraft;
 -//~ import net.minecraft.client.multiplayer.ClientLevel;
@@ -10940,7 +10925,7 @@ index f9d10e3..3347e5c 100644
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-lightmap-begin v16
 +import com.aetherium.perf.Tuning;
 +import net.minecraft.client.Minecraft;
 +import net.minecraft.client.multiplayer.ClientLevel;
@@ -10949,19 +10934,19 @@ index f9d10e3..3347e5c 100644
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-lightmap-else none
+ // @era:t-lightmap-end
  
  /**
 @@ -22,29 +22,29 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LightTexture")
  public abstract class TuningLightmapMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-lightmap-begin none
+-    // @era:t-lightmap-else v16
 -    //~ @Shadow
 -    //~ private boolean updateLightTexture;
-+    // @era:qol16-begin v16
++    // @era:t-lightmap-begin v16
 +    @Shadow
 +    private boolean updateLightTexture;
  
@@ -11001,84 +10986,84 @@ index f9d10e3..3347e5c 100644
 +        }
 +        ci.cancel(); // the request stays set and is served on the next (even) tick
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-lightmap-else none
+     // @era:t-lightmap-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java
-index fb11472..66700ab 100644
+index 709819f..ef116b3 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java
 @@ -1,11 +1,11 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-loading-begin none
+-// @era:t-loading-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-loading-begin v16
 +import com.aetherium.perf.Tuning;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-loading-else none
+ // @era:t-loading-end
  
  /**
 @@ -16,11 +16,11 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.Minecraft")
  public abstract class TuningLoadingMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-loading-begin none
+-    // @era:t-loading-else v16
 -    //~ @Redirect(method = "doLoadLevel", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(J)V"), require = 0)
 -    //~ private void aetherium$progressSleep(final long millis) throws InterruptedException {
 -        //~ Thread.sleep(Tuning.fastLoading ? Math.max(millis, 50L) : millis);
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-loading-begin v16
 +    @Redirect(method = "doLoadLevel", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(J)V"), require = 0)
 +    private void aetherium$progressSleep(final long millis) throws InterruptedException {
 +        Thread.sleep(Tuning.fastLoading ? Math.max(millis, 50L) : millis);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-loading-else none
+     // @era:t-loading-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningMapMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningMapMixin.java
-index f9f26a1..94ebf3a 100644
+index 09f73fd..dd356df 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningMapMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningMapMixin.java
 @@ -1,14 +1,14 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-map-begin none
+-// @era:t-map-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import org.spongepowered.asm.mixin.Shadow;
 -//~ import org.spongepowered.asm.mixin.Unique;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-map-begin v16
 +import com.aetherium.perf.Tuning;
 +import org.spongepowered.asm.mixin.Shadow;
 +import org.spongepowered.asm.mixin.Unique;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-map-else none
+ // @era:t-map-end
  
  /**
 @@ -20,49 +20,49 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.gui.MapRenderer$MapInstance")
  public abstract class TuningMapMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-map-begin none
+-    // @era:t-map-else v16
 -    //~ @Unique
 -    //~ private static final long AETHERIUM$SPACING_NANOS = 250_000_000L;
-+    // @era:qol16-begin v16
++    // @era:t-map-begin v16
 +    @Unique
 +    private static final long AETHERIUM$SPACING_NANOS = 250_000_000L;
  
@@ -11155,19 +11140,19 @@ index f9f26a1..94ebf3a 100644
 +            }
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-map-else none
+     // @era:t-map-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningMinecartMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningMinecartMixin.java
-index 2e914d1..5664cf8 100644
+index fefda1b..50eecd8 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningMinecartMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningMinecartMixin.java
 @@ -1,17 +1,17 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-minecart-begin none
+-// @era:t-minecart-else v16
 -//~ import com.aetherium.client.TuningClient;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
@@ -11177,7 +11162,7 @@ index 2e914d1..5664cf8 100644
 -//~ import org.spongepowered.asm.mixin.Shadow;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-minecart-begin v16
 +import com.aetherium.client.TuningClient;
 +import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.vertex.PoseStack;
@@ -11187,20 +11172,20 @@ index 2e914d1..5664cf8 100644
 +import org.spongepowered.asm.mixin.Shadow;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-minecart-else none
+ // @era:t-minecart-end
  
  /**
 @@ -21,23 +21,23 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.entity.MinecartRenderer")
  public abstract class TuningMinecartMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-minecart-begin none
+-    // @era:t-minecart-else v16
 -    //~ @Shadow
 -    //~ protected abstract void renderMinecartContents(AbstractMinecart cart, float partialTicks, BlockState state,
 -                                                   //~ PoseStack poseStack, MultiBufferSource buffers, int light);
-+    // @era:qol16-begin v16
++    // @era:t-minecart-begin v16
 +    @Shadow
 +    protected abstract void renderMinecartContents(AbstractMinecart cart, float partialTicks, BlockState state,
 +                                                   PoseStack poseStack, MultiBufferSource buffers, int light);
@@ -11229,19 +11214,19 @@ index 2e914d1..5664cf8 100644
 +        }
 +        this.renderMinecartContents(cart, partialTicks, state, poseStack, buffers, light);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-minecart-else none
+     // @era:t-minecart-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningNameTagMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningNameTagMixin.java
-index e1c7ed5..2082e27 100644
+index a5a7ad9..a72a98c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningNameTagMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningNameTagMixin.java
 @@ -1,19 +1,19 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-name-tag-begin none
+-// @era:t-name-tag-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
 -//~ import net.minecraft.client.renderer.MultiBufferSource;
@@ -11253,7 +11238,7 @@ index e1c7ed5..2082e27 100644
 -//~ import org.spongepowered.asm.mixin.Shadow;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-name-tag-begin v16
 +import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.vertex.PoseStack;
 +import net.minecraft.client.renderer.MultiBufferSource;
@@ -11265,20 +11250,20 @@ index e1c7ed5..2082e27 100644
 +import org.spongepowered.asm.mixin.Shadow;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-name-tag-else none
+ // @era:t-name-tag-end
  
  /**
 @@ -23,26 +23,26 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.entity.EntityRenderer")
  public abstract class TuningNameTagMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-name-tag-begin none
+-    // @era:t-name-tag-else v16
 -    //~ @Shadow
 -    //~ @Final
 -    //~ protected EntityRenderDispatcher entityRenderDispatcher;
-+    // @era:qol16-begin v16
++    // @era:t-name-tag-begin v16
 +    @Shadow
 +    @Final
 +    protected EntityRenderDispatcher entityRenderDispatcher;
@@ -11312,19 +11297,19 @@ index e1c7ed5..2082e27 100644
 +        }
 +        this.renderNameTag(entity, name, poseStack, buffers, light);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-name-tag-else none
+     // @era:t-name-tag-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java
-index d6d1f2a..2f59cd4 100644
+index 5e98fde..6b55f3a 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java
 @@ -1,23 +1,23 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-portal-begin none
+-// @era:t-portal-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import net.minecraft.core.BlockPos;
 -//~ import net.minecraft.resources.ResourceKey;
@@ -11340,7 +11325,7 @@ index d6d1f2a..2f59cd4 100644
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-portal-begin v16
 +import com.aetherium.perf.Tuning;
 +import net.minecraft.core.BlockPos;
 +import net.minecraft.resources.ResourceKey;
@@ -11356,19 +11341,19 @@ index d6d1f2a..2f59cd4 100644
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-portal-else none
+ // @era:t-portal-end
  
  /**
 @@ -30,60 +30,60 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.world.entity.Entity")
  public abstract class TuningPortalMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-portal-begin none
+-    // @era:t-portal-else v16
 -    //~ @Shadow
 -    //~ public Level level;
-+    // @era:qol16-begin v16
++    // @era:t-portal-begin v16
 +    @Shadow
 +    public Level level;
  
@@ -11469,40 +11454,40 @@ index d6d1f2a..2f59cd4 100644
 +    private static int aetherium$clamp(final double value, final int limit) {
 +        return (int) Math.max(-limit, Math.min(limit, value));
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-portal-else none
+     // @era:t-portal-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningServerIdleMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningServerIdleMixin.java
-index dfa90d4..a5d0fd9 100644
+index e563f02..3f9fc2f 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningServerIdleMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningServerIdleMixin.java
 @@ -1,13 +1,13 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-server-idle-begin none
+-// @era:t-server-idle-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import java.util.concurrent.locks.LockSupport;
 -//~ import net.minecraft.server.MinecraftServer;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-server-idle-begin v16
 +import com.aetherium.perf.Tuning;
 +import java.util.concurrent.locks.LockSupport;
 +import net.minecraft.server.MinecraftServer;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-server-idle-else none
+ // @era:t-server-idle-end
  
  /**
 @@ -20,16 +20,16 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.util.thread.BlockableEventLoop")
  public abstract class TuningServerIdleMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-server-idle-begin none
+-    // @era:t-server-idle-else v16
 -    //~ @Redirect(method = "waitForTasks", at = @At(value = "INVOKE",
 -            //~ target = "Ljava/util/concurrent/locks/LockSupport;parkNanos(Ljava/lang/Object;J)V"), require = 0)
 -    //~ private void aetherium$park(final Object blocker, final long nanos) {
@@ -11512,7 +11497,7 @@ index dfa90d4..a5d0fd9 100644
 -            //~ LockSupport.parkNanos(blocker, nanos);
 -        //~ }
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-server-idle-begin v16
 +    @Redirect(method = "waitForTasks", at = @At(value = "INVOKE",
 +            target = "Ljava/util/concurrent/locks/LockSupport;parkNanos(Ljava/lang/Object;J)V"), require = 0)
 +    private void aetherium$park(final Object blocker, final long nanos) {
@@ -11522,38 +11507,38 @@ index dfa90d4..a5d0fd9 100644
 +            LockSupport.parkNanos(blocker, nanos);
 +        }
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-server-idle-else none
+     // @era:t-server-idle-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java
-index aea6eb1..33c7e98 100644
+index c43de0b..433ae48 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java
 @@ -1,11 +1,11 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-server-light-begin none
+-// @era:t-server-light-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-server-light-begin v16
 +import com.aetherium.perf.Tuning;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-server-light-else none
+ // @era:t-server-light-end
  
  /**
 @@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.server.level.ThreadedLevelLightEngine")
  public abstract class TuningServerLightMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-server-light-begin none
+-    // @era:t-server-light-else v16
 -    //~ private static final int BATCH = 64;
-+    // @era:qol16-begin v16
++    // @era:t-server-light-begin v16
 +    private static final int BATCH = 64;
  
 -    //~ @Redirect(method = "runUpdate", at = @At(value = "INVOKE", target = "Ljava/lang/Math;min(II)I"), require = 0)
@@ -11564,19 +11549,19 @@ index aea6eb1..33c7e98 100644
 +    private int aetherium$batch(final int queued, final int perBatch) {
 +        return Math.min(queued, Tuning.serverLighting ? Math.max(perBatch, BATCH) : perBatch);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-server-light-else none
+     // @era:t-server-light-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java
-index 2e317a2..a9023e6 100644
+index e2ff4e4..0fd7586 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java
 @@ -1,17 +1,17 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-shadow-begin none
+-// @era:t-shadow-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
 -//~ import net.minecraft.client.renderer.MultiBufferSource;
@@ -11586,7 +11571,7 @@ index 2e317a2..a9023e6 100644
 -//~ import org.spongepowered.asm.mixin.Shadow;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-shadow-begin v16
 +import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.vertex.PoseStack;
 +import net.minecraft.client.renderer.MultiBufferSource;
@@ -11596,19 +11581,19 @@ index 2e317a2..a9023e6 100644
 +import org.spongepowered.asm.mixin.Shadow;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-shadow-else none
+ // @era:t-shadow-end
  
  /**
 @@ -21,28 +21,28 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.entity.EntityRenderDispatcher")
  public abstract class TuningShadowMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-shadow-begin none
+-    // @era:t-shadow-else v16
 -    //~ @Shadow
 -    //~ public abstract double distanceToSqr(Entity entity);
-+    // @era:qol16-begin v16
++    // @era:t-shadow-begin v16
 +    @Shadow
 +    public abstract double distanceToSqr(Entity entity);
  
@@ -11647,19 +11632,19 @@ index 2e317a2..a9023e6 100644
 +        }
 +        renderShadow(poseStack, buffers, entity, strength, partialTicks, level, radius);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-shadow-else none
+     // @era:t-shadow-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java
-index 92561b7..c299550 100644
+index 617ef21..26c21af 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java
 @@ -1,23 +1,23 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-sign-begin none
+-// @era:t-sign-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
 -//~ import com.mojang.math.Matrix4f;
@@ -11675,7 +11660,7 @@ index 92561b7..c299550 100644
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-sign-begin v16
 +import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.vertex.PoseStack;
 +import com.mojang.math.Matrix4f;
@@ -11691,20 +11676,20 @@ index 92561b7..c299550 100644
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.Redirect;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-sign-else none
+ // @era:t-sign-end
  
  /**
 @@ -27,41 +27,41 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.blockentity.SignRenderer")
  public abstract class TuningSignMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-sign-begin none
+-    // @era:t-sign-else v16
 -    //~ /** Render thread only: the sign being drawn is beyond the detail distance. */
 -    //~ @Unique
 -    //~ private static boolean aetherium$far;
-+    // @era:qol16-begin v16
++    // @era:t-sign-begin v16
 +    /** Render thread only: the sign being drawn is beyond the detail distance. */
 +    @Unique
 +    private static boolean aetherium$far;
@@ -11768,19 +11753,19 @@ index 92561b7..c299550 100644
 +        }
 +        return font.drawInBatch(text, x, y, color, shadow, pose, buffers, seeThrough, background, light);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-sign-else none
+     // @era:t-sign-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java
-index 66b96df..f104802 100644
+index 64be1f9..a28b1e6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java
 @@ -1,26 +1,26 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-skin-begin none
+-// @era:t-skin-else v16
 -//~ import com.aetherium.util.AetheriumLog;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.platform.NativeImage;
@@ -11799,7 +11784,7 @@ index 66b96df..f104802 100644
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-skin-begin v16
 +import com.aetherium.util.AetheriumLog;
 +import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.platform.NativeImage;
@@ -11818,19 +11803,19 @@ index 66b96df..f104802 100644
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-skin-else none
+ // @era:t-skin-end
  
  /**
 @@ -38,54 +38,54 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.texture.HttpTexture")
  public abstract class TuningSkinMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-skin-begin none
+-    // @era:t-skin-else v16
 -    //~ @Unique
 -    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(TuningSkinMixin.class);
-+    // @era:qol16-begin v16
++    // @era:t-skin-begin v16
 +    @Unique
 +    private static final AetheriumLog LOGGER = AetheriumLog.of(TuningSkinMixin.class);
  
@@ -11919,19 +11904,19 @@ index 66b96df..f104802 100644
 +        }, Util.backgroundExecutor());
 +        ci.cancel();
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-skin-else none
+     // @era:t-skin-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java
-index 30270f7..7c799ca 100644
+index e097379..6e95d3c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java
 @@ -3,18 +3,18 @@ package com.aetherium.mixin.core;
  import com.aetherium.client.SkullOwnerAccess;
  import com.mojang.authlib.GameProfile;
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-skull-begin none
+-// @era:t-skull-else v16
 -//~ import com.aetherium.client.SkullLookup;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.google.common.collect.Multimap;
@@ -11942,7 +11927,7 @@ index 30270f7..7c799ca 100644
 -//~ import org.spongepowered.asm.mixin.Shadow;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-skull-begin v16
 +import com.aetherium.client.SkullLookup;
 +import com.aetherium.perf.Tuning;
 +import com.google.common.collect.Multimap;
@@ -11953,22 +11938,22 @@ index 30270f7..7c799ca 100644
 +import org.spongepowered.asm.mixin.Shadow;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-skull-else none
+ // @era:t-skull-end
  
  /**
 @@ -24,40 +24,40 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.world.level.block.entity.SkullBlockEntity")
  public abstract class TuningSkullMixin implements SkullOwnerAccess {
--    // @era:qol16-begin none
+-    // @era:t-skull-begin none
 -    @Override
 -    public void aetherium$profileFilled(final GameProfile requested, final GameProfile filled) {
 -    }
--    // @era:qol16-else v16
+-    // @era:t-skull-else v16
 -    //~ @Shadow
 -    //~ private static GameProfileCache profileCache;
-+    // @era:qol16-begin v16
++    // @era:t-skull-begin v16
 +    @Shadow
 +    private static GameProfileCache profileCache;
  
@@ -12016,7 +12001,7 @@ index 30270f7..7c799ca 100644
 +            ((BlockEntity) (Object) this).setChanged();
 +        }
 +    }
-+    // @era:qol16-else none
++    // @era:t-skull-else none
      //~ @Override
      //~ public void aetherium$profileFilled(final GameProfile requested, final GameProfile filled) {
 -        //~ if (this.owner == requested) {
@@ -12024,18 +12009,18 @@ index 30270f7..7c799ca 100644
 -            //~ ((BlockEntity) (Object) this).setChanged();
 -        //~ }
      //~ }
-     // @era:qol16-end
+     // @era:t-skull-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java
-index 1618791..af14264 100644
+index fcefd5f..7a9a6a0 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java
 @@ -1,22 +1,22 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-sky-begin none
+-// @era:t-sky-else v16
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.vertex.BufferBuilder;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
@@ -12050,7 +12035,7 @@ index 1618791..af14264 100644
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
 -//~ import org.spongepowered.asm.mixin.injection.Slice;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-begin v16
++// @era:t-sky-begin v16
 +import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.vertex.BufferBuilder;
 +import com.mojang.blaze3d.vertex.PoseStack;
@@ -12065,19 +12050,19 @@ index 1618791..af14264 100644
 +import org.spongepowered.asm.mixin.injection.Redirect;
 +import org.spongepowered.asm.mixin.injection.Slice;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-sky-else none
+ // @era:t-sky-end
  
  /**
 @@ -34,77 +34,77 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class TuningSkyMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-sky-begin none
+-    // @era:t-sky-else v16
 -    //~ @Shadow
 -    //~ private boolean generateClouds;
-+    // @era:qol16-begin v16
++    // @era:t-sky-begin v16
 +    @Shadow
 +    private boolean generateClouds;
  
@@ -12209,54 +12194,54 @@ index 1618791..af14264 100644
 +    private int aetherium$cloudsTo(final int vanilla) {
 +        return aetherium$cloudCells;
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-sky-else none
+     // @era:t-sky-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
-index 97db8a7..a6fb8ec 100644
+index 11cb0ee..1f6e260 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
 @@ -1,11 +1,11 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-view-areaacc-begin none
+-// @era:t-view-areaacc-else v16
 -//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 -//~ import net.minecraft.core.BlockPos;
 -//~ import org.spongepowered.asm.mixin.gen.Invoker;
-+// @era:qol16-begin v16
++// @era:t-view-areaacc-begin v16
 +import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 +import net.minecraft.core.BlockPos;
 +import org.spongepowered.asm.mixin.gen.Invoker;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-view-areaacc-else none
+ // @era:t-view-areaacc-end
  
  /**
 @@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.ViewArea")
  public interface TuningViewAreaAccessor {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-view-areaacc-begin none
+-    // @era:t-view-areaacc-else v16
 -    //~ @Invoker("getRenderChunkAt")
 -    //~ ChunkRenderDispatcher.RenderChunk aetherium$renderChunkAt(BlockPos pos);
-+    // @era:qol16-begin v16
++    // @era:t-view-areaacc-begin v16
 +    @Invoker("getRenderChunkAt")
 +    ChunkRenderDispatcher.RenderChunk aetherium$renderChunkAt(BlockPos pos);
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-view-areaacc-else none
+     // @era:t-view-areaacc-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
-index 6609105..c712815 100644
+index 66964da..bf9fde5 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
 @@ -1,17 +1,17 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:qol16-begin none
--// @era:qol16-else v16
+-// @era:t-world-begin none
+-// @era:t-world-else v16
 -//~ import com.aetherium.client.ColorFilter;
 -//~ import com.aetherium.client.WorldCache;
 -//~ import com.aetherium.perf.Tuning;
@@ -12266,7 +12251,7 @@ index 6609105..c712815 100644
 -//~ import net.minecraft.client.renderer.GameRenderer;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-begin v16
++// @era:t-world-begin v16
 +import com.aetherium.client.ColorFilter;
 +import com.aetherium.client.WorldCache;
 +import com.aetherium.perf.Tuning;
@@ -12276,16 +12261,16 @@ index 6609105..c712815 100644
 +import net.minecraft.client.renderer.GameRenderer;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
-+// @era:qol16-else none
- // @era:qol16-end
++// @era:t-world-else none
+ // @era:t-world-end
  
  /**
 @@ -25,23 +25,23 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.GameRenderer")
  public abstract class TuningWorldMixin {
--    // @era:qol16-begin none
--    // @era:qol16-else v16
+-    // @era:t-world-begin none
+-    // @era:t-world-else v16
 -    //~ @Redirect(method = "render(FJZ)V", at = @At(value = "INVOKE",
 -            //~ target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V"),
 -            //~ require = 0)
@@ -12302,7 +12287,7 @@ index 6609105..c712815 100644
 -        //~ ColorFilter.apply(mc);
 -        //~ WorldCache.capture(mc);
 -    //~ }
-+    // @era:qol16-begin v16
++    // @era:t-world-begin v16
 +    @Redirect(method = "render(FJZ)V", at = @At(value = "INVOKE",
 +            target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V"),
 +            require = 0)
@@ -12319,8 +12304,8 @@ index 6609105..c712815 100644
 +        ColorFilter.apply(mc);
 +        WorldCache.capture(mc);
 +    }
-+    // @era:qol16-else none
-     // @era:qol16-end
++    // @era:t-world-else none
+     // @era:t-world-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
 index 0d59602..15c8f18 100644
@@ -13292,6 +13277,445 @@ index 3ccd445..f069e2d 100644
      //~ }
      // @era:options-end
  
+diff --git a/common/src/main/java/com/aetherium/perf/TuningSupport.java b/common/src/main/java/com/aetherium/perf/TuningSupport.java
+index cdfd742..87fba5e 100644
+--- a/common/src/main/java/com/aetherium/perf/TuningSupport.java
++++ b/common/src/main/java/com/aetherium/perf/TuningSupport.java
+@@ -10,262 +10,262 @@ public final class TuningSupport {
+     private TuningSupport() {
+     }
+ 
+-    // @era:t-ao-cache-begin none
+-    public static final boolean AO_CACHE = false;
+-    // @era:t-ao-cache-else v16
+-    //~ public static final boolean AO_CACHE = true;
++    // @era:t-ao-cache-begin v16
++    public static final boolean AO_CACHE = true;
++    // @era:t-ao-cache-else none
++    //~ public static final boolean AO_CACHE = false;
+     // @era:t-ao-cache-end
+ 
+-    // @era:t-autosave-begin none
+-    public static final boolean AUTOSAVE = false;
+-    // @era:t-autosave-else v16
+-    //~ public static final boolean AUTOSAVE = true;
++    // @era:t-autosave-begin v16
++    public static final boolean AUTOSAVE = true;
++    // @era:t-autosave-else none
++    //~ public static final boolean AUTOSAVE = false;
+     // @era:t-autosave-end
+ 
+-    // @era:t-beam-begin none
+-    public static final boolean BEAM = false;
+-    // @era:t-beam-else v16
+-    //~ public static final boolean BEAM = true;
++    // @era:t-beam-begin v16
++    public static final boolean BEAM = true;
++    // @era:t-beam-else none
++    //~ public static final boolean BEAM = false;
+     // @era:t-beam-end
+ 
+-    // @era:t-block-entity-begin none
+-    public static final boolean BLOCK_ENTITY = false;
+-    // @era:t-block-entity-else v16
+-    //~ public static final boolean BLOCK_ENTITY = true;
++    // @era:t-block-entity-begin v16
++    public static final boolean BLOCK_ENTITY = true;
++    // @era:t-block-entity-else none
++    //~ public static final boolean BLOCK_ENTITY = false;
+     // @era:t-block-entity-end
+ 
+-    // @era:t-build-order-begin none
+-    public static final boolean BUILD_ORDER = false;
+-    // @era:t-build-order-else v16
+-    //~ public static final boolean BUILD_ORDER = true;
++    // @era:t-build-order-begin v16
++    public static final boolean BUILD_ORDER = true;
++    // @era:t-build-order-else none
++    //~ public static final boolean BUILD_ORDER = false;
+     // @era:t-build-order-end
+ 
+-    // @era:t-chunk-save-begin none
+-    public static final boolean CHUNK_SAVE = false;
+-    // @era:t-chunk-save-else v16
+-    //~ public static final boolean CHUNK_SAVE = true;
++    // @era:t-chunk-save-begin v16
++    public static final boolean CHUNK_SAVE = true;
++    // @era:t-chunk-save-else none
++    //~ public static final boolean CHUNK_SAVE = false;
+     // @era:t-chunk-save-end
+ 
+-    // @era:t-client-begin none
+-    public static final boolean CLIENT = false;
+-    // @era:t-client-else v16
+-    //~ public static final boolean CLIENT = true;
++    // @era:t-client-begin v16
++    public static final boolean CLIENT = true;
++    // @era:t-client-else none
++    //~ public static final boolean CLIENT = false;
+     // @era:t-client-end
+ 
+-    // @era:t-color-filter-begin none
+-    public static final boolean COLOR_FILTER = false;
+-    // @era:t-color-filter-else v16
+-    //~ public static final boolean COLOR_FILTER = true;
++    // @era:t-color-filter-begin v16
++    public static final boolean COLOR_FILTER = true;
++    // @era:t-color-filter-else none
++    //~ public static final boolean COLOR_FILTER = false;
+     // @era:t-color-filter-end
+ 
+-    // @era:t-cull-begin none
+-    public static final boolean CULL = false;
+-    // @era:t-cull-else v16
+-    //~ public static final boolean CULL = true;
++    // @era:t-cull-begin v16
++    public static final boolean CULL = true;
++    // @era:t-cull-else none
++    //~ public static final boolean CULL = false;
+     // @era:t-cull-end
+ 
+-    // @era:t-explosion-begin none
+-    public static final boolean EXPLOSION = false;
+-    // @era:t-explosion-else v16
+-    //~ public static final boolean EXPLOSION = true;
++    // @era:t-explosion-begin v16
++    public static final boolean EXPLOSION = true;
++    // @era:t-explosion-else none
++    //~ public static final boolean EXPLOSION = false;
+     // @era:t-explosion-end
+ 
+-    // @era:t-far-terrain-begin none
+-    public static final boolean FAR_TERRAIN = false;
+-    // @era:t-far-terrain-else v16
+-    //~ public static final boolean FAR_TERRAIN = true;
++    // @era:t-far-terrain-begin v16
++    public static final boolean FAR_TERRAIN = true;
++    // @era:t-far-terrain-else none
++    //~ public static final boolean FAR_TERRAIN = false;
+     // @era:t-far-terrain-end
+ 
+-    // @era:t-flight-preload-begin none
+-    public static final boolean FLIGHT_PRELOAD = false;
+-    // @era:t-flight-preload-else v16
+-    //~ public static final boolean FLIGHT_PRELOAD = true;
++    // @era:t-flight-preload-begin v16
++    public static final boolean FLIGHT_PRELOAD = true;
++    // @era:t-flight-preload-else none
++    //~ public static final boolean FLIGHT_PRELOAD = false;
+     // @era:t-flight-preload-end
+ 
+-    // @era:t-frame-item-begin none
+-    public static final boolean FRAME_ITEM = false;
+-    // @era:t-frame-item-else v16
+-    //~ public static final boolean FRAME_ITEM = true;
++    // @era:t-frame-item-begin v16
++    public static final boolean FRAME_ITEM = true;
++    // @era:t-frame-item-else none
++    //~ public static final boolean FRAME_ITEM = false;
+     // @era:t-frame-item-end
+ 
+-    // @era:t-gl-state-begin none
+-    public static final boolean GL_STATE = false;
+-    // @era:t-gl-state-else v16
+-    //~ public static final boolean GL_STATE = true;
++    // @era:t-gl-state-begin v16
++    public static final boolean GL_STATE = true;
++    // @era:t-gl-state-else none
++    //~ public static final boolean GL_STATE = false;
+     // @era:t-gl-state-end
+ 
+-    // @era:t-glint-begin none
+-    public static final boolean GLINT = false;
+-    // @era:t-glint-else v16
+-    //~ public static final boolean GLINT = true;
++    // @era:t-glint-begin v16
++    public static final boolean GLINT = true;
++    // @era:t-glint-else none
++    //~ public static final boolean GLINT = false;
+     // @era:t-glint-end
+ 
+-    // @era:t-grass-begin none
+-    public static final boolean GRASS = false;
+-    // @era:t-grass-else v16
+-    //~ public static final boolean GRASS = true;
++    // @era:t-grass-begin v16
++    public static final boolean GRASS = true;
++    // @era:t-grass-else none
++    //~ public static final boolean GRASS = false;
+     // @era:t-grass-end
+ 
+-    // @era:t-grass-quads-begin none
+-    public static final boolean GRASS_QUADS = false;
+-    // @era:t-grass-quads-else v16
+-    //~ public static final boolean GRASS_QUADS = true;
++    // @era:t-grass-quads-begin v16
++    public static final boolean GRASS_QUADS = true;
++    // @era:t-grass-quads-else none
++    //~ public static final boolean GRASS_QUADS = false;
+     // @era:t-grass-quads-end
+ 
+-    // @era:t-http-textureacc-begin none
+-    public static final boolean HTTP_TEXTUREACC = false;
+-    // @era:t-http-textureacc-else v16
+-    //~ public static final boolean HTTP_TEXTUREACC = true;
++    // @era:t-http-textureacc-begin v16
++    public static final boolean HTTP_TEXTUREACC = true;
++    // @era:t-http-textureacc-else none
++    //~ public static final boolean HTTP_TEXTUREACC = false;
+     // @era:t-http-textureacc-end
+ 
+-    // @era:t-layers-begin none
+-    public static final boolean LAYERS = false;
+-    // @era:t-layers-else v16
+-    //~ public static final boolean LAYERS = true;
++    // @era:t-layers-begin v16
++    public static final boolean LAYERS = true;
++    // @era:t-layers-else none
++    //~ public static final boolean LAYERS = false;
+     // @era:t-layers-end
+ 
+-    // @era:t-lazy-data-fixers-begin none
+-    public static final boolean LAZY_DATA_FIXERS = false;
+-    // @era:t-lazy-data-fixers-else v16
+-    //~ public static final boolean LAZY_DATA_FIXERS = true;
++    // @era:t-lazy-data-fixers-begin v16
++    public static final boolean LAZY_DATA_FIXERS = true;
++    // @era:t-lazy-data-fixers-else none
++    //~ public static final boolean LAZY_DATA_FIXERS = false;
+     // @era:t-lazy-data-fixers-end
+ 
+-    // @era:t-leaf-cull-begin none
+-    public static final boolean LEAF_CULL = false;
+-    // @era:t-leaf-cull-else v16
+-    //~ public static final boolean LEAF_CULL = true;
++    // @era:t-leaf-cull-begin v16
++    public static final boolean LEAF_CULL = true;
++    // @era:t-leaf-cull-else none
++    //~ public static final boolean LEAF_CULL = false;
+     // @era:t-leaf-cull-end
+ 
+-    // @era:t-leaves-begin none
+-    public static final boolean LEAVES = false;
+-    // @era:t-leaves-else v16
+-    //~ public static final boolean LEAVES = true;
++    // @era:t-leaves-begin v16
++    public static final boolean LEAVES = true;
++    // @era:t-leaves-else none
++    //~ public static final boolean LEAVES = false;
+     // @era:t-leaves-end
+ 
+-    // @era:t-level-begin none
+-    public static final boolean LEVEL = false;
+-    // @era:t-level-else v16
+-    //~ public static final boolean LEVEL = true;
++    // @era:t-level-begin v16
++    public static final boolean LEVEL = true;
++    // @era:t-level-else none
++    //~ public static final boolean LEVEL = false;
+     // @era:t-level-end
+ 
+-    // @era:t-levelacc-begin none
+-    public static final boolean LEVELACC = false;
+-    // @era:t-levelacc-else v16
+-    //~ public static final boolean LEVELACC = true;
++    // @era:t-levelacc-begin v16
++    public static final boolean LEVELACC = true;
++    // @era:t-levelacc-else none
++    //~ public static final boolean LEVELACC = false;
+     // @era:t-levelacc-end
+ 
+-    // @era:t-light-begin none
+-    public static final boolean LIGHT = false;
+-    // @era:t-light-else v16
+-    //~ public static final boolean LIGHT = true;
++    // @era:t-light-begin v16
++    public static final boolean LIGHT = true;
++    // @era:t-light-else none
++    //~ public static final boolean LIGHT = false;
+     // @era:t-light-end
+ 
+-    // @era:t-lightmap-begin none
+-    public static final boolean LIGHTMAP = false;
+-    // @era:t-lightmap-else v16
+-    //~ public static final boolean LIGHTMAP = true;
++    // @era:t-lightmap-begin v16
++    public static final boolean LIGHTMAP = true;
++    // @era:t-lightmap-else none
++    //~ public static final boolean LIGHTMAP = false;
+     // @era:t-lightmap-end
+ 
+-    // @era:t-loading-begin none
+-    public static final boolean LOADING = false;
+-    // @era:t-loading-else v16
+-    //~ public static final boolean LOADING = true;
++    // @era:t-loading-begin v16
++    public static final boolean LOADING = true;
++    // @era:t-loading-else none
++    //~ public static final boolean LOADING = false;
+     // @era:t-loading-end
+ 
+-    // @era:t-map-begin none
+-    public static final boolean MAP = false;
+-    // @era:t-map-else v16
+-    //~ public static final boolean MAP = true;
++    // @era:t-map-begin v16
++    public static final boolean MAP = true;
++    // @era:t-map-else none
++    //~ public static final boolean MAP = false;
+     // @era:t-map-end
+ 
+-    // @era:t-minecart-begin none
+-    public static final boolean MINECART = false;
+-    // @era:t-minecart-else v16
+-    //~ public static final boolean MINECART = true;
++    // @era:t-minecart-begin v16
++    public static final boolean MINECART = true;
++    // @era:t-minecart-else none
++    //~ public static final boolean MINECART = false;
+     // @era:t-minecart-end
+ 
+-    // @era:t-name-tag-begin none
+-    public static final boolean NAME_TAG = false;
+-    // @era:t-name-tag-else v16
+-    //~ public static final boolean NAME_TAG = true;
++    // @era:t-name-tag-begin v16
++    public static final boolean NAME_TAG = true;
++    // @era:t-name-tag-else none
++    //~ public static final boolean NAME_TAG = false;
+     // @era:t-name-tag-end
+ 
+-    // @era:t-ocean-floor-begin none
+-    public static final boolean OCEAN_FLOOR = false;
+-    // @era:t-ocean-floor-else v16
+-    //~ public static final boolean OCEAN_FLOOR = true;
++    // @era:t-ocean-floor-begin v16
++    public static final boolean OCEAN_FLOOR = true;
++    // @era:t-ocean-floor-else none
++    //~ public static final boolean OCEAN_FLOOR = false;
+     // @era:t-ocean-floor-end
+ 
+-    // @era:t-portal-begin none
+-    public static final boolean PORTAL = false;
+-    // @era:t-portal-else v16
+-    //~ public static final boolean PORTAL = true;
++    // @era:t-portal-begin v16
++    public static final boolean PORTAL = true;
++    // @era:t-portal-else none
++    //~ public static final boolean PORTAL = false;
+     // @era:t-portal-end
+ 
+-    // @era:t-server-idle-begin none
+-    public static final boolean SERVER_IDLE = false;
+-    // @era:t-server-idle-else v16
+-    //~ public static final boolean SERVER_IDLE = true;
++    // @era:t-server-idle-begin v16
++    public static final boolean SERVER_IDLE = true;
++    // @era:t-server-idle-else none
++    //~ public static final boolean SERVER_IDLE = false;
+     // @era:t-server-idle-end
+ 
+-    // @era:t-server-light-begin none
+-    public static final boolean SERVER_LIGHT = false;
+-    // @era:t-server-light-else v16
+-    //~ public static final boolean SERVER_LIGHT = true;
++    // @era:t-server-light-begin v16
++    public static final boolean SERVER_LIGHT = true;
++    // @era:t-server-light-else none
++    //~ public static final boolean SERVER_LIGHT = false;
+     // @era:t-server-light-end
+ 
+-    // @era:t-shadow-begin none
+-    public static final boolean SHADOW = false;
+-    // @era:t-shadow-else v16
+-    //~ public static final boolean SHADOW = true;
++    // @era:t-shadow-begin v16
++    public static final boolean SHADOW = true;
++    // @era:t-shadow-else none
++    //~ public static final boolean SHADOW = false;
+     // @era:t-shadow-end
+ 
+-    // @era:t-sign-begin none
+-    public static final boolean SIGN = false;
+-    // @era:t-sign-else v16
+-    //~ public static final boolean SIGN = true;
++    // @era:t-sign-begin v16
++    public static final boolean SIGN = true;
++    // @era:t-sign-else none
++    //~ public static final boolean SIGN = false;
+     // @era:t-sign-end
+ 
+-    // @era:t-skin-begin none
+-    public static final boolean SKIN = false;
+-    // @era:t-skin-else v16
+-    //~ public static final boolean SKIN = true;
++    // @era:t-skin-begin v16
++    public static final boolean SKIN = true;
++    // @era:t-skin-else none
++    //~ public static final boolean SKIN = false;
+     // @era:t-skin-end
+ 
+-    // @era:t-skull-begin none
+-    public static final boolean SKULL = false;
+-    // @era:t-skull-else v16
+-    //~ public static final boolean SKULL = true;
++    // @era:t-skull-begin v16
++    public static final boolean SKULL = true;
++    // @era:t-skull-else none
++    //~ public static final boolean SKULL = false;
+     // @era:t-skull-end
+ 
+-    // @era:t-skull-lookup-begin none
+-    public static final boolean SKULL_LOOKUP = false;
+-    // @era:t-skull-lookup-else v16
+-    //~ public static final boolean SKULL_LOOKUP = true;
++    // @era:t-skull-lookup-begin v16
++    public static final boolean SKULL_LOOKUP = true;
++    // @era:t-skull-lookup-else none
++    //~ public static final boolean SKULL_LOOKUP = false;
+     // @era:t-skull-lookup-end
+ 
+-    // @era:t-sky-begin none
+-    public static final boolean SKY = false;
+-    // @era:t-sky-else v16
+-    //~ public static final boolean SKY = true;
++    // @era:t-sky-begin v16
++    public static final boolean SKY = true;
++    // @era:t-sky-else none
++    //~ public static final boolean SKY = false;
+     // @era:t-sky-end
+ 
+-    // @era:t-view-areaacc-begin none
+-    public static final boolean VIEW_AREAACC = false;
+-    // @era:t-view-areaacc-else v16
+-    //~ public static final boolean VIEW_AREAACC = true;
++    // @era:t-view-areaacc-begin v16
++    public static final boolean VIEW_AREAACC = true;
++    // @era:t-view-areaacc-else none
++    //~ public static final boolean VIEW_AREAACC = false;
+     // @era:t-view-areaacc-end
+ 
+-    // @era:t-world-begin none
+-    public static final boolean WORLD = false;
+-    // @era:t-world-else v16
+-    //~ public static final boolean WORLD = true;
++    // @era:t-world-begin v16
++    public static final boolean WORLD = true;
++    // @era:t-world-else none
++    //~ public static final boolean WORLD = false;
+     // @era:t-world-end
+ 
+-    // @era:t-world-cache-begin none
+-    public static final boolean WORLD_CACHE = false;
+-    // @era:t-world-cache-else v16
+-    //~ public static final boolean WORLD_CACHE = true;
++    // @era:t-world-cache-begin v16
++    public static final boolean WORLD_CACHE = true;
++    // @era:t-world-cache-else none
++    //~ public static final boolean WORLD_CACHE = false;
+     // @era:t-world-cache-end
+ 
+     /** Whether the {@code Tuning*} mixin (or tuning accessor) with this simple name applies here. */
 diff --git a/common/src/main/java/com/aetherium/util/AetheriumLog.java b/common/src/main/java/com/aetherium/util/AetheriumLog.java
 index 8e1185d..9bed01b 100644
 --- a/common/src/main/java/com/aetherium/util/AetheriumLog.java

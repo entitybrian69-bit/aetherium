@@ -1,14 +1,14 @@
 package com.aetherium.client;
 
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-world-cache-begin none
+// @era:t-world-cache-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.aetherium.util.AetheriumLog;
 //~ import com.mojang.blaze3d.pipeline.RenderTarget;
 //~ import net.minecraft.client.Minecraft;
 //~ import net.minecraft.client.gui.screens.ChatScreen;
 //~ import net.minecraft.client.gui.screens.Screen;
-// @era:qol16-end
+// @era:t-world-cache-end
 
 /**
  * World picture behind menus (1.11.0, Minecraft 1.16.5). While an inventory, chest or pause menu
@@ -27,8 +27,8 @@ public final class WorldCache {
     private WorldCache() {
     }
 
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-world-cache-begin none
+    // @era:t-world-cache-else v16
     //~ private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
     //~ private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
     //~ private static RenderTarget cache;
@@ -123,5 +123,5 @@ public final class WorldCache {
             //~ // the framebuffer is freed with the GL context
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-world-cache-end
 }

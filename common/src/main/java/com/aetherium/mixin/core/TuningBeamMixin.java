@@ -1,13 +1,13 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-beam-begin none
+// @era:t-beam-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// @era:qol16-end
+// @era:t-beam-end
 
 /**
  * End crystal beams toggle (1.10.0, Minecraft 1.16.5): {@code renderCrystalBeams} draws both the
@@ -15,13 +15,13 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.entity.EnderDragonRenderer")
 public abstract class TuningBeamMixin {
-    // @era:qol16-begin none
-    // @era:qol16-else v16
+    // @era:t-beam-begin none
+    // @era:t-beam-else v16
     //~ @Inject(method = "renderCrystalBeams", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private static void aetherium$beams(final CallbackInfo ci) {
         //~ if (!Tuning.crystalBeams) {
             //~ ci.cancel();
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-beam-end
 }

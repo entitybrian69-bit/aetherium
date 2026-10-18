@@ -96,11 +96,12 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
             return Capabilities.DYNAMIC_LIGHTS;
         }
         if (simpleName.startsWith("Tuning")) {
-            return Capabilities.TUNING;
+            return com.aetherium.perf.TuningSupport.mixin(simpleName);
         }
         if ("LazyDataFixersMixin".equals(simpleName)) {
             // Lazy DataFixerUpper (1.10.0), unless a mod already does it.
-            return Capabilities.TUNING && !classPresent("me/steinborn/lazydfu/mixin/SchemasMixin.class");
+            return com.aetherium.perf.TuningSupport.mixin(simpleName)
+                    && !classPresent("me/steinborn/lazydfu/mixin/SchemasMixin.class");
         }
         if ("RenderScaleMixin".equals(simpleName) || "MainTargetAccessor".equals(simpleName)
                 || "GlowSeenMixin".equals(simpleName)) {
@@ -250,6 +251,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void acceptTargets(final Set<String> myTargets, final Set<String> otherTargets) {
+        SmokeTest.targets(myTargets);
     }
 
     @Override
@@ -266,6 +268,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
     public void postApply(final String targetClassName, final ClassNode targetClass,
                           final String mixinClassName, final IMixinInfo mixinInfo) {
         APPLIED.add(simpleName(mixinClassName));
+        SmokeTest.applied(targetClass, mixinClassName);
     }
 
     private static boolean classPresent(final String resource) {

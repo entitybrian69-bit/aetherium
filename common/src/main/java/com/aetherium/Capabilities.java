@@ -166,14 +166,10 @@ public final class Capabilities {
 
     /**
      * The 1.10.0 tuning hooks ({@code Tuning*Mixin}: dynamic FPS, entity detail distance, crowd
-     * culling, leaves, weather, explosions, light merging, smooth autosave and more). Minecraft
-     * 1.16.5 only for now; every other version keeps 1.9.x behaviour.
+     * culling, leaves, weather, explosions, light merging, smooth autosave and more). On every
+     * version since 1.13.0; which individual features exist is in {@code perf.TuningSupport}.
      */
-    // @era:qol16-begin none
-    public static final boolean TUNING = false;
-    // @era:qol16-else v16
-    //~ public static final boolean TUNING = true;
-    // @era:qol16-end
+    public static final boolean TUNING = true;
 
     /** Per-frame budget for queued packet tasks ({@code Minecraft.runTick}); every version. */
     public static final boolean PACKET_BUDGET = true;

@@ -1,0 +1,179 @@
+name: smoke
+
+# 1.13.0: in-game smoke test of the Fabric build on every Minecraft version (Xvfb + Mesa llvmpipe).
+# Each leg starts the dev client of its version with -Daetherium.smoke=<dir>; Aetherium waits until
+# the title screen has been up for ten seconds, loads every class one of its mixins targets (so every
+# mixin is applied and checked), writes report.txt and exits (com.aetherium.mixin.SmokeTest).
+# A final job commits smoke/<version>/ for all legs, so the results can be read without job logs.
+# Only runs when the head commit message contains [smoke].
+
+on:
+  push:
+    branches: [arena/46f241da-aetherium]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.caching=true
+
+jobs:
+  plan:
+    if: contains(github.event.head_commit.message, '[smoke]')
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.picks.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: picks
+        shell: bash
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          only = set()
+          if os.path.exists('tools/smoke_only.txt'):
+              only = {l.split('#', 1)[0].strip() for l in open('tools/smoke_only.txt')} - {''}
+          picks = []
+          for row in json.load(open('tools/porting_pins.json'))['rows']:
+              if only and row['version'] not in only:
+                  continue
+              java = int(row.get('java') or 21)
+              loader = row.get('fabric_loader') or '0.16.14'
+              # Dev runs need a loader that brings MixinExtras along (0.15+); 0.16.14 supports 1.14 and up.
+              if [int(x) for x in loader.split('.')] < [0, 16, 14]:
+                  loader = '0.16.14'
+              picks.append({'version': row['version'], 'java': str(java), 'gradle_java': str(max(21, java)),
+                            'run_java': str(max(17, java)), 'loader': loader,
+                            'platforms': 'fabric'})
+          print('matrix=' + json.dumps(picks, separators=(',', ':')))
+          PY
+
+  smoke:
+    name: ${{ matrix.version }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        include: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.4.1
+          cache-read-only: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.run_java }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.gradle_java }}
+      - name: materialize the tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/tree"
+          mkdir -p "$work"
+          git ls-files -z | xargs -0 -I{} cp --parents {} "$work"/
+          cd "$work"
+          patch="deltas/${{ matrix.version }}/changes.patch"
+          if [ -f "$patch" ]; then git apply --whitespace=nowarn "$patch"; fi
+      - name: run the game
+        shell: bash
+        run: |
+          set +e -u -o pipefail
+          sudo apt-get update -q >/dev/null
+          sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri libglu1-mesa >/dev/null
+          out="$GITHUB_WORKSPACE/smoke/${{ matrix.version }}"
+          rm -rf "$out" && mkdir -p "$out"
+          cd "$RUNNER_TEMP/tree"
+          export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5COMPAT
+          export JAVA_TOOL_OPTIONS="-Daetherium.smoke=$out"
+          cat > "$RUNNER_TEMP/run.gradle" <<'GRADLE'
+          allprojects { p ->
+              p.afterEvaluate {
+                  if (p.name == 'fabric' && p.hasProperty('mixin_extras_version')) {
+                      p.dependencies.add('runtimeOnly', "io.github.llamalad7:mixinextras-fabric:${p.property('mixin_extras_version')}")
+                  }
+              }
+              p.tasks.matching { it.name == 'runClient' }.configureEach { t ->
+                  def toolchains = p.extensions.getByType(JavaToolchainService)
+                  t.javaLauncher.set(toolchains.launcherFor { it.languageVersion.set(JavaLanguageVersion.of(Integer.parseInt(System.getenv('RUN_JAVA')))) })
+              }
+          }
+          GRADLE
+          export RUN_JAVA=${{ matrix.run_java }}
+          args="-Paetherium.enableRunConfigs=true -Pfabric_loader_version=${{ matrix.loader }} -Penabled_platforms=${{ matrix.platforms }}"
+          for attempt in 1 2 3 4; do
+            gradle --no-daemon --console=plain :fabric:downloadAssets $args > "$RUNNER_TEMP/assets.log" 2>&1 && break
+            echo "asset download attempt $attempt failed"; sleep $((attempt * 20))
+          done
+          timeout 1500 xvfb-run -a -s "-screen 0 1280x720x24" \
+            gradle --no-daemon --console=plain -I "$RUNNER_TEMP/run.gradle" :fabric:runClient $args \
+            > "$RUNNER_TEMP/client.log" 2>&1
+          echo "exit $?" > "$out/status.txt"
+          grep -nE "Aetherium|aetherium|ERROR|FATAL|Exception|Caused by|Mixin apply|InvalidInjection|InvalidMixin|Critical injection" "$RUNNER_TEMP/client.log" \
+            | grep -v Download | head -300 > "$out/client-report.txt" || true
+          tail -80 "$RUNNER_TEMP/client.log" > "$out/client-tail.txt"
+          grep -nE "FAILED|What went wrong|Could not|BUILD|error:" "$RUNNER_TEMP/client.log" | head -40 > "$out/gradle-errors.txt" || true
+          for f in fabric/run/crash-reports/*.txt; do [ -f "$f" ] && head -c 40000 "$f" > "$out/crash-$(basename "$f")"; done
+          if [ -f "$out/report.txt" ]; then
+            failed=$(sed -n 's/^targets [0-9]*, failed \([0-9]*\)$/\1/p' "$out/report.txt")
+            unused=$(sed -n 's/^unused injectors \([0-9]*\)$/\1/p' "$out/report.txt")
+            echo "::notice::smoke ${{ matrix.version }}: failed targets $failed, unused injectors $unused"
+          else
+            echo "::error::smoke ${{ matrix.version }}: no report (see smoke/${{ matrix.version }}/client-tail.txt)"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.version }}
+          path: smoke/${{ matrix.version }}
+          if-no-files-found: ignore
+
+  collect:
+    needs: smoke
+    if: always() && needs.smoke.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: smoke-*
+          path: artifacts
+      - name: commit results
+        shell: bash
+        run: |
+          set -u
+          rm -rf smoke && mkdir -p smoke
+          for d in artifacts/smoke-*; do [ -d "$d" ] && cp -r "$d" "smoke/${d#artifacts/smoke-}"; done
+          {
+            echo "# Smoke test for ${GITHUB_SHA::7}"
+            for r in smoke/*/; do
+              v=$(basename "$r")
+              if [ -f "$r/report.txt" ]; then
+                echo "- $v: $(grep -m1 '^targets' "$r/report.txt"), $(grep -m1 '^unused injectors' "$r/report.txt")"
+              else
+                echo "- $v: NO REPORT ($(cat "$r/status.txt" 2>/dev/null))"
+              fi
+            done
+          } > smoke/summary.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f smoke
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -q -m "smoke: results for ${GITHUB_SHA::7} [skip ci]"
+          for i in 1 2 3 4 5; do git pull -q --rebase origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && exit 0; sleep $((i*5)); done
+          exit 1

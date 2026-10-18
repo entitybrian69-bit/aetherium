@@ -1,7 +1,7 @@
 package com.aetherium.client;
 
-// @era:qol16-begin none
-// @era:qol16-else v16
+// @era:t-far-terrain-begin none
+// @era:t-far-terrain-else v16
 //~ import com.aetherium.mixin.core.TuningLevelAccessor;
 //~ import com.aetherium.mixin.core.TuningViewAreaAccessor;
 //~ import com.aetherium.perf.FarTerrainMesh;
@@ -42,7 +42,7 @@ package com.aetherium.client;
 //~ import net.minecraft.world.level.material.MaterialColor;
 //~ import net.minecraft.world.phys.Vec3;
 //~ import org.lwjgl.opengl.GL11;
-// @era:qol16-end
+// @era:t-far-terrain-end
 
 /**
  * Far terrain (1.11.0, Minecraft 1.16.5, Overworld): a low-detail outline of the terrain beyond the
@@ -67,10 +67,10 @@ public final class FarTerrain {
     private FarTerrain() {
     }
 
-    // @era:qol16-begin none
+    // @era:t-far-terrain-begin none
     public static void levelChanged() {
     }
-    // @era:qol16-else v16
+    // @era:t-far-terrain-else v16
     //~ private static final AetheriumLog LOGGER = AetheriumLog.of(FarTerrain.class);
     //~ private static final int MAX_CHUNKS = 16384;
     //~ /** 32000 vertices: gl4es splits GL_QUADS draws above that. */
@@ -515,5 +515,5 @@ public final class FarTerrain {
             //~ return this.used;
         //~ }
     //~ }
-    // @era:qol16-end
+    // @era:t-far-terrain-end
 }
