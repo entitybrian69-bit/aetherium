@@ -63,13 +63,16 @@ public final class AutoBench {
         //~ final String label;
         //~ final boolean aetherium;
         //~ final int scale;
-        //~ /** 0 = turn in place, +1/-1 = fly along +X/-X. */
+        //~ /** 0 = turn in place, +1/-1 = fly along +X/-X, +2/-2 = fly along +Z/-Z. */
         //~ final int fly;
         //~ final int seconds;
         //~ final boolean reported;
+        //~ /** 1.12.0 options switched off for this scenario (all others at their defaults). */
+        //~ final String[] off;
 
         //~ Scenario(final String id, final String label, final boolean aetherium, final int scale, final int fly,
-                 //~ final int seconds, final boolean reported) {
+                 //~ final int seconds, final boolean reported, final String... off) {
+            //~ this.off = off;
             //~ this.id = id;
             //~ this.label = label;
             //~ this.aetherium = aetherium;
@@ -80,13 +83,34 @@ public final class AutoBench {
         //~ }
     //~ }
 
+    //~ /** The 1.12.0 performance options that are on by default. */
+    //~ private static final String[] NEW_OPTIONS = {
+        //~ "performance.server_lighting", "performance.directional_culling", "performance.view_first_building",
+        //~ "performance.portal_preload", "performance.fast_loading", "performance.server_idle",
+        //~ "performance.end_optimizations", "performance.gl_state_cache", "performance.cheap_damage_tint",
+        //~ "performance.lightmap_rate", "performance.ao_cache", "performance.async_skins",
+    //~ };
+
     //~ private static final Scenario[] SCENARIOS = {
         //~ new Scenario("warmup", "Warm-up", true, 100, 0, 15, false),
-        //~ new Scenario("vanilla", "Vanilla renderer (Aetherium off)", false, 100, 0, 20, true),
-        //~ new Scenario("aetherium", "Aetherium 1.9.0 (defaults)", true, 100, 0, 20, true),
+        //~ new Scenario("vanilla", "Vanilla (Aetherium off)", false, 100, 0, 20, true),
+        //~ new Scenario("aetherium", "Aetherium (defaults)", true, 100, 0, 20, true),
+        //~ new Scenario("new-off", "Aetherium, all 1.12.0 options off", true, 100, 0, 20, true, NEW_OPTIONS),
+        //~ new Scenario("no-cull", "Aetherium, directional culling + view-first building off", true, 100, 0, 20, true,
+                //~ "performance.directional_culling", "performance.view_first_building"),
+        //~ new Scenario("no-gl", "Aetherium, GL call trimming + cheap damage tint off", true, 100, 0, 20, true,
+                //~ "performance.gl_state_cache", "performance.cheap_damage_tint"),
+        //~ new Scenario("no-server", "Aetherium, server lighting + server idle off", true, 100, 0, 20, true,
+                //~ "performance.server_lighting", "performance.server_idle"),
+        //~ new Scenario("no-light", "Aetherium, light table rate + AO cache off", true, 100, 0, 20, true,
+                //~ "performance.lightmap_rate", "performance.ao_cache"),
+        //~ new Scenario("aetherium-again", "Aetherium (defaults), measured again", true, 100, 0, 20, true),
         //~ new Scenario("scale70", "Aetherium + render scale 70%", true, 70, 0, 20, true),
-        //~ new Scenario("fly-vanilla", "Flying into new terrain, Aetherium off", false, 100, 1, 20, true),
-        //~ new Scenario("fly-aetherium", "Flying into new terrain, Aetherium on", true, 100, -1, 20, true),
+        //~ new Scenario("fly-vanilla", "Flying into new terrain (+X), Aetherium off", false, 100, 1, 20, true),
+        //~ new Scenario("fly-aetherium", "Flying into new terrain (-X), Aetherium defaults", true, 100, -1, 20, true),
+        //~ new Scenario("fly-new-off", "Flying into new terrain (+Z), all 1.12.0 options off", true, 100, 2, 20, true,
+                //~ NEW_OPTIONS),
+        //~ new Scenario("fly-aetherium-z", "Flying into new terrain (-Z), Aetherium defaults", true, 100, -2, 20, true),
     //~ };
 
     //~ private enum Phase { TITLE, LOADING, SETUP, SETTLE, MEASURE, SHOT, DONE, STOPPED }
@@ -244,11 +268,17 @@ public final class AutoBench {
                 //~ final Scenario s = SCENARIOS[scenario];
                 //~ if (s.fly != 0 && mc.player != null) {
                     //~ final LocalPlayer player = mc.player;
-                    //~ player.yRot = s.fly > 0 ? -90.0F : 90.0F;
+                    //~ final boolean alongX = Math.abs(s.fly) == 1;
+                    //~ final int sign = s.fly > 0 ? 1 : -1;
+                    //~ player.yRot = alongX ? (sign > 0 ? -90.0F : 90.0F) : (sign > 0 ? 0.0F : 180.0F);
                     //~ player.yRotO = player.yRot;
                     //~ player.xRot = 0.0F;
                     //~ player.xRotO = 0.0F;
-                    //~ player.setPos(player.getX() + s.fly * FLY_SPEED, baseY, baseZ);
+                    //~ if (alongX) {
+                        //~ player.setPos(player.getX() + sign * FLY_SPEED, baseY, baseZ);
+                    //~ } else {
+                        //~ player.setPos(baseX, baseY, player.getZ() + sign * FLY_SPEED);
+                    //~ }
                 //~ }
                 //~ if (System.nanoTime() - measureStart >= s.seconds * 1_000_000_000L) {
                     //~ finishMeasure(mc, s);
@@ -290,7 +320,15 @@ public final class AutoBench {
         //~ final AetheriumConfig config = Aetherium.config();
         //~ config.enabled.set(Boolean.valueOf(s.aetherium));
         //~ config.renderScale.set(Integer.valueOf(s.scale));
+        //~ for (final String key : NEW_OPTIONS) {
+            //~ config.byKey(key).reset();
+        //~ }
+        //~ for (final String key : s.off) {
+            //~ config.byKey(key).accept(Boolean.FALSE);
+        //~ }
         //~ Aetherium.refreshState();
+        //~ // Republish every flag (Tuning and friends follow "enabled" and the options above only here).
+        //~ ClientHooks.onSettingsApplied();
         //~ if (mc.player != null) {
             //~ mc.player.setPos(baseX, baseY, baseZ);
         //~ }
