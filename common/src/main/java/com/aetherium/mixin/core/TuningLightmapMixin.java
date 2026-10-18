@@ -11,6 +11,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:t-lightmap-else none
+// @era:t-lightmap-else l2111
+//~ import com.aetherium.perf.Tuning;
+//~ import net.minecraft.client.Minecraft;
+//~ import net.minecraft.client.multiplayer.ClientLevel;
+//~ import net.minecraft.world.level.Level;
+//~ import org.spongepowered.asm.mixin.Shadow;
+//~ import org.spongepowered.asm.mixin.Unique;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Inject;
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:t-lightmap-end
 
 /**
@@ -46,5 +56,31 @@ public abstract class TuningLightmapMixin {
         ci.cancel(); // the request stays set and is served on the next (even) tick
     }
     // @era:t-lightmap-else none
+    // @era:t-lightmap-else l2111
+    //~ @Shadow
+    //~ private boolean updateLightTexture;
+
+    //~ @Unique
+    //~ private int aetherium$ticks;
+
+    //~ @Inject(method = "tick", at = @At("TAIL"), require = 0)
+    //~ private void aetherium$tick(final CallbackInfo ci) {
+        //~ aetherium$ticks++;
+    //~ }
+
+    //~ @Inject(method = "updateLightTexture(F)V", at = @At("HEAD"), cancellable = true, require = 0)
+    //~ private void aetherium$rate(final float partialTicks, final CallbackInfo ci) {
+        //~ if (!updateLightTexture || !Tuning.lightmapRate || (aetherium$ticks & 1) == 0) {
+            //~ return;
+        //~ }
+        //~ final ClientLevel level = Minecraft.getInstance().level;
+        //~ // 1.21.11: the sky flash reaches the lightmap through environment attributes and the
+        //~ // flash counter is private; lightning only strikes in thunderstorms, and the End has its
+        //~ // own flashes, so the full rate is kept in both.
+        //~ if (level != null && (level.isThundering() || level.dimension() == Level.END)) {
+            //~ return;
+        //~ }
+        //~ ci.cancel(); // the request stays set and is served on the next (even) tick
+    //~ }
     // @era:t-lightmap-end
 }

@@ -160,7 +160,7 @@ public final class TuningSupport {
     //~ public static final boolean LIGHT = false;
     // @era:t-light-end
 
-    // @era:t-lightmap-begin v16
+    // @era:t-lightmap-begin l2111|v16
     public static final boolean LIGHTMAP = true;
     // @era:t-lightmap-else none
     //~ public static final boolean LIGHTMAP = false;
@@ -196,10 +196,10 @@ public final class TuningSupport {
     //~ public static final boolean NAME_TAG = false;
     // @era:t-name-tag-end
 
-    // @era:t-ocean-floor-begin none
-    public static final boolean OCEAN_FLOOR = false;
-    // @era:t-ocean-floor-else v16
-    //~ public static final boolean OCEAN_FLOOR = true;
+    // @era:t-ocean-floor-begin o17|v16
+    public static final boolean OCEAN_FLOOR = true;
+    // @era:t-ocean-floor-else none
+    //~ public static final boolean OCEAN_FLOOR = false;
     // @era:t-ocean-floor-end
 
     // @era:t-portal-begin p21|p215|v16

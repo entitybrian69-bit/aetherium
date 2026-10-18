@@ -81,6 +81,7 @@ public final class ClientHooks {
         // LevelRenderer.renderLevel resets them too; both run once per frame, before any entity.
         CrowdCull.newFrame();
         Tuning.newFrame();
+        OceanFloor.frame(Minecraft.getInstance().level, mainCamera(Minecraft.getInstance()));
         // Zoom reads its keys here, before the camera, the FOV and the mouse use its state.
         ZoomKeys.frame(Minecraft.getInstance());
         // Stutter log and adaptive upload budget, then freelook (before the camera is set up).
@@ -448,6 +449,15 @@ public final class ClientHooks {
         // @era:camera-get-else record
         //~ return mc.gameRenderer.mainCamera();
         // @era:camera-get-end
+    }
+
+    /** The camera's eye height (Camera.getPosition became position() in 1.21.6). */
+    public static double cameraY(final net.minecraft.client.Camera camera) {
+        // @era:cam-pos-begin getter
+        return camera.getPosition().y;
+        // @era:cam-pos-else position
+        //~ return camera.position().y;
+        // @era:cam-pos-end
     }
 
     /** Squared distance from the camera to a block centre (render thread); 0 before the camera exists. */

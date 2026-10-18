@@ -2,6 +2,7 @@ package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
 // @era:t-cull-begin c202
+import com.aetherium.client.OceanFloor;
 import com.aetherium.perf.Tuning;
 import net.minecraft.core.Direction;
 import org.spongepowered.asm.mixin.injection.At;
@@ -10,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 import net.minecraft.core.BlockPos;
 // @era:t-cull-else c17
+//~ import com.aetherium.client.OceanFloor;
 //~ import com.aetherium.perf.Tuning;
 //~ import net.minecraft.core.Direction;
 //~ import org.spongepowered.asm.mixin.injection.At;
@@ -18,6 +20,7 @@ import net.minecraft.core.BlockPos;
 //~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 //~ import net.minecraft.core.BlockPos;
 // @era:t-cull-else c215
+//~ import com.aetherium.client.OceanFloor;
 //~ import com.aetherium.perf.Tuning;
 //~ import net.minecraft.core.Direction;
 //~ import org.spongepowered.asm.mixin.injection.At;
@@ -68,9 +71,21 @@ public abstract class TuningCullMixin {
     @Inject(method = "getRelativeFrom", at = @At("HEAD"), cancellable = true, require = 0)
     private void aetherium$neighbour(final BlockPos camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
                                      final CallbackInfoReturnable<?> cir) {
-        if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+        if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
             cir.setReturnValue(null);
         }
+    }
+
+    /**
+     * Directional culling, and ocean floor culling ({@code OceanFloor}, off by default): no step into
+     * a section deep below an ocean floor while the camera is above the water.
+     */
+    private static boolean aetherium$refuse(final int cx, final int cy, final int cz, final int fx, final int fy,
+                                            final int fz, final Direction direction) {
+        if (Tuning.directionalCulling && aetherium$towardsCamera(cx, cy, cz, fx, fy, fz, direction)) {
+            return true;
+        }
+        return OceanFloor.belowSection(fx + direction.getStepX(), fy + direction.getStepY(), fz + direction.getStepZ());
     }
 
     /** True when stepping from section ({@code fx},{@code fy},{@code fz}) in {@code direction} moves back towards the camera's section. */
@@ -96,9 +111,21 @@ public abstract class TuningCullMixin {
     //~ @Inject(method = "getRelativeFrom", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$neighbour(final BlockPos camera, final ChunkRenderDispatcher.RenderChunk from, final Direction direction,
                                      //~ final CallbackInfoReturnable<?> cir) {
-        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+        //~ if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
             //~ cir.setReturnValue(null);
         //~ }
+    //~ }
+
+    //~ /**
+     //~ * Directional culling, and ocean floor culling ({@code OceanFloor}, off by default): no step into
+     //~ * a section deep below an ocean floor while the camera is above the water.
+     //~ */
+    //~ private static boolean aetherium$refuse(final int cx, final int cy, final int cz, final int fx, final int fy,
+                                            //~ final int fz, final Direction direction) {
+        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(cx, cy, cz, fx, fy, fz, direction)) {
+            //~ return true;
+        //~ }
+        //~ return OceanFloor.belowSection(fx + direction.getStepX(), fy + direction.getStepY(), fz + direction.getStepZ());
     //~ }
 
     //~ /** True when stepping from section ({@code fx},{@code fy},{@code fz}) in {@code direction} moves back towards the camera's section. */
@@ -124,9 +151,21 @@ public abstract class TuningCullMixin {
     //~ @Inject(method = "getRelativeFrom", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$neighbour(final long camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
                                      //~ final CallbackInfoReturnable<?> cir) {
-        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
+        //~ if (aetherium$refuse(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
             //~ cir.setReturnValue(null);
         //~ }
+    //~ }
+
+    //~ /**
+     //~ * Directional culling, and ocean floor culling ({@code OceanFloor}, off by default): no step into
+     //~ * a section deep below an ocean floor while the camera is above the water.
+     //~ */
+    //~ private static boolean aetherium$refuse(final int cx, final int cy, final int cz, final int fx, final int fy,
+                                            //~ final int fz, final Direction direction) {
+        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(cx, cy, cz, fx, fy, fz, direction)) {
+            //~ return true;
+        //~ }
+        //~ return OceanFloor.belowSection(fx + direction.getStepX(), fy + direction.getStepY(), fz + direction.getStepZ());
     //~ }
 
     //~ /** True when stepping from section ({@code fx},{@code fy},{@code fz}) in {@code direction} moves back towards the camera's section. */
