@@ -69,10 +69,9 @@ not shipped - the table only ever lists what exists, never what should exist.
 | 1.21.11 | NeoForge | [aetherium-neoforge-1.13.0+1.21.11.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.13.0+1.21.11/aetherium-neoforge-1.13.0+1.21.11.jar) |
 | 26.1 | Fabric | [aetherium-fabric-1.13.0+26.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.13.0+26.1/aetherium-fabric-1.13.0+26.1.jar) |
 | 26.1 | NeoForge | [aetherium-neoforge-1.13.0+26.1.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.13.0+26.1/aetherium-neoforge-1.13.0+26.1.jar) |
+| 26.2 | Fabric | [aetherium-fabric-1.13.0+26.2.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.13.0+26.2/aetherium-fabric-1.13.0+26.2.jar) |
+| 26.2 | NeoForge | [aetherium-neoforge-1.13.0+26.2.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.13.0+26.2/aetherium-neoforge-1.13.0+26.2.jar) |
+| 26.3 | Fabric | [aetherium-fabric-1.13.0+26.3.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.13.0+26.3/aetherium-fabric-1.13.0+26.3.jar) |
+| 26.3 | NeoForge | [aetherium-neoforge-1.13.0+26.3.jar](https://github.com/entitybrian69-bit/aetherium/releases/download/v1.13.0+26.3/aetherium-neoforge-1.13.0+26.3.jar) |
 
-Shipped: **31/33** Minecraft versions.
-
-## Not shipped
-
-- **26.2** - no release yet
-- **26.3** - no release yet
+Shipped: **33/33** Minecraft versions.
