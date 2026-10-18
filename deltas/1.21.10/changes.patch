@@ -204,10 +204,10 @@ index e5e224a..02c8446 100644
      // @era:input-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index f0f2a33..2beb0dc 100644
+index a35ce0e..b0ccc28 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -453,10 +453,10 @@ public final class ClientHooks {
+@@ -453,19 +453,19 @@ public final class ClientHooks {
  
      /** The camera's eye height (Camera.getPosition became position() in 1.21.6). */
      public static double cameraY(final net.minecraft.client.Camera camera) {
@@ -222,7 +222,20 @@ index f0f2a33..2beb0dc 100644
          // @era:cam-pos-end
      }
  
-@@ -466,10 +466,10 @@ public final class ClientHooks {
+     /** The camera's position (Camera.getPosition became position() in 1.21.6). */
+     public static net.minecraft.world.phys.Vec3 cameraPosition(final net.minecraft.client.Camera camera) {
+-        // @era:cam-pos-begin getter
+-        return camera.getPosition();
+-        // @era:cam-pos-else position
+-        //~ return camera.position();
++        // @era:cam-pos-begin position
++        return camera.position();
++        // @era:cam-pos-else getter
++        //~ return camera.getPosition();
+         // @era:cam-pos-end
+     }
+ 
+@@ -475,10 +475,10 @@ public final class ClientHooks {
          if (camera == null) {
              return 0.0;
          }
@@ -256,6 +269,81 @@ index ebc448c..d6efe2a 100644
          // @era:cam-pos-end
          final double dx = origin.getX() + 8.0 - cam.x;
          final double dy = origin.getY() + 8.0 - cam.y;
+diff --git a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
+index 0856142..f36c991 100644
+--- a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
++++ b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
+@@ -16,12 +16,12 @@ import net.minecraft.world.level.material.MapColor;
+ //~ import com.aetherium.mixin.core.TuningFarViewAccessor;
+ //~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+ // @era:t-far-sections-end
+-// @era:t-far-gl-begin id17
++// @era:t-far-gl-begin gl215|gl262
++import com.mojang.blaze3d.opengl.GlTexture;
+ import com.mojang.blaze3d.pipeline.RenderTarget;
+-// @era:t-far-gl-else gl215|gl262
+-//~ import com.mojang.blaze3d.opengl.GlTexture;
++import com.mojang.blaze3d.textures.GpuTexture;
++// @era:t-far-gl-else id17
+ //~ import com.mojang.blaze3d.pipeline.RenderTarget;
+-//~ import com.mojang.blaze3d.textures.GpuTexture;
+ // @era:t-far-gl-else none|pearl
+ // @era:t-far-gl-end
+ 
+@@ -80,11 +80,11 @@ final class FarTerrainBridge {
+         // @era:t-far-sections-end
+     }
+ 
+-    // @era:t-far-gl-begin id17
++    // @era:t-far-gl-begin gl215
+     private static RenderTarget main(final Minecraft mc) {
+         return mc.getMainRenderTarget();
+     }
+-    // @era:t-far-gl-else gl215
++    // @era:t-far-gl-else id17
+     //~ private static RenderTarget main(final Minecraft mc) {
+         //~ return mc.getMainRenderTarget();
+     //~ }
+@@ -96,27 +96,27 @@ final class FarTerrainBridge {
+     // @era:t-far-gl-else none|pearl
+     // @era:t-far-gl-end
+ 
+-    // @era:t-far-gl-begin id17
+-    /** OpenGL name of the main colour texture, -1 where it is not an OpenGL texture. */
++    // @era:t-far-gl-begin gl215|gl262
++    private static int glId(final GpuTexture texture) {
++        return texture instanceof GlTexture ? ((GlTexture) texture).glId() : -1;
++    }
++
++    /** OpenGL name of the main colour texture, -1 where it is not an OpenGL texture (Vulkan). */
+     static int colorTexture(final Minecraft mc) {
+-        return main(mc).getColorTextureId();
++        return glId(main(mc).getColorTexture());
+     }
+ 
+     static int depthTexture(final Minecraft mc) {
+-        return main(mc).getDepthTextureId();
++        return glId(main(mc).getDepthTexture());
+     }
+-    // @era:t-far-gl-else gl215|gl262
+-    //~ private static int glId(final GpuTexture texture) {
+-        //~ return texture instanceof GlTexture ? ((GlTexture) texture).glId() : -1;
+-    //~ }
+-
+-    //~ /** OpenGL name of the main colour texture, -1 where it is not an OpenGL texture (Vulkan). */
++    // @era:t-far-gl-else id17
++    //~ /** OpenGL name of the main colour texture, -1 where it is not an OpenGL texture. */
+     //~ static int colorTexture(final Minecraft mc) {
+-        //~ return glId(main(mc).getColorTexture());
++        //~ return main(mc).getColorTextureId();
+     //~ }
+ 
+     //~ static int depthTexture(final Minecraft mc) {
+-        //~ return glId(main(mc).getDepthTexture());
++        //~ return main(mc).getDepthTextureId();
+     //~ }
+     // @era:t-far-gl-else none|pearl
+     //~ static int colorTexture(final Minecraft mc) {
 diff --git a/common/src/main/java/com/aetherium/client/FlightPreload.java b/common/src/main/java/com/aetherium/client/FlightPreload.java
 index 667a1a0..b656d7a 100644
 --- a/common/src/main/java/com/aetherium/client/FlightPreload.java
@@ -591,7 +679,7 @@ index 3a61eda..80f6f10 100644
          return error == 0 ? "ok (" + test.width + "x" + test.height + " -> " + main.width + "x" + main.height + ")"
                  : "FAILED: GL error 0x" + Integer.toHexString(error) + " after the upscale blit";
 diff --git a/common/src/main/java/com/aetherium/client/SceneryHooks.java b/common/src/main/java/com/aetherium/client/SceneryHooks.java
-index 5d253f5..fdcd082 100644
+index 9bd499b..7657c8c 100644
 --- a/common/src/main/java/com/aetherium/client/SceneryHooks.java
 +++ b/common/src/main/java/com/aetherium/client/SceneryHooks.java
 @@ -11,11 +11,11 @@ import net.minecraft.core.particles.ParticleType;
@@ -625,7 +713,7 @@ index 5d253f5..fdcd082 100644
          // @era:fog-end
      }
  
-@@ -121,58 +121,58 @@ public final class SceneryHooks {
+@@ -130,77 +130,77 @@ public final class SceneryHooks {
      //~ }
      // @era:fog-end
  
@@ -633,23 +721,41 @@ index 5d253f5..fdcd082 100644
 -    /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
 -    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
 -        adjustShaderFog(camera, farPlane, thick);
--        // What the terrain is drawn with this frame, for the fog cull.
--        FogCull.recordFogRange(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(),
--                RenderSystem.getShaderFogColor()[3]);
+-        final float[] color = RenderSystem.getShaderFogColor();
+-        FarTerrain.recordFogColor(color[0], color[1], color[2]);
+-        if (farFog(camera, thick)) {
+-            RenderSystem.setShaderFogStart(FarTerrain.fogStart());
+-            RenderSystem.setShaderFogEnd(FarTerrain.fogEnd());
 +    // @era:fog-begin buffer|data
 +    /**
 +     * Before FogRenderer writes the fog uniform: the four ranges to write instead, or null to
 +     * keep vanilla's. Environmental effects (blindness, the Nether) live in their own range,
 +     * which the distance settings never touch, so no effect check is needed here.
 +     */
-+    public static float[] adjustFogBuffer(final float envStart, final float envEnd, final float rdStart,
++    public static float[] adjustFogBuffer(final float red, final float green, final float blue,
++                                          final float envStart, final float envEnd, final float rdStart,
 +                                          final float rdEnd) {
-+        final float[] fog = adjustFogRanges(envStart, envEnd, rdStart, rdEnd);
++        FarTerrain.recordFogColor(red, green, blue);
++        float[] fog = adjustFogRanges(envStart, envEnd, rdStart, rdEnd);
++        // Far terrain: the render-distance range reaches its edge (the environmental range,
++        // which carries blindness and boss / thick fog, is kept).
++        if (farFog(ClientHooks.mainCamera(Minecraft.getInstance()), false)) {
++            if (fog == null) {
++                FOG[0] = envStart;
++                FOG[1] = envEnd;
++            }
++            FOG[2] = FarTerrain.fogStart();
++            FOG[3] = FarTerrain.fogEnd();
++            fog = FOG;
++        }
 +        if (fog == null) {
 +            FogCull.recordFogRanges(envStart, envEnd, rdStart, rdEnd);
 +        } else {
 +            FogCull.recordFogRanges(fog[0], fog[1], fog[2], fog[3]);
-+        }
+         }
+-        // What the terrain is drawn with this frame, for the fog cull.
+-        FogCull.recordFogRange(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(),
+-                RenderSystem.getShaderFogColor()[3]);
 +        return fog;
      }
  
@@ -682,19 +788,37 @@ index 5d253f5..fdcd082 100644
 -     //~ * keep vanilla's. Environmental effects (blindness, the Nether) live in their own range,
 -     //~ * which the distance settings never touch, so no effect check is needed here.
 -     //~ */
--    //~ public static float[] adjustFogBuffer(final float envStart, final float envEnd, final float rdStart,
+-    //~ public static float[] adjustFogBuffer(final float red, final float green, final float blue,
+-                                          //~ final float envStart, final float envEnd, final float rdStart,
 -                                          //~ final float rdEnd) {
--        //~ final float[] fog = adjustFogRanges(envStart, envEnd, rdStart, rdEnd);
+-        //~ FarTerrain.recordFogColor(red, green, blue);
+-        //~ float[] fog = adjustFogRanges(envStart, envEnd, rdStart, rdEnd);
+-        //~ // Far terrain: the render-distance range reaches its edge (the environmental range,
+-        //~ // which carries blindness and boss / thick fog, is kept).
+-        //~ if (farFog(ClientHooks.mainCamera(Minecraft.getInstance()), false)) {
+-            //~ if (fog == null) {
+-                //~ FOG[0] = envStart;
+-                //~ FOG[1] = envEnd;
+-            //~ }
+-            //~ FOG[2] = FarTerrain.fogStart();
+-            //~ FOG[3] = FarTerrain.fogEnd();
+-            //~ fog = FOG;
+-        //~ }
 -        //~ if (fog == null) {
 -            //~ FogCull.recordFogRanges(envStart, envEnd, rdStart, rdEnd);
 -        //~ } else {
 -            //~ FogCull.recordFogRanges(fog[0], fog[1], fog[2], fog[3]);
--        //~ }
--        //~ return fog;
 +    // @era:fog-else shader17|shader19
 +    //~ /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
 +    //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
 +        //~ adjustShaderFog(camera, farPlane, thick);
++        //~ final float[] color = RenderSystem.getShaderFogColor();
++        //~ FarTerrain.recordFogColor(color[0], color[1], color[2]);
++        //~ if (farFog(camera, thick)) {
++            //~ RenderSystem.setShaderFogStart(FarTerrain.fogStart());
++            //~ RenderSystem.setShaderFogEnd(FarTerrain.fogEnd());
+         //~ }
+-        //~ return fog;
 +        //~ // What the terrain is drawn with this frame, for the fog cull.
 +        //~ FogCull.recordFogRange(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(),
 +                //~ RenderSystem.getShaderFogColor()[3]);
@@ -1640,7 +1764,7 @@ index ca48c5a..7a6ba8e 100644
  
      // @era:particle-fast-begin inner|none
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
-index 7a014ca..06edecc 100644
+index bf1748d..e156039 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java
 @@ -3,23 +3,23 @@ package com.aetherium.mixin.core;
@@ -1678,7 +1802,7 @@ index 7a014ca..06edecc 100644
  // @era:fog-end
  
  /**
-@@ -34,20 +34,35 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -34,20 +34,36 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
   * </ul>
   * Applied only where {@code Capabilities.SCENERY_CONTROLS} is true.
   */
@@ -1706,7 +1830,8 @@ index 7a014ca..06edecc 100644
 +                                       final Vector4f color, final float envStart, final float envEnd,
 +                                       final float rdStart, final float rdEnd, final float skyEnd,
 +                                       final float cloudEnd, final Operation<Void> original) {
-+        final float[] fog = SceneryHooks.adjustFogBuffer(envStart, envEnd, rdStart, rdEnd);
++        final float[] fog = SceneryHooks.adjustFogBuffer(color.x(), color.y(), color.z(), envStart, envEnd,
++                rdStart, rdEnd);
 +        if (fog == null) {
 +            original.call(self, buffer, offset, color, envStart, envEnd, rdStart, rdEnd, skyEnd, cloudEnd);
 +        } else {
@@ -1724,7 +1849,7 @@ index 7a014ca..06edecc 100644
      // @era:fog-else gl|shader17
      //~ @Inject(method = "setupFog", at = @At("TAIL"), require = 0)
      //~ private static void aetherium$fogControls(final Camera camera, final FogRenderer.FogMode mode, final float farPlane,
-@@ -65,21 +80,6 @@ public abstract class FogControlMixin {
+@@ -65,22 +81,6 @@ public abstract class FogControlMixin {
          //~ return mode == FogRenderer.FogMode.FOG_TERRAIN
                  //~ ? SceneryHooks.adjustFog(original, camera, renderDistance, thick) : original;
      //~ }
@@ -1736,7 +1861,8 @@ index 7a014ca..06edecc 100644
 -                                       //~ final Vector4f color, final float envStart, final float envEnd,
 -                                       //~ final float rdStart, final float rdEnd, final float skyEnd,
 -                                       //~ final float cloudEnd, final Operation<Void> original) {
--        //~ final float[] fog = SceneryHooks.adjustFogBuffer(envStart, envEnd, rdStart, rdEnd);
+-        //~ final float[] fog = SceneryHooks.adjustFogBuffer(color.x(), color.y(), color.z(), envStart, envEnd,
+-                //~ rdStart, rdEnd);
 -        //~ if (fog == null) {
 -            //~ original.call(self, buffer, offset, color, envStart, envEnd, rdStart, rdEnd, skyEnd, cloudEnd);
 -        //~ } else {
@@ -4405,6 +4531,107 @@ index e568a8e..55e110b 100644
 +    // @era:t-explosion-else none
      // @era:t-explosion-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java
+index 92940c4..267feb1 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java
+@@ -1,35 +1,35 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:t-far-draw-begin s205
+-import com.aetherium.client.FarTerrain;
++// @era:t-far-draw-begin g216
+ import com.aetherium.client.FarTerrainFrame;
+-import net.minecraft.client.renderer.RenderType;
++import com.llamalad7.mixinextras.sugar.Local;
+ import org.joml.Matrix4f;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Inject;
+ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:t-far-draw-else m17
++// @era:t-far-draw-else s205
+ //~ import com.aetherium.client.FarTerrain;
+ //~ import com.aetherium.client.FarTerrainFrame;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.math.Matrix4f;
+ //~ import net.minecraft.client.renderer.RenderType;
++//~ import org.joml.Matrix4f;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:t-far-draw-else j193
++// @era:t-far-draw-else m17
+ //~ import com.aetherium.client.FarTerrain;
+ //~ import com.aetherium.client.FarTerrainFrame;
+ //~ import com.mojang.blaze3d.vertex.PoseStack;
++//~ import com.mojang.math.Matrix4f;
+ //~ import net.minecraft.client.renderer.RenderType;
+-//~ import org.joml.Matrix4f;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:t-far-draw-else g216
++// @era:t-far-draw-else j193
++//~ import com.aetherium.client.FarTerrain;
+ //~ import com.aetherium.client.FarTerrainFrame;
+-//~ import com.llamalad7.mixinextras.sugar.Local;
++//~ import com.mojang.blaze3d.vertex.PoseStack;
++//~ import net.minecraft.client.renderer.RenderType;
+ //~ import org.joml.Matrix4f;
+ //~ import org.spongepowered.asm.mixin.injection.At;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
+@@ -47,16 +47,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class TuningFarDrawMixin {
+-    // @era:t-far-draw-begin s205
+-    @Inject(method = "renderSectionLayer", at = @At("HEAD"), require = 0)
+-    private void aetherium$farTerrain(final RenderType layer, final double camX, final double camY, final double camZ,
+-                                      final Matrix4f modelView, final Matrix4f projection, final CallbackInfo ci) {
+-        if (layer == RenderType.solid()) {
+-            modelView.get(FarTerrainFrame.MODEL_VIEW);
+-            projection.get(FarTerrainFrame.PROJECTION);
+-            FarTerrain.draw(FarTerrainFrame.MODEL_VIEW, FarTerrainFrame.PROJECTION, camX, camY, camZ);
+-        }
++    // @era:t-far-draw-begin g216
++    @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
++    private void aetherium$farTerrainMatrices(final CallbackInfo ci,
++                                              @Local(ordinal = 0, argsOnly = true) final Matrix4f modelView,
++                                              @Local(ordinal = 1, argsOnly = true) final Matrix4f projection) {
++        modelView.get(FarTerrainFrame.MODEL_VIEW);
++        projection.get(FarTerrainFrame.PROJECTION);
++        FarTerrainFrame.captured();
+     }
++    // @era:t-far-draw-else s205
++    //~ @Inject(method = "renderSectionLayer", at = @At("HEAD"), require = 0)
++    //~ private void aetherium$farTerrain(final RenderType layer, final double camX, final double camY, final double camZ,
++                                      //~ final Matrix4f modelView, final Matrix4f projection, final CallbackInfo ci) {
++        //~ if (layer == RenderType.solid()) {
++            //~ modelView.get(FarTerrainFrame.MODEL_VIEW);
++            //~ projection.get(FarTerrainFrame.PROJECTION);
++            //~ FarTerrain.draw(FarTerrainFrame.MODEL_VIEW, FarTerrainFrame.PROJECTION, camX, camY, camZ);
++        //~ }
++    //~ }
+     // @era:t-far-draw-else m17
+     //~ @Inject(method = "renderChunkLayer", at = @At("HEAD"), require = 0)
+     //~ private void aetherium$farTerrain(final RenderType layer, final PoseStack poseStack, final double camX,
+@@ -79,15 +88,6 @@ public abstract class TuningFarDrawMixin {
+             //~ FarTerrain.draw(FarTerrainFrame.MODEL_VIEW, FarTerrainFrame.PROJECTION, camX, camY, camZ);
+         //~ }
+     //~ }
+-    // @era:t-far-draw-else g216
+-    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$farTerrainMatrices(final CallbackInfo ci,
+-                                              //~ @Local(ordinal = 0, argsOnly = true) final Matrix4f modelView,
+-                                              //~ @Local(ordinal = 1, argsOnly = true) final Matrix4f projection) {
+-        //~ modelView.get(FarTerrainFrame.MODEL_VIEW);
+-        //~ projection.get(FarTerrainFrame.PROJECTION);
+-        //~ FarTerrainFrame.captured();
+-    //~ }
+     // @era:t-far-draw-else v16|none
+     // @era:t-far-draw-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
 index efd19a7..1017bab 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
@@ -6801,7 +7028,7 @@ index f85e6e7..5c91b44 100644
  //~ }
  // @era:zoom-fov-else camera
 diff --git a/common/src/main/java/com/aetherium/perf/TuningSupport.java b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-index 30d1583..23d1af1 100644
+index ecdcbee..bd15eaf 100644
 --- a/common/src/main/java/com/aetherium/perf/TuningSupport.java
 +++ b/common/src/main/java/com/aetherium/perf/TuningSupport.java
 @@ -34,34 +34,34 @@ public final class TuningSupport {
@@ -6859,7 +7086,35 @@ index 30d1583..23d1af1 100644
      // @era:t-compile-queue-end
  
      // @era:t-chunk-save-begin c21|c214|c26|v16
-@@ -136,10 +136,10 @@ public final class TuningSupport {
+@@ -105,10 +105,10 @@ public final class TuningSupport {
+     //~ public static final boolean FAR_DRAW = false;
+     // @era:t-far-draw-end
+ 
+-    // @era:t-far-draw-begin v16
+-    //~ public static final boolean LEVEL_DRAWS_FAR = true;
+-    // @era:t-far-draw-else m17|j193|s205|g216|none
++    // @era:t-far-draw-begin m17|j193|s205|g216|none
+     public static final boolean LEVEL_DRAWS_FAR = false;
++    // @era:t-far-draw-else v16
++    //~ //~ public static final boolean LEVEL_DRAWS_FAR = true;
+     // @era:t-far-draw-end
+ 
+     // @era:t-far-group-begin g216
+@@ -117,10 +117,10 @@ public final class TuningSupport {
+     //~ public static final boolean FAR_GROUP = false;
+     // @era:t-far-group-end
+ 
+-    // @era:t-far-acc-begin v17
+-    //~ public static final boolean FAR_ACC = true;
+-    // @era:t-far-acc-else none
++    // @era:t-far-acc-begin none
+     public static final boolean FAR_ACC = false;
++    // @era:t-far-acc-else v17
++    //~ //~ public static final boolean FAR_ACC = true;
+     // @era:t-far-acc-end
+ 
+     // @era:t-flight-preload-begin f20|f215|f216|v16
+@@ -159,10 +159,10 @@ public final class TuningSupport {
      //~ public static final boolean GRASS_QUADS = false;
      // @era:t-grass-quads-end
  
@@ -6874,7 +7129,7 @@ index 30d1583..23d1af1 100644
      // @era:t-http-textureacc-end
  
      // @era:t-layers-begin l212|l219|v16
-@@ -166,10 +166,10 @@ public final class TuningSupport {
+@@ -189,10 +189,10 @@ public final class TuningSupport {
      //~ public static final boolean LEAVES = false;
      // @era:t-leaves-end
  
@@ -6889,7 +7144,7 @@ index 30d1583..23d1af1 100644
      // @era:t-level-end
  
      // @era:t-levelacc-begin none
-@@ -190,10 +190,10 @@ public final class TuningSupport {
+@@ -213,10 +213,10 @@ public final class TuningSupport {
      //~ public static final boolean LIGHTMAP = false;
      // @era:t-lightmap-end
  
@@ -6904,7 +7159,7 @@ index 30d1583..23d1af1 100644
      // @era:t-loading-end
  
      // @era:t-map-begin m212|v16
-@@ -262,10 +262,10 @@ public final class TuningSupport {
+@@ -285,10 +285,10 @@ public final class TuningSupport {
      //~ public static final boolean SIGN = false;
      // @era:t-sign-end
  
@@ -6919,7 +7174,7 @@ index 30d1583..23d1af1 100644
      // @era:t-skin-end
  
      // @era:t-skull-begin none
-@@ -280,10 +280,10 @@ public final class TuningSupport {
+@@ -303,10 +303,10 @@ public final class TuningSupport {
      //~ public static final boolean SKULL_LOOKUP = true;
      // @era:t-skull-lookup-end
  

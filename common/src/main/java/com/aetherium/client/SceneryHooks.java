@@ -89,7 +89,7 @@ public final class SceneryHooks {
      */
     private static boolean farFog(final Camera camera, final boolean thick) {
         return FarTerrain.fogEnd() > 0.0F && !thick && Scenery.distanceFog && camera != null
-                && medium(camera) == Scenery.AIR && !blinded(camera.getEntity());
+                && medium(camera) == Scenery.AIR && !blinded(ClientHooks.cameraEntity(camera));
     }
     // @era:fog-else gl
     //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
@@ -237,7 +237,7 @@ public final class SceneryHooks {
 
     /** Far terrain is not drawn under water, in lava or powder snow, or while blinded. */
     public static boolean farTerrainHidden(final Camera camera) {
-        return medium(camera) != Scenery.AIR || blinded(camera.getEntity());
+        return medium(camera) != Scenery.AIR || blinded(ClientHooks.cameraEntity(camera));
     }
 
     // ------------------------------------------------------------------ particles

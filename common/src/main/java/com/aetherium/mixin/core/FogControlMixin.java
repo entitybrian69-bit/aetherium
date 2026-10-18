@@ -73,7 +73,7 @@ public abstract class FogControlMixin {
                                        //~ final Vector4f color, final float envStart, final float envEnd,
                                        //~ final float rdStart, final float rdEnd, final float skyEnd,
                                        //~ final float cloudEnd, final Operation<Void> original) {
-        //~ final float[] fog = SceneryHooks.adjustFogBuffer(color.x(), color.y(), color.z(), envStart, envEnd,
+        //~ final float[] fog = SceneryHooks.adjustFogBuffer(color.x, color.y, color.z, envStart, envEnd,
                 //~ rdStart, rdEnd);
         //~ if (fog == null) {
             //~ original.call(self, buffer, offset, color, envStart, envEnd, rdStart, rdEnd, skyEnd, cloudEnd);
@@ -89,7 +89,7 @@ public abstract class FogControlMixin {
                                        //~ final Vector4f color, final float envStart, final float envEnd,
                                        //~ final float rdStart, final float rdEnd, final float skyEnd,
                                        //~ final float cloudEnd, final Operation<Void> original) {
-        //~ final float[] fog = SceneryHooks.adjustFogBuffer(color.x(), color.y(), color.z(), envStart, envEnd,
+        //~ final float[] fog = SceneryHooks.adjustFogBuffer(color.x, color.y, color.z, envStart, envEnd,
                 //~ rdStart, rdEnd);
         //~ if (fog == null) {
             //~ original.call(self, buffer, offset, color, envStart, envEnd, rdStart, rdEnd, skyEnd, cloudEnd);

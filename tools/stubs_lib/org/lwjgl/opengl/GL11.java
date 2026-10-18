@@ -23,4 +23,9 @@ public class GL11 {
     public static void glGetIntegerv(int pname, int[] params) { }
     public static void glEnable(int cap) { }
     public static void glDisable(int cap) { }
+    public static void glGetBooleanv(int pname, java.nio.ByteBuffer params) { }
+    public static void glDepthFunc(int func) { }
+    public static void glDepthMask(boolean flag) { }
+    public static void glColorMask(boolean red, boolean green, boolean blue, boolean alpha) { }
+    public static void glReadPixels(int x, int y, int width, int height, int format, int type, java.nio.ByteBuffer pixels) { }
 }

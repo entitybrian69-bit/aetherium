@@ -105,10 +105,10 @@ public final class TuningSupport {
     //~ public static final boolean FAR_DRAW = false;
     // @era:t-far-draw-end
 
-    // @era:t-far-draw-begin v16
-    //~ public static final boolean LEVEL_DRAWS_FAR = true;
-    // @era:t-far-draw-else m17|j193|s205|g216|none
+    // @era:t-far-draw-begin m17|j193|s205|g216|none
     public static final boolean LEVEL_DRAWS_FAR = false;
+    // @era:t-far-draw-else v16
+    //~ public static final boolean LEVEL_DRAWS_FAR = true;
     // @era:t-far-draw-end
 
     // @era:t-far-group-begin g216
@@ -117,10 +117,10 @@ public final class TuningSupport {
     //~ public static final boolean FAR_GROUP = false;
     // @era:t-far-group-end
 
-    // @era:t-far-acc-begin v17
-    //~ public static final boolean FAR_ACC = true;
-    // @era:t-far-acc-else none
+    // @era:t-far-acc-begin none
     public static final boolean FAR_ACC = false;
+    // @era:t-far-acc-else v17
+    //~ public static final boolean FAR_ACC = true;
     // @era:t-far-acc-end
 
     // @era:t-flight-preload-begin f20|f215|f216|v16

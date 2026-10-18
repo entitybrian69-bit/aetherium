@@ -21,7 +21,58 @@ neoforge_version=21.0.167
 
 ### Era transforms applied by the generated patch
 
-- none: this row's era facts equal the reference (pin-only delta)
+- `t-ao-cache=v16`
+- `t-autosave=s18`
+- `t-beam=v16`
+- `t-block-entity=b17`
+- `t-build-order=b202`
+- `t-chunk-save=c21`
+- `t-client=v16`
+- `t-clouds=none`
+- `t-color-filter=r17`
+- `t-compile-queue=none`
+- `t-crowd=c17`
+- `t-cull=c202`
+- `t-damage-tint=none`
+- `t-explosion=v16`
+- `t-far-acc=none`
+- `t-far-draw=s205`
+- `t-far-group=none`
+- `t-far-terrain=gl`
+- `t-flight-preload=f20`
+- `t-frame-item=f17`
+- `t-gl-state=g17`
+- `t-glint=g21`
+- `t-grass-quads=v16`
+- `t-grass=g19`
+- `t-http-textureacc=v16`
+- `t-layers=v16`
+- `t-lazy-data-fixers=none`
+- `t-leaf-cull=f17`
+- `t-leaves=v16`
+- `t-level=l202`
+- `t-levelacc=none`
+- `t-light=v16`
+- `t-lightmap=v16`
+- `t-loading=d194`
+- `t-map=v16`
+- `t-minecart=v16`
+- `t-name-tag=n17`
+- `t-ocean-floor=o17`
+- `t-portal=p21`
+- `t-server-idle=v16`
+- `t-server-light=none`
+- `t-shadow=s17`
+- `t-sign=s20`
+- `t-skin=v16`
+- `t-skull-lookup=none`
+- `t-skull=none`
+- `t-sky=e21`
+- `t-sort=none`
+- `t-view-areaacc=none`
+- `t-weather=none`
+- `t-world-cache=r17`
+- `t-world=w21`
 
 ### Where the per-version Java comes from
 
@@ -49,6 +100,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.txt
 ## Files the generated patch touches
 
 - `gradle.properties`
+- `common/src/main/java/com/aetherium/mixin/core/TuningFarGroupMixin.java`
+- `common/src/main/java/com/aetherium/perf/TuningSupport.java`
 
 ## Verifying this row before shipping it
 

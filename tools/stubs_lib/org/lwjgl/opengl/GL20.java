@@ -24,6 +24,7 @@ public class GL20 {
     public static void glUniform3f(int location, float v0, float v1, float v2) { }
     public static void glUniform4f(int location, float v0, float v1, float v2, float v3) { }
     public static void glUniformMatrix4fv(int location, boolean transpose, FloatBuffer value) { }
+    public static void glUniformMatrix4fv(int location, boolean transpose, float[] value) { }
     public static void glEnableVertexAttribArray(int index) { }
     public static void glDisableVertexAttribArray(int index) { }
     public static void glVertexAttribPointer(int index, int size, int type, boolean normalized, int stride, long pointer) { }

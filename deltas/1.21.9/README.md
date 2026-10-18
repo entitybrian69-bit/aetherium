@@ -79,7 +79,13 @@ neoforge_version=21.9.16-beta
 - `t-cull=c215`
 - `t-damage-tint=none`
 - `t-explosion=x212`
-- `t-far-terrain=none`
+- `t-far-acc=none`
+- `t-far-color=map`
+- `t-far-draw=g216`
+- `t-far-gl=gl215`
+- `t-far-group=g216`
+- `t-far-sections=section`
+- `t-far-terrain=gl`
 - `t-flight-preload=f216`
 - `t-frame-item=f212`
 - `t-gl-state=g215`
@@ -150,6 +156,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.9.t
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
 - `common/src/main/java/com/aetherium/client/CoalesceHooks.java`
+- `common/src/main/java/com/aetherium/client/FarTerrainBridge.java`
 - `common/src/main/java/com/aetherium/client/FlightPreload.java`
 - `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
@@ -197,6 +204,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.9.t
 - `common/src/main/java/com/aetherium/mixin/core/TuningCompileQueueMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java`

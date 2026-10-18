@@ -224,6 +224,7 @@ ERAS = {
     "clouds": [("level", "..1.21.1"), ("renderer", "1.21.2..")],
     "block-particles": [("engine", "..1.21.8"), ("level", "1.21.9..")],
     "registry": [("static", "..1.19.2"), ("builtin", "1.19.3..")],
+    "camera-entity": [("getter", "..1.21.10"), ("record", "1.21.11..")],
     "camera-get": [("getter", "..26.1"), ("record", "26.2..")],
     "mesh-exec": [("crd", "..1.20.1"), ("srd", "1.20.2..1.21.1"), ("tracing", "1.21.2..")],
     # vanilla allocates a BitSet per block and a MutableBlockPos per AO face up to 1.21.4 only.
