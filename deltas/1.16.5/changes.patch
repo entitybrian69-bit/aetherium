@@ -2424,6 +2424,173 @@ index 33b0e53..0e6e7db 100644
              // @era:rot-end
              restoreCamera = null;
              forcedCamera = null;
+diff --git a/common/src/main/java/com/aetherium/client/GrassQuads.java b/common/src/main/java/com/aetherium/client/GrassQuads.java
+index 48e7942..e69e913 100644
+--- a/common/src/main/java/com/aetherium/client/GrassQuads.java
++++ b/common/src/main/java/com/aetherium/client/GrassQuads.java
+@@ -1,14 +1,14 @@
+ package com.aetherium.client;
+ 
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import java.util.ArrayList;
+-//~ import java.util.List;
+-//~ import net.minecraft.client.renderer.block.model.BakedQuad;
+-//~ import net.minecraft.core.Direction;
+-//~ import net.minecraft.world.level.block.Blocks;
+-//~ import net.minecraft.world.level.block.state.BlockState;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import java.util.ArrayList;
++import java.util.List;
++import net.minecraft.client.renderer.block.model.BakedQuad;
++import net.minecraft.core.Direction;
++import net.minecraft.world.level.block.Blocks;
++import net.minecraft.world.level.block.state.BlockState;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -28,74 +28,74 @@ public final class GrassQuads {
+     private GrassQuads() {
+     }
+ 
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ private static final int MAX_PAIRS = 64;
++    // @era:qol16-begin v16
++    private static final int MAX_PAIRS = 64;
+ 
+-    //~ /** Alternating source list, filtered list. Replaced as a whole, never mutated. */
+-    //~ private static volatile Object[] cache = new Object[0];
++    /** Alternating source list, filtered list. Replaced as a whole, never mutated. */
++    private static volatile Object[] cache = new Object[0];
+ 
+-    //~ /** The quads to draw for one face of a block: {@code quads} itself unless fast grass applies. */
+-    //~ public static List<BakedQuad> filter(final List<BakedQuad> quads, final BlockState state, final Direction side) {
+-        //~ if (!Tuning.fastGrass || side == null || side == Direction.UP || side == Direction.DOWN || quads.isEmpty()
+-                //~ || state.getBlock() != Blocks.GRASS_BLOCK) {
+-            //~ return quads;
+-        //~ }
+-        //~ final Object[] pairs = cache;
+-        //~ for (int i = 0; i < pairs.length; i += 2) {
+-            //~ if (pairs[i] == quads) {
+-                //~ @SuppressWarnings("unchecked")
+-                //~ final List<BakedQuad> hit = (List<BakedQuad>) pairs[i + 1];
+-                //~ return hit;
+-            //~ }
+-        //~ }
+-        //~ final List<BakedQuad> result = untinted(quads);
+-        //~ remember(quads, result);
+-        //~ return result;
+-    //~ }
++    /** The quads to draw for one face of a block: {@code quads} itself unless fast grass applies. */
++    public static List<BakedQuad> filter(final List<BakedQuad> quads, final BlockState state, final Direction side) {
++        if (!Tuning.fastGrass || side == null || side == Direction.UP || side == Direction.DOWN || quads.isEmpty()
++                || state.getBlock() != Blocks.GRASS_BLOCK) {
++            return quads;
++        }
++        final Object[] pairs = cache;
++        for (int i = 0; i < pairs.length; i += 2) {
++            if (pairs[i] == quads) {
++                @SuppressWarnings("unchecked")
++                final List<BakedQuad> hit = (List<BakedQuad>) pairs[i + 1];
++                return hit;
++            }
++        }
++        final List<BakedQuad> result = untinted(quads);
++        remember(quads, result);
++        return result;
++    }
+ 
+-    //~ /** The untinted quads, or {@code quads} itself when none or all of them are tinted. */
+-    //~ private static List<BakedQuad> untinted(final List<BakedQuad> quads) {
+-        //~ int tinted = 0;
+-        //~ for (int i = 0; i < quads.size(); i++) {
+-            //~ if (quads.get(i).isTinted()) {
+-                //~ tinted++;
+-            //~ }
+-        //~ }
+-        //~ if (tinted == 0 || tinted == quads.size()) {
+-            //~ return quads;
+-        //~ }
+-        //~ final List<BakedQuad> kept = new ArrayList<>(quads.size() - tinted);
+-        //~ for (int i = 0; i < quads.size(); i++) {
+-            //~ if (!quads.get(i).isTinted()) {
+-                //~ kept.add(quads.get(i));
+-            //~ }
+-        //~ }
+-        //~ return kept;
+-    //~ }
++    /** The untinted quads, or {@code quads} itself when none or all of them are tinted. */
++    private static List<BakedQuad> untinted(final List<BakedQuad> quads) {
++        int tinted = 0;
++        for (int i = 0; i < quads.size(); i++) {
++            if (quads.get(i).isTinted()) {
++                tinted++;
++            }
++        }
++        if (tinted == 0 || tinted == quads.size()) {
++            return quads;
++        }
++        final List<BakedQuad> kept = new ArrayList<>(quads.size() - tinted);
++        for (int i = 0; i < quads.size(); i++) {
++            if (!quads.get(i).isTinted()) {
++                kept.add(quads.get(i));
++            }
++        }
++        return kept;
++    }
+ 
+-    //~ private static synchronized void remember(final Object source, final Object filtered) {
+-        //~ final Object[] old = cache;
+-        //~ for (int i = 0; i < old.length; i += 2) {
+-            //~ if (old[i] == source) {
+-                //~ return;
+-            //~ }
+-        //~ }
+-        //~ final Object[] next;
+-        //~ if (old.length >= MAX_PAIRS * 2) {
+-            //~ next = new Object[] {source, filtered}; // a resource reload left stale lists: start over
+-        //~ } else {
+-            //~ next = new Object[old.length + 2];
+-            //~ System.arraycopy(old, 0, next, 0, old.length);
+-            //~ next[old.length] = source;
+-            //~ next[old.length + 1] = filtered;
+-        //~ }
+-        //~ cache = next;
+-    //~ }
++    private static synchronized void remember(final Object source, final Object filtered) {
++        final Object[] old = cache;
++        for (int i = 0; i < old.length; i += 2) {
++            if (old[i] == source) {
++                return;
++            }
++        }
++        final Object[] next;
++        if (old.length >= MAX_PAIRS * 2) {
++            next = new Object[] {source, filtered}; // a resource reload left stale lists: start over
++        } else {
++            next = new Object[old.length + 2];
++            System.arraycopy(old, 0, next, 0, old.length);
++            next[old.length] = source;
++            next[old.length + 1] = filtered;
++        }
++        cache = next;
++    }
+ 
+-    //~ /** Forgets every cached list (resource reload or tests). */
+-    //~ public static void clear() {
+-        //~ cache = new Object[0];
+-    //~ }
++    /** Forgets every cached list (resource reload or tests). */
++    public static void clear() {
++        cache = new Object[0];
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/client/McCanvas.java b/common/src/main/java/com/aetherium/client/McCanvas.java
 index afb236d..ffe04fe 100644
 --- a/common/src/main/java/com/aetherium/client/McCanvas.java
@@ -2575,6 +2742,191 @@ index afb236d..ffe04fe 100644
      //~ }
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
+diff --git a/common/src/main/java/com/aetherium/client/OceanFloor.java b/common/src/main/java/com/aetherium/client/OceanFloor.java
+index abb0374..3d23540 100644
+--- a/common/src/main/java/com/aetherium/client/OceanFloor.java
++++ b/common/src/main/java/com/aetherium/client/OceanFloor.java
+@@ -1,18 +1,18 @@
+ package com.aetherium.client;
+ 
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.multiplayer.ClientLevel;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.tags.FluidTags;
+-//~ import net.minecraft.tags.Tag;
+-//~ import net.minecraft.world.level.material.Fluid;
+-//~ import net.minecraft.world.level.ChunkPos;
+-//~ import net.minecraft.world.level.chunk.LevelChunk;
+-//~ import net.minecraft.world.level.levelgen.Heightmap;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
++import net.minecraft.client.Camera;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.core.BlockPos;
++import net.minecraft.tags.FluidTags;
++import net.minecraft.tags.Tag;
++import net.minecraft.world.level.material.Fluid;
++import net.minecraft.world.level.ChunkPos;
++import net.minecraft.world.level.chunk.LevelChunk;
++import net.minecraft.world.level.levelgen.Heightmap;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -30,80 +30,80 @@ public final class OceanFloor {
+     private OceanFloor() {
+     }
+ 
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ private static final int NOT_OCEAN = Integer.MIN_VALUE;
+-    //~ private static final int MARGIN = 8;
+-    //~ private static final int MAX_CHUNKS = 65536;
+-    //~ private static final Long2IntLinkedOpenHashMap FLOOR = new Long2IntLinkedOpenHashMap();
+-    //~ /** This frame: option on, camera above the sea surface and not inside a fluid. */
+-    //~ private static boolean active;
++    // @era:qol16-begin v16
++    private static final int NOT_OCEAN = Integer.MIN_VALUE;
++    private static final int MARGIN = 8;
++    private static final int MAX_CHUNKS = 65536;
++    private static final Long2IntLinkedOpenHashMap FLOOR = new Long2IntLinkedOpenHashMap();
++    /** This frame: option on, camera above the sea surface and not inside a fluid. */
++    private static boolean active;
+ 
+-    //~ /** {@code Tag.Named} extends {@code Tag}; widened once, as {@code FluidState.is} takes a {@code Tag}. */
+-    //~ private static final Tag<Fluid> WATER = fluidTag(FluidTags.WATER);
++    /** {@code Tag.Named} extends {@code Tag}; widened once, as {@code FluidState.is} takes a {@code Tag}. */
++    private static final Tag<Fluid> WATER = fluidTag(FluidTags.WATER);
+ 
+-    //~ @SuppressWarnings("unchecked")
+-    //~ private static Tag<Fluid> fluidTag(final Object named) {
+-        //~ return (Tag<Fluid>) named;
+-    //~ }
++    @SuppressWarnings("unchecked")
++    private static Tag<Fluid> fluidTag(final Object named) {
++        return (Tag<Fluid>) named;
++    }
+ 
+-    //~ /** A chunk arrived from the server (ClientChunkCache.replaceWithPacketData). */
+-    //~ public static void capture(final LevelChunk chunk) {
+-        //~ if (chunk == null || !Tuning.oceanFloorCulling) {
+-            //~ return;
+-        //~ }
+-        //~ final ChunkPos pos = chunk.getPos();
+-        //~ final long key = ChunkPos.asLong(pos.x, pos.z);
+-        //~ if (FLOOR.size() >= MAX_CHUNKS) {
+-            //~ FLOOR.clear();
+-        //~ }
+-        //~ try {
+-            //~ int floor = Integer.MAX_VALUE;
+-            //~ for (int x = 2; x < 16; x += 4) {
+-                //~ for (int z = 2; z < 16; z += 4) {
+-                    //~ final int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+-                    //~ // getHeight is the top block on some versions and the free block above it on
+-                    //~ // others: accept water at either.
+-                    //~ int y = water(chunk, x, top, z) ? top : top - 1;
+-                    //~ if (!water(chunk, x, y, z)) {
+-                        //~ FLOOR.remove(key);
+-                        //~ return;
+-                    //~ }
+-                    //~ while (y > 0 && water(chunk, x, y, z)) {
+-                        //~ y--;
+-                    //~ }
+-                    //~ floor = Math.min(floor, y);
+-                //~ }
+-            //~ }
+-            //~ FLOOR.put(key, floor);
+-        //~ } catch (final RuntimeException e) {
+-            //~ FLOOR.remove(key); // missing heightmap or section: simply not culled
+-        //~ }
+-    //~ }
++    /** A chunk arrived from the server (ClientChunkCache.replaceWithPacketData). */
++    public static void capture(final LevelChunk chunk) {
++        if (chunk == null || !Tuning.oceanFloorCulling) {
++            return;
++        }
++        final ChunkPos pos = chunk.getPos();
++        final long key = ChunkPos.asLong(pos.x, pos.z);
++        if (FLOOR.size() >= MAX_CHUNKS) {
++            FLOOR.clear();
++        }
++        try {
++            int floor = Integer.MAX_VALUE;
++            for (int x = 2; x < 16; x += 4) {
++                for (int z = 2; z < 16; z += 4) {
++                    final int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
++                    // getHeight is the top block on some versions and the free block above it on
++                    // others: accept water at either.
++                    int y = water(chunk, x, top, z) ? top : top - 1;
++                    if (!water(chunk, x, y, z)) {
++                        FLOOR.remove(key);
++                        return;
++                    }
++                    while (y > 0 && water(chunk, x, y, z)) {
++                        y--;
++                    }
++                    floor = Math.min(floor, y);
++                }
++            }
++            FLOOR.put(key, floor);
++        } catch (final RuntimeException e) {
++            FLOOR.remove(key); // missing heightmap or section: simply not culled
++        }
++    }
+ 
+-    //~ private static boolean water(final LevelChunk chunk, final int x, final int y, final int z) {
+-        //~ return y >= 0 && y < 256 && chunk.getFluidState(x, y, z).is(WATER);
+-    //~ }
++    private static boolean water(final LevelChunk chunk, final int x, final int y, final int z) {
++        return y >= 0 && y < 256 && chunk.getFluidState(x, y, z).is(WATER);
++    }
+ 
+-    //~ /** Once per frame, before the visibility search (LevelRenderer.renderLevel HEAD). */
+-    //~ public static void frame(final ClientLevel level, final Camera camera) {
+-        //~ active = Tuning.oceanFloorCulling && level != null && camera != null && !FLOOR.isEmpty()
+-                //~ && camera.getPosition().y > level.getSeaLevel() + 1
+-                //~ && camera.getFluidInCamera().isEmpty();
+-    //~ }
++    /** Once per frame, before the visibility search (LevelRenderer.renderLevel HEAD). */
++    public static void frame(final ClientLevel level, final Camera camera) {
++        active = Tuning.oceanFloorCulling && level != null && camera != null && !FLOOR.isEmpty()
++                && camera.getPosition().y > level.getSeaLevel() + 1
++                && camera.getFluidInCamera().isEmpty();
++    }
+ 
+-    //~ /** True when the section at this origin lies entirely below an ocean floor (minus the margin). */
+-    //~ public static boolean below(final BlockPos origin) {
+-        //~ if (!active) {
+-            //~ return false;
+-        //~ }
+-        //~ final int floor = FLOOR.getOrDefault(ChunkPos.asLong(origin.getX() >> 4, origin.getZ() >> 4), NOT_OCEAN);
+-        //~ return floor != NOT_OCEAN && origin.getY() + 16 <= floor - MARGIN;
+-    //~ }
++    /** True when the section at this origin lies entirely below an ocean floor (minus the margin). */
++    public static boolean below(final BlockPos origin) {
++        if (!active) {
++            return false;
++        }
++        final int floor = FLOOR.getOrDefault(ChunkPos.asLong(origin.getX() >> 4, origin.getZ() >> 4), NOT_OCEAN);
++        return floor != NOT_OCEAN && origin.getY() + 16 <= floor - MARGIN;
++    }
+ 
+-    //~ public static void levelChanged() {
+-        //~ FLOOR.clear();
+-        //~ active = false;
+-    //~ }
++    public static void levelChanged() {
++        FLOOR.clear();
++        active = false;
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
 index 7f92c9e..626efa3 100644
 --- a/common/src/main/java/com/aetherium/client/QolHooks.java
@@ -3211,10 +3563,10 @@ index 1484fb6..e0a2b5b 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/TuningClient.java b/common/src/main/java/com/aetherium/client/TuningClient.java
-index 63f0e68..22e4c94 100644
+index 8d3f4c2..5ed87fd 100644
 --- a/common/src/main/java/com/aetherium/client/TuningClient.java
 +++ b/common/src/main/java/com/aetherium/client/TuningClient.java
-@@ -3,23 +3,23 @@ package com.aetherium.client;
+@@ -3,25 +3,25 @@ package com.aetherium.client;
  import com.aetherium.perf.Tuning;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.screens.Screen;
@@ -3232,7 +3584,9 @@ index 63f0e68..22e4c94 100644
 -//~ import net.minecraft.core.SectionPos;
 -//~ import net.minecraft.world.entity.Entity;
 -//~ import net.minecraft.world.level.BlockGetter;
+-//~ import net.minecraft.world.level.block.Blocks;
 -//~ import net.minecraft.world.level.block.LeavesBlock;
+-//~ import net.minecraft.world.level.block.PipeBlock;
 -//~ import net.minecraft.world.level.block.state.BlockState;
 -//~ import org.lwjgl.glfw.GLFW;
 +// @era:qol16-begin v16
@@ -3248,14 +3602,16 @@ index 63f0e68..22e4c94 100644
 +import net.minecraft.core.SectionPos;
 +import net.minecraft.world.entity.Entity;
 +import net.minecraft.world.level.BlockGetter;
++import net.minecraft.world.level.block.Blocks;
 +import net.minecraft.world.level.block.LeavesBlock;
++import net.minecraft.world.level.block.PipeBlock;
 +import net.minecraft.world.level.block.state.BlockState;
 +import org.lwjgl.glfw.GLFW;
 +// @era:qol16-else none
  // @era:qol16-end
  
  /**
-@@ -42,158 +42,158 @@ public final class TuningClient {
+@@ -44,179 +44,179 @@ public final class TuningClient {
      private TuningClient() {
      }
  
@@ -3267,6 +3623,8 @@ index 63f0e68..22e4c94 100644
 +    private static boolean gcPending;
 +    private static int lightTicks;
 +    private static int lastLeaves = -1;
++    /** Mesh-affecting switches as bits (leaves excluded): fast grass, End chorus culling. */
++    private static int lastMesh = -1;
 +
 +    /**
 +     * The frame-rate cap these options want right now (0 = none). Read on the client tick, so it
@@ -3364,15 +3722,19 @@ index 63f0e68..22e4c94 100644
 +        lightTicks = 0;
 +        FarTerrain.levelChanged();
 +        WorldCache.levelChanged();
++        OceanFloor.levelChanged();
      }
  
 +    /** After Apply: a leaves mode change needs the chunks rebuilt with the new render type. */
      public static void configured(final Minecraft mc) {
 +        final int leaves = Tuning.leaves;
-+        if (lastLeaves != -1 && leaves != lastLeaves && mc.levelRenderer != null && mc.level != null) {
++        final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
++        final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
++        if (changed && mc.levelRenderer != null && mc.level != null) {
 +            mc.levelRenderer.allChanged();
 +        }
 +        lastLeaves = leaves;
++        lastMesh = mesh;
 +    }
 +
 +    /**
@@ -3393,6 +3755,21 @@ index 63f0e68..22e4c94 100644
 +        return beyond.getBlock() instanceof LeavesBlock || beyond.canOcclude();
 +    }
 +
++    /**
++     * Chorus culling (End optimizations, 1.12.0): whether the {@code side} face of a chorus plant
++     * stem is the end cap of an arm joined to the next chorus plant's arm, which is buried inside
++     * the joint. Chunk build threads.
++     */
++    public static boolean chorusFaceHidden(final BlockState state, final BlockGetter level, final BlockPos pos,
++                                           final Direction side) {
++        if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side))) {
++            return false;
++        }
++        final BlockState next = level.getBlockState(pos.relative(side));
++        return next.getBlock() == Blocks.CHORUS_PLANT
++                && next.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side.getOpposite()));
++    }
++
 +    /** Squared distance from the camera to an entity (render thread). */
 +    public static double distanceToCamera(final Entity entity) {
 +        return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
@@ -3404,6 +3781,8 @@ index 63f0e68..22e4c94 100644
 -    //~ private static boolean gcPending;
 -    //~ private static int lightTicks;
 -    //~ private static int lastLeaves = -1;
+-    //~ /** Mesh-affecting switches as bits (leaves excluded): fast grass, End chorus culling. */
+-    //~ private static int lastMesh = -1;
 -
 -    //~ /**
 -     //~ * The frame-rate cap these options want right now (0 = none). Read on the client tick, so it
@@ -3502,15 +3881,19 @@ index 63f0e68..22e4c94 100644
 -        //~ lightTicks = 0;
 -        //~ FarTerrain.levelChanged();
 -        //~ WorldCache.levelChanged();
+-        //~ OceanFloor.levelChanged();
      //~ }
  
 -    //~ /** After Apply: a leaves mode change needs the chunks rebuilt with the new render type. */
      //~ public static void configured(final Minecraft mc) {
 -        //~ final int leaves = Tuning.leaves;
--        //~ if (lastLeaves != -1 && leaves != lastLeaves && mc.levelRenderer != null && mc.level != null) {
+-        //~ final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
+-        //~ final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
+-        //~ if (changed && mc.levelRenderer != null && mc.level != null) {
 -            //~ mc.levelRenderer.allChanged();
 -        //~ }
 -        //~ lastLeaves = leaves;
+-        //~ lastMesh = mesh;
 -    //~ }
 -
 -    //~ /**
@@ -3529,6 +3912,21 @@ index 63f0e68..22e4c94 100644
 -        //~ }
 -        //~ final BlockState beyond = level.getBlockState(next.relative(side));
 -        //~ return beyond.getBlock() instanceof LeavesBlock || beyond.canOcclude();
+-    //~ }
+-
+-    //~ /**
+-     //~ * Chorus culling (End optimizations, 1.12.0): whether the {@code side} face of a chorus plant
+-     //~ * stem is the end cap of an arm joined to the next chorus plant's arm, which is buried inside
+-     //~ * the joint. Chunk build threads.
+-     //~ */
+-    //~ public static boolean chorusFaceHidden(final BlockState state, final BlockGetter level, final BlockPos pos,
+-                                           //~ final Direction side) {
+-        //~ if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side))) {
+-            //~ return false;
+-        //~ }
+-        //~ final BlockState next = level.getBlockState(pos.relative(side));
+-        //~ return next.getBlock() == Blocks.CHORUS_PLANT
+-                //~ && next.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side.getOpposite()));
 -    //~ }
 -
 -    //~ /** Squared distance from the camera to an entity (render thread). */
@@ -8587,6 +8985,80 @@ index 6e0fd24..3cd130b 100644
      // @era:atlas-tick-else tickable
      //~ @Shadow
      //~ @Final
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningAoCacheMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningAoCacheMixin.java
+index 7ed1433..42f0571 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningAoCacheMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningAoCacheMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
+-//~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
++import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -24,28 +24,28 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer$Cache")
+ public abstract class TuningAoCacheMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ private static final int VANILLA = 100;
+-    //~ private static final int LIMIT = 320;
++    // @era:qol16-begin v16
++    private static final int VANILLA = 100;
++    private static final int LIMIT = 320;
+ 
+-    //~ private static int aetherium$full(final int size) {
+-        //~ if (Tuning.aoCache) {
+-            //~ return size >= LIMIT ? VANILLA : -1;
+-        //~ }
+-        //~ return size >= VANILLA ? VANILLA : size;
+-    //~ }
++    private static int aetherium$full(final int size) {
++        if (Tuning.aoCache) {
++            return size >= LIMIT ? VANILLA : -1;
++        }
++        return size >= VANILLA ? VANILLA : size;
++    }
+ 
+-    //~ @Redirect(method = "getLightColor", at = @At(value = "INVOKE",
+-            //~ target = "Lit/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap;size()I"), require = 0)
+-    //~ private int aetherium$colorSize(final Long2IntLinkedOpenHashMap map) {
+-        //~ return aetherium$full(map.size());
+-    //~ }
++    @Redirect(method = "getLightColor", at = @At(value = "INVOKE",
++            target = "Lit/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap;size()I"), require = 0)
++    private int aetherium$colorSize(final Long2IntLinkedOpenHashMap map) {
++        return aetherium$full(map.size());
++    }
+ 
+-    //~ @Redirect(method = "getShadeBrightness", at = @At(value = "INVOKE",
+-            //~ target = "Lit/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap;size()I"), require = 0)
+-    //~ private int aetherium$brightnessSize(final Long2FloatLinkedOpenHashMap map) {
+-        //~ return aetherium$full(map.size());
+-    //~ }
++    @Redirect(method = "getShadeBrightness", at = @At(value = "INVOKE",
++            target = "Lit/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap;size()I"), require = 0)
++    private int aetherium$brightnessSize(final Long2FloatLinkedOpenHashMap map) {
++        return aetherium$full(map.size());
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java
 index 2f280f3..45769fd 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java
@@ -8772,6 +9244,85 @@ index 2b32642..1833202 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java
+index 49b9b2b..daf9dcb 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java
+@@ -1,17 +1,17 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.mojang.math.Vector3f;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.world.phys.AABB;
+-//~ import net.minecraft.world.phys.Vec3;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import com.mojang.math.Vector3f;
++import net.minecraft.client.Camera;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.world.phys.AABB;
++import net.minecraft.world.phys.Vec3;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -23,25 +23,25 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk")
+ public abstract class TuningBuildOrderMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Redirect(method = "createCompileTask", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;getDistToPlayerSqr()D"),
+-            //~ require = 0)
+-    //~ private double aetherium$priority(final ChunkRenderDispatcher.RenderChunk self) {
+-        //~ final Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+-        //~ final Vec3 eye = camera.getPosition();
+-        //~ final AABB bb = self.bb;
+-        //~ final double dx = bb.minX + 8.0 - eye.x;
+-        //~ final double dy = bb.minY + 8.0 - eye.y;
+-        //~ final double dz = bb.minZ + 8.0 - eye.z;
+-        //~ final double distSq = dx * dx + dy * dy + dz * dz;
+-        //~ if (!Tuning.viewFirstBuilding || distSq <= 24.0 * 24.0) {
+-            //~ return distSq;
+-        //~ }
+-        //~ final Vector3f look = camera.getLookVector();
+-        //~ final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
+-        //~ return distSq * (1.0 + 0.75 * (1.0 - cos));
+-    //~ }
++    // @era:qol16-begin v16
++    @Redirect(method = "createCompileTask", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;getDistToPlayerSqr()D"),
++            require = 0)
++    private double aetherium$priority(final ChunkRenderDispatcher.RenderChunk self) {
++        final Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
++        final Vec3 eye = camera.getPosition();
++        final AABB bb = self.bb;
++        final double dx = bb.minX + 8.0 - eye.x;
++        final double dy = bb.minY + 8.0 - eye.y;
++        final double dz = bb.minZ + 8.0 - eye.z;
++        final double distSq = dx * dx + dy * dy + dz * dz;
++        if (!Tuning.viewFirstBuilding || distSq <= 24.0 * 24.0) {
++            return distSq;
++        }
++        final Vector3f look = camera.getLookVector();
++        final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
++        return distSq * (1.0 + 0.75 * (1.0 - cos));
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
 index 43bfb4b..9412989 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
@@ -8942,6 +9493,118 @@ index 43bfb4b..9412989 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
+index 22eaeeb..7cbc009 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
+@@ -1,16 +1,16 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.OceanFloor;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.client.renderer.LevelRenderer;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.core.Direction;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.client.OceanFloor;
++import com.aetherium.perf.Tuning;
++import net.minecraft.client.renderer.LevelRenderer;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Direction;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -31,43 +31,43 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class TuningCullMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Redirect(method = "setupRender", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;getRelativeFrom(Lnet/minecraft/core/BlockPos;Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;Lnet/minecraft/core/Direction;)Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;"),
+-            //~ require = 0)
+-    //~ private ChunkRenderDispatcher.RenderChunk aetherium$neighbour(final LevelRenderer self, final BlockPos camera,
+-                                                                  //~ final ChunkRenderDispatcher.RenderChunk from,
+-                                                                  //~ final Direction direction) {
+-        //~ if (Tuning.directionalCulling && towardsCamera(camera, from.getOrigin(), direction)) {
+-            //~ return null;
+-        //~ }
+-        //~ final ChunkRenderDispatcher.RenderChunk next =
+-                //~ ((TuningLevelAccessor) (Object) self).aetherium$relativeFrom(camera, from, direction);
+-        //~ if (next != null && OceanFloor.below(next.getOrigin())) {
+-            //~ return null;
+-        //~ }
+-        //~ return next;
+-    //~ }
++    // @era:qol16-begin v16
++    @Redirect(method = "setupRender", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/LevelRenderer;getRelativeFrom(Lnet/minecraft/core/BlockPos;Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;Lnet/minecraft/core/Direction;)Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;"),
++            require = 0)
++    private ChunkRenderDispatcher.RenderChunk aetherium$neighbour(final LevelRenderer self, final BlockPos camera,
++                                                                  final ChunkRenderDispatcher.RenderChunk from,
++                                                                  final Direction direction) {
++        if (Tuning.directionalCulling && towardsCamera(camera, from.getOrigin(), direction)) {
++            return null;
++        }
++        final ChunkRenderDispatcher.RenderChunk next =
++                ((TuningLevelAccessor) (Object) self).aetherium$relativeFrom(camera, from, direction);
++        if (next != null && OceanFloor.below(next.getOrigin())) {
++            return null;
++        }
++        return next;
++    }
+ 
+-    //~ /** True when stepping from the section at {@code origin} in {@code direction} moves back towards the camera's section. */
+-    //~ private static boolean towardsCamera(final BlockPos camera, final BlockPos origin, final Direction direction) {
+-        //~ final int sx = direction.getStepX();
+-        //~ if (sx != 0) {
+-            //~ final int from = origin.getX() >> 4;
+-            //~ final int cam = camera.getX() >> 4;
+-            //~ return sx > 0 ? from < cam : from > cam;
+-        //~ }
+-        //~ final int sy = direction.getStepY();
+-        //~ if (sy != 0) {
+-            //~ final int from = origin.getY() >> 4;
+-            //~ final int cam = camera.getY() >> 4;
+-            //~ return sy > 0 ? from < cam : from > cam;
+-        //~ }
+-        //~ final int sz = direction.getStepZ();
+-        //~ final int from = origin.getZ() >> 4;
+-        //~ final int cam = camera.getZ() >> 4;
+-        //~ return sz > 0 ? from < cam : from > cam;
+-    //~ }
++    /** True when stepping from the section at {@code origin} in {@code direction} moves back towards the camera's section. */
++    private static boolean towardsCamera(final BlockPos camera, final BlockPos origin, final Direction direction) {
++        final int sx = direction.getStepX();
++        if (sx != 0) {
++            final int from = origin.getX() >> 4;
++            final int cam = camera.getX() >> 4;
++            return sx > 0 ? from < cam : from > cam;
++        }
++        final int sy = direction.getStepY();
++        if (sy != 0) {
++            final int from = origin.getY() >> 4;
++            final int cam = camera.getY() >> 4;
++            return sy > 0 ? from < cam : from > cam;
++        }
++        final int sz = direction.getStepZ();
++        final int from = origin.getZ() >> 4;
++        final int cam = camera.getZ() >> 4;
++        return sz > 0 ? from < cam : from > cam;
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java
 index e4da167..d466c73 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java
@@ -9064,6 +9727,288 @@ index 8e1e04d..5a3f1f7 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
+index 42a0976..8876a89 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
+@@ -1,20 +1,20 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.RenderMods;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.mojang.blaze3d.platform.GlStateManager;
+-//~ import org.lwjgl.opengl.ARBFramebufferObject;
+-//~ import org.lwjgl.opengl.EXTFramebufferObject;
+-//~ import org.lwjgl.opengl.GL11;
+-//~ import org.lwjgl.opengl.GL30;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.perf.RenderMods;
++import com.aetherium.perf.Tuning;
++import com.mojang.blaze3d.platform.GlStateManager;
++import org.lwjgl.opengl.ARBFramebufferObject;
++import org.lwjgl.opengl.EXTFramebufferObject;
++import org.lwjgl.opengl.GL11;
++import org.lwjgl.opengl.GL30;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -39,130 +39,130 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
+ public abstract class TuningGlStateMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ private static final int GL_FRAMEBUFFER = 36160;
+-    //~ private static final int GL_VERTEX_ARRAY = 32884;
+-    //~ private static final int GL_NORMAL_ARRAY = 32885;
+-    //~ private static final int GL_COLOR_ARRAY = 32886;
++    // @era:qol16-begin v16
++    private static final int GL_FRAMEBUFFER = 36160;
++    private static final int GL_VERTEX_ARRAY = 32884;
++    private static final int GL_NORMAL_ARRAY = 32885;
++    private static final int GL_COLOR_ARRAY = 32886;
+ 
+-    //~ /** Bound GL_FRAMEBUFFER, or -1 when unknown. */
+-    //~ @Unique
+-    //~ private static int aetherium$fbo = -1;
+-    //~ @Unique
+-    //~ private static boolean aetherium$viewportKnown;
+-    //~ @Unique
+-    //~ private static int aetherium$vx;
+-    //~ @Unique
+-    //~ private static int aetherium$vy;
+-    //~ @Unique
+-    //~ private static int aetherium$vw;
+-    //~ @Unique
+-    //~ private static int aetherium$vh;
+-    //~ /** Bit 0..2: vertex, normal, colour array known enabled. */
+-    //~ @Unique
+-    //~ private static int aetherium$arrays;
+-    //~ /** Overlay texture whose unit-1 setup is complete, or -1. */
+-    //~ @Unique
+-    //~ private static int aetherium$overlayTexture = -1;
+-    //~ @Unique
+-    //~ private static int aetherium$overlaySize;
++    /** Bound GL_FRAMEBUFFER, or -1 when unknown. */
++    @Unique
++    private static int aetherium$fbo = -1;
++    @Unique
++    private static boolean aetherium$viewportKnown;
++    @Unique
++    private static int aetherium$vx;
++    @Unique
++    private static int aetherium$vy;
++    @Unique
++    private static int aetherium$vw;
++    @Unique
++    private static int aetherium$vh;
++    /** Bit 0..2: vertex, normal, colour array known enabled. */
++    @Unique
++    private static int aetherium$arrays;
++    /** Overlay texture whose unit-1 setup is complete, or -1. */
++    @Unique
++    private static int aetherium$overlayTexture = -1;
++    @Unique
++    private static int aetherium$overlaySize;
+ 
+-    //~ @Unique
+-    //~ private static boolean aetherium$trim() {
+-        //~ return Tuning.glStateCache && !RenderMods.PRESENT;
+-    //~ }
++    @Unique
++    private static boolean aetherium$trim() {
++        return Tuning.glStateCache && !RenderMods.PRESENT;
++    }
+ 
+-    //~ @Unique
+-    //~ private static boolean aetherium$bind(final int target, final int id) {
+-        //~ if (target != GL_FRAMEBUFFER) {
+-            //~ aetherium$fbo = -1; // a read or draw binding: the combined one is no longer known
+-            //~ return true;
+-        //~ }
+-        //~ if (aetherium$trim() && id == aetherium$fbo) {
+-            //~ return false;
+-        //~ }
+-        //~ aetherium$fbo = id;
+-        //~ return true;
+-    //~ }
++    @Unique
++    private static boolean aetherium$bind(final int target, final int id) {
++        if (target != GL_FRAMEBUFFER) {
++            aetherium$fbo = -1; // a read or draw binding: the combined one is no longer known
++            return true;
++        }
++        if (aetherium$trim() && id == aetherium$fbo) {
++            return false;
++        }
++        aetherium$fbo = id;
++        return true;
++    }
+ 
+-    //~ @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL30;glBindFramebuffer(II)V"), require = 0)
+-    //~ private static void aetherium$bindCore(final int target, final int id) {
+-        //~ if (aetherium$bind(target, id)) {
+-            //~ GL30.glBindFramebuffer(target, id);
+-        //~ }
+-    //~ }
++    @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL30;glBindFramebuffer(II)V"), require = 0)
++    private static void aetherium$bindCore(final int target, final int id) {
++        if (aetherium$bind(target, id)) {
++            GL30.glBindFramebuffer(target, id);
++        }
++    }
+ 
+-    //~ @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/ARBFramebufferObject;glBindFramebuffer(II)V"), require = 0)
+-    //~ private static void aetherium$bindArb(final int target, final int id) {
+-        //~ if (aetherium$bind(target, id)) {
+-            //~ ARBFramebufferObject.glBindFramebuffer(target, id);
+-        //~ }
+-    //~ }
++    @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/ARBFramebufferObject;glBindFramebuffer(II)V"), require = 0)
++    private static void aetherium$bindArb(final int target, final int id) {
++        if (aetherium$bind(target, id)) {
++            ARBFramebufferObject.glBindFramebuffer(target, id);
++        }
++    }
+ 
+-    //~ @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/EXTFramebufferObject;glBindFramebufferEXT(II)V"), require = 0)
+-    //~ private static void aetherium$bindExt(final int target, final int id) {
+-        //~ if (aetherium$bind(target, id)) {
+-            //~ EXTFramebufferObject.glBindFramebufferEXT(target, id);
+-        //~ }
+-    //~ }
++    @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/EXTFramebufferObject;glBindFramebufferEXT(II)V"), require = 0)
++    private static void aetherium$bindExt(final int target, final int id) {
++        if (aetherium$bind(target, id)) {
++            EXTFramebufferObject.glBindFramebufferEXT(target, id);
++        }
++    }
+ 
+-    //~ @Inject(method = "_glDeleteFramebuffers", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$deleteFbo(final int id, final CallbackInfo ci) {
+-        //~ aetherium$fbo = -1;
+-    //~ }
++    @Inject(method = "_glDeleteFramebuffers", at = @At("HEAD"), require = 0)
++    private static void aetherium$deleteFbo(final int id, final CallbackInfo ci) {
++        aetherium$fbo = -1;
++    }
+ 
+-    //~ @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
+-    //~ private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
+-        //~ if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
+-                //~ && w == aetherium$vw && h == aetherium$vh) {
+-            //~ return;
+-        //~ }
+-        //~ aetherium$viewportKnown = true;
+-        //~ aetherium$vx = x;
+-        //~ aetherium$vy = y;
+-        //~ aetherium$vw = w;
+-        //~ aetherium$vh = h;
+-        //~ GL11.glViewport(x, y, w, h);
+-    //~ }
++    @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
++    private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
++        if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
++                && w == aetherium$vw && h == aetherium$vh) {
++            return;
++        }
++        aetherium$viewportKnown = true;
++        aetherium$vx = x;
++        aetherium$vy = y;
++        aetherium$vw = w;
++        aetherium$vh = h;
++        GL11.glViewport(x, y, w, h);
++    }
+ 
+-    //~ @Unique
+-    //~ private static int aetherium$arrayBit(final int cap) {
+-        //~ return cap == GL_VERTEX_ARRAY ? 1 : cap == GL_NORMAL_ARRAY ? 2 : cap == GL_COLOR_ARRAY ? 4 : 0;
+-    //~ }
++    @Unique
++    private static int aetherium$arrayBit(final int cap) {
++        return cap == GL_VERTEX_ARRAY ? 1 : cap == GL_NORMAL_ARRAY ? 2 : cap == GL_COLOR_ARRAY ? 4 : 0;
++    }
+ 
+-    //~ @Redirect(method = "_enableClientState", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnableClientState(I)V"), require = 0)
+-    //~ private static void aetherium$enableArray(final int cap) {
+-        //~ final int bit = aetherium$arrayBit(cap);
+-        //~ if (bit != 0 && aetherium$trim() && (aetherium$arrays & bit) != 0) {
+-            //~ return;
+-        //~ }
+-        //~ GL11.glEnableClientState(cap);
+-        //~ aetherium$arrays |= bit;
+-    //~ }
++    @Redirect(method = "_enableClientState", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnableClientState(I)V"), require = 0)
++    private static void aetherium$enableArray(final int cap) {
++        final int bit = aetherium$arrayBit(cap);
++        if (bit != 0 && aetherium$trim() && (aetherium$arrays & bit) != 0) {
++            return;
++        }
++        GL11.glEnableClientState(cap);
++        aetherium$arrays |= bit;
++    }
+ 
+-    //~ @Redirect(method = "_disableClientState", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisableClientState(I)V"), require = 0)
+-    //~ private static void aetherium$disableArray(final int cap) {
+-        //~ GL11.glDisableClientState(cap);
+-        //~ aetherium$arrays &= ~aetherium$arrayBit(cap);
+-    //~ }
++    @Redirect(method = "_disableClientState", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisableClientState(I)V"), require = 0)
++    private static void aetherium$disableArray(final int cap) {
++        GL11.glDisableClientState(cap);
++        aetherium$arrays &= ~aetherium$arrayBit(cap);
++    }
+ 
+-    //~ @Inject(method = "setupOverlayColor(II)V", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private static void aetherium$overlayFast(final int texture, final int size, final CallbackInfo ci) {
+-        //~ if (Tuning.cheapDamageTint && !RenderMods.PRESENT && texture == aetherium$overlayTexture
+-                //~ && size == aetherium$overlaySize) {
+-            //~ GlStateManager._activeTexture(33985);
+-            //~ GlStateManager._enableTexture();
+-            //~ GlStateManager._bindTexture(texture);
+-            //~ GlStateManager._activeTexture(33984);
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
++    @Inject(method = "setupOverlayColor(II)V", at = @At("HEAD"), cancellable = true, require = 0)
++    private static void aetherium$overlayFast(final int texture, final int size, final CallbackInfo ci) {
++        if (Tuning.cheapDamageTint && !RenderMods.PRESENT && texture == aetherium$overlayTexture
++                && size == aetherium$overlaySize) {
++            GlStateManager._activeTexture(33985);
++            GlStateManager._enableTexture();
++            GlStateManager._bindTexture(texture);
++            GlStateManager._activeTexture(33984);
++            ci.cancel();
++        }
++    }
+ 
+-    //~ @Inject(method = "setupOverlayColor(II)V", at = @At("RETURN"), require = 0)
+-    //~ private static void aetherium$overlayFull(final int texture, final int size, final CallbackInfo ci) {
+-        //~ aetherium$overlayTexture = texture;
+-        //~ aetherium$overlaySize = size;
+-    //~ }
++    @Inject(method = "setupOverlayColor(II)V", at = @At("RETURN"), require = 0)
++    private static void aetherium$overlayFull(final int texture, final int size, final CallbackInfo ci) {
++        aetherium$overlayTexture = texture;
++        aetherium$overlaySize = size;
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
 index 333016c..a93e143 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
@@ -9102,6 +10047,103 @@ index 333016c..a93e143 100644
 +    private static boolean aetherium$glint(final boolean foil) {
 +        return foil && Tuning.glint;
 +    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java
+index f8929c0..b35f4b1 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java
+@@ -1,30 +1,30 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.GrassQuads;
+-//~ import java.util.List;
+-//~ import java.util.Random;
+-//~ import net.minecraft.client.renderer.block.model.BakedQuad;
+-//~ import net.minecraft.client.resources.model.BakedModel;
+-//~ import net.minecraft.core.Direction;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.client.GrassQuads;
++import java.util.List;
++import java.util.Random;
++import net.minecraft.client.renderer.block.model.BakedQuad;
++import net.minecraft.client.resources.model.BakedModel;
++import net.minecraft.core.Direction;
++import net.minecraft.world.level.block.state.BlockState;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /** Fast grass (1.12.0, Minecraft 1.16.5): see {@link com.aetherium.client.GrassQuads}. */
+ @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer")
+ public abstract class TuningGrassMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/resources/model/BakedModel;getQuads(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Ljava/util/Random;)Ljava/util/List;"),
+-            //~ require = 0)
+-    //~ private List<BakedQuad> aetherium$quads(final BakedModel model, final BlockState state, final Direction side,
+-            //~ final Random random) {
+-        //~ return GrassQuads.filter(model.getQuads(state, side, random), state, side);
+-    //~ }
++    // @era:qol16-begin v16
++    @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/resources/model/BakedModel;getQuads(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Ljava/util/Random;)Ljava/util/List;"),
++            require = 0)
++    private List<BakedQuad> aetherium$quads(final BakedModel model, final BlockState state, final Direction side,
++            final Random random) {
++        return GrassQuads.filter(model.getQuads(state, side, random), state, side);
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java
+index 4dcb17c..b2fa18c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java
+@@ -1,24 +1,24 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.mojang.blaze3d.platform.NativeImage;
+-//~ import java.io.InputStream;
+-//~ import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:qol16-begin v16
++import com.mojang.blaze3d.platform.NativeImage;
++import java.io.InputStream;
++import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /** Background skin loading (1.12.0, Minecraft 1.16.5): the private decode and hand-over steps of {@code HttpTexture}. */
+ @Mixin(targets = "net.minecraft.client.renderer.texture.HttpTexture")
+ public interface TuningHttpTextureAccessor {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ /** Reads the PNG and converts a legacy 64x32 skin; null (logged) when the file is broken. */
+-    //~ @Invoker("load")
+-    //~ NativeImage aetherium$read(InputStream in);
++    // @era:qol16-begin v16
++    /** Reads the PNG and converts a legacy 64x32 skin; null (logged) when the file is broken. */
++    @Invoker("load")
++    NativeImage aetherium$read(InputStream in);
+ 
+-    //~ /** Runs the download callback and queues the upload on the render thread. */
+-    //~ @Invoker("loadCallback")
+-    //~ void aetherium$loaded(NativeImage image);
++    /** Runs the download callback and queues the upload on the render thread. */
++    @Invoker("loadCallback")
++    void aetherium$loaded(NativeImage image);
 +    // @era:qol16-else none
      // @era:qol16-end
  }
@@ -9243,10 +10285,10 @@ index a3ddc1e..de348b6 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java
-index a2fa7d1..56b4d3a 100644
+index 7e4f77f..9d934f3 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java
-@@ -1,18 +1,18 @@
+@@ -1,19 +1,19 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
@@ -9258,6 +10300,7 @@ index a2fa7d1..56b4d3a 100644
 -//~ import net.minecraft.core.Direction;
 -//~ import net.minecraft.world.level.BlockGetter;
 -//~ import net.minecraft.world.level.block.Block;
+-//~ import net.minecraft.world.level.block.Blocks;
 -//~ import net.minecraft.world.level.block.LeavesBlock;
 -//~ import net.minecraft.world.level.block.state.BlockState;
 -//~ import org.spongepowered.asm.mixin.injection.At;
@@ -9269,6 +10312,7 @@ index a2fa7d1..56b4d3a 100644
 +import net.minecraft.core.Direction;
 +import net.minecraft.world.level.BlockGetter;
 +import net.minecraft.world.level.block.Block;
++import net.minecraft.world.level.block.Blocks;
 +import net.minecraft.world.level.block.LeavesBlock;
 +import net.minecraft.world.level.block.state.BlockState;
 +import org.spongepowered.asm.mixin.injection.At;
@@ -9277,7 +10321,7 @@ index a2fa7d1..56b4d3a 100644
  // @era:qol16-end
  
  /**
-@@ -22,18 +22,18 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -28,22 +28,22 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer")
  public abstract class TuningLeafCullMixin {
@@ -9291,8 +10335,12 @@ index a2fa7d1..56b4d3a 100644
 -        //~ if (!Block.shouldRenderFace(state, level, pos, side)) {
 -            //~ return false;
 -        //~ }
--        //~ return !(Tuning.leafCulling && state.getBlock() instanceof LeavesBlock
--                //~ && TuningClient.leafFaceHidden(level, pos, side));
+-        //~ final Block block = state.getBlock();
+-        //~ if (block instanceof LeavesBlock) {
+-            //~ return !(Tuning.leafCulling && TuningClient.leafFaceHidden(level, pos, side));
+-        //~ }
+-        //~ return !(block == Blocks.CHORUS_PLANT && Tuning.endOptimizations
+-                //~ && TuningClient.chorusFaceHidden(state, level, pos, side));
 -    //~ }
 +    // @era:qol16-begin v16
 +    @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
@@ -9303,8 +10351,12 @@ index a2fa7d1..56b4d3a 100644
 +        if (!Block.shouldRenderFace(state, level, pos, side)) {
 +            return false;
 +        }
-+        return !(Tuning.leafCulling && state.getBlock() instanceof LeavesBlock
-+                && TuningClient.leafFaceHidden(level, pos, side));
++        final Block block = state.getBlock();
++        if (block instanceof LeavesBlock) {
++            return !(Tuning.leafCulling && TuningClient.leafFaceHidden(level, pos, side));
++        }
++        return !(block == Blocks.CHORUS_PLANT && Tuning.endOptimizations
++                && TuningClient.chorusFaceHidden(state, level, pos, side));
 +    }
 +    // @era:qol16-else none
      // @era:qol16-end
@@ -9355,25 +10407,33 @@ index 7fef441..7640a8f 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
-index fb8c39d..3f1fe28 100644
+index 48a70ad..bd3b35e 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
-@@ -1,10 +1,10 @@
+@@ -1,14 +1,14 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:qol16-begin none
 -// @era:qol16-else v16
 -//~ import net.minecraft.client.renderer.ViewArea;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.core.Direction;
 -//~ import org.spongepowered.asm.mixin.gen.Accessor;
+-//~ import org.spongepowered.asm.mixin.gen.Invoker;
 +// @era:qol16-begin v16
 +import net.minecraft.client.renderer.ViewArea;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Direction;
 +import org.spongepowered.asm.mixin.gen.Accessor;
++import org.spongepowered.asm.mixin.gen.Invoker;
 +// @era:qol16-else none
  // @era:qol16-end
  
  /**
-@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -17,14 +17,14 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public interface TuningLevelAccessor {
@@ -9384,14 +10444,23 @@ index fb8c39d..3f1fe28 100644
 +    // @era:qol16-begin v16
 +    @Accessor("viewArea")
 +    ViewArea aetherium$viewArea();
+ 
+-    //~ /** Directional culling (1.12.0): vanilla's neighbour lookup of the visibility search. */
+-    //~ @Invoker("getRelativeFrom")
+-    //~ ChunkRenderDispatcher.RenderChunk aetherium$relativeFrom(BlockPos camera, ChunkRenderDispatcher.RenderChunk from,
+-                                                             //~ Direction direction);
++    /** Directional culling (1.12.0): vanilla's neighbour lookup of the visibility search. */
++    @Invoker("getRelativeFrom")
++    ChunkRenderDispatcher.RenderChunk aetherium$relativeFrom(BlockPos camera, ChunkRenderDispatcher.RenderChunk from,
++                                                             Direction direction);
 +    // @era:qol16-else none
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
-index 10fbdbf..7c6d698 100644
+index 4dfa337..5da3dbf 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
-@@ -1,34 +1,34 @@
+@@ -1,35 +1,35 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
@@ -9399,6 +10468,7 @@ index 10fbdbf..7c6d698 100644
 -// @era:qol16-else v16
 -//~ import com.aetherium.client.ChunkInfoOrigin;
 -//~ import com.aetherium.client.FarTerrain;
+-//~ import com.aetherium.client.OceanFloor;
 -//~ import com.aetherium.perf.CrowdCull;
 -//~ import com.aetherium.perf.HitchGuard;
 -//~ import com.aetherium.perf.Tuning;
@@ -9426,6 +10496,7 @@ index 10fbdbf..7c6d698 100644
 +// @era:qol16-begin v16
 +import com.aetherium.client.ChunkInfoOrigin;
 +import com.aetherium.client.FarTerrain;
++import com.aetherium.client.OceanFloor;
 +import com.aetherium.perf.CrowdCull;
 +import com.aetherium.perf.HitchGuard;
 +import com.aetherium.perf.Tuning;
@@ -9454,7 +10525,7 @@ index 10fbdbf..7c6d698 100644
  // @era:qol16-end
  
  /**
-@@ -38,128 +38,128 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -39,132 +39,132 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class TuningLevelMixin {
@@ -9473,15 +10544,23 @@ index 10fbdbf..7c6d698 100644
  
 -    //~ /** Once per frame, before any entity is tested. */
 -    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
--    //~ private void aetherium$frame(final CallbackInfo ci) {
+-    //~ private void aetherium$frame(final PoseStack poseStack, final float partialTicks, final long finishNanos,
+-                                 //~ final boolean renderBlockOutline, final Camera camera,
+-                                 //~ final GameRenderer gameRenderer, final LightTexture lightTexture,
+-                                 //~ final Matrix4f projection, final CallbackInfo ci) {
 -        //~ CrowdCull.newFrame();
 -        //~ Tuning.newFrame();
+-        //~ OceanFloor.frame(level, camera);
 -    //~ }
 +    /** Once per frame, before any entity is tested. */
 +    @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
-+    private void aetherium$frame(final CallbackInfo ci) {
++    private void aetherium$frame(final PoseStack poseStack, final float partialTicks, final long finishNanos,
++                                 final boolean renderBlockOutline, final Camera camera,
++                                 final GameRenderer gameRenderer, final LightTexture lightTexture,
++                                 final Matrix4f projection, final CallbackInfo ci) {
 +        CrowdCull.newFrame();
 +        Tuning.newFrame();
++        OceanFloor.frame(level, camera);
 +    }
  
 -    //~ /**
@@ -9697,16 +10776,17 @@ index 10fbdbf..7c6d698 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
-index e5d4d65..013e15e 100644
+index 3f61ac3..d6281a3 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
-@@ -1,18 +1,18 @@
+@@ -1,19 +1,19 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:qol16-begin none
 -// @era:qol16-else v16
 -//~ import com.aetherium.client.FarTerrain;
+-//~ import com.aetherium.client.OceanFloor;
 -//~ import com.aetherium.client.SkullLookup;
 -//~ import com.aetherium.client.TuningClient;
 -//~ import net.minecraft.core.SectionPos;
@@ -9718,6 +10798,7 @@ index e5d4d65..013e15e 100644
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 +// @era:qol16-begin v16
 +import com.aetherium.client.FarTerrain;
++import com.aetherium.client.OceanFloor;
 +import com.aetherium.client.SkullLookup;
 +import com.aetherium.client.TuningClient;
 +import net.minecraft.core.SectionPos;
@@ -9731,7 +10812,7 @@ index e5d4d65..013e15e 100644
  // @era:qol16-end
  
  /**
-@@ -23,19 +23,19 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -24,20 +24,20 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.multiplayer.ClientChunkCache")
  public abstract class TuningLightMixin {
@@ -9755,11 +10836,134 @@ index e5d4d65..013e15e 100644
 -    //~ @Inject(method = "replaceWithPacketData", at = @At("RETURN"), require = 0)
 -    //~ private void aetherium$farTerrain(final CallbackInfoReturnable<LevelChunk> cir) {
 -        //~ FarTerrain.capture(cir.getReturnValue());
+-        //~ OceanFloor.capture(cir.getReturnValue());
 -    //~ }
 +    /** Far terrain (1.11.0): every chunk the server sends is sampled for the far outline. */
 +    @Inject(method = "replaceWithPacketData", at = @At("RETURN"), require = 0)
 +    private void aetherium$farTerrain(final CallbackInfoReturnable<LevelChunk> cir) {
 +        FarTerrain.capture(cir.getReturnValue());
++        OceanFloor.capture(cir.getReturnValue());
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLightmapMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLightmapMixin.java
+index f9d10e3..3347e5c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningLightmapMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningLightmapMixin.java
+@@ -1,16 +1,16 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.multiplayer.ClientLevel;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.multiplayer.ClientLevel;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -22,29 +22,29 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LightTexture")
+ public abstract class TuningLightmapMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Shadow
+-    //~ private boolean updateLightTexture;
++    // @era:qol16-begin v16
++    @Shadow
++    private boolean updateLightTexture;
+ 
+-    //~ @Unique
+-    //~ private int aetherium$ticks;
++    @Unique
++    private int aetherium$ticks;
+ 
+-    //~ @Inject(method = "tick", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$tick(final CallbackInfo ci) {
+-        //~ aetherium$ticks++;
+-    //~ }
++    @Inject(method = "tick", at = @At("TAIL"), require = 0)
++    private void aetherium$tick(final CallbackInfo ci) {
++        aetherium$ticks++;
++    }
+ 
+-    //~ @Inject(method = "updateLightTexture(F)V", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$rate(final float partialTicks, final CallbackInfo ci) {
+-        //~ if (!updateLightTexture || !Tuning.lightmapRate || (aetherium$ticks & 1) == 0) {
+-            //~ return;
+-        //~ }
+-        //~ final ClientLevel level = Minecraft.getInstance().level;
+-        //~ if (level != null && level.getSkyFlashTime() > 0) {
+-            //~ return;
+-        //~ }
+-        //~ ci.cancel(); // the request stays set and is served on the next (even) tick
+-    //~ }
++    @Inject(method = "updateLightTexture(F)V", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$rate(final float partialTicks, final CallbackInfo ci) {
++        if (!updateLightTexture || !Tuning.lightmapRate || (aetherium$ticks & 1) == 0) {
++            return;
++        }
++        final ClientLevel level = Minecraft.getInstance().level;
++        if (level != null && level.getSkyFlashTime() > 0) {
++            return;
++        }
++        ci.cancel(); // the request stays set and is served on the next (even) tick
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java
+index fb11472..66700ab 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java
+@@ -1,11 +1,11 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -16,11 +16,11 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.Minecraft")
+ public abstract class TuningLoadingMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Redirect(method = "doLoadLevel", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(J)V"), require = 0)
+-    //~ private void aetherium$progressSleep(final long millis) throws InterruptedException {
+-        //~ Thread.sleep(Tuning.fastLoading ? Math.max(millis, 50L) : millis);
+-    //~ }
++    // @era:qol16-begin v16
++    @Redirect(method = "doLoadLevel", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(J)V"), require = 0)
++    private void aetherium$progressSleep(final long millis) throws InterruptedException {
++        Thread.sleep(Tuning.fastLoading ? Math.max(millis, 50L) : millis);
 +    }
 +    // @era:qol16-else none
      // @era:qol16-end
@@ -10036,6 +11240,258 @@ index e1c7ed5..2082e27 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java
+index d6d1f2a..2f59cd4 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java
+@@ -1,23 +1,23 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.resources.ResourceKey;
+-//~ import net.minecraft.server.MinecraftServer;
+-//~ import net.minecraft.server.level.ServerLevel;
+-//~ import net.minecraft.server.level.ServerPlayer;
+-//~ import net.minecraft.server.level.TicketType;
+-//~ import net.minecraft.world.entity.Entity;
+-//~ import net.minecraft.world.level.ChunkPos;
+-//~ import net.minecraft.world.level.Level;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import net.minecraft.core.BlockPos;
++import net.minecraft.resources.ResourceKey;
++import net.minecraft.server.MinecraftServer;
++import net.minecraft.server.level.ServerLevel;
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.server.level.TicketType;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.level.ChunkPos;
++import net.minecraft.world.level.Level;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -30,60 +30,60 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.world.entity.Entity")
+ public abstract class TuningPortalMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Shadow
+-    //~ public Level level;
++    // @era:qol16-begin v16
++    @Shadow
++    public Level level;
+ 
+-    //~ @Shadow
+-    //~ protected boolean isInsidePortal;
++    @Shadow
++    protected boolean isInsidePortal;
+ 
+-    //~ /** Game time of the last preload, or -1 before the first one. */
+-    //~ @Unique
+-    //~ private long aetherium$preloadedAt = -1L;
++    /** Game time of the last preload, or -1 before the first one. */
++    @Unique
++    private long aetherium$preloadedAt = -1L;
+ 
+-    //~ @Inject(method = "handleNetherPortal", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$preload(final CallbackInfo ci) {
+-        //~ if (!Tuning.portalPreload || !isInsidePortal || !((Object) this instanceof ServerPlayer)
+-                //~ || !(level instanceof ServerLevel)) {
+-            //~ return;
+-        //~ }
+-        //~ final long now = level.getGameTime();
+-        //~ if (aetherium$preloadedAt >= 0L && now >= aetherium$preloadedAt && now - aetherium$preloadedAt < 200L) {
+-            //~ return;
+-        //~ }
+-        //~ aetherium$preloadedAt = now;
+-        //~ final ResourceKey<Level> here = level.dimension();
+-        //~ final double scale;
+-        //~ final ResourceKey<Level> there;
+-        //~ if (here == Level.OVERWORLD) {
+-            //~ there = Level.NETHER;
+-            //~ scale = 1.0 / 8.0;
+-        //~ } else if (here == Level.NETHER) {
+-            //~ there = Level.OVERWORLD;
+-            //~ scale = 8.0;
+-        //~ } else {
+-            //~ return;
+-        //~ }
+-        //~ final MinecraftServer server = ((ServerLevel) level).getServer();
+-        //~ if (!server.isNetherEnabled()) {
+-            //~ return;
+-        //~ }
+-        //~ final ServerLevel target = server.getLevel(there);
+-        //~ if (target == null) {
+-            //~ return;
+-        //~ }
+-        //~ final Entity self = (Entity) (Object) this;
+-        //~ final int x = aetherium$clamp(Math.floor(self.getX() * scale), 29_999_872);
+-        //~ final int z = aetherium$clamp(Math.floor(self.getZ() * scale), 29_999_872);
+-        //~ final int y = Math.max(0, Math.min(255, (int) Math.floor(self.getY())));
+-        //~ final BlockPos pos = new BlockPos(x, y, z);
+-        //~ target.getChunkSource().addRegionTicket(TicketType.PORTAL, new ChunkPos(pos), 3, pos);
+-    //~ }
++    @Inject(method = "handleNetherPortal", at = @At("HEAD"), require = 0)
++    private void aetherium$preload(final CallbackInfo ci) {
++        if (!Tuning.portalPreload || !isInsidePortal || !((Object) this instanceof ServerPlayer)
++                || !(level instanceof ServerLevel)) {
++            return;
++        }
++        final long now = level.getGameTime();
++        if (aetherium$preloadedAt >= 0L && now >= aetherium$preloadedAt && now - aetherium$preloadedAt < 200L) {
++            return;
++        }
++        aetherium$preloadedAt = now;
++        final ResourceKey<Level> here = level.dimension();
++        final double scale;
++        final ResourceKey<Level> there;
++        if (here == Level.OVERWORLD) {
++            there = Level.NETHER;
++            scale = 1.0 / 8.0;
++        } else if (here == Level.NETHER) {
++            there = Level.OVERWORLD;
++            scale = 8.0;
++        } else {
++            return;
++        }
++        final MinecraftServer server = ((ServerLevel) level).getServer();
++        if (!server.isNetherEnabled()) {
++            return;
++        }
++        final ServerLevel target = server.getLevel(there);
++        if (target == null) {
++            return;
++        }
++        final Entity self = (Entity) (Object) this;
++        final int x = aetherium$clamp(Math.floor(self.getX() * scale), 29_999_872);
++        final int z = aetherium$clamp(Math.floor(self.getZ() * scale), 29_999_872);
++        final int y = Math.max(0, Math.min(255, (int) Math.floor(self.getY())));
++        final BlockPos pos = new BlockPos(x, y, z);
++        target.getChunkSource().addRegionTicket(TicketType.PORTAL, new ChunkPos(pos), 3, pos);
++    }
+ 
+-    //~ @Unique
+-    //~ private static int aetherium$clamp(final double value, final int limit) {
+-        //~ return (int) Math.max(-limit, Math.min(limit, value));
+-    //~ }
++    @Unique
++    private static int aetherium$clamp(final double value, final int limit) {
++        return (int) Math.max(-limit, Math.min(limit, value));
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningServerIdleMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningServerIdleMixin.java
+index dfa90d4..a5d0fd9 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningServerIdleMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningServerIdleMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import java.util.concurrent.locks.LockSupport;
+-//~ import net.minecraft.server.MinecraftServer;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import java.util.concurrent.locks.LockSupport;
++import net.minecraft.server.MinecraftServer;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -20,16 +20,16 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.util.thread.BlockableEventLoop")
+ public abstract class TuningServerIdleMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Redirect(method = "waitForTasks", at = @At(value = "INVOKE",
+-            //~ target = "Ljava/util/concurrent/locks/LockSupport;parkNanos(Ljava/lang/Object;J)V"), require = 0)
+-    //~ private void aetherium$park(final Object blocker, final long nanos) {
+-        //~ if (Tuning.serverIdle && (Object) this instanceof MinecraftServer) {
+-            //~ LockSupport.parkNanos(blocker, Math.max(nanos, 1_000_000L));
+-        //~ } else {
+-            //~ LockSupport.parkNanos(blocker, nanos);
+-        //~ }
+-    //~ }
++    // @era:qol16-begin v16
++    @Redirect(method = "waitForTasks", at = @At(value = "INVOKE",
++            target = "Ljava/util/concurrent/locks/LockSupport;parkNanos(Ljava/lang/Object;J)V"), require = 0)
++    private void aetherium$park(final Object blocker, final long nanos) {
++        if (Tuning.serverIdle && (Object) this instanceof MinecraftServer) {
++            LockSupport.parkNanos(blocker, Math.max(nanos, 1_000_000L));
++        } else {
++            LockSupport.parkNanos(blocker, nanos);
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java
+index aea6eb1..33c7e98 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java
+@@ -1,11 +1,11 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.server.level.ThreadedLevelLightEngine")
+ public abstract class TuningServerLightMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ private static final int BATCH = 64;
++    // @era:qol16-begin v16
++    private static final int BATCH = 64;
+ 
+-    //~ @Redirect(method = "runUpdate", at = @At(value = "INVOKE", target = "Ljava/lang/Math;min(II)I"), require = 0)
+-    //~ private int aetherium$batch(final int queued, final int perBatch) {
+-        //~ return Math.min(queued, Tuning.serverLighting ? Math.max(perBatch, BATCH) : perBatch);
+-    //~ }
++    @Redirect(method = "runUpdate", at = @At(value = "INVOKE", target = "Ljava/lang/Math;min(II)I"), require = 0)
++    private int aetherium$batch(final int queued, final int perBatch) {
++        return Math.min(queued, Tuning.serverLighting ? Math.max(perBatch, BATCH) : perBatch);
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java
 index 2e317a2..a9023e6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java
@@ -10240,6 +11696,157 @@ index 92561b7..c299550 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java
+index 66b96df..f104802 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java
+@@ -1,26 +1,26 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.util.AetheriumLog;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.mojang.blaze3d.platform.NativeImage;
+-//~ import java.io.File;
+-//~ import java.io.FileInputStream;
+-//~ import java.io.IOException;
+-//~ import java.io.InputStream;
+-//~ import java.util.concurrent.CompletableFuture;
+-//~ import net.minecraft.Util;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.renderer.texture.HttpTexture;
+-//~ import net.minecraft.server.packs.resources.ResourceManager;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.util.AetheriumLog;
++import com.aetherium.perf.Tuning;
++import com.mojang.blaze3d.platform.NativeImage;
++import java.io.File;
++import java.io.FileInputStream;
++import java.io.IOException;
++import java.io.InputStream;
++import java.util.concurrent.CompletableFuture;
++import net.minecraft.Util;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.renderer.texture.HttpTexture;
++import net.minecraft.server.packs.resources.ResourceManager;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -38,54 +38,54 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.texture.HttpTexture")
+ public abstract class TuningSkinMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Unique
+-    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(TuningSkinMixin.class);
++    // @era:qol16-begin v16
++    @Unique
++    private static final AetheriumLog LOGGER = AetheriumLog.of(TuningSkinMixin.class);
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private File file;
++    @Shadow
++    @Final
++    private File file;
+ 
+-    //~ @Shadow
+-    //~ private CompletableFuture<?> future;
++    @Shadow
++    private CompletableFuture<?> future;
+ 
+-    //~ /** Set when the background read failed: the next load takes vanilla's path. */
+-    //~ @Unique
+-    //~ private boolean aetherium$vanillaPath;
++    /** Set when the background read failed: the next load takes vanilla's path. */
++    @Unique
++    private boolean aetherium$vanillaPath;
+ 
+-    //~ @Inject(method = "load(Lnet/minecraft/server/packs/resources/ResourceManager;)V",
+-            //~ at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"), cancellable = true, require = 0)
+-    //~ private void aetherium$background(final ResourceManager resources, final CallbackInfo ci) {
+-        //~ final File cached = file;
+-        //~ if (!Tuning.asyncSkins || aetherium$vanillaPath || cached == null || !cached.isFile()) {
+-            //~ return;
+-        //~ }
+-        //~ final HttpTexture self = (HttpTexture) (Object) this;
+-        //~ final TuningHttpTextureAccessor access = (TuningHttpTextureAccessor) (Object) this;
+-        //~ future = CompletableFuture.runAsync(() -> {
+-            //~ NativeImage image = null;
+-            //~ try (InputStream in = new FileInputStream(cached)) {
+-                //~ image = access.aetherium$read(in);
+-            //~ } catch (final IOException | RuntimeException e) {
+-                //~ LOGGER.warn("Background skin read failed, loading it the vanilla way: " + e);
+-            //~ }
+-            //~ final NativeImage done = image;
+-            //~ Minecraft.getInstance().execute(() -> {
+-                //~ if (done != null) {
+-                    //~ access.aetherium$loaded(done);
+-                    //~ return;
+-                //~ }
+-                //~ aetherium$vanillaPath = true;
+-                //~ future = null;
+-                //~ try {
+-                    //~ self.load(resources);
+-                //~ } catch (final IOException e) {
+-                    //~ LOGGER.warn("Skin load failed: " + e);
+-                //~ }
+-            //~ });
+-        //~ }, Util.backgroundExecutor());
+-        //~ ci.cancel();
+-    //~ }
++    @Inject(method = "load(Lnet/minecraft/server/packs/resources/ResourceManager;)V",
++            at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"), cancellable = true, require = 0)
++    private void aetherium$background(final ResourceManager resources, final CallbackInfo ci) {
++        final File cached = file;
++        if (!Tuning.asyncSkins || aetherium$vanillaPath || cached == null || !cached.isFile()) {
++            return;
++        }
++        final HttpTexture self = (HttpTexture) (Object) this;
++        final TuningHttpTextureAccessor access = (TuningHttpTextureAccessor) (Object) this;
++        future = CompletableFuture.runAsync(() -> {
++            NativeImage image = null;
++            try (InputStream in = new FileInputStream(cached)) {
++                image = access.aetherium$read(in);
++            } catch (final IOException | RuntimeException e) {
++                LOGGER.warn("Background skin read failed, loading it the vanilla way: " + e);
++            }
++            final NativeImage done = image;
++            Minecraft.getInstance().execute(() -> {
++                if (done != null) {
++                    access.aetherium$loaded(done);
++                    return;
++                }
++                aetherium$vanillaPath = true;
++                future = null;
++                try {
++                    self.load(resources);
++                } catch (final IOException e) {
++                    LOGGER.warn("Skin load failed: " + e);
++                }
++            });
++        }, Util.backgroundExecutor());
++        ci.cancel();
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java
 index 30270f7..7c799ca 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java
@@ -10344,6 +11951,192 @@ index 30270f7..7c799ca 100644
      //~ }
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java
+index 1618791..af14264 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java
+@@ -1,22 +1,22 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.Tesselator;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Constant;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyConstant;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.Slice;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.Tesselator;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Constant;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.ModifyConstant;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.Slice;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -34,77 +34,77 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class TuningSkyMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Shadow
+-    //~ private boolean generateClouds;
++    // @era:qol16-begin v16
++    @Shadow
++    private boolean generateClouds;
+ 
+-    //~ /** Render thread only: faces of the End sky drawn so far this frame, and whether they are batched. */
+-    //~ @Unique
+-    //~ private static int aetherium$endFace;
+-    //~ @Unique
+-    //~ private static boolean aetherium$endBatch;
+-    //~ @Unique
+-    //~ private static int aetherium$cloudCells = 4;
++    /** Render thread only: faces of the End sky drawn so far this frame, and whether they are batched. */
++    @Unique
++    private static int aetherium$endFace;
++    @Unique
++    private static boolean aetherium$endBatch;
++    @Unique
++    private static int aetherium$cloudCells = 4;
+ 
+-    //~ /** Once per frame: a frame that was interrupted mid-sky can never leave the face count behind. */
+-    //~ @Inject(method = "renderEndSky", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$endStart(final PoseStack poseStack, final CallbackInfo ci) {
+-        //~ aetherium$endFace = 0;
+-    //~ }
++    /** Once per frame: a frame that was interrupted mid-sky can never leave the face count behind. */
++    @Inject(method = "renderEndSky", at = @At("HEAD"), require = 0)
++    private void aetherium$endStart(final PoseStack poseStack, final CallbackInfo ci) {
++        aetherium$endFace = 0;
++    }
+ 
+-    //~ @Redirect(method = "renderEndSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;begin(ILcom/mojang/blaze3d/vertex/VertexFormat;)V"),
+-            //~ require = 0)
+-    //~ private void aetherium$endBegin(final BufferBuilder builder, final int mode, final VertexFormat format) {
+-        //~ if (aetherium$endFace == 0) {
+-            //~ aetherium$endBatch = Tuning.endOptimizations;
+-            //~ builder.begin(mode, format);
+-        //~ } else if (!aetherium$endBatch) {
+-            //~ builder.begin(mode, format);
+-        //~ }
+-    //~ }
++    @Redirect(method = "renderEndSky", at = @At(value = "INVOKE",
++            target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;begin(ILcom/mojang/blaze3d/vertex/VertexFormat;)V"),
++            require = 0)
++    private void aetherium$endBegin(final BufferBuilder builder, final int mode, final VertexFormat format) {
++        if (aetherium$endFace == 0) {
++            aetherium$endBatch = Tuning.endOptimizations;
++            builder.begin(mode, format);
++        } else if (!aetherium$endBatch) {
++            builder.begin(mode, format);
++        }
++    }
+ 
+-    //~ @Redirect(method = "renderEndSky", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/vertex/Tesselator;end()V"), require = 0)
+-    //~ private void aetherium$endEnd(final Tesselator tesselator) {
+-        //~ aetherium$endFace++;
+-        //~ final boolean last = aetherium$endFace >= 6;
+-        //~ if (!aetherium$endBatch || last) {
+-            //~ tesselator.end();
+-        //~ }
+-        //~ if (last) {
+-            //~ aetherium$endFace = 0;
+-        //~ }
+-    //~ }
++    @Redirect(method = "renderEndSky", at = @At(value = "INVOKE",
++            target = "Lcom/mojang/blaze3d/vertex/Tesselator;end()V"), require = 0)
++    private void aetherium$endEnd(final Tesselator tesselator) {
++        aetherium$endFace++;
++        final boolean last = aetherium$endFace >= 6;
++        if (!aetherium$endBatch || last) {
++            tesselator.end();
++        }
++        if (last) {
++            aetherium$endFace = 0;
++        }
++    }
+ 
+-    //~ /** A cloud distance change rebuilds the cloud buffer, exactly like a cloud mode change does. */
+-    //~ @Inject(method = "renderClouds", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$cloudDistance(final PoseStack poseStack, final float partialTicks, final double x,
+-                                         //~ final double y, final double z, final CallbackInfo ci) {
+-        //~ final int cells = Math.max(1, Math.min(4, (Tuning.cloudDistance + 12) / 25));
+-        //~ if (cells != aetherium$cloudCells) {
+-            //~ aetherium$cloudCells = cells;
+-            //~ generateClouds = true;
+-        //~ }
+-    //~ }
++    /** A cloud distance change rebuilds the cloud buffer, exactly like a cloud mode change does. */
++    @Inject(method = "renderClouds", at = @At("HEAD"), require = 0)
++    private void aetherium$cloudDistance(final PoseStack poseStack, final float partialTicks, final double x,
++                                         final double y, final double z, final CallbackInfo ci) {
++        final int cells = Math.max(1, Math.min(4, (Tuning.cloudDistance + 12) / 25));
++        if (cells != aetherium$cloudCells) {
++            aetherium$cloudCells = cells;
++            generateClouds = true;
++        }
++    }
+ 
+-    //~ @ModifyConstant(method = "buildClouds",
+-            //~ slice = @Slice(
+-                    //~ from = @At(value = "FIELD", target = "Lnet/minecraft/client/CloudStatus;FANCY:Lnet/minecraft/client/CloudStatus;"),
+-                    //~ to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;vertex(DDD)Lcom/mojang/blaze3d/vertex/VertexConsumer;", ordinal = 0)),
+-            //~ constant = @Constant(intValue = -3), require = 0)
+-    //~ private int aetherium$cloudsFrom(final int vanilla) {
+-        //~ return 1 - aetherium$cloudCells;
+-    //~ }
++    @ModifyConstant(method = "buildClouds",
++            slice = @Slice(
++                    from = @At(value = "FIELD", target = "Lnet/minecraft/client/CloudStatus;FANCY:Lnet/minecraft/client/CloudStatus;"),
++                    to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;vertex(DDD)Lcom/mojang/blaze3d/vertex/VertexConsumer;", ordinal = 0)),
++            constant = @Constant(intValue = -3), require = 0)
++    private int aetherium$cloudsFrom(final int vanilla) {
++        return 1 - aetherium$cloudCells;
++    }
+ 
+-    //~ @ModifyConstant(method = "buildClouds",
+-            //~ slice = @Slice(
+-                    //~ from = @At(value = "FIELD", target = "Lnet/minecraft/client/CloudStatus;FANCY:Lnet/minecraft/client/CloudStatus;"),
+-                    //~ to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;vertex(DDD)Lcom/mojang/blaze3d/vertex/VertexConsumer;", ordinal = 0)),
+-            //~ constant = @Constant(intValue = 4), require = 0)
+-    //~ private int aetherium$cloudsTo(final int vanilla) {
+-        //~ return aetherium$cloudCells;
+-    //~ }
++    @ModifyConstant(method = "buildClouds",
++            slice = @Slice(
++                    from = @At(value = "FIELD", target = "Lnet/minecraft/client/CloudStatus;FANCY:Lnet/minecraft/client/CloudStatus;"),
++                    to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;vertex(DDD)Lcom/mojang/blaze3d/vertex/VertexConsumer;", ordinal = 0)),
++            constant = @Constant(intValue = 4), require = 0)
++    private int aetherium$cloudsTo(final int vanilla) {
++        return aetherium$cloudCells;
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
 index 97db8a7..a6fb8ec 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
@@ -10380,10 +12173,10 @@ index 97db8a7..a6fb8ec 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
-index 317cd34..4eb3944 100644
+index 6609105..c712815 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
-@@ -1,15 +1,15 @@
+@@ -1,17 +1,17 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
@@ -10391,16 +12184,20 @@ index 317cd34..4eb3944 100644
 -// @era:qol16-else v16
 -//~ import com.aetherium.client.ColorFilter;
 -//~ import com.aetherium.client.WorldCache;
+-//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
 -//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.gui.screens.ReceivingLevelScreen;
 -//~ import net.minecraft.client.renderer.GameRenderer;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
 +// @era:qol16-begin v16
 +import com.aetherium.client.ColorFilter;
 +import com.aetherium.client.WorldCache;
++import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.vertex.PoseStack;
 +import net.minecraft.client.Minecraft;
++import net.minecraft.client.gui.screens.ReceivingLevelScreen;
 +import net.minecraft.client.renderer.GameRenderer;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Redirect;
@@ -10408,7 +12205,7 @@ index 317cd34..4eb3944 100644
  // @era:qol16-end
  
  /**
-@@ -19,20 +19,20 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -25,23 +25,23 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.GameRenderer")
  public abstract class TuningWorldMixin {
@@ -10420,6 +12217,9 @@ index 317cd34..4eb3944 100644
 -    //~ private void aetherium$world(final GameRenderer renderer, final float partialTicks, final long finishNanos,
 -                                 //~ final PoseStack poseStack) {
 -        //~ final Minecraft mc = Minecraft.getInstance();
+-        //~ if (Tuning.fastLoading && mc.screen instanceof ReceivingLevelScreen) {
+-            //~ return;
+-        //~ }
 -        //~ if (WorldCache.reuse(mc)) {
 -            //~ return;
 -        //~ }
@@ -10434,6 +12234,9 @@ index 317cd34..4eb3944 100644
 +    private void aetherium$world(final GameRenderer renderer, final float partialTicks, final long finishNanos,
 +                                 final PoseStack poseStack) {
 +        final Minecraft mc = Minecraft.getInstance();
++        if (Tuning.fastLoading && mc.screen instanceof ReceivingLevelScreen) {
++            return;
++        }
 +        if (WorldCache.reuse(mc)) {
 +            return;
 +        }
@@ -11453,7 +13256,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 5e7f82d..f488882 100644
+index c56d617..ab8f459 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

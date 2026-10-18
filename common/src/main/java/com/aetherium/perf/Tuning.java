@@ -68,6 +68,24 @@ public final class Tuning {
     /** Colour filter: ordinal of {@code AetheriumConfig.ShaderPreset}, 0 = off. */
     public static volatile int shaderPreset;
 
+    // 1.12.0
+    public static volatile boolean serverLighting;
+    public static volatile boolean directionalCulling;
+    public static volatile boolean viewFirstBuilding;
+    public static volatile boolean portalPreload;
+    public static volatile boolean fastLoading;
+    public static volatile boolean serverIdle;
+    public static volatile boolean oceanFloorCulling;
+    public static volatile boolean endOptimizations;
+    public static volatile boolean glStateCache;
+    public static volatile boolean cheapDamageTint;
+    public static volatile boolean lightmapRate;
+    public static volatile boolean aoCache;
+    public static volatile boolean asyncSkins;
+    /** Cloud area in percent of vanilla's (100 = vanilla). */
+    public static volatile int cloudDistance = 100;
+    public static volatile boolean fastGrass;
+
     /** Set by the server thread while vanilla's periodic autosave runs (MinecraftServer.tickServer). */
     public static volatile boolean autosaving;
 
@@ -126,6 +144,25 @@ public final class Tuning {
         menuWorldCache = active && c.menuWorldCache.get().booleanValue();
         farTerrain = active && !low ? c.farTerrain.get().intValue() : 0;
         shaderPreset = active && !low ? c.shaderPreset.get().ordinal() : 0;
+        serverLighting = active && c.serverLighting.get().booleanValue();
+        directionalCulling = active && c.directionalCulling.get().booleanValue();
+        viewFirstBuilding = active && c.viewFirstBuilding.get().booleanValue();
+        portalPreload = active && c.portalPreload.get().booleanValue();
+        fastLoading = active && c.fastLoading.get().booleanValue();
+        serverIdle = active && c.serverIdle.get().booleanValue();
+        oceanFloorCulling = active && c.oceanFloorCulling.get().booleanValue();
+        endOptimizations = active && c.endOptimizations.get().booleanValue();
+        glStateCache = active && c.glStateCache.get().booleanValue();
+        cheapDamageTint = active && c.cheapDamageTint.get().booleanValue();
+        lightmapRate = active && c.lightmapRate.get().booleanValue();
+        aoCache = active && c.aoCache.get().booleanValue();
+        asyncSkins = active && c.asyncSkins.get().booleanValue();
+        int clouds = c.cloudDistance.get().intValue();
+        if (low) {
+            clouds = Math.min(clouds, 50);
+        }
+        cloudDistance = active ? clouds : 100;
+        fastGrass = active && (low || c.fastGrass.get().booleanValue());
         on = active;
     }
 

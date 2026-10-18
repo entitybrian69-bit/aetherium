@@ -189,6 +189,9 @@ public final class AetheriumPages {
                         () -> config.shaderPreset.get().ordinal(),
                         v -> config.shaderPreset.set(AetheriumConfig.ShaderPreset.values()[Math.max(0, Math.min(3, v))]))
                 .withDefault(config.shaderPreset.getDefault().ordinal())));
+        page.add(tuningRow(intSlider("quality.cloud_distance", "Cloud distance", config.cloudDistance, 25,
+                v -> v >= 100 ? "Vanilla" : v + "%")));
+        page.add(tuningRow(bool("quality.fast_grass", "Fast grass", config.fastGrass)));
         page.add(tuningRow(Setting.choice("quality.leaves", Setting.Kind.SEGMENTED, "Leaves",
                         config.leaves.getComment(), LEAVES,
                         () -> config.leaves.get().ordinal(),
@@ -340,6 +343,19 @@ public final class AetheriumPages {
         page.add(tuningRow(bool("perf.lazy_far_rebuilds", "Lazy far chunk rebuilds", config.lazyFarRebuilds)));
         page.add(tuningRow(bool("perf.model_lod", "Mob model detail levels", config.modelLod)));
         page.add(tuningRow(bool("perf.menu_world_cache", "Reuse the world behind menus", config.menuWorldCache)));
+        page.add(tuningRow(bool("perf.server_lighting", "Faster singleplayer lighting", config.serverLighting)));
+        page.add(tuningRow(bool("perf.directional_culling", "Directional cave culling", config.directionalCulling)));
+        page.add(tuningRow(bool("perf.view_first_building", "Build chunks in view first", config.viewFirstBuilding)));
+        page.add(tuningRow(bool("perf.portal_preload", "Portal preloading", config.portalPreload)));
+        page.add(tuningRow(bool("perf.fast_loading", "Faster loading screens", config.fastLoading)));
+        page.add(tuningRow(bool("perf.server_idle", "Calmer built-in server", config.serverIdle)));
+        page.add(tuningRow(bool("perf.ocean_floor_culling", "Ocean floor culling", config.oceanFloorCulling)));
+        page.add(tuningRow(bool("perf.end_optimizations", "End optimizations", config.endOptimizations)));
+        page.add(tuningRow(bool("perf.gl_state_cache", "Skip redundant GL calls", config.glStateCache)));
+        page.add(tuningRow(bool("perf.cheap_damage_tint", "Cheaper damage tint", config.cheapDamageTint)));
+        page.add(tuningRow(bool("perf.lightmap_rate", "Calmer light table updates", config.lightmapRate)));
+        page.add(tuningRow(bool("perf.ao_cache", "Bigger smooth-lighting cache", config.aoCache)));
+        page.add(tuningRow(bool("perf.async_skins", "Background skin loading", config.asyncSkins)));
     }
 
     private static Setting tuningRow(final Setting setting) {

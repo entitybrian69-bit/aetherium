@@ -114,6 +114,32 @@ public final class AetheriumConfig {
             "performance.model_lod", true, "Minecraft 1.16.5: beyond the Entity detail distance, the tiny parts of mob models (ears, noses, beaks, whiskers, horns: at most 2 pixels across) are not drawn, and beyond twice that distance parts up to 3 pixels across are skipped too. They are a few screen pixels at that range. Players and armor stands are never changed.");
     public final ConfigValue<Boolean> menuWorldCache = ConfigValue.bool(
             "performance.menu_world_cache", true, "Minecraft 1.16.5: while an inventory, chest, crafting or pause menu is open, the world behind it is drawn 4 times a second and the last picture is reused in between, so only the menu itself is drawn every frame. Menus open and scroll much more smoothly on weak devices. The chat is excluded, so the world stays live while you type.");
+    public final ConfigValue<Boolean> serverLighting = ConfigValue.bool(
+            "performance.server_lighting", true, "Minecraft 1.16.5, singleplayer: the world's lighting engine works through 64 queued light jobs per pass instead of 5, the batch size vanilla itself uses while preparing the spawn area. New chunks get their light, and become visible, sooner while you explore.");
+    public final ConfigValue<Boolean> directionalCulling = ConfigValue.bool(
+            "performance.directional_culling", true, "Minecraft 1.16.5: the search for visible chunk sections only ever moves away from you, never back towards you. Caves, ravines and rooms you cannot see into are skipped much more often, which means fewer chunks drawn and built underground and in mountains.");
+    public final ConfigValue<Boolean> viewFirstBuilding = ConfigValue.bool(
+            "performance.view_first_building", true, "Minecraft 1.16.5: chunks in front of you are built before chunks behind you at the same distance, so the world fills in where you are looking first. The nearest chunks still come first.");
+    public final ConfigValue<Boolean> portalPreload = ConfigValue.bool(
+            "performance.portal_preload", true, "Minecraft 1.16.5, singleplayer: while you stand in a Nether portal, the chunks around the other side start loading in the background, so the trip itself is much shorter.");
+    public final ConfigValue<Boolean> fastLoading = ConfigValue.bool(
+            "performance.fast_loading", true, "Minecraft 1.16.5: loading screens get the computer to themselves. The world is not drawn behind the Loading terrain screen of a join or dimension change (it is fully hidden there anyway), and while a singleplayer world is being prepared the progress screen is redrawn about 20 times a second instead of about 60, so the built-in server has more CPU to prepare the world. Faster world joins, dimension changes and portal trips on phones.");
+    public final ConfigValue<Boolean> serverIdle = ConfigValue.bool(
+            "performance.server_idle", true, "Minecraft 1.16.5, singleplayer: between ticks the built-in server checks for work 1000 times a second instead of 10000. New work still wakes it at once, so nothing gets slower, but it stops using up a CPU core your phone needs for drawing.");
+    public final ConfigValue<Boolean> oceanFloorCulling = ConfigValue.bool(
+            "performance.ocean_floor_culling", false, "Minecraft 1.16.5, experimental: while you are above the water, chunk sections more than 8 blocks below the floor of an ocean are not drawn. Caves under the sea are not visible from up there anyway; a rare opening in the sea floor can show a gap, which is why this is off by default.");
+    public final ConfigValue<Boolean> endOptimizations = ConfigValue.bool(
+            "performance.end_optimizations", true, "Minecraft 1.16.5: in the End, faces where two chorus plant stems join are not built (they are hidden inside each other), and the End sky is drawn in one draw call instead of six. Chorus forests near End cities get noticeably lighter.");
+    public final ConfigValue<Boolean> glStateCache = ConfigValue.bool(
+            "performance.gl_state_cache", true, "Minecraft 1.16.5: framebuffer, viewport and vertex-array switches that would not change anything are not sent to the graphics driver. Helps most on phones, where every call goes through a GL translator. Turned off automatically next to OptiFine, Iris, Canvas or Sodium.");
+    public final ConfigValue<Boolean> cheapDamageTint = ConfigValue.bool(
+            "performance.cheap_damage_tint", true, "Minecraft 1.16.5: the red hurt flash and white creeper flash on mobs set up their overlay once instead of with 16 GL calls for every group of mobs drawn. Looks exactly the same. Turned off automatically next to OptiFine, Iris, Canvas or Sodium.");
+    public final ConfigValue<Boolean> lightmapRate = ConfigValue.bool(
+            "performance.lightmap_rate", true, "Minecraft 1.16.5: the light colour table (sky brightness at sunrise and sunset, torch flicker) is recalculated 10 times a second instead of 20. Lightning flashes still update every tick.");
+    public final ConfigValue<Boolean> aoCache = ConfigValue.bool(
+            "performance.ao_cache", true, "Minecraft 1.16.5, with Smooth lighting: the chunk builder remembers the light of the last 320 blocks instead of 100 while shading, so the row next to the one it just shaded is still in memory. Chunks build faster; the result is identical.");
+    public final ConfigValue<Boolean> asyncSkins = ConfigValue.bool(
+            "performance.async_skins", true, "Minecraft 1.16.5: player skins and capes that are already saved on your device are read and decoded on a background thread instead of the main thread, so players joining a server or coming into view no longer cause small freezes.");
 
     // ---------------------------------------------------------------- quality
     public final ConfigValue<Boolean> weather = ConfigValue.bool("quality.weather", true, "Render rain and snow. Off saves a lot of fill rate on mobile GPUs.");
@@ -169,6 +195,10 @@ public final class AetheriumConfig {
     public final ConfigValue<ShaderPreset> shaderPreset = ConfigValue.enumerated(
             "quality.shader_preset", ShaderPreset.OFF, ShaderPreset.class, false,
             "Minecraft 1.16.5: a light colour filter over the world (not a full shader pack, so it costs one screen copy per frame and works on phones): Vibrant boosts colour and contrast, Warm adds a golden tone, Cinematic adds contrast and dark corners. Turns itself off if the graphics driver rejects it.");
+    public final ConfigValue<Integer> cloudDistance = ConfigValue.intRange(
+            "quality.cloud_distance", 100, 25, 100, false, "Minecraft 1.16.5: how far Fancy clouds reach, in percent of vanilla's cloud area (25 = only the clouds right around you). Smaller cloud areas cost less fill rate and fewer vertices, which matters on phones. 100 = vanilla; Fast clouds are not affected.");
+    public final ConfigValue<Boolean> fastGrass = ConfigValue.bool(
+            "quality.fast_grass", false, "Minecraft 1.16.5: the sides of grass blocks are drawn with one layer instead of two (the biome-coloured grass edge on top of the dirt is left out, the plain grass edge stays). Fewer faces in every chunk with grass; sides look slightly less green.");
     public final ConfigValue<Boolean> lightWeather = ConfigValue.bool(
             "quality.light_weather", false, "Minecraft 1.16.5: rain and snow are drawn in a smaller area around you (about half the radius), a large fill-rate saving on phones.");
     public final ConfigValue<Boolean> enchantGlint = ConfigValue.bool(

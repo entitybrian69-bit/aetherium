@@ -12,4 +12,7 @@ public class GL11 {
     public static void glDrawElements(int mode, int count, int type, long indices) { }
     public static void glDrawArrays(int mode, int first, int count) { }
     public static int glGetError() { return 0; }
+    public static void glViewport(int x, int y, int w, int h) { }
+    public static void glEnableClientState(int cap) { }
+    public static void glDisableClientState(int cap) { }
 }

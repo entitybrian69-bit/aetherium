@@ -4,6 +4,7 @@ import org.spongepowered.asm.mixin.Mixin;
 // @era:qol16-begin none
 // @era:qol16-else v16
 //~ import com.aetherium.client.FarTerrain;
+//~ import com.aetherium.client.OceanFloor;
 //~ import com.aetherium.client.SkullLookup;
 //~ import com.aetherium.client.TuningClient;
 //~ import net.minecraft.core.SectionPos;
@@ -36,6 +37,7 @@ public abstract class TuningLightMixin {
     //~ @Inject(method = "replaceWithPacketData", at = @At("RETURN"), require = 0)
     //~ private void aetherium$farTerrain(final CallbackInfoReturnable<LevelChunk> cir) {
         //~ FarTerrain.capture(cir.getReturnValue());
+        //~ OceanFloor.capture(cir.getReturnValue());
     //~ }
     // @era:qol16-end
 }

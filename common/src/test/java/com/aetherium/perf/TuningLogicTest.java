@@ -137,6 +137,43 @@ final class TuningLogicTest {
     }
 
     @Test
+    @DisplayName("1.12.0 options: defaults when active, vanilla when inactive")
+    void phase23Defaults() {
+        final AetheriumConfig c = new AetheriumConfig();
+        Tuning.configure(c, true);
+        assertTrue(Tuning.serverLighting && Tuning.directionalCulling && Tuning.viewFirstBuilding
+                && Tuning.portalPreload && Tuning.fastLoading && Tuning.serverIdle && Tuning.endOptimizations
+                && Tuning.glStateCache && Tuning.cheapDamageTint && Tuning.lightmapRate && Tuning.aoCache
+                && Tuning.asyncSkins, "the safe 1.12.0 options are on by default");
+        assertFalse(Tuning.oceanFloorCulling, "ocean floor culling is opt-in");
+        assertFalse(Tuning.fastGrass, "fast grass is opt-in");
+        assertEquals(100, Tuning.cloudDistance);
+
+        c.lowEndMode.set(Boolean.TRUE);
+        Tuning.configure(c, true);
+        assertEquals(50, Tuning.cloudDistance, "low-end mode halves the cloud area");
+        assertTrue(Tuning.fastGrass, "low-end mode uses fast grass");
+        c.cloudDistance.set(Integer.valueOf(25));
+        Tuning.configure(c, true);
+        assertEquals(25, Tuning.cloudDistance, "low-end mode never raises a smaller cloud distance");
+
+        c.oceanFloorCulling.set(Boolean.TRUE);
+        c.fastGrass.set(Boolean.TRUE);
+        Tuning.configure(c, false);
+        assertFalse(Tuning.serverLighting || Tuning.directionalCulling || Tuning.viewFirstBuilding
+                || Tuning.portalPreload || Tuning.fastLoading || Tuning.serverIdle || Tuning.oceanFloorCulling
+                || Tuning.endOptimizations || Tuning.glStateCache || Tuning.cheapDamageTint || Tuning.lightmapRate
+                || Tuning.aoCache || Tuning.asyncSkins || Tuning.fastGrass, "inactive is vanilla");
+        assertEquals(100, Tuning.cloudDistance);
+    }
+
+    @Test
+    @DisplayName("1.12.0: no shader loader or other renderer in the test environment")
+    void renderModsAbsent() {
+        assertFalse(RenderMods.PRESENT);
+    }
+
+    @Test
     @DisplayName("lazy data fixers: the startup executor never runs its tasks")
     void noOpExecutor() {
         final boolean[] ran = {false};

@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.Mixin;
 // @era:qol16-else v16
 //~ import com.aetherium.client.ChunkInfoOrigin;
 //~ import com.aetherium.client.FarTerrain;
+//~ import com.aetherium.client.OceanFloor;
 //~ import com.aetherium.perf.CrowdCull;
 //~ import com.aetherium.perf.HitchGuard;
 //~ import com.aetherium.perf.Tuning;
@@ -48,9 +49,13 @@ public abstract class TuningLevelMixin {
 
     //~ /** Once per frame, before any entity is tested. */
     //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
-    //~ private void aetherium$frame(final CallbackInfo ci) {
+    //~ private void aetherium$frame(final PoseStack poseStack, final float partialTicks, final long finishNanos,
+                                 //~ final boolean renderBlockOutline, final Camera camera,
+                                 //~ final GameRenderer gameRenderer, final LightTexture lightTexture,
+                                 //~ final Matrix4f projection, final CallbackInfo ci) {
         //~ CrowdCull.newFrame();
         //~ Tuning.newFrame();
+        //~ OceanFloor.frame(level, camera);
     //~ }
 
     //~ /**

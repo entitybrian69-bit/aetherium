@@ -17,7 +17,9 @@ import net.minecraft.client.gui.screens.Screen;
 //~ import net.minecraft.core.SectionPos;
 //~ import net.minecraft.world.entity.Entity;
 //~ import net.minecraft.world.level.BlockGetter;
+//~ import net.minecraft.world.level.block.Blocks;
 //~ import net.minecraft.world.level.block.LeavesBlock;
+//~ import net.minecraft.world.level.block.PipeBlock;
 //~ import net.minecraft.world.level.block.state.BlockState;
 //~ import org.lwjgl.glfw.GLFW;
 // @era:qol16-end
@@ -65,6 +67,8 @@ public final class TuningClient {
     //~ private static boolean gcPending;
     //~ private static int lightTicks;
     //~ private static int lastLeaves = -1;
+    //~ /** Mesh-affecting switches as bits (leaves excluded): fast grass, End chorus culling. */
+    //~ private static int lastMesh = -1;
 
     //~ /**
      //~ * The frame-rate cap these options want right now (0 = none). Read on the client tick, so it
@@ -162,15 +166,19 @@ public final class TuningClient {
         //~ lightTicks = 0;
         //~ FarTerrain.levelChanged();
         //~ WorldCache.levelChanged();
+        //~ OceanFloor.levelChanged();
     //~ }
 
     //~ /** After Apply: a leaves mode change needs the chunks rebuilt with the new render type. */
     //~ public static void configured(final Minecraft mc) {
         //~ final int leaves = Tuning.leaves;
-        //~ if (lastLeaves != -1 && leaves != lastLeaves && mc.levelRenderer != null && mc.level != null) {
+        //~ final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
+        //~ final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
+        //~ if (changed && mc.levelRenderer != null && mc.level != null) {
             //~ mc.levelRenderer.allChanged();
         //~ }
         //~ lastLeaves = leaves;
+        //~ lastMesh = mesh;
     //~ }
 
     //~ /**
@@ -189,6 +197,21 @@ public final class TuningClient {
         //~ }
         //~ final BlockState beyond = level.getBlockState(next.relative(side));
         //~ return beyond.getBlock() instanceof LeavesBlock || beyond.canOcclude();
+    //~ }
+
+    //~ /**
+     //~ * Chorus culling (End optimizations, 1.12.0): whether the {@code side} face of a chorus plant
+     //~ * stem is the end cap of an arm joined to the next chorus plant's arm, which is buried inside
+     //~ * the joint. Chunk build threads.
+     //~ */
+    //~ public static boolean chorusFaceHidden(final BlockState state, final BlockGetter level, final BlockPos pos,
+                                           //~ final Direction side) {
+        //~ if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side))) {
+            //~ return false;
+        //~ }
+        //~ final BlockState next = level.getBlockState(pos.relative(side));
+        //~ return next.getBlock() == Blocks.CHORUS_PLANT
+                //~ && next.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side.getOpposite()));
     //~ }
 
     //~ /** Squared distance from the camera to an entity (render thread). */
