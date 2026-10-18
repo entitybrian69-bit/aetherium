@@ -15,6 +15,7 @@ import com.aetherium.perf.FrameLimiter;
 import com.aetherium.perf.NearBuild;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.perf.SectionVisibility;
+import com.aetherium.perf.Tuning;
 import com.aetherium.util.AetheriumLog;
 
 import net.minecraft.client.Minecraft;
@@ -336,6 +337,7 @@ public final class ClientHooks {
         ZoomKeys.configure(config);
         NearBuild.configure(config);
         QolHooks.configure(config);
+        Tuning.configure(config, active && Capabilities.TUNING);
 
         if (active && config.fullbright.get().booleanValue()) {
             final double strength = config.fullbrightStrength.get().intValue() / 100.0;

@@ -6,9 +6,11 @@ import com.aetherium.config.AetheriumConfig;
 import com.aetherium.mixin.AetheriumMixinPlugin;
 import com.aetherium.perf.ChunkBuildExecutor;
 import com.aetherium.perf.DirectPool;
+import com.aetherium.perf.HitchGuard;
 import com.aetherium.perf.PacketBudget;
 import com.aetherium.perf.RebuildCoalescer;
 import com.aetherium.perf.StutterRecorder;
+import com.aetherium.perf.Tuning;
 import com.aetherium.perf.UploadBudget;
 import com.aetherium.perf.VisibilitySearch;
 import com.aetherium.qol.ParticleFilter;
@@ -113,6 +115,9 @@ public final class QolHooks {
     public static void frame(final Minecraft mc) {
         StutterRecorder.frame(System.nanoTime(), null);
         UploadBudget.adapt(StutterRecorder.averageFrameNanos());
+        if (HitchGuard.frame(System.nanoTime(), StutterRecorder.averageFrameNanos()) && Tuning.hitchGuard) {
+            UploadBudget.throttle();
+        }
     }
 
     // ------------------------------------------------------------------ packet budget

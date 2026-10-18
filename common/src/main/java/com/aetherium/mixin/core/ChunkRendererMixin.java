@@ -188,10 +188,16 @@ public abstract class ChunkRendererMixin {
                 //~ }
                 //~ final TerrainRegions.Slot slot = access.aetheriumSlot();
                 //~ if (slot != null) {
-                    //~ // Batched: queue the exact runs that can face the camera (1.9.0); the page draws
-                    //~ // them below and joins only small gaps (TerrainRegions.mergeGap).
-                    //~ final int runs = ChunkRenderer.compatibleRunsExact(access.aetheriumSortedLayout(),
-                            //~ (float) (slot.originX() - camX), (float) (slot.originY() - camY), (float) (slot.originZ() - camZ));
+                    //~ // Batched: desktop queues the exact runs that can face the camera (1.9.0); GL
+                    //~ // translators queue one span per section (1.10.0: the exact runs multiplied the
+                    //~ // draw calls, which cost phones far more than the hidden faces they skipped). The
+                    //~ // page draws them below and joins small gaps (TerrainRegions.mergeGap).
+                    //~ final float sx = (float) (slot.originX() - camX);
+                    //~ final float sy = (float) (slot.originY() - camY);
+                    //~ final float sz = (float) (slot.originZ() - camZ);
+                    //~ final int runs = TerrainRegions.translated()
+                            //~ ? ChunkRenderer.compatibleRuns(access.aetheriumSortedLayout(), sx, sy, sz)
+                            //~ : ChunkRenderer.compatibleRunsExact(access.aetheriumSortedLayout(), sx, sy, sz);
                     //~ if (runs < 0) {
                         //~ TerrainRegions.queueAll(slot);
                     //~ } else {

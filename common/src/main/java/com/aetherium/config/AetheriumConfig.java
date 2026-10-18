@@ -74,6 +74,35 @@ public final class AetheriumConfig {
     public final ConfigValue<Integer> workerThreads = ConfigValue.intRange(
             "performance.worker_threads", 0, 0, 16, false, "Threads for world generation. 0 = automatic (vanilla on desktop; on Android half the cores minus one, between 2 and 4, so the render and server threads are not starved). Chunk meshes are built on Aetherium's own threads. Applies after a restart.");
 
+    public final ConfigValue<Boolean> lowEndMode = ConfigValue.bool(
+            "performance.low_end_mode", false, "Minecraft 1.16.5: one switch for weak phones and PCs. Tightens every limit below at once (entity details beyond 16 blocks, menus at 20 FPS, at most 2 explosion clouds per tick, fast leaves, lighter rain and snow) without changing your own values, so turning it off restores them.");
+    public final ConfigValue<Boolean> dynamicFps = ConfigValue.bool(
+            "performance.dynamic_fps", true, "Minecraft 1.16.5: while the game window is in the background the frame rate drops to 15 FPS, and to 1 FPS while it is minimized. Saves battery and keeps the phone cool; full speed returns the moment you switch back.");
+    public final ConfigValue<Integer> menuFps = ConfigValue.intRange(
+            "performance.menu_fps", 30, 10, 120, false, "Minecraft 1.16.5: frame rate while an inventory, chest or pause menu is open in a world (the chat is excluded, so typing stays smooth). The world behind the menu barely changes, so drawing it 30 times a second looks the same and costs far less. 120 = no limit.");
+    public final ConfigValue<Boolean> hitchGuard = ConfigValue.bool(
+            "performance.hitch_guard", true, "Minecraft 1.16.5: after a frame that took much longer than usual (a garbage collection, a save, a burst of chunks), chunk uploads and light updates slow down for the next 20 frames, so the work waiting behind it does not cause a second hitch right away.");
+    public final ConfigValue<Boolean> loadGc = ConfigValue.bool(
+            "performance.loading_screen_gc", true, "Minecraft 1.16.5: clean up memory while a loading screen is shown (joining a world or server, changing dimension), when a short pause is invisible, instead of in the middle of gameplay.");
+    public final ConfigValue<Integer> entityDetailDistance = ConfigValue.intRange(
+            "performance.entity_detail_distance", 32, 8, 64, false, "Minecraft 1.16.5: mobs, armor stands and item frames farther than this many blocks are drawn without their small details: shadows, armor, held items, elytra, heads worn on the head, stuck arrows, items in item frames and blocks in minecarts. Players always keep everything. 64 = vanilla.");
+    public final ConfigValue<Boolean> crowdCulling = ConfigValue.bool(
+            "performance.crowd_culling", true, "Minecraft 1.16.5: in places packed with entities (item piles, mob farms) only the first 4 dropped items and 6 mobs in each block space are drawn; the rest are still there and still work, they just are not drawn on top of each other.");
+    public final ConfigValue<Integer> explosionParticles = ConfigValue.intRange(
+            "performance.explosion_particles", 4, 0, 32, false, "Minecraft 1.16.5: at most this many big explosion clouds per game tick; the rest of a TNT chain shows the small puff instead. Prevents the frame-rate collapse of large TNT blasts. 0 = small puffs only, 32 = unlimited (vanilla).");
+    public final ConfigValue<Boolean> lightUpdates = ConfigValue.bool(
+            "performance.light_updates", true, "Minecraft 1.16.5: light changes reported by the server are collected and each chunk section is rebuilt once every 2 ticks instead of once per change, and the client's own light updates get a per-frame quota (smaller right after a hitch) instead of all running in one frame.");
+    public final ConfigValue<Boolean> mapUpdates = ConfigValue.bool(
+            "performance.map_updates", true, "Minecraft 1.16.5: held maps and maps in item frames redraw their texture at most 4 times per second instead of whenever they change.");
+    public final ConfigValue<Boolean> asyncSkulls = ConfigValue.bool(
+            "performance.async_skulls", true, "Minecraft 1.16.5: player heads look up their owner's skin on a background thread. Vanilla asks Mojang's servers on the main thread, which freezes the game for every new head that comes into view.");
+    public final ConfigValue<Boolean> dimensionCulling = ConfigValue.bool(
+            "performance.dimension_culling", true, "Minecraft 1.16.5: in the Nether, the chunks above the bedrock roof are not drawn while you are below it (you cannot see them through the roof).");
+    public final ConfigValue<Boolean> smoothAutosave = ConfigValue.bool(
+            "performance.smooth_autosave", true, "Minecraft 1.16.5, singleplayer: the automatic save every 5 minutes writes 16 chunks per tick instead of all of them in one tick, which removes the regular freeze. Saving when you pause or quit is unchanged and saves everything at once.");
+    public final ConfigValue<Boolean> flightPreload = ConfigValue.bool(
+            "performance.flight_preload", true, "Minecraft 1.16.5, singleplayer: while flying with an elytra, the chunks about 2 seconds ahead of you are loaded early, so you fly into a finished world instead of into empty space.");
+
     // ---------------------------------------------------------------- quality
     public final ConfigValue<Boolean> weather = ConfigValue.bool("quality.weather", true, "Render rain and snow. Off saves a lot of fill rate on mobile GPUs.");
     public final ConfigValue<Boolean> vignette = ConfigValue.bool("quality.vignette", true, "Draw the darkened screen edges.");
@@ -115,6 +144,18 @@ public final class AetheriumConfig {
             "quality.particles.totem", true, "The burst from a Totem of Undying.");
     public final ConfigValue<Boolean> particlesBlockBreak = ConfigValue.bool(
             "quality.particles.block_break", true, "Fragments when blocks are broken, and the chips while mining one.");
+
+    public final ConfigValue<LeavesMode> leaves = ConfigValue.enumerated(
+            "quality.leaves", LeavesMode.GRAPHICS, LeavesMode.class, false,
+            "Minecraft 1.16.5: draw leaves fast (opaque) or fancy (see-through) independently of the Graphics setting. GRAPHICS follows the Graphics setting like vanilla.");
+    public final ConfigValue<Boolean> leafCulling = ConfigValue.bool(
+            "quality.leaf_culling", true, "Minecraft 1.16.5: leaf faces buried inside a tree are not drawn. With fancy leaves the outer two layers stay visible so trees keep their depth; with fast leaves every hidden face is skipped. Far fewer faces in forests.");
+    public final ConfigValue<Boolean> lightWeather = ConfigValue.bool(
+            "quality.light_weather", false, "Minecraft 1.16.5: rain and snow are drawn in a smaller area around you (about half the radius), a large fill-rate saving on phones.");
+    public final ConfigValue<Boolean> enchantGlint = ConfigValue.bool(
+            "quality.enchant_glint", true, "Minecraft 1.16.5: the shimmer on enchanted items and armor. Off skips its extra rendering pass.");
+    public final ConfigValue<Boolean> endCrystalBeams = ConfigValue.bool(
+            "quality.end_crystal_beams", true, "Minecraft 1.16.5: the healing beams of End crystals (to the dragon and on the exit portal pillars).");
 
     // ---------------------------------------------------------------- effects
     public final ConfigValue<LightMode> dynamicLights = ConfigValue.enumerated(
@@ -250,6 +291,11 @@ public final class AetheriumConfig {
     /** Performance presets offered on the General tab. */
     public enum Preset {
         CUSTOM, MAX_FPS, BALANCED, QUALITY
+    }
+
+    /** Leaves drawing mode (1.10.0). */
+    public enum LeavesMode {
+        GRAPHICS, FAST, FANCY
     }
 
     /** Dynamic light update modes. */

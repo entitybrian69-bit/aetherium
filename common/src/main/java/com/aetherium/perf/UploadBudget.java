@@ -65,6 +65,11 @@ public final class UploadBudget {
         budgetNanos = budgetFor(averageFrameNanos);
     }
 
+    /** Hitch guard: the minimum budget for this frame (after {@link #adapt}). */
+    public static void throttle() {
+        budgetNanos = MIN_BUDGET_NANOS;
+    }
+
     public static long currentBudgetNanos() {
         return budgetNanos;
     }

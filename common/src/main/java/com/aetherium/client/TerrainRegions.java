@@ -58,10 +58,21 @@ public final class TerrainRegions {
      */
     static final int MERGE_GAP_VERTICES_DESKTOP = 256;
     private static volatile int mergeGap = MERGE_GAP_VERTICES;
+    private static volatile boolean translated = true;
 
     /** Picks the merge gap for the GL in use: {@code translated} = a GL translator (Android). */
     public static void setTranslated(final boolean translated) {
         mergeGap = translated ? MERGE_GAP_VERTICES : MERGE_GAP_VERTICES_DESKTOP;
+        TerrainRegions.translated = translated;
+    }
+
+    /**
+     * A GL translator (Android, gl4es and friends) is in use. There every draw call costs far more
+     * CPU than the vertices it skips, so batched sections queue one span each (1.10.0) instead of
+     * their exact face runs; neighbouring spans then merge into a few long draws.
+     */
+    public static boolean translated() {
+        return translated;
     }
 
     static int mergeGap() {
