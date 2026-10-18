@@ -1,34 +1,34 @@
-# Smoke test for 1662579
-- 1.16.5: targets 56, failed 0, unused injectors 0
-- 1.17.1: targets 55, failed 0, unused injectors 1
-- 1.17: targets 55, failed 0, unused injectors 1
-- 1.18.1: targets 54, failed 0, unused injectors 1
-- 1.18.2: targets 54, failed 0, unused injectors 1
-- 1.18: targets 54, failed 0, unused injectors 1
-- 1.19.1: targets 55, failed 0, unused injectors 1
-- 1.19.2: targets 55, failed 0, unused injectors 1
-- 1.19.3: targets 54, failed 0, unused injectors 1
-- 1.19.4: targets 53, failed 0, unused injectors 1
-- 1.19: targets 55, failed 0, unused injectors 1
-- 1.20.1: targets 52, failed 0, unused injectors 1
-- 1.20.2: targets 52, failed 0, unused injectors 1
-- 1.20.3: targets 52, failed 0, unused injectors 1
-- 1.20.4: targets 52, failed 0, unused injectors 1
-- 1.20.5: targets 53, failed 0, unused injectors 1
-- 1.20.6: targets 53, failed 0, unused injectors 1
-- 1.20: targets 52, failed 0, unused injectors 1
-- 1.21.1: targets 46, failed 0, unused injectors 1
-- 1.21.10: targets 46, failed 0, unused injectors 0
-- 1.21.11: targets 46, failed 0, unused injectors 0
-- 1.21.2: targets 50, failed 0, unused injectors 1
-- 1.21.3: targets 50, failed 0, unused injectors 1
-- 1.21.4: targets 49, failed 0, unused injectors 1
-- 1.21.5: targets 46, failed 0, unused injectors 0
-- 1.21.6: targets 46, failed 0, unused injectors 0
-- 1.21.7: targets 46, failed 0, unused injectors 0
-- 1.21.8: targets 46, failed 0, unused injectors 0
-- 1.21.9: targets 46, failed 0, unused injectors 0
-- 1.21: targets 46, failed 0, unused injectors 1
-- 26.1: targets 39, failed 0, unused injectors 1
-- 26.2: NO REPORT (exit 1)
-- 26.3: NO REPORT (exit 1)
+# Smoke test for 4b78b53
+- 1.16.5: targets 56, failed 0, unused injectors 0, render scale ok
+- 1.17.1: targets 55, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.17: targets 55, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.18.1: targets 54, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.18.2: targets 54, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.18: targets 54, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.19.1: targets 55, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.19.2: targets 55, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.19.3: targets 54, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.19.4: targets 53, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.19: targets 55, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.20.1: targets 52, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.20.2: targets 52, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.20.3: targets 52, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.20.4: targets 52, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.20.5: targets 53, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.20.6: targets 53, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.20: targets 52, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.21.1: targets 46, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.21.10: targets 46, failed 0, unused injectors 0, render scale ok (427x240 -> 854x480)
+- 1.21.11: targets 46, failed 0, unused injectors 0, render scale ok (427x240 -> 854x480)
+- 1.21.2: targets 50, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.21.3: targets 50, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.21.4: targets 49, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 1.21.5: targets 46, failed 0, unused injectors 0, render scale ok (427x240 -> 854x480)
+- 1.21.6: targets 46, failed 0, unused injectors 0, render scale ok (427x240 -> 854x480)
+- 1.21.7: targets 46, failed 0, unused injectors 0, render scale ok (427x240 -> 854x480)
+- 1.21.8: targets 46, failed 0, unused injectors 0, render scale ok (427x240 -> 854x480)
+- 1.21.9: targets 46, failed 0, unused injectors 0, render scale ok (427x240 -> 854x480)
+- 1.21: targets 46, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 26.1: targets 39, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 26.2: targets 36, failed 0, unused injectors 1, render scale ok (427x240 -> 854x480)
+- 26.3: NO REPORT (exit 124)
