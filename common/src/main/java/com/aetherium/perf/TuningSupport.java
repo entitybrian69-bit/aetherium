@@ -184,6 +184,12 @@ public final class TuningSupport {
     //~ public static final boolean MINECART = false;
     // @era:t-minecart-end
 
+    // @era:t-damage-tint-begin none
+    public static final boolean DAMAGE_TINT = false;
+    // @era:t-damage-tint-else v16
+    //~ public static final boolean DAMAGE_TINT = true;
+    // @era:t-damage-tint-end
+
     // @era:t-crowd-begin c17
     public static final boolean CROWD = true;
     // @era:t-crowd-else none
@@ -417,9 +423,12 @@ public final class TuningSupport {
             case "perf.loading_screen_gc":
                 return CLIENT;
             case "perf.entity_detail_distance":
-                return FRAME_ITEM || LAYERS || MINECART || SIGN;
+                return FRAME_ITEM || LAYERS || MINECART || SIGN || NAME_TAG || SHADOW;
             case "perf.crowd_culling":
+                return LEVEL || CROWD;
             case "perf.dimension_culling":
+                // 1.16.5 in TuningLevelMixin; 1.17 - 26.1 in the fog cull filter (FogCullHooks).
+                return LEVEL || com.aetherium.Capabilities.FOG_CULL;
             case "perf.translucent_sort_throttle":
             case "quality.light_weather":
                 return LEVEL;
@@ -458,8 +467,9 @@ public final class TuningSupport {
             case "perf.end_optimizations":
                 return SKY || LEAF_CULL;
             case "perf.gl_state_cache":
-            case "perf.cheap_damage_tint":
                 return GL_STATE;
+            case "perf.cheap_damage_tint":
+                return GL_STATE && DAMAGE_TINT;
             case "perf.lightmap_rate":
                 return LIGHTMAP;
             case "perf.ao_cache":
