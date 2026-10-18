@@ -4,32 +4,32 @@ Window 854x480, render distance 8, seed 7294105550031, GPU: Unknown, Java 17.0.2
 
 | Scenario | Avg FPS | 1% low FPS | p50 ms | p99 ms | p99.9 ms | Max ms | Frames > 50 ms | Frames > 100 ms |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Vanilla (Aetherium off) | 21.8 | 17.1 | 46.28 | 56.35 | 60.82 | 60.8 | 70 | 0 |
-| Aetherium (defaults) | 23.3 | 17.7 | 42.90 | 53.61 | 60.22 | 60.2 | 15 | 0 |
-| Aetherium, all 1.12.0 options off | 22.6 | 17.0 | 43.94 | 57.12 | 60.62 | 60.6 | 35 | 0 |
-| Aetherium, directional culling + view-first building off | 23.2 | 18.3 | 42.90 | 51.95 | 60.29 | 60.3 | 14 | 0 |
-| Aetherium, GL call trimming + cheap damage tint off | 23.3 | 18.1 | 42.91 | 54.55 | 56.02 | 56.0 | 16 | 0 |
-| Aetherium, server lighting + server idle off | 23.1 | 17.0 | 42.99 | 55.87 | 60.22 | 60.2 | 15 | 0 |
-| Aetherium, light table rate + AO cache off | 23.1 | 19.1 | 43.53 | 51.50 | 53.45 | 53.5 | 15 | 0 |
-| Aetherium (defaults), measured again | 23.2 | 18.2 | 42.93 | 54.06 | 56.14 | 56.1 | 25 | 0 |
-| Aetherium + render scale 70% | 25.8 | 19.9 | 38.48 | 47.85 | 52.92 | 52.9 | 2 | 0 |
-| Flying into new terrain (+X), Aetherium off | 41.2 | 16.3 | 21.77 | 56.38 | 70.30 | 70.3 | 16 | 0 |
-| Flying into new terrain (-X), Aetherium defaults | 28.4 | 15.8 | 33.62 | 60.55 | 69.10 | 69.1 | 34 | 0 |
-| Flying into new terrain (+Z), all 1.12.0 options off | 31.8 | 19.3 | 29.58 | 50.69 | 52.71 | 52.7 | 8 | 0 |
-| Flying into new terrain (-Z), Aetherium defaults | 36.2 | 16.8 | 26.12 | 51.49 | 75.50 | 75.5 | 9 | 0 |
+| Vanilla (Aetherium off) | 19.4 | 15.1 | 51.33 | 62.23 | 72.32 | 72.3 | 251 | 0 |
+| Aetherium (defaults) | 21.5 | 15.5 | 46.21 | 60.94 | 65.64 | 65.6 | 100 | 0 |
+| Aetherium, all 1.12.0 options off | 21.5 | 17.8 | 46.38 | 55.07 | 58.10 | 58.1 | 94 | 0 |
+| Aetherium, directional culling + view-first building off | 21.7 | 16.0 | 45.93 | 58.26 | 65.48 | 65.5 | 89 | 0 |
+| Aetherium, GL call trimming + cheap damage tint off | 21.3 | 15.6 | 46.27 | 61.86 | 67.68 | 67.7 | 112 | 0 |
+| Aetherium, server lighting + server idle off | 21.9 | 17.3 | 45.35 | 55.85 | 59.61 | 59.6 | 77 | 0 |
+| Aetherium, light table rate + AO cache off | 21.4 | 16.7 | 46.27 | 56.87 | 67.72 | 67.7 | 91 | 0 |
+| Aetherium (defaults), measured again | 21.9 | 17.5 | 45.38 | 56.29 | 57.73 | 57.7 | 69 | 0 |
+| Aetherium + render scale 70% | 24.5 | 19.3 | 40.64 | 50.30 | 53.98 | 54.0 | 6 | 0 |
+| Flying into new terrain (+X), Aetherium off | 36.1 | 16.2 | 25.97 | 56.08 | 73.34 | 73.3 | 16 | 0 |
+| Flying into new terrain (-X), Aetherium defaults | 25.1 | 14.9 | 37.65 | 63.84 | 70.63 | 70.6 | 77 | 0 |
+| Flying into new terrain (+Z), all 1.12.0 options off | 28.6 | 16.3 | 33.78 | 57.10 | 68.52 | 68.5 | 24 | 0 |
+| Flying into new terrain (-Z), Aetherium defaults | 32.0 | 15.7 | 29.43 | 60.17 | 68.40 | 68.4 | 25 | 0 |
 
 ## Notes
 
-- vanilla: 4 GC collections, 21 ms in GC; renderer: Vanilla; regions: ; render scale: 100%
-- aetherium: 3 GC collections, 13 ms in GC; renderer: Aetherium pipeline, compatible mode (95 sections in the last layer, 29% of faces skipped; last frame 279 section layers in 181 draws, vanilla: 279; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 67 draws); regions: ; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 67 draws; render scale: 100%
-- new-off: 4 GC collections, 16 ms in GC; renderer: Aetherium pipeline, compatible mode (95 sections in the last layer, 29% of faces skipped; last frame 279 section layers in 183 draws, vanilla: 279; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 67 draws); regions: ; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 67 draws; render scale: 100%
-- no-cull: 4 GC collections, 18 ms in GC; renderer: Aetherium pipeline, compatible mode (95 sections in the last layer, 29% of faces skipped; last frame 278 section layers in 180 draws, vanilla: 278; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws); regions: ; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws; render scale: 100%
-- no-gl: 3 GC collections, 11 ms in GC; renderer: Aetherium pipeline, compatible mode (95 sections in the last layer, 29% of faces skipped; last frame 278 section layers in 180 draws, vanilla: 278; batched: 141 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws); regions: ; batched: 141 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws; render scale: 100%
-- no-server: 4 GC collections, 19 ms in GC; renderer: Aetherium pipeline, compatible mode (95 sections in the last layer, 29% of faces skipped; last frame 278 section layers in 180 draws, vanilla: 278; batched: 143 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws); regions: ; batched: 143 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws; render scale: 100%
-- no-light: 4 GC collections, 18 ms in GC; renderer: Aetherium pipeline, compatible mode (95 sections in the last layer, 29% of faces skipped; last frame 278 section layers in 180 draws, vanilla: 278; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws); regions: ; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws; render scale: 100%
-- aetherium-again: 4 GC collections, 14 ms in GC; renderer: Aetherium pipeline, compatible mode (95 sections in the last layer, 29% of faces skipped; last frame 278 section layers in 180 draws, vanilla: 278; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws); regions: ; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws; render scale: 100%
-- scale70: 4 GC collections, 16 ms in GC; renderer: Aetherium pipeline, compatible mode (95 sections in the last layer, 28% of faces skipped; last frame 278 section layers in 180 draws, vanilla: 278; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws); regions: ; batched: 144 buffers, 38 MB (32 MB used), last layer 28 buffers / 68 draws; render scale: 70%
-- fly-vanilla: 13 GC collections, 108 ms in GC; renderer: Vanilla; regions: ; render scale: 100%
-- fly-aetherium: 7 GC collections, 65 ms in GC; renderer: Aetherium pipeline, compatible mode (74 sections in the last layer, 26% of faces skipped; last frame 232 section layers in 119 draws, vanilla: 232; batched: 129 buffers, 32 MB (26 MB used), last layer 13 buffers / 18 draws); regions: ; batched: 129 buffers, 32 MB (26 MB used), last layer 13 buffers / 18 draws; render scale: 100%
-- fly-new-off: 7 GC collections, 76 ms in GC; renderer: Aetherium pipeline, compatible mode (44 sections in the last layer, 27% of faces skipped; last frame 63 section layers in 49 draws, vanilla: 63; batched: 118 buffers, 51 MB (39 MB used), last layer 9 buffers / 37 draws); regions: ; batched: 118 buffers, 51 MB (39 MB used), last layer 9 buffers / 37 draws; render scale: 100%
-- fly-aetherium-z: 9 GC collections, 100 ms in GC; renderer: Aetherium pipeline, compatible mode (38 sections in the last layer, 35% of faces skipped; last frame 171 section layers in 154 draws, vanilla: 171; batched: 123 buffers, 45 MB (33 MB used), last layer 7 buffers / 9 draws); regions: ; batched: 123 buffers, 45 MB (33 MB used), last layer 7 buffers / 9 draws; render scale: 100%
+- vanilla: 3 GC collections, 16 ms in GC; renderer: Vanilla; regions: ; render scale: 100%
+- aetherium: 4 GC collections, 20 ms in GC; renderer: Aetherium pipeline, compatible mode (107 sections in the last layer, 29% of faces skipped; last frame 327 section layers in 215 draws, vanilla: 327; batched: 168 buffers, 41 MB (33 MB used), last layer 35 buffers / 73 draws); regions: ; batched: 168 buffers, 41 MB (33 MB used), last layer 35 buffers / 73 draws; render scale: 100%
+- new-off: 4 GC collections, 18 ms in GC; renderer: Aetherium pipeline, compatible mode (108 sections in the last layer, 29% of faces skipped; last frame 327 section layers in 212 draws, vanilla: 327; batched: 168 buffers, 41 MB (33 MB used), last layer 34 buffers / 73 draws); regions: ; batched: 168 buffers, 41 MB (33 MB used), last layer 34 buffers / 73 draws; render scale: 100%
+- no-cull: 4 GC collections, 19 ms in GC; renderer: Aetherium pipeline, compatible mode (106 sections in the last layer, 29% of faces skipped; last frame 326 section layers in 213 draws, vanilla: 326; batched: 167 buffers, 41 MB (33 MB used), last layer 34 buffers / 72 draws); regions: ; batched: 167 buffers, 41 MB (33 MB used), last layer 34 buffers / 72 draws; render scale: 100%
+- no-gl: 3 GC collections, 11 ms in GC; renderer: Aetherium pipeline, compatible mode (107 sections in the last layer, 29% of faces skipped; last frame 324 section layers in 210 draws, vanilla: 324; batched: 167 buffers, 41 MB (33 MB used), last layer 35 buffers / 73 draws); regions: ; batched: 167 buffers, 41 MB (33 MB used), last layer 35 buffers / 73 draws; render scale: 100%
+- no-server: 3 GC collections, 10 ms in GC; renderer: Aetherium pipeline, compatible mode (107 sections in the last layer, 29% of faces skipped; last frame 327 section layers in 213 draws, vanilla: 327; batched: 167 buffers, 41 MB (33 MB used), last layer 35 buffers / 73 draws); regions: ; batched: 167 buffers, 41 MB (33 MB used), last layer 35 buffers / 73 draws; render scale: 100%
+- no-light: 3 GC collections, 22 ms in GC; renderer: Aetherium pipeline, compatible mode (107 sections in the last layer, 29% of faces skipped; last frame 326 section layers in 212 draws, vanilla: 326; batched: 166 buffers, 41 MB (33 MB used), last layer 35 buffers / 73 draws); regions: ; batched: 166 buffers, 41 MB (33 MB used), last layer 35 buffers / 73 draws; render scale: 100%
+- aetherium-again: 3 GC collections, 12 ms in GC; renderer: Aetherium pipeline, compatible mode (106 sections in the last layer, 29% of faces skipped; last frame 324 section layers in 210 draws, vanilla: 324; batched: 167 buffers, 41 MB (33 MB used), last layer 34 buffers / 72 draws); regions: ; batched: 167 buffers, 41 MB (33 MB used), last layer 34 buffers / 72 draws; render scale: 100%
+- scale70: 3 GC collections, 15 ms in GC; renderer: Aetherium pipeline, compatible mode (108 sections in the last layer, 29% of faces skipped; last frame 326 section layers in 204 draws, vanilla: 326; batched: 168 buffers, 41 MB (33 MB used), last layer 34 buffers / 73 draws); regions: ; batched: 168 buffers, 41 MB (33 MB used), last layer 34 buffers / 73 draws; render scale: 70%
+- fly-vanilla: 10 GC collections, 81 ms in GC; renderer: Vanilla; regions: ; render scale: 100%
+- fly-aetherium: 14 GC collections, 93 ms in GC; renderer: Aetherium pipeline, compatible mode (73 sections in the last layer, 26% of faces skipped; last frame 219 section layers in 112 draws, vanilla: 219; batched: 152 buffers, 39 MB (26 MB used), last layer 11 buffers / 16 draws); regions: ; batched: 152 buffers, 39 MB (26 MB used), last layer 11 buffers / 16 draws; render scale: 100%
+- fly-new-off: 15 GC collections, 88 ms in GC; renderer: Aetherium pipeline, compatible mode (40 sections in the last layer, 28% of faces skipped; last frame 64 section layers in 54 draws, vanilla: 64; batched: 109 buffers, 46 MB (36 MB used), last layer 15 buffers / 39 draws); regions: ; batched: 109 buffers, 46 MB (36 MB used), last layer 15 buffers / 39 draws; render scale: 100%
+- fly-aetherium-z: 29 GC collections, 128 ms in GC; renderer: Aetherium pipeline, compatible mode (35 sections in the last layer, 35% of faces skipped; last frame 141 section layers in 143 draws, vanilla: 141; batched: 120 buffers, 44 MB (31 MB used), last layer 5 buffers / 6 draws); regions: ; batched: 120 buffers, 44 MB (31 MB used), last layer 5 buffers / 6 draws; render scale: 100%
