@@ -11,6 +11,7 @@ import com.aetherium.lighting.DynamicLightTracker;
 import com.aetherium.mixin.AetheriumMixinPlugin;
 import com.aetherium.perf.AdaptiveDistance;
 import com.aetherium.perf.BlockEntityCull;
+import com.aetherium.perf.CrowdCull;
 import com.aetherium.perf.FrameLimiter;
 import com.aetherium.perf.NearBuild;
 import com.aetherium.perf.RenderToggles;
@@ -76,6 +77,10 @@ public final class ClientHooks {
     /** GameRenderer.render HEAD: frame pacing (battery/thermal caps) and frame-time stats. */
     public static void onFrameStart() {
         visibilityFrameDirty = true;
+        // Per-frame budgets of the tuning options (crowd culling, block entity limit). On 1.16.5
+        // LevelRenderer.renderLevel resets them too; both run once per frame, before any entity.
+        CrowdCull.newFrame();
+        Tuning.newFrame();
         // Zoom reads its keys here, before the camera, the FOV and the mouse use its state.
         ZoomKeys.frame(Minecraft.getInstance());
         // Stutter log and adaptive upload budget, then freelook (before the camera is set up).

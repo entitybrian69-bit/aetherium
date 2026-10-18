@@ -1,7 +1,31 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-cull-begin none
+// @era:t-cull-begin c202
+import com.aetherium.perf.Tuning;
+import net.minecraft.core.Direction;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+import net.minecraft.core.BlockPos;
+// @era:t-cull-else c17
+//~ import com.aetherium.perf.Tuning;
+//~ import net.minecraft.core.Direction;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Inject;
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+//~ import net.minecraft.core.BlockPos;
+// @era:t-cull-else c215
+//~ import com.aetherium.perf.Tuning;
+//~ import net.minecraft.core.Direction;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Inject;
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+//~ import net.minecraft.core.SectionPos;
+// @era:t-cull-else none
 // @era:t-cull-else v16
 //~ import com.aetherium.client.OceanFloor;
 //~ import com.aetherium.perf.Tuning;
@@ -29,9 +53,97 @@ import org.spongepowered.asm.mixin.Mixin;
  * <p>A redirect of the single call site (offset 1001) instead of a cancellable inject, so the
  * search allocates nothing per step.</p>
  */
-@Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+// @era:t-cull-begin c202|c215
+@Mixin(targets = "net.minecraft.client.renderer.SectionOcclusionGraph")
+// @era:t-cull-else v16|c17|none
+//~ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+// @era:t-cull-end
 public abstract class TuningCullMixin {
-    // @era:t-cull-begin none
+    // @era:t-cull-begin c202
+    /**
+     * Directional culling: refuse a search step that moves back towards the camera on its axis.
+     * The only caller is the visibility search, so returning "no neighbour" here is the same as
+     * the 1.16.5 redirect of its call site.
+     */
+    @Inject(method = "getRelativeFrom", at = @At("HEAD"), cancellable = true, require = 0)
+    private void aetherium$neighbour(final BlockPos camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
+                                     final CallbackInfoReturnable<?> cir) {
+        if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+            cir.setReturnValue(null);
+        }
+    }
+
+    /** True when stepping from section ({@code fx},{@code fy},{@code fz}) in {@code direction} moves back towards the camera's section. */
+    private static boolean aetherium$towardsCamera(final int cx, final int cy, final int cz, final int fx, final int fy,
+                                                   final int fz, final Direction direction) {
+        final int sx = direction.getStepX();
+        if (sx != 0) {
+            return sx > 0 ? fx < cx : fx > cx;
+        }
+        final int sy = direction.getStepY();
+        if (sy != 0) {
+            return sy > 0 ? fy < cy : fy > cy;
+        }
+        final int sz = direction.getStepZ();
+        return sz > 0 ? fz < cz : fz > cz;
+    }
+    // @era:t-cull-else c17
+    //~ /**
+     //~ * Directional culling: refuse a search step that moves back towards the camera on its axis.
+     //~ * The only caller is the visibility search, so returning "no neighbour" here is the same as
+     //~ * the 1.16.5 redirect of its call site.
+     //~ */
+    //~ @Inject(method = "getRelativeFrom", at = @At("HEAD"), cancellable = true, require = 0)
+    //~ private void aetherium$neighbour(final BlockPos camera, final ChunkRenderDispatcher.RenderChunk from, final Direction direction,
+                                     //~ final CallbackInfoReturnable<?> cir) {
+        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+            //~ cir.setReturnValue(null);
+        //~ }
+    //~ }
+
+    //~ /** True when stepping from section ({@code fx},{@code fy},{@code fz}) in {@code direction} moves back towards the camera's section. */
+    //~ private static boolean aetherium$towardsCamera(final int cx, final int cy, final int cz, final int fx, final int fy,
+                                                   //~ final int fz, final Direction direction) {
+        //~ final int sx = direction.getStepX();
+        //~ if (sx != 0) {
+            //~ return sx > 0 ? fx < cx : fx > cx;
+        //~ }
+        //~ final int sy = direction.getStepY();
+        //~ if (sy != 0) {
+            //~ return sy > 0 ? fy < cy : fy > cy;
+        //~ }
+        //~ final int sz = direction.getStepZ();
+        //~ return sz > 0 ? fz < cz : fz > cz;
+    //~ }
+    // @era:t-cull-else c215
+    //~ /**
+     //~ * Directional culling: refuse a search step that moves back towards the camera on its axis.
+     //~ * The only caller is the visibility search, so returning "no neighbour" here is the same as
+     //~ * the 1.16.5 redirect of its call site.
+     //~ */
+    //~ @Inject(method = "getRelativeFrom", at = @At("HEAD"), cancellable = true, require = 0)
+    //~ private void aetherium$neighbour(final long camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
+                                     //~ final CallbackInfoReturnable<?> cir) {
+        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
+            //~ cir.setReturnValue(null);
+        //~ }
+    //~ }
+
+    //~ /** True when stepping from section ({@code fx},{@code fy},{@code fz}) in {@code direction} moves back towards the camera's section. */
+    //~ private static boolean aetherium$towardsCamera(final int cx, final int cy, final int cz, final int fx, final int fy,
+                                                   //~ final int fz, final Direction direction) {
+        //~ final int sx = direction.getStepX();
+        //~ if (sx != 0) {
+            //~ return sx > 0 ? fx < cx : fx > cx;
+        //~ }
+        //~ final int sy = direction.getStepY();
+        //~ if (sy != 0) {
+            //~ return sy > 0 ? fy < cy : fy > cy;
+        //~ }
+        //~ final int sz = direction.getStepZ();
+        //~ return sz > 0 ? fz < cz : fz > cz;
+    //~ }
+    // @era:t-cull-else none
     // @era:t-cull-else v16
     //~ @Redirect(method = "setupRender", at = @At(value = "INVOKE",
             //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;getRelativeFrom(Lnet/minecraft/core/BlockPos;Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;Lnet/minecraft/core/Direction;)Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;"),

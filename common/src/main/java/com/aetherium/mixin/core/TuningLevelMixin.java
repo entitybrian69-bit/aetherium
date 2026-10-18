@@ -1,7 +1,23 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-level-begin none
+// @era:t-level-begin l202
+import com.aetherium.perf.Tuning;
+import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
+// @era:t-level-else l17
+//~ import com.aetherium.perf.Tuning;
+//~ import org.spongepowered.asm.mixin.injection.Constant;
+//~ import org.spongepowered.asm.mixin.injection.ModifyConstant;
+//~ import com.aetherium.perf.HitchGuard;
+//~ import net.minecraft.world.level.lighting.LevelLightEngine;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Redirect;
+// @era:t-level-else l20
+//~ import com.aetherium.perf.Tuning;
+//~ import org.spongepowered.asm.mixin.injection.Constant;
+//~ import org.spongepowered.asm.mixin.injection.ModifyConstant;
+// @era:t-level-else none
 // @era:t-level-else v16
 //~ import com.aetherium.client.ChunkInfoOrigin;
 //~ import com.aetherium.client.FarTerrain;
@@ -39,7 +55,102 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
 public abstract class TuningLevelMixin {
-    // @era:t-level-begin none
+    // @era:t-level-begin l202
+    /**
+     * Calmer translucent sorting: vanilla re-sorts water and glass whenever the camera has moved
+     * more than 1 block (squared distance 1.0); with the option on, after 2 blocks (4.0).
+     */
+    @ModifyConstant(method = "renderSectionLayer", constant = @Constant(doubleValue = 1.0D), require = 0)
+    private double aetherium$sortDistance(final double original) {
+        return Tuning.calmSorting ? 4.0D : original;
+    }
+
+    /** Calmer translucent sorting: at most 8 sections re-sorted per move instead of 15. */
+    @ModifyConstant(method = "renderSectionLayer", constant = @Constant(intValue = 15), require = 0)
+    private int aetherium$sortCount(final int original) {
+        return Tuning.calmSorting ? 8 : original;
+    }
+
+    /** Lighter weather: rain and snow radius 5 (fast graphics) becomes 3. */
+    @ModifyConstant(method = "renderSnowAndRain", constant = @Constant(intValue = 5), require = 0)
+    private int aetherium$weatherRadiusFast(final int radius) {
+        return Tuning.lightWeather ? 3 : radius;
+    }
+
+    /** Lighter weather: rain and snow radius 10 (fancy graphics) becomes 6. */
+    @ModifyConstant(method = "renderSnowAndRain", constant = @Constant(intValue = 10), require = 0)
+    private int aetherium$weatherRadiusFancy(final int radius) {
+        return Tuning.lightWeather ? 6 : radius;
+    }
+    // @era:t-level-else l17
+    //~ /**
+     //~ * Calmer translucent sorting: vanilla re-sorts water and glass whenever the camera has moved
+     //~ * more than 1 block (squared distance 1.0); with the option on, after 2 blocks (4.0).
+     //~ */
+    //~ @ModifyConstant(method = "renderChunkLayer", constant = @Constant(doubleValue = 1.0D), require = 0)
+    //~ private double aetherium$sortDistance(final double original) {
+        //~ return Tuning.calmSorting ? 4.0D : original;
+    //~ }
+
+    //~ /** Calmer translucent sorting: at most 8 sections re-sorted per move instead of 15. */
+    //~ @ModifyConstant(method = "renderChunkLayer", constant = @Constant(intValue = 15), require = 0)
+    //~ private int aetherium$sortCount(final int original) {
+        //~ return Tuning.calmSorting ? 8 : original;
+    //~ }
+
+    //~ /** Lighter weather: rain and snow radius 5 (fast graphics) becomes 3. */
+    //~ @ModifyConstant(method = "renderSnowAndRain", constant = @Constant(intValue = 5), require = 0)
+    //~ private int aetherium$weatherRadiusFast(final int radius) {
+        //~ return Tuning.lightWeather ? 3 : radius;
+    //~ }
+
+    //~ /** Lighter weather: rain and snow radius 10 (fancy graphics) becomes 6. */
+    //~ @ModifyConstant(method = "renderSnowAndRain", constant = @Constant(intValue = 10), require = 0)
+    //~ private int aetherium$weatherRadiusFancy(final int radius) {
+        //~ return Tuning.lightWeather ? 6 : radius;
+    //~ }
+
+    //~ /**
+     //~ * Client light updates (1.17 - 1.19.4): vanilla runs every queued update in one frame
+     //~ * (Integer.MAX_VALUE); with the option on they get a per-frame quota, smaller right after a
+     //~ * hitch. The rest stay queued. 1.20+ has no quota parameter (the new light engine drains its
+     //~ * queue in one call), so the option has no effect there.
+     //~ */
+    //~ @Redirect(method = "renderLevel", at = @At(value = "INVOKE",
+            //~ target = "Lnet/minecraft/world/level/lighting/LevelLightEngine;runUpdates(IZZ)I"), require = 0)
+    //~ private int aetherium$lightQuota(final LevelLightEngine engine, final int maxUpdates, final boolean skyLight,
+                                     //~ final boolean blockLight) {
+        //~ return engine.runUpdates(Tuning.lightUpdates ? Math.min(maxUpdates, HitchGuard.lightQuota()) : maxUpdates,
+                //~ skyLight, blockLight);
+    //~ }
+    // @era:t-level-else l20
+    //~ /**
+     //~ * Calmer translucent sorting: vanilla re-sorts water and glass whenever the camera has moved
+     //~ * more than 1 block (squared distance 1.0); with the option on, after 2 blocks (4.0).
+     //~ */
+    //~ @ModifyConstant(method = "renderChunkLayer", constant = @Constant(doubleValue = 1.0D), require = 0)
+    //~ private double aetherium$sortDistance(final double original) {
+        //~ return Tuning.calmSorting ? 4.0D : original;
+    //~ }
+
+    //~ /** Calmer translucent sorting: at most 8 sections re-sorted per move instead of 15. */
+    //~ @ModifyConstant(method = "renderChunkLayer", constant = @Constant(intValue = 15), require = 0)
+    //~ private int aetherium$sortCount(final int original) {
+        //~ return Tuning.calmSorting ? 8 : original;
+    //~ }
+
+    //~ /** Lighter weather: rain and snow radius 5 (fast graphics) becomes 3. */
+    //~ @ModifyConstant(method = "renderSnowAndRain", constant = @Constant(intValue = 5), require = 0)
+    //~ private int aetherium$weatherRadiusFast(final int radius) {
+        //~ return Tuning.lightWeather ? 3 : radius;
+    //~ }
+
+    //~ /** Lighter weather: rain and snow radius 10 (fancy graphics) becomes 6. */
+    //~ @ModifyConstant(method = "renderSnowAndRain", constant = @Constant(intValue = 10), require = 0)
+    //~ private int aetherium$weatherRadiusFancy(final int radius) {
+        //~ return Tuning.lightWeather ? 6 : radius;
+    //~ }
+    // @era:t-level-else none
     // @era:t-level-else v16
     //~ @Shadow
     //~ private ClientLevel level;

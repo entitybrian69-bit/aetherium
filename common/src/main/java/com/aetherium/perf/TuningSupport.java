@@ -40,7 +40,7 @@ public final class TuningSupport {
     //~ public static final boolean BUILD_ORDER = true;
     // @era:t-build-order-end
 
-    // @era:t-chunk-save-begin c21|c214|v16
+    // @era:t-chunk-save-begin c21|c214|c26|v16
     public static final boolean CHUNK_SAVE = true;
     // @era:t-chunk-save-else none
     //~ public static final boolean CHUNK_SAVE = false;
@@ -58,10 +58,10 @@ public final class TuningSupport {
     //~ public static final boolean COLOR_FILTER = false;
     // @era:t-color-filter-end
 
-    // @era:t-cull-begin none
-    public static final boolean CULL = false;
-    // @era:t-cull-else v16
-    //~ public static final boolean CULL = true;
+    // @era:t-cull-begin c17|c202|c215|v16
+    public static final boolean CULL = true;
+    // @era:t-cull-else none
+    //~ public static final boolean CULL = false;
     // @era:t-cull-end
 
     // @era:t-explosion-begin v16|x212
@@ -142,10 +142,10 @@ public final class TuningSupport {
     //~ public static final boolean LEAVES = false;
     // @era:t-leaves-end
 
-    // @era:t-level-begin none
-    public static final boolean LEVEL = false;
-    // @era:t-level-else v16
-    //~ public static final boolean LEVEL = true;
+    // @era:t-level-begin l17|l20|l202|v16
+    public static final boolean LEVEL = true;
+    // @era:t-level-else none
+    //~ public static final boolean LEVEL = false;
     // @era:t-level-end
 
     // @era:t-levelacc-begin none
@@ -183,6 +183,12 @@ public final class TuningSupport {
     // @era:t-minecart-else none
     //~ public static final boolean MINECART = false;
     // @era:t-minecart-end
+
+    // @era:t-crowd-begin c17
+    public static final boolean CROWD = true;
+    // @era:t-crowd-else none
+    //~ public static final boolean CROWD = false;
+    // @era:t-crowd-end
 
     // @era:t-name-tag-begin n17|n212|v16
     public static final boolean NAME_TAG = true;
@@ -319,6 +325,8 @@ public final class TuningSupport {
                 return MAP;
             case "TuningMinecartMixin":
                 return MINECART;
+            case "TuningCrowdMixin":
+                return CROWD;
             case "TuningNameTagMixin":
                 return NAME_TAG;
             case "TuningPortalMixin":
