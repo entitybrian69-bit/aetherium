@@ -28,6 +28,7 @@ neoforge_version=26.3.0.64-beta
 - `bg-threads=property`
 - `block-particles=level`
 - `cam-pos=position`
+- `camera-entity=record`
 - `camera-get=record`
 - `chunk-renderer=none`
 - `chunk-upload=none`
@@ -90,9 +91,10 @@ neoforge_version=26.3.0.64-beta
 - `t-explosion=x212`
 - `t-far-acc=none`
 - `t-far-color=map`
-- `t-far-draw=none`
+- `t-far-draw=c26`
 - `t-far-gl=pearl`
-- `t-far-group=none`
+- `t-far-group=g216`
+- `t-far-proj=p263`
 - `t-far-sections=visible-t`
 - `t-far-terrain=gl`
 - `t-flight-preload=f216`
@@ -233,6 +235,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningFarGroupMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningFarProjMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java`

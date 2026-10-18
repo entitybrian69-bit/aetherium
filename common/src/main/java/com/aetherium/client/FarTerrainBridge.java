@@ -22,7 +22,11 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 //~ import com.mojang.blaze3d.opengl.GlTexture;
 //~ import com.mojang.blaze3d.pipeline.RenderTarget;
 //~ import com.mojang.blaze3d.textures.GpuTexture;
-// @era:t-far-gl-else none|pearl
+// @era:t-far-gl-else pearl
+//~ import com.mojang.blaze3d.pipeline.RenderTarget;
+//~ import com.mojang.renderpearl.api.textures.GpuTexture;
+//~ import com.mojang.renderpearl.backend.opengl.GlTexture;
+// @era:t-far-gl-else none
 // @era:t-far-gl-end
 
 /**
@@ -60,7 +64,8 @@ final class FarTerrainBridge {
         // @era:t-far-sections-else visible
         //~ return mc.levelRenderer.isSectionCompiledAndVisible(pos);
         // @era:t-far-sections-else visible-t
-        //~ return mc.levelRenderer.isSectionCompiledAndVisible(pos, net.minecraft.util.Util.getMillis());
+        //~ // The long is the fade-in time (ms); 0 = drawn as soon as it is compiled.
+        //~ return mc.levelRenderer.isSectionCompiledAndVisible(pos, 0L);
         // @era:t-far-sections-else acc17
         //~ final Object renderer = mc.levelRenderer;
         //~ if (!(renderer instanceof TuningFarAreaAccessor)) {
@@ -88,12 +93,12 @@ final class FarTerrainBridge {
     //~ private static RenderTarget main(final Minecraft mc) {
         //~ return mc.getMainRenderTarget();
     //~ }
-    // @era:t-far-gl-else gl262
+    // @era:t-far-gl-else gl262|pearl
     //~ /** 26.2+: the main target belongs to the GameRenderer. */
     //~ private static RenderTarget main(final Minecraft mc) {
         //~ return mc.gameRenderer.mainRenderTarget();
     //~ }
-    // @era:t-far-gl-else none|pearl
+    // @era:t-far-gl-else none
     // @era:t-far-gl-end
 
     // @era:t-far-gl-begin id17
@@ -105,7 +110,7 @@ final class FarTerrainBridge {
     static int depthTexture(final Minecraft mc) {
         return main(mc).getDepthTextureId();
     }
-    // @era:t-far-gl-else gl215|gl262
+    // @era:t-far-gl-else gl215|gl262|pearl
     //~ private static int glId(final GpuTexture texture) {
         //~ return texture instanceof GlTexture ? ((GlTexture) texture).glId() : -1;
     //~ }
@@ -118,7 +123,7 @@ final class FarTerrainBridge {
     //~ static int depthTexture(final Minecraft mc) {
         //~ return glId(main(mc).getDepthTexture());
     //~ }
-    // @era:t-far-gl-else none|pearl
+    // @era:t-far-gl-else none
     //~ static int colorTexture(final Minecraft mc) {
         //~ return -1;
     //~ }
@@ -128,7 +133,7 @@ final class FarTerrainBridge {
     //~ }
     // @era:t-far-gl-end
 
-    // @era:t-far-gl-begin id17|gl215|gl262
+    // @era:t-far-gl-begin id17|gl215|gl262|pearl
     static int width(final Minecraft mc) {
         return main(mc).width;
     }
@@ -136,7 +141,7 @@ final class FarTerrainBridge {
     static int height(final Minecraft mc) {
         return main(mc).height;
     }
-    // @era:t-far-gl-else none|pearl
+    // @era:t-far-gl-else none
     //~ static int width(final Minecraft mc) {
         //~ return 0;
     //~ }

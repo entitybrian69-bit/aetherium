@@ -99,23 +99,30 @@ public final class TuningSupport {
     // @era:t-far-terrain-end
 
     /** Far terrain's draw hook: TuningLevelMixin on 1.16.5, TuningFarDrawMixin (+ group) from 1.17. */
-    // @era:t-far-draw-begin m17|j193|s205|g216|v16
+    // @era:t-far-draw-begin m17|j193|s205|g216|c26|v16
     public static final boolean FAR_DRAW = true;
     // @era:t-far-draw-else none
     //~ public static final boolean FAR_DRAW = false;
     // @era:t-far-draw-end
 
-    // @era:t-far-draw-begin m17|j193|s205|g216|none
+    // @era:t-far-draw-begin m17|j193|s205|g216|c26|none
     public static final boolean LEVEL_DRAWS_FAR = false;
     // @era:t-far-draw-else v16
     //~ public static final boolean LEVEL_DRAWS_FAR = true;
     // @era:t-far-draw-end
 
-    // @era:t-far-group-begin g216
-    public static final boolean FAR_GROUP = true;
-    // @era:t-far-group-else none
-    //~ public static final boolean FAR_GROUP = false;
+    // @era:t-far-group-begin none
+    public static final boolean FAR_GROUP = false;
+    // @era:t-far-group-else g216
+    //~ public static final boolean FAR_GROUP = true;
     // @era:t-far-group-end
+
+    /** 26.x: the projection comes from GameRenderer (TuningFarProjMixin). */
+    // @era:t-far-proj-begin none
+    public static final boolean FAR_PROJ = false;
+    // @era:t-far-proj-else b26|p263
+    //~ public static final boolean FAR_PROJ = true;
+    // @era:t-far-proj-end
 
     // @era:t-far-acc-begin none
     public static final boolean FAR_ACC = false;
@@ -411,6 +418,8 @@ public final class TuningSupport {
                 return FAR_TERRAIN && FAR_DRAW && !LEVEL_DRAWS_FAR;
             case "TuningFarGroupMixin":
                 return FAR_TERRAIN && FAR_GROUP;
+            case "TuningFarProjMixin":
+                return FAR_TERRAIN && FAR_PROJ;
             case "TuningFarAreaAccessor":
             case "TuningFarViewAccessor":
                 return FAR_TERRAIN && FAR_ACC;

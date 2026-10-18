@@ -47,6 +47,7 @@ neoforge_version=21.3.97
 - `t-far-acc=none`
 - `t-far-draw=s205`
 - `t-far-group=none`
+- `t-far-proj=none`
 - `t-far-terrain=gl`
 - `t-flight-preload=f20`
 - `t-frame-item=f212`
@@ -125,7 +126,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.3.t
 - `common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningCompileQueueMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/TuningFarGroupMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java`
