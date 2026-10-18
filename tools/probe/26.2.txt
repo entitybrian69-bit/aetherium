@@ -18137,6 +18137,297 @@ public class com.mojang.blaze3d.systems.SamplerCache {
 }
 === net.minecraft.client.renderer.SamplerCache
 Error: class not found: net.minecraft.client.renderer.SamplerCache
+=== com.mojang.blaze3d.TracyFrameCapture
+Compiled from "TracyFrameCapture.java"
+public class com.mojang.blaze3d.TracyFrameCapture implements java.lang.AutoCloseable {
+  private static final int MAX_WIDTH;
+  private static final int MAX_HEIGHT;
+  private static final long BYTES_PER_PIXEL;
+  private int targetWidth;
+  private int targetHeight;
+  private int width;
+  private int height;
+  private com.mojang.blaze3d.textures.GpuTexture frameBuffer;
+  private com.mojang.blaze3d.textures.GpuTextureView frameBufferView;
+  private com.mojang.blaze3d.buffers.GpuBuffer pixelbuffer;
+  private int lastCaptureDelay;
+  private boolean capturedThisFrame;
+  private com.mojang.blaze3d.TracyFrameCapture$Status status;
+  public com.mojang.blaze3d.TracyFrameCapture();
+  private void resize(int, int);
+  public void capture(com.mojang.blaze3d.pipeline.RenderTarget);
+  public void upload();
+  public void endFrame();
+  public void close();
+  private void lambda$capture$1();
+  private static java.lang.String lambda$capture$0();
+  private static java.lang.String lambda$resize$0();
+  private static java.lang.String lambda$new$0();
+}
+=== com.mojang.blaze3d.pipeline.RenderPipeline
+Compiled from "RenderPipeline.java"
+public class com.mojang.blaze3d.pipeline.RenderPipeline {
+  private final net.minecraft.resources.Identifier location;
+  private final net.minecraft.resources.Identifier vertexShader;
+  private final net.minecraft.resources.Identifier fragmentShader;
+  private final net.minecraft.client.renderer.ShaderDefines shaderDefines;
+  private final java.util.List<com.mojang.blaze3d.pipeline.BindGroupLayout> bindGroupLayouts;
+  private final com.mojang.blaze3d.pipeline.DepthStencilState depthStencilState;
+  private final com.mojang.blaze3d.platform.PolygonMode polygonMode;
+  private final boolean cull;
+  private final com.mojang.blaze3d.pipeline.ColorTargetState[] colorTargetStates;
+  private final com.mojang.blaze3d.vertex.VertexFormat[] vertexFormatPerBuffer;
+  private final com.mojang.blaze3d.PrimitiveTopology primitiveTopology;
+  private final int sortKey;
+  private static int sortKeySeed;
+  protected com.mojang.blaze3d.pipeline.RenderPipeline(net.minecraft.resources.Identifier, net.minecraft.resources.Identifier, net.minecraft.resources.Identifier, net.minecraft.client.renderer.ShaderDefines, java.util.List<com.mojang.blaze3d.pipeline.BindGroupLayout>, com.mojang.blaze3d.pipeline.ColorTargetState[], com.mojang.blaze3d.pipeline.DepthStencilState, com.mojang.blaze3d.platform.PolygonMode, boolean, com.mojang.blaze3d.vertex.VertexFormat[], com.mojang.blaze3d.PrimitiveTopology, int);
+  public int getSortKey();
+  public static void updateSortKeySeed();
+  public java.lang.String toString();
+  public com.mojang.blaze3d.platform.PolygonMode getPolygonMode();
+  public boolean isCull();
+  public com.mojang.blaze3d.pipeline.ColorTargetState[] getColorTargetStates();
+  public com.mojang.blaze3d.pipeline.ColorTargetState getColorTargetState();
+  public com.mojang.blaze3d.pipeline.DepthStencilState getDepthStencilState();
+  public net.minecraft.resources.Identifier getLocation();
+  public com.mojang.blaze3d.vertex.VertexFormat[] getVertexFormatBindings();
+  public com.mojang.blaze3d.vertex.VertexFormat getVertexFormatBinding(int);
+  public com.mojang.blaze3d.PrimitiveTopology getPrimitiveTopology();
+  public net.minecraft.resources.Identifier getVertexShader();
+  public net.minecraft.resources.Identifier getFragmentShader();
+  public net.minecraft.client.renderer.ShaderDefines getShaderDefines();
+  public java.util.List<com.mojang.blaze3d.pipeline.BindGroupLayout> getBindGroupLayouts();
+  public boolean wantsDepthTexture();
+  public static com.mojang.blaze3d.pipeline.RenderPipeline$Builder builder(com.mojang.blaze3d.pipeline.RenderPipeline$Snippet...);
+}
+=== com.mojang.blaze3d.pipeline.RenderPipeline$Builder
+Compiled from "RenderPipeline.java"
+public class com.mojang.blaze3d.pipeline.RenderPipeline$Builder {
+  private static int nextPipelineSortKey;
+  private java.util.Optional<net.minecraft.resources.Identifier> location;
+  private java.util.Optional<net.minecraft.resources.Identifier> fragmentShader;
+  private java.util.Optional<net.minecraft.resources.Identifier> vertexShader;
+  private java.util.Optional<net.minecraft.client.renderer.ShaderDefines$Builder> definesBuilder;
+  private java.util.Optional<java.util.List<com.mojang.blaze3d.pipeline.BindGroupLayout>> bindGroupLayouts;
+  private java.util.Optional<com.mojang.blaze3d.pipeline.DepthStencilState> depthStencilState;
+  private java.util.Optional<com.mojang.blaze3d.platform.PolygonMode> polygonMode;
+  private java.util.Optional<java.lang.Boolean> cull;
+  private final com.mojang.blaze3d.pipeline.ColorTargetState[] colorTargetStates;
+  private int activeColorTargetStateCount;
+  private final com.mojang.blaze3d.vertex.VertexFormat[] vertexFormatPerBuffer;
+  private java.util.Optional<com.mojang.blaze3d.PrimitiveTopology> primitiveTopology;
+  private com.mojang.blaze3d.pipeline.RenderPipeline$Builder();
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withLocation(java.lang.String);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withLocation(net.minecraft.resources.Identifier);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withFragmentShader(java.lang.String);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withFragmentShader(net.minecraft.resources.Identifier);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withVertexShader(java.lang.String);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withVertexShader(net.minecraft.resources.Identifier);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withShaderDefine(java.lang.String);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withShaderDefine(java.lang.String, int);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withShaderDefine(java.lang.String, float);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withBindGroupLayout(com.mojang.blaze3d.pipeline.BindGroupLayout);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withPolygonMode(com.mojang.blaze3d.platform.PolygonMode);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withCull(boolean);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withColorTargetState(int, com.mojang.blaze3d.pipeline.ColorTargetState);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withUnusedColorTargetState(int);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withColorTargetState(com.mojang.blaze3d.pipeline.ColorTargetState);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withDepthStencilState(com.mojang.blaze3d.pipeline.DepthStencilState);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withDepthStencilState(java.util.Optional<com.mojang.blaze3d.pipeline.DepthStencilState>);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withVertexBinding(int, com.mojang.blaze3d.vertex.VertexFormat);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Builder withPrimitiveTopology(com.mojang.blaze3d.PrimitiveTopology);
+  private void withSnippet(com.mojang.blaze3d.pipeline.RenderPipeline$Snippet);
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Snippet buildSnippet();
+  public com.mojang.blaze3d.pipeline.RenderPipeline build();
+  private void lambda$withSnippet$0(java.util.List);
+}
+=== com.mojang.renderpearl.api.pipeline.RenderPipeline
+Error: class not found: com.mojang.renderpearl.api.pipeline.RenderPipeline
+=== com.mojang.renderpearl.api.pipeline.RenderPipeline$Builder
+Error: class not found: com.mojang.renderpearl.api.pipeline.RenderPipeline$Builder
+=== com.mojang.blaze3d.textures.FilterMode
+Compiled from "FilterMode.java"
+public final class com.mojang.blaze3d.textures.FilterMode extends java.lang.Enum<com.mojang.blaze3d.textures.FilterMode> {
+  public static final com.mojang.blaze3d.textures.FilterMode NEAREST;
+  public static final com.mojang.blaze3d.textures.FilterMode LINEAR;
+  private static final com.mojang.blaze3d.textures.FilterMode[] $VALUES;
+  public static com.mojang.blaze3d.textures.FilterMode[] values();
+  public static com.mojang.blaze3d.textures.FilterMode valueOf(java.lang.String);
+  private com.mojang.blaze3d.textures.FilterMode();
+  private static com.mojang.blaze3d.textures.FilterMode[] $values();
+  static {};
+}
+=== com.mojang.renderpearl.api.textures.FilterMode
+Error: class not found: com.mojang.renderpearl.api.textures.FilterMode
+=== com.mojang.blaze3d.textures.GpuTextureView
+Compiled from "GpuTextureView.java"
+public abstract class com.mojang.blaze3d.textures.GpuTextureView implements java.lang.AutoCloseable {
+  private final com.mojang.blaze3d.textures.GpuTexture texture;
+  private final int baseMipLevel;
+  private final int mipLevels;
+  protected com.mojang.blaze3d.textures.GpuTextureView(com.mojang.blaze3d.textures.GpuTexture, int, int);
+  public abstract void close();
+  public com.mojang.blaze3d.textures.GpuTexture texture();
+  public int baseMipLevel();
+  public int mipLevels();
+  public int getWidth(int);
+  public int getHeight(int);
+  public abstract boolean isClosed();
+}
+=== com.mojang.renderpearl.api.textures.GpuTextureView
+Error: class not found: com.mojang.renderpearl.api.textures.GpuTextureView
+=== com.mojang.blaze3d.pipeline.RenderPipeline$Snippet
+Compiled from "RenderPipeline.java"
+public final class com.mojang.blaze3d.pipeline.RenderPipeline$Snippet extends java.lang.Record {
+  private final java.util.Optional<net.minecraft.resources.Identifier> vertexShader;
+  private final java.util.Optional<net.minecraft.resources.Identifier> fragmentShader;
+  private final java.util.Optional<net.minecraft.client.renderer.ShaderDefines> shaderDefines;
+  private final java.util.Optional<java.util.List<com.mojang.blaze3d.pipeline.BindGroupLayout>> bindGroupLayouts;
+  private final com.mojang.blaze3d.pipeline.ColorTargetState[] colorTargetStates;
+  private final int activeColorTargetStateCount;
+  private final java.util.Optional<com.mojang.blaze3d.pipeline.DepthStencilState> depthStencilState;
+  private final java.util.Optional<com.mojang.blaze3d.platform.PolygonMode> polygonMode;
+  private final java.util.Optional<java.lang.Boolean> cull;
+  private final com.mojang.blaze3d.vertex.VertexFormat[] vertexFormatPerBuffer;
+  private final java.util.Optional<com.mojang.blaze3d.PrimitiveTopology> vertexFormatMode;
+  public com.mojang.blaze3d.pipeline.RenderPipeline$Snippet(java.util.Optional<net.minecraft.resources.Identifier>, java.util.Optional<net.minecraft.resources.Identifier>, java.util.Optional<net.minecraft.client.renderer.ShaderDefines>, java.util.Optional<java.util.List<com.mojang.blaze3d.pipeline.BindGroupLayout>>, com.mojang.blaze3d.pipeline.ColorTargetState[], int, java.util.Optional<com.mojang.blaze3d.pipeline.DepthStencilState>, java.util.Optional<com.mojang.blaze3d.platform.PolygonMode>, java.util.Optional<java.lang.Boolean>, com.mojang.blaze3d.vertex.VertexFormat[], java.util.Optional<com.mojang.blaze3d.PrimitiveTopology>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.Optional<net.minecraft.resources.Identifier> vertexShader();
+  public java.util.Optional<net.minecraft.resources.Identifier> fragmentShader();
+  public java.util.Optional<net.minecraft.client.renderer.ShaderDefines> shaderDefines();
+  public java.util.Optional<java.util.List<com.mojang.blaze3d.pipeline.BindGroupLayout>> bindGroupLayouts();
+  public com.mojang.blaze3d.pipeline.ColorTargetState[] colorTargetStates();
+  public int activeColorTargetStateCount();
+  public java.util.Optional<com.mojang.blaze3d.pipeline.DepthStencilState> depthStencilState();
+  public java.util.Optional<com.mojang.blaze3d.platform.PolygonMode> polygonMode();
+  public java.util.Optional<java.lang.Boolean> cull();
+  public com.mojang.blaze3d.vertex.VertexFormat[] vertexFormatPerBuffer();
+  public java.util.Optional<com.mojang.blaze3d.PrimitiveTopology> vertexFormatMode();
+}
+=== com.mojang.renderpearl.api.pipeline.RenderPipeline$Snippet
+Error: class not found: com.mojang.renderpearl.api.pipeline.RenderPipeline$Snippet
+=== com.mojang.blaze3d.textures.GpuTexture
+Compiled from "GpuTexture.java"
+public abstract class com.mojang.blaze3d.textures.GpuTexture implements java.lang.AutoCloseable {
+  public static final int USAGE_COPY_DST;
+  public static final int USAGE_COPY_SRC;
+  public static final int USAGE_TEXTURE_BINDING;
+  public static final int USAGE_RENDER_ATTACHMENT;
+  public static final int USAGE_CUBEMAP_COMPATIBLE;
+  private final com.mojang.blaze3d.GpuFormat format;
+  private final int width;
+  private final int height;
+  private final int depthOrLayers;
+  private final int mipLevels;
+  private final int usage;
+  private final java.lang.String label;
+  public com.mojang.blaze3d.textures.GpuTexture(int, java.lang.String, com.mojang.blaze3d.GpuFormat, int, int, int, int);
+  public int getWidth(int);
+  public int getHeight(int);
+  public int getDepthOrLayers();
+  public int getMipLevels();
+  public com.mojang.blaze3d.GpuFormat getFormat();
+  public int usage();
+  public java.lang.String getLabel();
+  public abstract void close();
+  public abstract boolean isClosed();
+}
+=== com.mojang.renderpearl.api.textures.GpuTexture
+Error: class not found: com.mojang.renderpearl.api.textures.GpuTexture
+=== com.mojang.renderpearl.util.UncheckedAutoCloseable
+Error: class not found: com.mojang.renderpearl.util.UncheckedAutoCloseable
+=== com.mojang.blaze3d.pipeline.MainTarget
+Compiled from "MainTarget.java"
+public class com.mojang.blaze3d.pipeline.MainTarget extends com.mojang.blaze3d.pipeline.RenderTarget {
+  public static final int DEFAULT_WIDTH;
+  public static final int DEFAULT_HEIGHT;
+  private static final com.mojang.blaze3d.pipeline.MainTarget$Dimension DEFAULT_DIMENSIONS;
+  public com.mojang.blaze3d.pipeline.MainTarget(int, int);
+  private void createFrameBuffer(int, int);
+  private com.mojang.blaze3d.pipeline.MainTarget$Dimension allocateAttachments(int, int);
+  private com.mojang.blaze3d.textures.GpuTexture allocateColorAttachment(com.mojang.blaze3d.pipeline.MainTarget$Dimension);
+  private com.mojang.blaze3d.textures.GpuTexture allocateDepthAttachment(com.mojang.blaze3d.pipeline.MainTarget$Dimension);
+  private java.lang.String lambda$allocateDepthAttachment$0();
+  private java.lang.String lambda$allocateColorAttachment$0();
+  static {};
+}
+=== com.mojang.blaze3d.GpuFormat
+Compiled from "GpuFormat.java"
+public final class com.mojang.blaze3d.GpuFormat extends java.lang.Enum<com.mojang.blaze3d.GpuFormat> {
+  public static final com.mojang.blaze3d.GpuFormat R8_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat R8_SNORM;
+  public static final com.mojang.blaze3d.GpuFormat RG8_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat RG8_SNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGB8_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGB8_SNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGBA8_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGBA8_SNORM;
+  public static final com.mojang.blaze3d.GpuFormat R16_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat R16_SNORM;
+  public static final com.mojang.blaze3d.GpuFormat RG16_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat RG16_SNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGB16_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGB16_SNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGBA16_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGBA16_SNORM;
+  public static final com.mojang.blaze3d.GpuFormat R8_UINT;
+  public static final com.mojang.blaze3d.GpuFormat R8_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RG8_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RG8_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RGB8_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RGB8_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RGBA8_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RGBA8_SINT;
+  public static final com.mojang.blaze3d.GpuFormat R16_UINT;
+  public static final com.mojang.blaze3d.GpuFormat R16_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RG16_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RG16_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RGB16_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RGB16_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RGBA16_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RGBA16_SINT;
+  public static final com.mojang.blaze3d.GpuFormat R32_UINT;
+  public static final com.mojang.blaze3d.GpuFormat R32_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RG32_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RG32_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RGB32_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RGB32_SINT;
+  public static final com.mojang.blaze3d.GpuFormat RGBA32_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RGBA32_SINT;
+  public static final com.mojang.blaze3d.GpuFormat R16_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat RG16_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat RGB16_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat RGBA16_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat R32_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat RG32_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat RGB32_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat RGBA32_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat RGB10A2_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat RGB10A2_UINT;
+  public static final com.mojang.blaze3d.GpuFormat RG11B10_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat D32_FLOAT;
+  public static final com.mojang.blaze3d.GpuFormat D32_FLOAT_S8_UINT;
+  public static final com.mojang.blaze3d.GpuFormat D24_UNORM_S8_UINT;
+  public static final com.mojang.blaze3d.GpuFormat D16_UNORM;
+  public static final com.mojang.blaze3d.GpuFormat S8_UINT;
+  private final com.mojang.blaze3d.GpuFormat$ComponentType componentType;
+  private final int componentCount;
+  private static final com.mojang.blaze3d.GpuFormat[] $VALUES;
+  public static com.mojang.blaze3d.GpuFormat[] values();
+  public static com.mojang.blaze3d.GpuFormat valueOf(java.lang.String);
+  private com.mojang.blaze3d.GpuFormat(com.mojang.blaze3d.GpuFormat$ComponentType, int);
+  public int blockSize();
+  public int byteAlignment();
+  public com.mojang.blaze3d.GpuFormat$ComponentType componentType();
+  public int componentCount();
+  public boolean hasColorAspect();
+  public boolean hasDepthAspect();
+  public boolean hasStencilAspect();
+  private static com.mojang.blaze3d.GpuFormat[] $values();
+  static {};
+}
 === code net.minecraft.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
 === code net.minecraft.util.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
   private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads"; :: private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads";
@@ -36902,144 +37193,1343 @@ from    to  target type
 647   654   664   any
 664   666   664   any
 
+=== method net.minecraft.client.renderer.RenderPipelines :: static [{]
+##   static {};
+Code:
+0: new           #176                // class java/util/HashMap
+3: dup
+4: invokespecial #177                // Method java/util/HashMap."<init>":()V
+7: putstatic     #145                // Field PIPELINES_BY_LOCATION:Ljava/util/Map;
+10: iconst_0
+11: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+14: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+17: getstatic     #187                // Field net/minecraft/client/renderer/BindGroupLayouts.GLOBALS:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+20: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+23: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+26: putstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+29: iconst_1
+30: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+33: dup
+34: iconst_0
+35: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+38: aastore
+39: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+42: getstatic     #200                // Field net/minecraft/client/renderer/BindGroupLayouts.MATRICES_PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+45: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+48: getstatic     #203                // Field net/minecraft/client/renderer/BindGroupLayouts.FOG:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+51: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+54: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+57: putstatic     #205                // Field MATRICES_FOG_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+60: iconst_1
+61: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+64: dup
+65: iconst_0
+66: getstatic     #205                // Field MATRICES_FOG_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+69: aastore
+70: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+73: getstatic     #208                // Field net/minecraft/client/renderer/BindGroupLayouts.LIGHTING:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+76: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+79: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+82: putstatic     #210                // Field MATRICES_FOG_LIGHT_DIR_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+85: iconst_1
+86: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+89: dup
+90: iconst_0
+91: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+94: aastore
+95: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+98: getstatic     #203                // Field net/minecraft/client/renderer/BindGroupLayouts.FOG:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+101: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+104: getstatic     #213                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0_SAMPLER2:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+107: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+110: iconst_0
+111: getstatic     #219                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.BLOCK:Lcom/mojang/blaze3d/vertex/VertexFormat;
+114: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+117: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+120: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+123: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+126: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+129: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+132: putstatic     #245                // Field GENERIC_BLOCKS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+135: iconst_1
+136: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+139: dup
+140: iconst_0
+141: getstatic     #245                // Field GENERIC_BLOCKS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+144: aastore
+145: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+148: getstatic     #248                // Field net/minecraft/client/renderer/BindGroupLayouts.PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+151: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+154: getstatic     #251                // Field net/minecraft/client/renderer/BindGroupLayouts.CHUNK_SECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+157: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+160: ldc           #253                // String core/terrain
+162: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+165: ldc           #253                // String core/terrain
+167: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+170: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+173: putstatic     #262                // Field TERRAIN_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+176: iconst_1
+177: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+180: dup
+181: iconst_0
+182: getstatic     #245                // Field GENERIC_BLOCKS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+185: aastore
+186: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+189: getstatic     #200                // Field net/minecraft/client/renderer/BindGroupLayouts.MATRICES_PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+192: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+195: ldc_w         #264                // String core/block
+198: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+201: ldc_w         #264                // String core/block
+204: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+207: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+210: putstatic     #266                // Field BLOCK_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+213: iconst_1
+214: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+217: dup
+218: iconst_0
+219: getstatic     #210                // Field MATRICES_FOG_LIGHT_DIR_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+222: aastore
+223: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+226: ldc_w         #268                // String core/entity
+229: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+232: ldc_w         #268                // String core/entity
+235: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+238: getstatic     #213                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0_SAMPLER2:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+241: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+244: iconst_0
+245: getstatic     #271                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.ENTITY:Lcom/mojang/blaze3d/vertex/VertexFormat;
+248: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+251: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+254: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+257: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+260: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+263: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+266: putstatic     #273                // Field ENTITY_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+269: iconst_1
+270: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+273: dup
+274: iconst_0
+275: getstatic     #210                // Field MATRICES_FOG_LIGHT_DIR_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+278: aastore
+279: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+282: ldc_w         #268                // String core/entity
+285: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+288: ldc_w         #268                // String core/entity
+291: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+294: getstatic     #276                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+297: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+300: iconst_0
+301: getstatic     #271                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.ENTITY:Lcom/mojang/blaze3d/vertex/VertexFormat;
+304: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+307: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+310: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+313: ldc_w         #278                // String EMISSIVE
+316: invokevirtual #281                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+319: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+322: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+325: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+328: putstatic     #283                // Field ENTITY_EMISSIVE_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+331: iconst_1
+332: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+335: dup
+336: iconst_0
+337: getstatic     #205                // Field MATRICES_FOG_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+340: aastore
+341: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+344: ldc_w         #285                // String core/rendertype_beacon_beam
+347: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+350: ldc_w         #285                // String core/rendertype_beacon_beam
+353: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+356: getstatic     #276                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+359: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+362: iconst_0
+363: getstatic     #219                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.BLOCK:Lcom/mojang/blaze3d/vertex/VertexFormat;
+366: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+369: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+372: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+375: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+378: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+381: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+384: putstatic     #287                // Field BEACON_BEAM_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+387: iconst_1
+388: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+391: dup
+392: iconst_0
+393: getstatic     #210                // Field MATRICES_FOG_LIGHT_DIR_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+396: aastore
+397: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+400: ldc_w         #289                // String core/item
+403: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+406: ldc_w         #289                // String core/item
+409: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+412: getstatic     #292                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0_SAMPLER1_SAMPLER2:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+415: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+418: iconst_0
+419: getstatic     #271                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.ENTITY:Lcom/mojang/blaze3d/vertex/VertexFormat;
+422: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+425: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+428: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+431: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+434: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+437: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+440: putstatic     #294                // Field ITEM_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+443: iconst_1
+444: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+447: dup
+448: iconst_0
+449: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+452: aastore
+453: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+456: getstatic     #200                // Field net/minecraft/client/renderer/BindGroupLayouts.MATRICES_PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+459: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+462: getstatic     #276                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+465: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+468: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+471: dup
+472: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+475: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+478: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+481: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+484: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+487: iconst_0
+488: getstatic     #312                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.POSITION_TEX_COLOR:Lcom/mojang/blaze3d/vertex/VertexFormat;
+491: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+494: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+497: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+500: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+503: putstatic     #314                // Field TEXT_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+506: iconst_1
+507: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+510: dup
+511: iconst_0
+512: getstatic     #314                // Field TEXT_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+515: aastore
+516: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+519: getstatic     #203                // Field net/minecraft/client/renderer/BindGroupLayouts.FOG:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+522: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+525: getstatic     #317                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER2:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+528: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+531: iconst_0
+532: getstatic     #320                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.POSITION_TEX_LIGHTMAP_COLOR:Lcom/mojang/blaze3d/vertex/VertexFormat;
+535: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+538: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+541: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+544: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+547: putstatic     #322                // Field WORLD_TEXT_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+550: iconst_1
+551: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+554: dup
+555: iconst_0
+556: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+559: aastore
+560: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+563: getstatic     #200                // Field net/minecraft/client/renderer/BindGroupLayouts.MATRICES_PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+566: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+569: getstatic     #203                // Field net/minecraft/client/renderer/BindGroupLayouts.FOG:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+572: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+575: ldc_w         #324                // String core/rendertype_end_portal
+578: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+581: ldc_w         #324                // String core/rendertype_end_portal
+584: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+587: getstatic     #327                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0_SAMPLER1:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+590: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+593: iconst_0
+594: getstatic     #330                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.POSITION:Lcom/mojang/blaze3d/vertex/VertexFormat;
+597: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+600: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+603: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+606: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+609: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+612: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+615: putstatic     #332                // Field END_PORTAL_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+618: iconst_1
+619: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+622: dup
+623: iconst_0
+624: getstatic     #205                // Field MATRICES_FOG_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+627: aastore
+628: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+631: ldc_w         #334                // String core/rendertype_clouds
+634: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+637: ldc_w         #334                // String core/rendertype_clouds
+640: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+643: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+646: dup
+647: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+650: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+653: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+656: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+659: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+662: getstatic     #337                // Field net/minecraft/client/renderer/BindGroupLayouts.CLOUD_INFO:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+665: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+668: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+671: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+674: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+677: putstatic     #339                // Field CLOUDS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+680: iconst_1
+681: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+684: dup
+685: iconst_0
+686: getstatic     #205                // Field MATRICES_FOG_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+689: aastore
+690: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+693: ldc_w         #341                // String core/rendertype_lines
+696: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+699: ldc_w         #341                // String core/rendertype_lines
+702: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+705: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+708: dup
+709: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+712: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+715: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+718: iconst_0
+719: invokevirtual #345                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withCull:(Z)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+722: iconst_0
+723: getstatic     #348                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH:Lcom/mojang/blaze3d/vertex/VertexFormat;
+726: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+729: getstatic     #350                // Field com/mojang/blaze3d/PrimitiveTopology.LINES:Lcom/mojang/blaze3d/PrimitiveTopology;
+732: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+735: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+738: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+741: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+744: putstatic     #352                // Field LINES_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+747: iconst_1
+748: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+751: dup
+752: iconst_0
+753: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+756: aastore
+757: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+760: getstatic     #200                // Field net/minecraft/client/renderer/BindGroupLayouts.MATRICES_PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+763: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+766: ldc_w         #354                // String core/position_color
+769: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+772: ldc_w         #354                // String core/position_color
+775: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+778: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+781: dup
+782: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+785: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+788: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+791: iconst_0
+792: getstatic     #357                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.POSITION_COLOR:Lcom/mojang/blaze3d/vertex/VertexFormat;
+795: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+798: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+801: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+804: new           #235                // class com/mojang/blaze3d/pipeline/DepthStencilState
+807: dup
+808: getstatic     #363                // Field com/mojang/blaze3d/platform/CompareOp.GREATER_THAN_OR_EQUAL:Lcom/mojang/blaze3d/platform/CompareOp;
+811: iconst_0
+812: invokespecial #366                // Method com/mojang/blaze3d/pipeline/DepthStencilState."<init>":(Lcom/mojang/blaze3d/platform/CompareOp;Z)V
+815: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+818: iconst_0
+819: invokevirtual #345                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withCull:(Z)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+822: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+825: putstatic     #368                // Field DEBUG_FILLED_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+828: iconst_1
+829: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+832: dup
+833: iconst_0
+834: getstatic     #205                // Field MATRICES_FOG_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+837: aastore
+838: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+841: ldc_w         #370                // String core/particle
+844: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+847: ldc_w         #370                // String core/particle
+850: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+853: getstatic     #213                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0_SAMPLER2:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+856: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+859: iconst_0
+860: getstatic     #373                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.PARTICLE:Lcom/mojang/blaze3d/vertex/VertexFormat;
+863: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+866: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+869: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+872: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+875: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+878: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+881: putstatic     #375                // Field PARTICLE_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+884: iconst_1
+885: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+888: dup
+889: iconst_0
+890: getstatic     #375                // Field PARTICLE_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+893: aastore
+894: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+897: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+900: dup
+901: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+904: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+907: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+910: iconst_0
+911: invokevirtual #345                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withCull:(Z)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+914: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+917: putstatic     #377                // Field WEATHER_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+920: iconst_1
+921: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+924: dup
+925: iconst_0
+926: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+929: aastore
+930: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+933: getstatic     #200                // Field net/minecraft/client/renderer/BindGroupLayouts.MATRICES_PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+936: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+939: ldc_w         #379                // String core/gui
+942: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+945: ldc_w         #379                // String core/gui
+948: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+951: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+954: dup
+955: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+958: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+961: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+964: iconst_0
+965: getstatic     #357                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.POSITION_COLOR:Lcom/mojang/blaze3d/vertex/VertexFormat;
+968: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+971: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+974: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+977: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+980: putstatic     #381                // Field GUI_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+983: iconst_1
+984: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+987: dup
+988: iconst_0
+989: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+992: aastore
+993: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+996: getstatic     #200                // Field net/minecraft/client/renderer/BindGroupLayouts.MATRICES_PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+999: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1002: ldc_w         #383                // String core/position_tex_color
+1005: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1008: ldc_w         #383                // String core/position_tex_color
+1011: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1014: getstatic     #276                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+1017: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1020: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+1023: dup
+1024: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+1027: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+1030: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1033: iconst_0
+1034: getstatic     #312                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.POSITION_TEX_COLOR:Lcom/mojang/blaze3d/vertex/VertexFormat;
+1037: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1040: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+1043: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1046: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1049: putstatic     #385                // Field GUI_TEXTURED_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1052: iconst_1
+1053: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1056: dup
+1057: iconst_0
+1058: getstatic     #314                // Field TEXT_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1061: aastore
+1062: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1065: ldc_w         #387                // String IS_GUI
+1068: invokevirtual #281                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1071: invokestatic  #393                // Method java/util/Optional.empty:()Ljava/util/Optional;
+1074: invokevirtual #396                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Ljava/util/Optional;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1077: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1080: putstatic     #398                // Field GUI_TEXT_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1083: iconst_1
+1084: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1087: dup
+1088: iconst_0
+1089: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1092: aastore
+1093: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1096: getstatic     #200                // Field net/minecraft/client/renderer/BindGroupLayouts.MATRICES_PROJECTION:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+1099: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1102: ldc_w         #400                // String core/rendertype_outline
+1105: invokevirtual #257                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1108: ldc_w         #400                // String core/rendertype_outline
+1111: invokevirtual #260                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withFragmentShader:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1114: getstatic     #276                // Field net/minecraft/client/renderer/BindGroupLayouts.SAMPLER0:Lcom/mojang/blaze3d/pipeline/BindGroupLayout;
+1117: invokevirtual #191                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withBindGroupLayout:(Lcom/mojang/blaze3d/pipeline/BindGroupLayout;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1120: iconst_0
+1121: getstatic     #312                // Field com/mojang/blaze3d/vertex/DefaultVertexFormat.POSITION_TEX_COLOR:Lcom/mojang/blaze3d/vertex/VertexFormat;
+1124: invokevirtual #223                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withVertexBinding:(ILcom/mojang/blaze3d/vertex/VertexFormat;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1127: getstatic     #229                // Field com/mojang/blaze3d/PrimitiveTopology.QUADS:Lcom/mojang/blaze3d/PrimitiveTopology;
+1130: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1133: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1136: putstatic     #402                // Field OUTLINE_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1139: iconst_1
+1140: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1143: dup
+1144: iconst_0
+1145: getstatic     #197                // Field GLOBALS_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1148: aastore
+1149: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1152: getstatic     #405                // Field com/mojang/blaze3d/PrimitiveTopology.TRIANGLES:Lcom/mojang/blaze3d/PrimitiveTopology;
+1155: invokevirtual #233                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPrimitiveTopology:(Lcom/mojang/blaze3d/PrimitiveTopology;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1158: invokevirtual #195                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.buildSnippet:()Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1161: putstatic     #407                // Field POST_PROCESSING_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1164: iconst_1
+1165: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1168: dup
+1169: iconst_0
+1170: getstatic     #266                // Field BLOCK_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1173: aastore
+1174: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1177: ldc_w         #409                // String pipeline/solid_block
+1180: invokevirtual #412                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withLocation:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1183: invokevirtual #416                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.build:()Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1186: invokestatic  #418                // Method register:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1189: putstatic     #420                // Field SOLID_BLOCK:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1192: iconst_1
+1193: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1196: dup
+1197: iconst_0
+1198: getstatic     #262                // Field TERRAIN_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1201: aastore
+1202: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1205: ldc_w         #422                // String pipeline/solid_terrain
+1208: invokevirtual #412                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withLocation:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1211: invokevirtual #416                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.build:()Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1214: invokestatic  #418                // Method register:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1217: putstatic     #424                // Field SOLID_TERRAIN:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1220: iconst_1
+1221: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1224: dup
+1225: iconst_0
+1226: getstatic     #262                // Field TERRAIN_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1229: aastore
+1230: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1233: ldc_w         #426                // String pipeline/wireframe
+1236: invokevirtual #412                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withLocation:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1239: getstatic     #431                // Field com/mojang/blaze3d/platform/PolygonMode.WIREFRAME:Lcom/mojang/blaze3d/platform/PolygonMode;
+1242: invokevirtual #435                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withPolygonMode:(Lcom/mojang/blaze3d/platform/PolygonMode;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1245: invokevirtual #416                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.build:()Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1248: invokestatic  #418                // Method register:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1251: putstatic     #437                // Field WIREFRAME:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1254: iconst_1
+1255: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1258: dup
+1259: iconst_0
+1260: getstatic     #266                // Field BLOCK_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1263: aastore
+1264: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1267: ldc_w         #439                // String pipeline/cutout_block
+1270: invokevirtual #412                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withLocation:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1273: ldc_w         #441                // String ALPHA_CUTOUT
+1276: ldc           #21                 // float 0.5f
+1278: invokevirtual #444                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;F)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1281: invokevirtual #416                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.build:()Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1284: invokestatic  #418                // Method register:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1287: putstatic     #446                // Field CUTOUT_BLOCK:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1290: iconst_1
+1291: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1294: dup
+1295: iconst_0
+1296: getstatic     #262                // Field TERRAIN_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1299: aastore
+1300: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1303: ldc_w         #448                // String pipeline/cutout_terrain
+1306: invokevirtual #412                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withLocation:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1309: ldc_w         #441                // String ALPHA_CUTOUT
+1312: ldc           #21                 // float 0.5f
+1314: invokevirtual #444                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;F)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1317: invokevirtual #416                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.build:()Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1320: invokestatic  #418                // Method register:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1323: putstatic     #450                // Field CUTOUT_TERRAIN:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1326: iconst_1
+1327: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1330: dup
+1331: iconst_0
+1332: getstatic     #262                // Field TERRAIN_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1335: aastore
+1336: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1339: ldc_w         #452                // String pipeline/translucent_terrain
+1342: invokevirtual #412                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withLocation:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1345: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+1348: dup
+1349: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+1352: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+1355: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1358: ldc_w         #441                // String ALPHA_CUTOUT
+1361: ldc           #19                 // float 0.1f
+1363: invokevirtual #444                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;F)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1366: invokevirtual #416                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.build:()Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1369: invokestatic  #418                // Method register:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1372: putstatic     #454                // Field TRANSLUCENT_TERRAIN:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1375: iconst_1
+1376: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1379: dup
+1380: iconst_0
+1381: getstatic     #266                // Field BLOCK_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1384: aastore
+1385: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1388: ldc_w         #456                // String pipeline/translucent_block
+1391: invokevirtual #412                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withLocation:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1394: ldc_w         #441                // String ALPHA_CUTOUT
+1397: ldc           #19                 // float 0.1f
+1399: invokevirtual #444                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;F)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1402: new           #296                // class com/mojang/blaze3d/pipeline/ColorTargetState
+1405: dup
+1406: getstatic     #302                // Field com/mojang/blaze3d/pipeline/BlendFunction.TRANSLUCENT:Lcom/mojang/blaze3d/pipeline/BlendFunction;
+1409: invokespecial #305                // Method com/mojang/blaze3d/pipeline/ColorTargetState."<init>":(Lcom/mojang/blaze3d/pipeline/BlendFunction;)V
+1412: invokevirtual #309                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withColorTargetState:(Lcom/mojang/blaze3d/pipeline/ColorTargetState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1415: getstatic     #239                // Field com/mojang/blaze3d/pipeline/DepthStencilState.DEFAULT:Lcom/mojang/blaze3d/pipeline/DepthStencilState;
+1418: invokevirtual #243                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withDepthStencilState:(Lcom/mojang/blaze3d/pipeline/DepthStencilState;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1421: invokevirtual #416                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.build:()Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1424: invokestatic  #418                // Method register:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1427: putstatic     #458                // Field TRANSLUCENT_BLOCK:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1430: iconst_1
+1431: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+1434: dup
+1435: iconst_0
+1436: getstatic     #273                // Field ENTITY_SNIPPET:Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+1439: aastore
+1440: invokestatic  #181                // Method com/mojang/blaze3d/pipeline/RenderPipeline.builder:([Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1443: ldc_w         #460                // String pipeline/armor_cutout_no_cull
+1446: invokevirtual #412                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withLocation:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1449: ldc_w         #441                // String ALPHA_CUTOUT
+1452: ldc           #19                 // float 0.1f
+1454: invokevirtual #444                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;F)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1457: ldc_w         #462                // String NO_OVERLAY
+1460: invokevirtual #281                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1463: ldc_w         #464                // String PER_FACE_LIGHTING
+1466: invokevirtual #281                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withShaderDefine:(Ljava/lang/String;)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1469: iconst_0
+1470: invokevirtual #345                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.withCull:(Z)Lcom/mojang/blaze3d/pipeline/RenderPipeline$Builder;
+1473: invokevirtual #416                // Method com/mojang/blaze3d/pipeline/RenderPipeline$Builder.build:()Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1476: invokestatic  #418                // Method register:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1479: putstatic     #466                // Field ARMOR_CUTOUT_NO_CULL:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+1482: iconst_1
+1483: anewarray     #7                  // class com/mojang/blaze3d/pipeline/RenderPipeline$Snippet
+=== method com.mojang.blaze3d.TracyFrameCapture :: .
+##   private static final int MAX_WIDTH = 320;
+
+##   private static final int MAX_HEIGHT = 180;
+
+##   private static final long BYTES_PER_PIXEL = 4l;
+
+##   private int targetWidth;
+
+##   private int targetHeight;
+
+##   private int width;
+
+##   private int height;
+
+##   private com.mojang.blaze3d.textures.GpuTexture frameBuffer;
+
+##   private com.mojang.blaze3d.textures.GpuTextureView frameBufferView;
+
+##   private com.mojang.blaze3d.buffers.GpuBuffer pixelbuffer;
+
+##   private int lastCaptureDelay;
+
+##   private boolean capturedThisFrame;
+
+##   private com.mojang.blaze3d.TracyFrameCapture$Status status;
+
+##   public com.mojang.blaze3d.TracyFrameCapture();
+Code:
+0: aload_0
+1: invokespecial #48                 // Method java/lang/Object."<init>":()V
+4: aload_0
+5: getstatic     #51                 // Field com/mojang/blaze3d/TracyFrameCapture$Status.WAITING_FOR_CAPTURE:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+8: putfield      #53                 // Field status:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+11: aload_0
+12: sipush        320
+15: putfield      #55                 // Field width:I
+18: aload_0
+19: sipush        180
+22: putfield      #57                 // Field height:I
+25: invokestatic  #63                 // Method com/mojang/blaze3d/systems/RenderSystem.getDevice:()Lcom/mojang/blaze3d/systems/GpuDevice;
+28: astore_1
+29: aload_0
+30: aload_1
+31: ldc           #65                 // String Tracy Frame Capture
+33: bipush        10
+35: getstatic     #71                 // Field com/mojang/blaze3d/GpuFormat.RGBA8_UNORM:Lcom/mojang/blaze3d/GpuFormat;
+38: aload_0
+39: getfield      #55                 // Field width:I
+42: aload_0
+43: getfield      #57                 // Field height:I
+46: iconst_1
+47: iconst_1
+48: invokevirtual #77                 // Method com/mojang/blaze3d/systems/GpuDevice.createTexture:(Ljava/lang/String;ILcom/mojang/blaze3d/GpuFormat;IIII)Lcom/mojang/blaze3d/textures/GpuTexture;
+51: putfield      #79                 // Field frameBuffer:Lcom/mojang/blaze3d/textures/GpuTexture;
+54: aload_0
+55: aload_1
+56: aload_0
+57: getfield      #79                 // Field frameBuffer:Lcom/mojang/blaze3d/textures/GpuTexture;
+60: invokevirtual #83                 // Method com/mojang/blaze3d/systems/GpuDevice.createTextureView:(Lcom/mojang/blaze3d/textures/GpuTexture;)Lcom/mojang/blaze3d/textures/GpuTextureView;
+63: putfield      #85                 // Field frameBufferView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+66: aload_0
+67: aload_1
+68: invokedynamic #104,  0            // InvokeDynamic #0:get:()Ljava/util/function/Supplier;
+73: bipush        9
+75: aload_0
+76: getfield      #55                 // Field width:I
+79: aload_0
+80: getfield      #57                 // Field height:I
+83: imul
+84: i2l
+85: ldc2_w        #28                 // long 4l
+88: lmul
+89: invokevirtual #108                // Method com/mojang/blaze3d/systems/GpuDevice.createBuffer:(Ljava/util/function/Supplier;IJ)Lcom/mojang/blaze3d/buffers/GpuBuffer;
+92: putfield      #110                // Field pixelbuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+95: return
+
+##   private void resize(int, int);
+Code:
+0: iload_1
+1: i2f
+2: iload_2
+3: i2f
+4: fdiv
+5: fstore_3
+6: iload_1
+7: sipush        320
+10: if_icmple     23
+13: sipush        320
+16: istore_1
+17: ldc           #117                // float 320.0f
+19: fload_3
+20: fdiv
+21: f2i
+22: istore_2
+23: iload_2
+24: sipush        180
+27: if_icmple     40
+30: ldc           #118                // float 180.0f
+32: fload_3
+33: fmul
+34: f2i
+35: istore_1
+36: sipush        180
+39: istore_2
+40: iload_1
+41: iconst_4
+42: idiv
+43: iconst_4
+44: imul
+45: istore_1
+46: iload_2
+47: iconst_4
+48: idiv
+49: iconst_4
+50: imul
+51: istore_2
+52: aload_0
+53: getfield      #55                 // Field width:I
+56: iload_1
+57: if_icmpne     68
+60: aload_0
+61: getfield      #57                 // Field height:I
+64: iload_2
+65: if_icmpeq     161
+68: aload_0
+69: iload_1
+70: putfield      #55                 // Field width:I
+73: aload_0
+74: iload_2
+75: putfield      #57                 // Field height:I
+78: invokestatic  #63                 // Method com/mojang/blaze3d/systems/RenderSystem.getDevice:()Lcom/mojang/blaze3d/systems/GpuDevice;
+81: astore        4
+83: aload_0
+84: getfield      #79                 // Field frameBuffer:Lcom/mojang/blaze3d/textures/GpuTexture;
+87: invokevirtual #123                // Method com/mojang/blaze3d/textures/GpuTexture.close:()V
+90: aload_0
+91: aload         4
+93: ldc           #65                 // String Tracy Frame Capture
+95: bipush        10
+97: getstatic     #71                 // Field com/mojang/blaze3d/GpuFormat.RGBA8_UNORM:Lcom/mojang/blaze3d/GpuFormat;
+100: iload_1
+101: iload_2
+102: iconst_1
+103: iconst_1
+104: invokevirtual #77                 // Method com/mojang/blaze3d/systems/GpuDevice.createTexture:(Ljava/lang/String;ILcom/mojang/blaze3d/GpuFormat;IIII)Lcom/mojang/blaze3d/textures/GpuTexture;
+107: putfield      #79                 // Field frameBuffer:Lcom/mojang/blaze3d/textures/GpuTexture;
+110: aload_0
+111: getfield      #85                 // Field frameBufferView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+114: invokevirtual #126                // Method com/mojang/blaze3d/textures/GpuTextureView.close:()V
+117: aload_0
+118: aload         4
+120: aload_0
+121: getfield      #79                 // Field frameBuffer:Lcom/mojang/blaze3d/textures/GpuTexture;
+124: invokevirtual #83                 // Method com/mojang/blaze3d/systems/GpuDevice.createTextureView:(Lcom/mojang/blaze3d/textures/GpuTexture;)Lcom/mojang/blaze3d/textures/GpuTextureView;
+127: putfield      #85                 // Field frameBufferView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+130: aload_0
+131: getfield      #110                // Field pixelbuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+134: invokevirtual #129                // Method com/mojang/blaze3d/buffers/GpuBuffer.close:()V
+137: aload_0
+138: aload         4
+140: invokedynamic #134,  0            // InvokeDynamic #1:get:()Ljava/util/function/Supplier;
+145: bipush        9
+147: iload_1
+148: iload_2
+149: imul
+150: i2l
+151: ldc2_w        #28                 // long 4l
+154: lmul
+155: invokevirtual #108                // Method com/mojang/blaze3d/systems/GpuDevice.createBuffer:(Ljava/util/function/Supplier;IJ)Lcom/mojang/blaze3d/buffers/GpuBuffer;
+158: putfield      #110                // Field pixelbuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+161: return
+
+##   public void capture(com.mojang.blaze3d.pipeline.RenderTarget);
+Code:
+0: aload_0
+1: getfield      #53                 // Field status:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+4: getstatic     #51                 // Field com/mojang/blaze3d/TracyFrameCapture$Status.WAITING_FOR_CAPTURE:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+7: if_acmpne     24
+10: aload_0
+11: getfield      #143                // Field capturedThisFrame:Z
+14: ifne          24
+17: aload_1
+18: invokevirtual #149                // Method com/mojang/blaze3d/pipeline/RenderTarget.getColorTexture:()Lcom/mojang/blaze3d/textures/GpuTexture;
+21: ifnonnull     25
+24: return
+25: aload_0
+26: iconst_1
+27: putfield      #143                // Field capturedThisFrame:Z
+30: aload_1
+31: getfield      #150                // Field com/mojang/blaze3d/pipeline/RenderTarget.width:I
+34: aload_0
+35: getfield      #152                // Field targetWidth:I
+38: if_icmpne     52
+41: aload_1
+42: getfield      #153                // Field com/mojang/blaze3d/pipeline/RenderTarget.height:I
+45: aload_0
+46: getfield      #155                // Field targetHeight:I
+49: if_icmpeq     80
+52: aload_0
+53: aload_1
+54: getfield      #150                // Field com/mojang/blaze3d/pipeline/RenderTarget.width:I
+57: putfield      #152                // Field targetWidth:I
+60: aload_0
+61: aload_1
+62: getfield      #153                // Field com/mojang/blaze3d/pipeline/RenderTarget.height:I
+65: putfield      #155                // Field targetHeight:I
+68: aload_0
+69: aload_0
+70: getfield      #152                // Field targetWidth:I
+73: aload_0
+74: getfield      #155                // Field targetHeight:I
+77: invokevirtual #157                // Method resize:(II)V
+80: aload_0
+81: getstatic     #160                // Field com/mojang/blaze3d/TracyFrameCapture$Status.WAITING_FOR_COPY:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+84: putfield      #53                 // Field status:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+87: invokestatic  #63                 // Method com/mojang/blaze3d/systems/RenderSystem.getDevice:()Lcom/mojang/blaze3d/systems/GpuDevice;
+90: invokevirtual #164                // Method com/mojang/blaze3d/systems/GpuDevice.createCommandEncoder:()Lcom/mojang/blaze3d/systems/CommandEncoder;
+93: astore_2
+94: invokestatic  #63                 // Method com/mojang/blaze3d/systems/RenderSystem.getDevice:()Lcom/mojang/blaze3d/systems/GpuDevice;
+97: invokevirtual #164                // Method com/mojang/blaze3d/systems/GpuDevice.createCommandEncoder:()Lcom/mojang/blaze3d/systems/CommandEncoder;
+100: invokedynamic #169,  0            // InvokeDynamic #2:get:()Ljava/util/function/Supplier;
+105: aload_0
+106: getfield      #85                 // Field frameBufferView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+109: invokestatic  #175                // Method java/util/Optional.empty:()Ljava/util/Optional;
+112: invokevirtual #181                // Method com/mojang/blaze3d/systems/CommandEncoder.createRenderPass:(Ljava/util/function/Supplier;Lcom/mojang/blaze3d/textures/GpuTextureView;Ljava/util/Optional;)Lcom/mojang/blaze3d/systems/RenderPass;
+115: astore_3
+116: aload_3
+117: invokestatic  #185                // Method com/mojang/blaze3d/systems/RenderSystem.bindDefaultUniforms:(Lcom/mojang/blaze3d/systems/RenderPass;)V
+120: aload_3
+121: getstatic     #191                // Field net/minecraft/client/renderer/RenderPipelines.TRACY_BLIT:Lcom/mojang/blaze3d/pipeline/RenderPipeline;
+124: invokevirtual #197                // Method com/mojang/blaze3d/systems/RenderPass.setPipeline:(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)V
+127: aload_3
+128: ldc           #199                // String InSampler
+130: aload_1
+131: invokevirtual #203                // Method com/mojang/blaze3d/pipeline/RenderTarget.getColorTextureView:()Lcom/mojang/blaze3d/textures/GpuTextureView;
+134: invokestatic  #207                // Method com/mojang/blaze3d/systems/RenderSystem.getSamplerCache:()Lcom/mojang/blaze3d/systems/SamplerCache;
+137: getstatic     #213                // Field com/mojang/blaze3d/textures/FilterMode.LINEAR:Lcom/mojang/blaze3d/textures/FilterMode;
+140: invokevirtual #219                // Method com/mojang/blaze3d/systems/SamplerCache.getClampToEdge:(Lcom/mojang/blaze3d/textures/FilterMode;)Lcom/mojang/blaze3d/textures/GpuSampler;
+143: invokevirtual #223                // Method com/mojang/blaze3d/systems/RenderPass.bindTexture:(Ljava/lang/String;Lcom/mojang/blaze3d/textures/GpuTextureView;Lcom/mojang/blaze3d/textures/GpuSampler;)V
+146: aload_3
+147: iconst_3
+148: iconst_1
+149: iconst_0
+150: iconst_0
+151: invokevirtual #227                // Method com/mojang/blaze3d/systems/RenderPass.draw:(IIII)V
+154: aload_3
+155: ifnull        190
+158: aload_3
+159: invokevirtual #228                // Method com/mojang/blaze3d/systems/RenderPass.close:()V
+162: goto          190
+165: astore        4
+167: aload_3
+168: ifnull        187
+171: aload_3
+172: invokevirtual #228                // Method com/mojang/blaze3d/systems/RenderPass.close:()V
+175: goto          187
+178: astore        5
+180: aload         4
+182: aload         5
+184: invokevirtual #232                // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+187: aload         4
+189: athrow
+190: aload_2
+191: aload_0
+192: getfield      #79                 // Field frameBuffer:Lcom/mojang/blaze3d/textures/GpuTexture;
+195: aload_0
+196: getfield      #110                // Field pixelbuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+199: lconst_0
+200: aload_0
+201: invokedynamic #241,  0            // InvokeDynamic #3:run:(Lcom/mojang/blaze3d/TracyFrameCapture;)Ljava/lang/Runnable;
+206: iconst_0
+207: invokevirtual #245                // Method com/mojang/blaze3d/systems/CommandEncoder.copyTextureToBuffer:(Lcom/mojang/blaze3d/textures/GpuTexture;Lcom/mojang/blaze3d/buffers/GpuBuffer;JLjava/lang/Runnable;I)V
+210: aload_0
+211: iconst_0
+212: putfield      #247                // Field lastCaptureDelay:I
+215: return
+Exception table:
+from    to  target type
+116   154   165   Class java/lang/Throwable
+171   175   178   Class java/lang/Throwable
+
+##   public void upload();
+Code:
+0: aload_0
+1: getfield      #53                 // Field status:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+4: getstatic     #256                // Field com/mojang/blaze3d/TracyFrameCapture$Status.WAITING_FOR_UPLOAD:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+7: if_acmpeq     11
+10: return
+11: aload_0
+12: getstatic     #51                 // Field com/mojang/blaze3d/TracyFrameCapture$Status.WAITING_FOR_CAPTURE:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+15: putfield      #53                 // Field status:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+18: aload_0
+19: getfield      #110                // Field pixelbuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+22: iconst_1
+23: iconst_0
+24: invokevirtual #260                // Method com/mojang/blaze3d/buffers/GpuBuffer.map:(ZZ)Lcom/mojang/blaze3d/buffers/GpuBufferSlice$MappedView;
+27: astore_1
+28: aload_1
+29: invokevirtual #264                // Method com/mojang/blaze3d/buffers/GpuBufferSlice$MappedView.data:()Ljava/nio/ByteBuffer;
+32: aload_0
+33: getfield      #55                 // Field width:I
+36: aload_0
+37: getfield      #57                 // Field height:I
+40: aload_0
+41: getfield      #247                // Field lastCaptureDelay:I
+44: iconst_1
+45: invokestatic  #270                // Method com/mojang/jtracy/TracyClient.frameImage:(Ljava/nio/ByteBuffer;IIIZ)V
+48: aload_1
+49: ifnull        79
+52: aload_1
+53: invokevirtual #271                // Method com/mojang/blaze3d/buffers/GpuBufferSlice$MappedView.close:()V
+56: goto          79
+59: astore_2
+60: aload_1
+61: ifnull        77
+64: aload_1
+65: invokevirtual #271                // Method com/mojang/blaze3d/buffers/GpuBufferSlice$MappedView.close:()V
+68: goto          77
+71: astore_3
+72: aload_2
+73: aload_3
+74: invokevirtual #232                // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+77: aload_2
+78: athrow
+79: return
+Exception table:
+from    to  target type
+28    48    59   Class java/lang/Throwable
+64    68    71   Class java/lang/Throwable
+
+##   public void endFrame();
+Code:
+0: aload_0
+1: dup
+2: getfield      #247                // Field lastCaptureDelay:I
+5: iconst_1
+6: iadd
+7: putfield      #247                // Field lastCaptureDelay:I
+10: aload_0
+11: iconst_0
+12: putfield      #143                // Field capturedThisFrame:Z
+15: invokestatic  #277                // Method com/mojang/jtracy/TracyClient.markFrame:()V
+18: return
+
+##   public void close();
+Code:
+0: aload_0
+1: getfield      #79                 // Field frameBuffer:Lcom/mojang/blaze3d/textures/GpuTexture;
+4: invokevirtual #123                // Method com/mojang/blaze3d/textures/GpuTexture.close:()V
+7: aload_0
+8: getfield      #85                 // Field frameBufferView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+11: invokevirtual #126                // Method com/mojang/blaze3d/textures/GpuTextureView.close:()V
+14: aload_0
+15: getfield      #110                // Field pixelbuffer:Lcom/mojang/blaze3d/buffers/GpuBuffer;
+18: invokevirtual #129                // Method com/mojang/blaze3d/buffers/GpuBuffer.close:()V
+21: return
+
+##   private void lambda$capture$1();
+Code:
+0: aload_0
+1: getstatic     #256                // Field com/mojang/blaze3d/TracyFrameCapture$Status.WAITING_FOR_UPLOAD:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+4: putfield      #53                 // Field status:Lcom/mojang/blaze3d/TracyFrameCapture$Status;
+7: return
+
+##   private static java.lang.String lambda$capture$0();
+Code:
+0: ldc_w         #279                // String Tracy blit
+3: areturn
+
+##   private static java.lang.String lambda$resize$0();
+Code:
+0: ldc_w         #281                // String Tracy Frame Capture buffer
+3: areturn
+
+##   private static java.lang.String lambda$new$0();
+Code:
+0: ldc_w         #281                // String Tracy Frame Capture buffer
+3: areturn
+}
+=== method com.mojang.blaze3d.pipeline.MainTarget :: .
+##   public static final int DEFAULT_WIDTH = 854;
+
+##   public static final int DEFAULT_HEIGHT = 480;
+
+##   private static final com.mojang.blaze3d.pipeline.MainTarget$Dimension DEFAULT_DIMENSIONS;
+
+##   public com.mojang.blaze3d.pipeline.MainTarget(int, int);
+Code:
+0: aload_0
+1: ldc           #26                 // String Main
+3: iconst_1
+4: getstatic     #32                 // Field com/mojang/blaze3d/GpuFormat.RGBA8_UNORM:Lcom/mojang/blaze3d/GpuFormat;
+7: invokespecial #35                 // Method com/mojang/blaze3d/pipeline/RenderTarget."<init>":(Ljava/lang/String;ZLcom/mojang/blaze3d/GpuFormat;)V
+10: aload_0
+11: iload_1
+12: iload_2
+13: invokevirtual #38                 // Method createFrameBuffer:(II)V
+16: return
+
+##   private void createFrameBuffer(int, int);
+Code:
+0: aload_0
+1: iload_1
+2: iload_2
+3: invokevirtual #44                 // Method allocateAttachments:(II)Lcom/mojang/blaze3d/pipeline/MainTarget$Dimension;
+6: astore_3
+7: aload_0
+8: getfield      #48                 // Field colorTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+11: ifnull        21
+14: aload_0
+15: getfield      #51                 // Field depthTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+18: ifnonnull     31
+21: new           #53                 // class java/lang/IllegalStateException
+24: dup
+25: ldc           #55                 // String Missing color and/or depth textures
+27: invokespecial #58                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+30: athrow
+31: aload_0
+32: aload_3
+33: getfield      #61                 // Field com/mojang/blaze3d/pipeline/MainTarget$Dimension.width:I
+36: putfield      #62                 // Field width:I
+39: aload_0
+40: aload_3
+41: getfield      #65                 // Field com/mojang/blaze3d/pipeline/MainTarget$Dimension.height:I
+44: putfield      #66                 // Field height:I
+47: return
+
+##   private com.mojang.blaze3d.pipeline.MainTarget$Dimension allocateAttachments(int, int);
+Code:
+0: invokestatic  #73                 // Method com/mojang/blaze3d/systems/RenderSystem.assertOnRenderThread:()V
+3: iload_1
+4: iload_2
+5: invokestatic  #77                 // Method com/mojang/blaze3d/pipeline/MainTarget$Dimension.listWithFallback:(II)Ljava/util/List;
+8: invokeinterface #83,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+13: astore_3
+14: aload_3
+15: invokeinterface #89,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+20: ifeq          178
+23: aload_3
+24: invokeinterface #93,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+29: checkcast     #7                  // class com/mojang/blaze3d/pipeline/MainTarget$Dimension
+32: astore        4
+34: aload_0
+35: getfield      #48                 // Field colorTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+38: ifnull        53
+41: aload_0
+42: getfield      #48                 // Field colorTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+45: invokevirtual #98                 // Method com/mojang/blaze3d/textures/GpuTexture.close:()V
+48: aload_0
+49: aconst_null
+50: putfield      #48                 // Field colorTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+53: aload_0
+54: getfield      #102                // Field colorTextureView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+57: ifnull        72
+60: aload_0
+61: getfield      #102                // Field colorTextureView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+64: invokevirtual #105                // Method com/mojang/blaze3d/textures/GpuTextureView.close:()V
+67: aload_0
+68: aconst_null
+69: putfield      #102                // Field colorTextureView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+72: aload_0
+73: getfield      #51                 // Field depthTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+76: ifnull        91
+79: aload_0
+80: getfield      #51                 // Field depthTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+83: invokevirtual #98                 // Method com/mojang/blaze3d/textures/GpuTexture.close:()V
+86: aload_0
+87: aconst_null
+88: putfield      #51                 // Field depthTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+91: aload_0
+92: getfield      #108                // Field depthTextureView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+95: ifnull        110
+98: aload_0
+99: getfield      #108                // Field depthTextureView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+102: invokevirtual #105                // Method com/mojang/blaze3d/textures/GpuTextureView.close:()V
+105: aload_0
+106: aconst_null
+107: putfield      #108                // Field depthTextureView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+110: aload_0
+111: aload_0
+112: aload         4
+114: invokevirtual #112                // Method allocateColorAttachment:(Lcom/mojang/blaze3d/pipeline/MainTarget$Dimension;)Lcom/mojang/blaze3d/textures/GpuTexture;
+117: putfield      #48                 // Field colorTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+120: aload_0
+121: aload_0
+122: aload         4
+124: invokevirtual #115                // Method allocateDepthAttachment:(Lcom/mojang/blaze3d/pipeline/MainTarget$Dimension;)Lcom/mojang/blaze3d/textures/GpuTexture;
+127: putfield      #51                 // Field depthTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+130: aload_0
+131: getfield      #48                 // Field colorTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+134: ifnull        175
+137: aload_0
+138: getfield      #51                 // Field depthTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+141: ifnull        175
+144: aload_0
+145: invokestatic  #119                // Method com/mojang/blaze3d/systems/RenderSystem.getDevice:()Lcom/mojang/blaze3d/systems/GpuDevice;
+148: aload_0
+149: getfield      #48                 // Field colorTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+152: invokevirtual #125                // Method com/mojang/blaze3d/systems/GpuDevice.createTextureView:(Lcom/mojang/blaze3d/textures/GpuTexture;)Lcom/mojang/blaze3d/textures/GpuTextureView;
+155: putfield      #102                // Field colorTextureView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+158: aload_0
+159: invokestatic  #119                // Method com/mojang/blaze3d/systems/RenderSystem.getDevice:()Lcom/mojang/blaze3d/systems/GpuDevice;
+162: aload_0
+163: getfield      #51                 // Field depthTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+166: invokevirtual #125                // Method com/mojang/blaze3d/systems/GpuDevice.createTextureView:(Lcom/mojang/blaze3d/textures/GpuTexture;)Lcom/mojang/blaze3d/textures/GpuTextureView;
+169: putfield      #108                // Field depthTextureView:Lcom/mojang/blaze3d/textures/GpuTextureView;
+172: aload         4
+174: areturn
+175: goto          14
+178: new           #127                // class java/lang/RuntimeException
+181: dup
+182: aload_0
+183: getfield      #48                 // Field colorTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+186: ifnonnull     194
+189: ldc           #129                // String missing color
+191: goto          196
+194: ldc           #131                // String have color
+196: aload_0
+197: getfield      #51                 // Field depthTexture:Lcom/mojang/blaze3d/textures/GpuTexture;
+200: ifnonnull     208
+203: ldc           #135                // String missing depth
+205: goto          210
+208: ldc           #137                // String have depth
+210: invokedynamic #149,  0            // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+215: invokespecial #150                // Method java/lang/RuntimeException."<init>":(Ljava/lang/String;)V
+218: athrow
+
+##   private com.mojang.blaze3d.textures.GpuTexture allocateColorAttachment(com.mojang.blaze3d.pipeline.MainTarget$Dimension);
+Code:
+0: invokestatic  #119                // Method com/mojang/blaze3d/systems/RenderSystem.getDevice:()Lcom/mojang/blaze3d/systems/GpuDevice;
+3: aload_0
+4: invokedynamic #172,  0            // InvokeDynamic #1:get:(Lcom/mojang/blaze3d/pipeline/MainTarget;)Ljava/util/function/Supplier;
+9: bipush        15
+11: aload_0
+12: getfield      #175                // Field format:Lcom/mojang/blaze3d/GpuFormat;
+15: aload_1
+16: getfield      #61                 // Field com/mojang/blaze3d/pipeline/MainTarget$Dimension.width:I
+19: aload_1
+20: getfield      #65                 // Field com/mojang/blaze3d/pipeline/MainTarget$Dimension.height:I
+23: iconst_1
+24: iconst_1
+25: invokevirtual #179                // Method com/mojang/blaze3d/systems/GpuDevice.createTexture:(Ljava/util/function/Supplier;ILcom/mojang/blaze3d/GpuFormat;IIII)Lcom/mojang/blaze3d/textures/GpuTexture;
+28: areturn
+29: astore_2
+30: aconst_null
+31: areturn
+Exception table:
+from    to  target type
+0    28    29   Class com/mojang/blaze3d/GpuOutOfMemoryException
+
+##   private com.mojang.blaze3d.textures.GpuTexture allocateDepthAttachment(com.mojang.blaze3d.pipeline.MainTarget$Dimension);
+Code:
+0: invokestatic  #119                // Method com/mojang/blaze3d/systems/RenderSystem.getDevice:()Lcom/mojang/blaze3d/systems/GpuDevice;
+3: aload_0
+4: invokedynamic #186,  0            // InvokeDynamic #2:get:(Lcom/mojang/blaze3d/pipeline/MainTarget;)Ljava/util/function/Supplier;
+9: bipush        15
+11: getstatic     #189                // Field com/mojang/blaze3d/GpuFormat.D32_FLOAT:Lcom/mojang/blaze3d/GpuFormat;
+14: aload_1
+15: getfield      #61                 // Field com/mojang/blaze3d/pipeline/MainTarget$Dimension.width:I
+18: aload_1
+19: getfield      #65                 // Field com/mojang/blaze3d/pipeline/MainTarget$Dimension.height:I
+22: iconst_1
+23: iconst_1
+24: invokevirtual #179                // Method com/mojang/blaze3d/systems/GpuDevice.createTexture:(Ljava/util/function/Supplier;ILcom/mojang/blaze3d/GpuFormat;IIII)Lcom/mojang/blaze3d/textures/GpuTexture;
+27: areturn
+28: astore_2
+29: aconst_null
+30: areturn
+Exception table:
+from    to  target type
+0    27    28   Class com/mojang/blaze3d/GpuOutOfMemoryException
+
+##   private java.lang.String lambda$allocateDepthAttachment$0();
+Code:
+0: aload_0
+1: getfield      #193                // Field label:Ljava/lang/String;
+4: invokedynamic #198,  0            // InvokeDynamic #3:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+9: areturn
+
+##   private java.lang.String lambda$allocateColorAttachment$0();
+Code:
+0: aload_0
+1: getfield      #193                // Field label:Ljava/lang/String;
+4: invokedynamic #201,  0            // InvokeDynamic #4:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+9: areturn
+
+##   static {};
+Code:
+0: new           #7                  // class com/mojang/blaze3d/pipeline/MainTarget$Dimension
+3: dup
+4: sipush        854
+7: sipush        480
+10: invokespecial #204                // Method com/mojang/blaze3d/pipeline/MainTarget$Dimension."<init>":(II)V
+13: putstatic     #206                // Field DEFAULT_DIMENSIONS:Lcom/mojang/blaze3d/pipeline/MainTarget$Dimension;
+16: return
+}
 === package listing (client.gui.screens, client.input, client, renderer, particle, model.geom, blaze3d)
 com/mojang/blaze3d/platform/BlendFactor.class
 com/mojang/blaze3d/platform/BlendOp.class
-com/mojang/blaze3d/platform/ClipboardManager.class
 com/mojang/blaze3d/platform/ClientShutdownWatchdog.class
 com/mojang/blaze3d/platform/CompareOp.class
+com/mojang/blaze3d/platform/ClipboardManager.class
 com/mojang/blaze3d/platform/DebugMemoryUntracker.class
 com/mojang/blaze3d/platform/DisplayData.class
 com/mojang/blaze3d/platform/FramerateLimitTracker$FramerateThrottleReason.class
-com/mojang/blaze3d/platform/FramerateLimitTracker.class
 com/mojang/blaze3d/platform/IconSet.class
 com/mojang/blaze3d/platform/GLX.class
 com/mojang/blaze3d/platform/InputConstants$Key.class
 com/mojang/blaze3d/platform/InputConstants$Value.class
-com/mojang/blaze3d/platform/Lighting$Entry.class
+com/mojang/blaze3d/platform/InputConstants.class
 com/mojang/blaze3d/platform/Lighting.class
 com/mojang/blaze3d/platform/MacosUtil.class
+com/mojang/blaze3d/platform/InputConstants$Type.class
 com/mojang/blaze3d/platform/MessageBox.class
-com/mojang/blaze3d/platform/MonitorManager.class
 com/mojang/blaze3d/platform/Monitor.class
+com/mojang/blaze3d/platform/FramerateLimitTracker.class
 com/mojang/blaze3d/platform/NativeImage$WriteCallback.class
 com/mojang/blaze3d/platform/NativeImage$Format.class
-com/mojang/blaze3d/platform/NativeLibrariesBootstrap$CapturingPrintStream.class
+com/mojang/blaze3d/platform/Lighting$Entry.class
 com/mojang/blaze3d/platform/NativeLibrariesBootstrap$CapturingStream.class
-com/mojang/blaze3d/platform/InputConstants$Type.class
 com/mojang/blaze3d/platform/NativeLibrariesBootstrap$LibraryLoadEntry.class
+com/mojang/blaze3d/platform/NativeLibrariesBootstrap$CapturingPrintStream.class
 com/mojang/blaze3d/platform/PolygonMode.class
 com/mojang/blaze3d/platform/TextInputManager.class
-com/mojang/blaze3d/platform/InputConstants.class
-com/mojang/blaze3d/platform/Transparency.class
-com/mojang/blaze3d/platform/VideoMode.class
 com/mojang/blaze3d/platform/NativeLibrariesBootstrap.class
-com/mojang/blaze3d/platform/Window$WindowInitFailed.class
-com/mojang/blaze3d/platform/WindowEventHandler.class
+com/mojang/blaze3d/platform/MonitorManager.class
 com/mojang/blaze3d/platform/TextureUtil.class
-com/mojang/blaze3d/systems/BackendCreationException$Reason.class
-com/mojang/blaze3d/systems/BackendCreationException.class
-com/mojang/blaze3d/systems/CommandEncoderBackend.class
-com/mojang/blaze3d/systems/DeviceFeatures.class
+com/mojang/blaze3d/platform/Window$WindowInitFailed.class
+com/mojang/blaze3d/platform/VideoMode.class
+com/mojang/blaze3d/platform/WindowEventHandler.class
 com/mojang/blaze3d/platform/NativeImage.class
-com/mojang/blaze3d/systems/DeviceInfo.class
-com/mojang/blaze3d/systems/DeviceType.class
+com/mojang/blaze3d/platform/Window.class
+com/mojang/blaze3d/systems/BackendCreationException.class
+com/mojang/blaze3d/platform/Transparency.class
+com/mojang/blaze3d/systems/CommandEncoder.class
+com/mojang/blaze3d/systems/CommandEncoderBackend.class
+com/mojang/blaze3d/systems/BackendCreationException$Reason.class
 com/mojang/blaze3d/systems/DeviceLimits.class
+com/mojang/blaze3d/systems/DeviceInfo.class
 com/mojang/blaze3d/systems/GpuBackend.class
-com/mojang/blaze3d/systems/GpuDeviceBackend.class
+com/mojang/blaze3d/systems/DeviceType.class
 com/mojang/blaze3d/systems/GpuQuery.class
 com/mojang/blaze3d/systems/GpuQueryPool.class
-com/mojang/blaze3d/systems/GpuSurface$Configuration.class
+com/mojang/blaze3d/systems/GpuDeviceBackend.class
 com/mojang/blaze3d/systems/GpuDevice.class
-com/mojang/blaze3d/systems/GpuSurface$PresentMode.class
-com/mojang/blaze3d/systems/GpuSurfaceBackend.class
 com/mojang/blaze3d/systems/GpuSurface.class
+com/mojang/blaze3d/systems/GpuSurface$Configuration.class
+com/mojang/blaze3d/systems/DeviceFeatures.class
 com/mojang/blaze3d/systems/HintsAndWorkarounds.class
-com/mojang/blaze3d/systems/RenderPass$RenderArea.class
-com/mojang/blaze3d/systems/RenderPass$Draw.class
+com/mojang/blaze3d/systems/GpuSurfaceBackend.class
+com/mojang/blaze3d/systems/GpuSurface$PresentMode.class
 com/mojang/blaze3d/systems/RenderPass$UniformUploader.class
-com/mojang/blaze3d/platform/Window.class
+com/mojang/blaze3d/systems/RenderPass$RenderArea.class
+com/mojang/blaze3d/systems/RenderPassBackend.class
 com/mojang/blaze3d/systems/RenderPassDescriptor$Attachment.class
 com/mojang/blaze3d/systems/RenderPassDescriptor.class
-com/mojang/blaze3d/systems/CommandEncoder.class
 com/mojang/blaze3d/systems/RenderSystem$AutoStorageIndexBuffer$IndexGenerator.class
+com/mojang/blaze3d/systems/RenderPass.class
 com/mojang/blaze3d/systems/RenderSystem$GpuAsyncTask.class
-com/mojang/blaze3d/systems/RenderPassBackend.class
 com/mojang/blaze3d/systems/SamplerCache.class
 com/mojang/blaze3d/systems/ScissorState.class
-com/mojang/blaze3d/systems/SurfaceException.class
+com/mojang/blaze3d/systems/RenderPass$Draw.class
 com/mojang/blaze3d/systems/TimerQuery$Status.class
 com/mojang/blaze3d/systems/TimerQuery.class
 com/mojang/blaze3d/systems/TracyGpuProfiler.class
 com/mojang/blaze3d/systems/TransientMemory.class
-com/mojang/blaze3d/systems/RenderSystem$AutoStorageIndexBuffer.class
-com/mojang/blaze3d/systems/RenderPass.class
+com/mojang/blaze3d/systems/SurfaceException.class
+com/mojang/blaze3d/systems/RenderSystem.class
 com/mojang/blaze3d/vertex/ByteBufferBuilder$Result.class
 com/mojang/blaze3d/vertex/BufferBuilder.class
-com/mojang/blaze3d/vertex/CompactVectorArray.class
 com/mojang/blaze3d/vertex/ByteBufferBuilder.class
+com/mojang/blaze3d/systems/RenderSystem$AutoStorageIndexBuffer.class
 com/mojang/blaze3d/vertex/MeshData$DrawState.class
 com/mojang/blaze3d/vertex/MeshData$SortState.class
 com/mojang/blaze3d/vertex/MeshData.class
-com/mojang/blaze3d/vertex/PoseStack.class
 com/mojang/blaze3d/vertex/PoseStack$Pose.class
-com/mojang/blaze3d/vertex/QuadInstance.class
+com/mojang/blaze3d/vertex/PoseStack.class
+com/mojang/blaze3d/vertex/SheetedDecalTextureGenerator.class
 com/mojang/blaze3d/vertex/StagingBuffer$BufferHandle.class
-com/mojang/blaze3d/systems/RenderSystem.class
 com/mojang/blaze3d/vertex/StagingBuffer$Cpu.class
+com/mojang/blaze3d/vertex/CompactVectorArray.class
 com/mojang/blaze3d/vertex/StagingBuffer$PersistentlyMapped.class
 com/mojang/blaze3d/vertex/StagingBuffer$Uploader.class
-com/mojang/blaze3d/vertex/TlsfAllocator$Allocation.class
 com/mojang/blaze3d/vertex/StagingBuffer.class
+com/mojang/blaze3d/vertex/TlsfAllocator$Allocation.class
 com/mojang/blaze3d/vertex/TlsfAllocator$Heap.class
 com/mojang/blaze3d/vertex/TlsfAllocator$Block.class
 com/mojang/blaze3d/vertex/TlsfAllocator$IndexPair.class
 com/mojang/blaze3d/vertex/UberGpuBuffer$StagedAllocationEntry.class
 com/mojang/blaze3d/vertex/UberGpuBuffer$UberGpuBufferHeap.class
 com/mojang/blaze3d/vertex/UberGpuBuffer$UploadCallback.class
-com/mojang/blaze3d/vertex/TlsfAllocator.class
 com/mojang/blaze3d/vertex/DefaultVertexFormat.class
+com/mojang/blaze3d/vertex/VertexConsumer.class
 com/mojang/blaze3d/vertex/VertexFormat$Builder.class
-com/mojang/blaze3d/vertex/UberGpuBuffer.class
 com/mojang/blaze3d/vertex/VertexFormat.class
 com/mojang/blaze3d/vertex/VertexFormatElement.class
 com/mojang/blaze3d/vertex/VertexSorting$DistanceFunction.class
-com/mojang/blaze3d/vertex/SheetedDecalTextureGenerator.class
-com/mojang/blaze3d/vertex/VertexConsumer.class
 com/mojang/blaze3d/vertex/VertexSorting.class
+com/mojang/blaze3d/vertex/QuadInstance.class
+com/mojang/blaze3d/vertex/UberGpuBuffer.class
+com/mojang/blaze3d/vertex/TlsfAllocator.class
 net/minecraft/client/CameraType.class
 net/minecraft/client/ClientBrandRetriever.class
-net/minecraft/client/AttackIndicatorStatus.class
 net/minecraft/client/ClientBootstrap.class
-net/minecraft/client/CloudStatus.class
 net/minecraft/client/ClientClockManager.class
-net/minecraft/client/ComponentCollector.class
+net/minecraft/client/CloudStatus.class
 net/minecraft/client/ClientRecipeBook.class
+net/minecraft/client/ComponentCollector.class
 net/minecraft/client/CommandHistory.class
 net/minecraft/client/DebugQueryHandler.class
 net/minecraft/client/DeltaTracker.class
+net/minecraft/client/FramerateLimiter.class
 net/minecraft/client/GameLoadCookie.class
 net/minecraft/client/GameNarrator.class
 net/minecraft/client/Camera.class
-net/minecraft/client/HotbarManager.class
+net/minecraft/client/GraphicsPreset.class
 net/minecraft/client/InactivityFpsLimit.class
 net/minecraft/client/InputType.class
-net/minecraft/client/FramerateLimiter.class
+net/minecraft/client/AttackIndicatorStatus.class
+net/minecraft/client/HotbarManager.class
+net/minecraft/client/MouseHandler.class
 net/minecraft/client/KeyMapping.class
-net/minecraft/client/GraphicsPreset.class
-net/minecraft/client/KeyboardHandler.class
 net/minecraft/client/MusicToastDisplayState.class
 net/minecraft/client/NarratorStatus.class
-net/minecraft/client/MouseHandler.class
+net/minecraft/client/KeyboardHandler.class
 net/minecraft/client/OptionInstance.class
 net/minecraft/client/PreferredGraphicsApi.class
-net/minecraft/client/PresenceSharing.class
 net/minecraft/client/PeriodicNotificationManager.class
+net/minecraft/client/PresenceSharing.class
 net/minecraft/client/PrioritizeChunkUpdates.class
 net/minecraft/client/ResourceLoadStateTracker.class
 net/minecraft/client/RotatingSectionStorage.class
-net/minecraft/client/Screenshot.class
 net/minecraft/client/ScrollWheelHandler.class
+net/minecraft/client/Screenshot.class
 net/minecraft/client/SectionUpdateTracker.class
 net/minecraft/client/StringSplitter.class
 net/minecraft/client/TextureFilteringMethod.class
@@ -37050,64 +38540,62 @@ net/minecraft/client/Minecraft.class
 net/minecraft/client/gui/screens/AlertScreen.class
 net/minecraft/client/gui/screens/AccessibilityOnboardingScreen.class
 net/minecraft/client/gui/screens/BackupConfirmScreen.class
+net/minecraft/client/gui/screens/ConfirmLinkScreen.class
 net/minecraft/client/gui/screens/ConfirmScreen.class
 net/minecraft/client/gui/screens/ConnectScreen.class
-net/minecraft/client/gui/screens/CreateBuffetWorldScreen.class
 net/minecraft/client/gui/screens/CreditsAndAttributionScreen.class
-net/minecraft/client/gui/screens/CreateFlatWorldScreen.class
 net/minecraft/client/gui/screens/DatapackLoadFailureScreen.class
+net/minecraft/client/gui/screens/ChatScreen.class
 net/minecraft/client/gui/screens/DirectJoinServerScreen.class
 net/minecraft/client/gui/screens/DeathScreen.class
 net/minecraft/client/gui/screens/ErrorScreen.class
 net/minecraft/client/gui/screens/DisconnectedScreen.class
-net/minecraft/client/gui/screens/ConfirmLinkScreen.class
 net/minecraft/client/gui/screens/GenericMessageScreen.class
-net/minecraft/client/gui/screens/ChatScreen.class
+net/minecraft/client/gui/screens/CreateBuffetWorldScreen.class
 net/minecraft/client/gui/screens/InBedChatScreen.class
 net/minecraft/client/gui/screens/GenericWaitingScreen.class
+net/minecraft/client/gui/screens/CreateFlatWorldScreen.class
 net/minecraft/client/gui/screens/LevelLoadingScreen.class
 net/minecraft/client/gui/screens/ManageServerScreen.class
-net/minecraft/client/gui/screens/NoticeWithLinkScreen.class
 net/minecraft/client/gui/screens/FileFixerAbortedScreen.class
 net/minecraft/client/gui/screens/OutOfMemoryScreen.class
+net/minecraft/client/gui/screens/MultiplayerOptionsScreen.class
 net/minecraft/client/gui/screens/PauseScreen.class
-net/minecraft/client/gui/screens/PrivacyConfirmLinkScreen.class
 net/minecraft/client/gui/screens/PresetFlatWorldScreen.class
+net/minecraft/client/gui/screens/PrivacyConfirmLinkScreen.class
 net/minecraft/client/gui/screens/ProgressScreen.class
 net/minecraft/client/gui/screens/RecoverWorldDataScreen.class
-net/minecraft/client/gui/screens/TitleScreen.class
+net/minecraft/client/gui/screens/NoticeWithLinkScreen.class
 net/minecraft/client/gui/screens/WinScreen.class
-net/minecraft/client/gui/screens/MultiplayerOptionsScreen.class
+net/minecraft/client/gui/screens/TitleScreen.class
 net/minecraft/client/model/geom/EntityModelSet.class
 net/minecraft/client/model/geom/ModelLayerLocation.class
 net/minecraft/client/model/geom/ModelLayers.class
-net/minecraft/client/model/geom/LayerDefinitions.class
 net/minecraft/client/model/geom/ModelPart$Cube.class
-net/minecraft/client/model/geom/ModelPart$Vertex.class
+net/minecraft/client/model/geom/ModelPart$Polygon.class
 net/minecraft/client/model/geom/ModelPart$Visitor.class
-net/minecraft/client/model/geom/ModelPart.class
+net/minecraft/client/model/geom/ModelPart$Vertex.class
 net/minecraft/client/model/geom/PartNames.class
 net/minecraft/client/model/geom/PartPose.class
-net/minecraft/client/model/geom/ModelPart$Polygon.class
-net/minecraft/client/particle/AshParticle$Provider.class
+net/minecraft/client/model/geom/ModelPart.class
+net/minecraft/client/model/geom/LayerDefinitions.class
 net/minecraft/client/particle/AshParticle.class
+net/minecraft/client/particle/AshParticle$Provider.class
 net/minecraft/client/particle/AttackSweepParticle$Provider.class
 net/minecraft/client/particle/AttackSweepParticle.class
-net/minecraft/client/particle/BaseAshSmokeParticle.class
 net/minecraft/client/particle/BlockMarker$Provider.class
-net/minecraft/client/particle/BreakingItemParticle$CobwebProvider.class
+net/minecraft/client/particle/BaseAshSmokeParticle.class
 net/minecraft/client/particle/BlockMarker.class
+net/minecraft/client/particle/BreakingItemParticle$CobwebProvider.class
 net/minecraft/client/particle/BreakingItemParticle$Provider.class
 net/minecraft/client/particle/BreakingItemParticle$ItemParticleProvider.class
-net/minecraft/client/particle/BreakingItemParticle$SlimeProvider.class
 net/minecraft/client/particle/BreakingItemParticle$SnowballProvider.class
+net/minecraft/client/particle/BreakingItemParticle$SlimeProvider.class
 net/minecraft/client/particle/BreakingItemParticle$SulfurCubeProvider.class
 net/minecraft/client/particle/BreakingItemParticle.class
-net/minecraft/client/particle/BubbleColumnUpParticle$Provider.class
-net/minecraft/client/particle/BubbleColumnUpParticle.class
 net/minecraft/client/particle/BubbleParticle$Provider.class
-net/minecraft/client/particle/BubblePopParticle$Provider.class
 net/minecraft/client/particle/BubbleParticle.class
+net/minecraft/client/particle/BubblePopParticle$Provider.class
 net/minecraft/client/particle/BubblePopParticle.class
 net/minecraft/client/particle/CampfireSmokeParticle$CosyProvider.class
 net/minecraft/client/particle/CampfireSmokeParticle$SignalProvider.class
@@ -37115,20 +38603,21 @@ net/minecraft/client/particle/CampfireSmokeParticle.class
 net/minecraft/client/particle/CritParticle$DamageIndicatorProvider.class
 net/minecraft/client/particle/CritParticle$MagicProvider.class
 net/minecraft/client/particle/CritParticle$Provider.class
-net/minecraft/client/particle/DragonBreathParticle$Provider.class
 net/minecraft/client/particle/CritParticle.class
+net/minecraft/client/particle/DragonBreathParticle$Provider.class
+net/minecraft/client/particle/BubbleColumnUpParticle$Provider.class
 net/minecraft/client/particle/DripParticle$CoolingDripHangParticle.class
-net/minecraft/client/particle/DragonBreathParticle.class
-net/minecraft/client/particle/DripParticle$DripHangParticle.class
 net/minecraft/client/particle/DripParticle$DripLandParticle.class
+net/minecraft/client/particle/DripParticle$DripHangParticle.class
 net/minecraft/client/particle/DripParticle$DripstoneFallAndLandParticle.class
 net/minecraft/client/particle/DripParticle$DripstoneLavaFallProvider.class
 net/minecraft/client/particle/DripParticle$DripstoneLavaHangProvider.class
 net/minecraft/client/particle/DripParticle$DripstoneWaterFallProvider.class
+net/minecraft/client/particle/DripParticle$DripstoneWaterHangProvider.class
 net/minecraft/client/particle/DripParticle$FallAndLandParticle.class
+net/minecraft/client/particle/DragonBreathParticle.class
 net/minecraft/client/particle/DripParticle$FallingParticle.class
 net/minecraft/client/particle/DripParticle$HoneyFallAndLandParticle.class
-net/minecraft/client/particle/DripParticle$HoneyFallProvider.class
 net/minecraft/client/particle/DripParticle$HoneyHangProvider.class
 net/minecraft/client/particle/DripParticle$HoneyLandProvider.class
 net/minecraft/client/particle/DripParticle$LavaFallProvider.class
@@ -37139,67 +38628,68 @@ net/minecraft/client/particle/DripParticle$ObsidianTearFallProvider.class
 net/minecraft/client/particle/DripParticle$ObsidianTearHangProvider.class
 net/minecraft/client/particle/DripParticle$ObsidianTearLandProvider.class
 net/minecraft/client/particle/DripParticle$SporeBlossomFallProvider.class
-net/minecraft/client/particle/DripParticle$WaterFallProvider.class
+net/minecraft/client/particle/DripParticle$HoneyFallProvider.class
+net/minecraft/client/particle/BubbleColumnUpParticle.class
 net/minecraft/client/particle/DripParticle$WaterHangProvider.class
 net/minecraft/client/particle/DustColorTransitionParticle$Provider.class
 net/minecraft/client/particle/DripParticle.class
 net/minecraft/client/particle/DustColorTransitionParticle.class
+net/minecraft/client/particle/DustParticle$Provider.class
 net/minecraft/client/particle/DustParticle.class
-net/minecraft/client/particle/DustParticleBase.class
 net/minecraft/client/particle/DustPlumeParticle$Provider.class
+net/minecraft/client/particle/DustParticleBase.class
 net/minecraft/client/particle/DustPlumeParticle.class
-net/minecraft/client/particle/ElderGuardianParticle$Provider.class
 net/minecraft/client/particle/ElderGuardianParticle.class
 net/minecraft/client/particle/ElderGuardianParticleGroup$ElderGuardianParticleRenderState.class
 net/minecraft/client/particle/ElderGuardianParticleGroup$State.class
-net/minecraft/client/particle/ElderGuardianParticleGroup.class
 net/minecraft/client/particle/EndRodParticle$Provider.class
+net/minecraft/client/particle/DripParticle$WaterFallProvider.class
+net/minecraft/client/particle/ElderGuardianParticleGroup.class
 net/minecraft/client/particle/EndRodParticle.class
-net/minecraft/client/particle/ExplodeParticle$Provider.class
-net/minecraft/client/particle/ExplodeParticle.class
+net/minecraft/client/particle/ElderGuardianParticle$Provider.class
 net/minecraft/client/particle/FallingDustParticle$Provider.class
 net/minecraft/client/particle/FallingDustParticle.class
 net/minecraft/client/particle/FallingLeavesParticle$CherryProvider.class
 net/minecraft/client/particle/FallingLeavesParticle$PaleOakProvider.class
 net/minecraft/client/particle/FallingLeavesParticle$TintedLeavesProvider.class
-net/minecraft/client/particle/DripParticle$DripstoneWaterHangProvider.class
 net/minecraft/client/particle/FireflyParticle$FireflyProvider.class
+net/minecraft/client/particle/FallingLeavesParticle.class
 net/minecraft/client/particle/FireflyParticle.class
 net/minecraft/client/particle/FireworkParticles$FlashProvider.class
 net/minecraft/client/particle/FireworkParticles$OverlayParticle.class
-net/minecraft/client/particle/FireworkParticles$SparkParticle.class
 net/minecraft/client/particle/FireworkParticles$SparkProvider.class
-net/minecraft/client/particle/FireworkParticles$Starter.class
+net/minecraft/client/particle/FireworkParticles$SparkParticle.class
 net/minecraft/client/particle/FireworkParticles.class
 net/minecraft/client/particle/FlameParticle$Provider.class
 net/minecraft/client/particle/FlameParticle$SmallFlameProvider.class
+net/minecraft/client/particle/ExplodeParticle.class
 net/minecraft/client/particle/FlameParticle.class
-net/minecraft/client/particle/FlyStraightTowardsParticle$OminousSpawnProvider.class
-net/minecraft/client/particle/FlyTowardsPositionParticle$EnchantProvider.class
+net/minecraft/client/particle/FireworkParticles$Starter.class
 net/minecraft/client/particle/FlyStraightTowardsParticle.class
+net/minecraft/client/particle/FlyTowardsPositionParticle$EnchantProvider.class
 net/minecraft/client/particle/FlyTowardsPositionParticle$NautilusProvider.class
 net/minecraft/client/particle/FlyTowardsPositionParticle$VaultConnectionProvider.class
+net/minecraft/client/particle/FlyStraightTowardsParticle$OminousSpawnProvider.class
 net/minecraft/client/particle/GeyserBaseParticle$Provider.class
-net/minecraft/client/particle/FlyTowardsPositionParticle.class
 net/minecraft/client/particle/GeyserBaseParticle.class
+net/minecraft/client/particle/FlyTowardsPositionParticle.class
 net/minecraft/client/particle/GeyserEruptionParticle$Provider.class
 net/minecraft/client/particle/GeyserEruptionParticle.class
-net/minecraft/client/particle/GeyserPlumeParticle$Provider.class
+net/minecraft/client/particle/ExplodeParticle$Provider.class
 net/minecraft/client/particle/GlowParticle$ElectricSparkProvider.class
 net/minecraft/client/particle/GeyserPlumeParticle.class
 net/minecraft/client/particle/GlowParticle$GlowSquidProvider.class
-net/minecraft/client/particle/GlowParticle$ScrapeProvider.class
 net/minecraft/client/particle/GlowParticle$WaxOffProvider.class
-net/minecraft/client/particle/FallingLeavesParticle.class
+net/minecraft/client/particle/GlowParticle$WaxOnProvider.class
 net/minecraft/client/particle/GlowParticle.class
 net/minecraft/client/particle/GustParticle$Provider.class
 net/minecraft/client/particle/GustParticle$SmallProvider.class
-net/minecraft/client/particle/GustSeedParticle$Provider.class
 net/minecraft/client/particle/GustParticle.class
+net/minecraft/client/particle/GustSeedParticle$Provider.class
 net/minecraft/client/particle/HeartParticle$AngryVillagerProvider.class
+net/minecraft/client/particle/GeyserPlumeParticle$Provider.class
+net/minecraft/client/particle/GlowParticle$ScrapeProvider.class
 net/minecraft/client/particle/GustSeedParticle.class
-net/minecraft/client/particle/HeartParticle$Provider.class
-net/minecraft/client/particle/HeartParticle.class
 net/minecraft/client/particle/HugeExplosionParticle$Provider.class
 net/minecraft/client/particle/HugeExplosionParticle.class
 net/minecraft/client/particle/HugeExplosionSeedParticle$Provider.class
@@ -37211,69 +38701,69 @@ net/minecraft/client/particle/LargeSmokeParticle$Provider.class
 net/minecraft/client/particle/ItemPickupParticleGroup.class
 net/minecraft/client/particle/LargeSmokeParticle.class
 net/minecraft/client/particle/LavaParticle$Provider.class
-net/minecraft/client/particle/DustParticle$Provider.class
+net/minecraft/client/particle/NoRenderParticle.class
 net/minecraft/client/particle/LavaParticle.class
 net/minecraft/client/particle/NoRenderParticleGroup.class
 net/minecraft/client/particle/NoteParticle$Provider.class
-net/minecraft/client/particle/NoteParticle.class
 net/minecraft/client/particle/NoxiousGasCloudParticle$Provider.class
+net/minecraft/client/particle/NoteParticle.class
 net/minecraft/client/particle/NoxiousGasParticle$Provider.class
 net/minecraft/client/particle/NoxiousGasCloudParticle.class
 net/minecraft/client/particle/NoxiousGasParticle.class
 net/minecraft/client/particle/Particle$LifetimeAlpha.class
 net/minecraft/client/particle/ParticleDescription.class
-net/minecraft/client/particle/Particle.class
-net/minecraft/client/particle/ParticleGroup.class
+net/minecraft/client/particle/HeartParticle.class
+net/minecraft/client/particle/HeartParticle$Provider.class
 net/minecraft/client/particle/ParticleProvider$Sprite.class
-net/minecraft/client/particle/ParticleEngine.class
 net/minecraft/client/particle/ParticleProvider.class
+net/minecraft/client/particle/ParticleGroup.class
 net/minecraft/client/particle/ParticleRenderType.class
-net/minecraft/client/particle/ParticleResources$SpriteParticleRegistration.class
 net/minecraft/client/particle/ParticleResources$MutableSpriteSet.class
+net/minecraft/client/particle/ParticleResources$SpriteParticleRegistration.class
 net/minecraft/client/particle/PlayerCloudParticle$Provider.class
 net/minecraft/client/particle/PlayerCloudParticle$SneezeProvider.class
 net/minecraft/client/particle/PlayerCloudParticle.class
 net/minecraft/client/particle/PortalParticle$Provider.class
 net/minecraft/client/particle/PortalParticle.class
 net/minecraft/client/particle/QuadParticleGroup.class
-net/minecraft/client/particle/GlowParticle$WaxOnProvider.class
 net/minecraft/client/particle/ReversePortalParticle$ReversePortalProvider.class
 net/minecraft/client/particle/ReversePortalParticle.class
 net/minecraft/client/particle/RisingParticle.class
-net/minecraft/client/particle/SculkChargeParticle$Provider.class
+net/minecraft/client/particle/Particle.class
 net/minecraft/client/particle/SculkChargeParticle.class
-net/minecraft/client/particle/SculkChargePopParticle.class
 net/minecraft/client/particle/SculkChargePopParticle$Provider.class
+net/minecraft/client/particle/ParticleEngine.class
+net/minecraft/client/particle/SculkChargePopParticle.class
 net/minecraft/client/particle/ShriekParticle$Provider.class
-net/minecraft/client/particle/ShriekParticle.class
 net/minecraft/client/particle/SimpleAnimatedParticle.class
 net/minecraft/client/particle/SimpleVerticalParticle$PauseMobGrowthProvider.class
-net/minecraft/client/particle/SimpleVerticalParticle$ResetMobGrowthProvider.class
+net/minecraft/client/particle/ParticleResources.class
 net/minecraft/client/particle/SimpleVerticalParticle.class
+net/minecraft/client/particle/SimpleVerticalParticle$ResetMobGrowthProvider.class
 net/minecraft/client/particle/SingleQuadParticle$FacingCameraMode.class
 net/minecraft/client/particle/SingleQuadParticle$Layer.class
 net/minecraft/client/particle/SmokeParticle$Provider.class
 net/minecraft/client/particle/SmokeParticle.class
-net/minecraft/client/particle/NoRenderParticle.class
+net/minecraft/client/particle/SingleQuadParticle.class
 net/minecraft/client/particle/SnowflakeParticle$Provider.class
-net/minecraft/client/particle/SnowflakeParticle.class
 net/minecraft/client/particle/SonicBoomParticle$Provider.class
+net/minecraft/client/particle/SnowflakeParticle.class
 net/minecraft/client/particle/SonicBoomParticle.class
 net/minecraft/client/particle/SoulParticle$EmissiveProvider.class
+net/minecraft/client/particle/SculkChargeParticle$Provider.class
+net/minecraft/client/particle/ShriekParticle.class
 net/minecraft/client/particle/SoulParticle$Provider.class
-net/minecraft/client/particle/SoulParticle.class
 net/minecraft/client/particle/SpellParticle$InstantProvider.class
-net/minecraft/client/particle/SpellParticle$MobEffectProvider.class
-net/minecraft/client/particle/SpellParticle$WitchProvider.class
-net/minecraft/client/particle/SpellParticle.class
-net/minecraft/client/particle/SpitParticle$Provider.class
-net/minecraft/client/particle/SpitParticle.class
 net/minecraft/client/particle/SpellParticle$Provider.class
+net/minecraft/client/particle/SpellParticle$WitchProvider.class
+net/minecraft/client/particle/SpitParticle$Provider.class
+net/minecraft/client/particle/SpellParticle.class
+net/minecraft/client/particle/SpitParticle.class
 net/minecraft/client/particle/SplashParticle$Provider.class
 net/minecraft/client/particle/SplashParticle.class
 net/minecraft/client/particle/SpriteSet.class
 net/minecraft/client/particle/SquidInkParticle$GlowInkProvider.class
-net/minecraft/client/particle/SquidInkParticle$Provider.class
+net/minecraft/client/particle/SpellParticle$MobEffectProvider.class
 net/minecraft/client/particle/SulfurBubbleParticle$Provider.class
 net/minecraft/client/particle/SquidInkParticle.class
 net/minecraft/client/particle/SuspendedParticle$CrimsonSporeProvider.class
@@ -37284,25 +38774,26 @@ net/minecraft/client/particle/SuspendedParticle$WarpedSporeProvider.class
 net/minecraft/client/particle/SuspendedParticle.class
 net/minecraft/client/particle/SuspendedTownParticle$ComposterFillProvider.class
 net/minecraft/client/particle/SuspendedTownParticle$DolphinSpeedProvider.class
-net/minecraft/client/particle/SingleQuadParticle.class
+net/minecraft/client/particle/SuspendedTownParticle$EggCrackProvider.class
+net/minecraft/client/particle/SuspendedTownParticle$HappyVillagerProvider.class
 net/minecraft/client/particle/SuspendedTownParticle$Provider.class
 net/minecraft/client/particle/SuspendedTownParticle.class
 net/minecraft/client/particle/TerrainParticle$CrumblingProvider.class
-net/minecraft/client/particle/TerrainParticle$DustPillarProvider.class
 net/minecraft/client/particle/TerrainParticle$Provider.class
-net/minecraft/client/particle/TerrainParticle.class
-net/minecraft/client/particle/ParticleResources.class
-net/minecraft/client/particle/TotemParticle$Provider.class
+net/minecraft/client/particle/TerrainParticle$DustPillarProvider.class
+net/minecraft/client/particle/SoulParticle.class
 net/minecraft/client/particle/TotemParticle.class
+net/minecraft/client/particle/TerrainParticle.class
 net/minecraft/client/particle/TrailParticle$Provider.class
 net/minecraft/client/particle/TrackingEmitter.class
-net/minecraft/client/particle/SuspendedTownParticle$HappyVillagerProvider.class
-net/minecraft/client/particle/TrailParticle.class
-net/minecraft/client/particle/SuspendedTownParticle$EggCrackProvider.class
+net/minecraft/client/particle/TrialSpawnerDetectionParticle$Provider.class
 net/minecraft/client/particle/TrialSpawnerDetectionParticle.class
+net/minecraft/client/particle/VibrationSignalParticle$Provider.class
 net/minecraft/client/particle/VibrationSignalParticle.class
+net/minecraft/client/particle/WakeParticle$Provider.class
 net/minecraft/client/particle/WakeParticle.class
 net/minecraft/client/particle/WaterCurrentDownParticle$Provider.class
+net/minecraft/client/particle/SquidInkParticle$Provider.class
 net/minecraft/client/particle/WaterCurrentDownParticle.class
 net/minecraft/client/particle/WaterDropParticle$Provider.class
 net/minecraft/client/particle/WaterDropParticle.class
@@ -37310,83 +38801,83 @@ net/minecraft/client/particle/WhiteAshParticle$Provider.class
 net/minecraft/client/particle/WhiteAshParticle.class
 net/minecraft/client/particle/WhiteSmokeParticle$Provider.class
 net/minecraft/client/particle/WhiteSmokeParticle.class
-net/minecraft/client/player/AbstractClientPlayer.class
 net/minecraft/client/player/ClientInput.class
 net/minecraft/client/player/KeyboardInput.class
-net/minecraft/client/particle/TrialSpawnerDetectionParticle$Provider.class
-net/minecraft/client/particle/VibrationSignalParticle$Provider.class
-net/minecraft/client/player/LocalPlayerResolver.class
+net/minecraft/client/player/AbstractClientPlayer.class
+net/minecraft/client/particle/TotemParticle$Provider.class
+net/minecraft/client/particle/TrailParticle.class
 net/minecraft/client/player/RemotePlayer.class
-net/minecraft/client/particle/WakeParticle$Provider.class
-net/minecraft/client/renderer/BindGroupLayouts.class
+net/minecraft/client/player/LocalPlayerResolver.class
 net/minecraft/client/renderer/BiomeColors.class
 net/minecraft/client/renderer/CloudRenderer$RelativeCameraPos.class
 net/minecraft/client/renderer/CloudRenderer$TextureData.class
 net/minecraft/client/renderer/CubeMap.class
-net/minecraft/client/renderer/CloudRenderer.class
 net/minecraft/client/renderer/DebugCrosshairRenderer.class
 net/minecraft/client/renderer/DynamicUniformStorage$DynamicUniform.class
-net/minecraft/client/renderer/DynamicUniforms$ChunkSectionInfo.class
-net/minecraft/client/renderer/DynamicUniforms$Transform.class
 net/minecraft/client/renderer/DynamicUniformStorage.class
-net/minecraft/client/renderer/EndFlashState.class
+net/minecraft/client/renderer/BindGroupLayouts.class
+net/minecraft/client/renderer/CloudRenderer.class
+net/minecraft/client/renderer/DynamicUniforms$Transform.class
 net/minecraft/client/renderer/DynamicUniforms.class
-net/minecraft/client/renderer/FaceInfo$Extent.class
+net/minecraft/client/renderer/EndFlashState.class
 net/minecraft/client/renderer/FaceInfo$VertexInfo.class
+net/minecraft/client/renderer/FaceInfo$Extent.class
 net/minecraft/client/renderer/FaceInfo.class
-net/minecraft/client/renderer/GpuWarnlistManager$Preparations.class
+net/minecraft/client/renderer/GlobalSettingsUniform.class
+net/minecraft/client/renderer/DynamicUniforms$ChunkSectionInfo.class
 net/minecraft/client/renderer/GpuWarnlistManager.class
 net/minecraft/client/renderer/ItemInHandRenderer$HandRenderSelection.class
+net/minecraft/client/renderer/GpuWarnlistManager$Preparations.class
+net/minecraft/client/renderer/GameRenderer.class
+net/minecraft/client/renderer/LevelEventHandler.class
+net/minecraft/client/renderer/LevelRenderer$FinalizedGizmos.class
 net/minecraft/client/renderer/ItemInHandRenderer.class
 net/minecraft/client/player/LocalPlayer.class
-net/minecraft/client/renderer/LevelRenderer$FinalizedGizmos.class
-net/minecraft/client/renderer/GlobalSettingsUniform.class
-net/minecraft/client/renderer/LevelTargetBundle.class
 net/minecraft/client/renderer/Lightmap.class
 net/minecraft/client/renderer/LightmapRenderStateExtractor.class
-net/minecraft/client/renderer/MapRenderer.class
 net/minecraft/client/renderer/MappableRingBuffer.class
-net/minecraft/client/renderer/MultiblockChestResources.class
+net/minecraft/client/renderer/MapRenderer.class
+net/minecraft/client/renderer/LevelTargetBundle.class
 net/minecraft/client/renderer/Octree$AxisSorting.class
-net/minecraft/client/renderer/Octree$Branch.class
 net/minecraft/client/renderer/Octree$Leaf.class
 net/minecraft/client/renderer/Octree$Node.class
 net/minecraft/client/renderer/Octree$OctreeVisitor.class
+net/minecraft/client/renderer/Octree$Branch.class
 net/minecraft/client/renderer/Octree.class
-net/minecraft/client/renderer/OrderedSubmitNodeCollector.class
 net/minecraft/client/renderer/Panorama.class
-net/minecraft/client/renderer/GameRenderer.class
+net/minecraft/client/renderer/OrderedSubmitNodeCollector.class
+net/minecraft/client/renderer/PlayerSkinRenderCache$RenderInfo.class
 net/minecraft/client/renderer/PlayerSkinRenderCache.class
 net/minecraft/client/renderer/PostChain$TargetBundle.class
-net/minecraft/client/renderer/LevelRenderer.class
 net/minecraft/client/renderer/PostChainConfig$Input.class
 net/minecraft/client/renderer/PostChainConfig$InternalTarget.class
-net/minecraft/client/renderer/PostChainConfig$Pass.class
+net/minecraft/client/renderer/MultiblockChestResources.class
 net/minecraft/client/renderer/PostChainConfig$TargetInput.class
 net/minecraft/client/renderer/PostChainConfig$TextureInput.class
 net/minecraft/client/renderer/PostChainConfig.class
 net/minecraft/client/renderer/PostPass$Input.class
-net/minecraft/client/renderer/PlayerSkinRenderCache$RenderInfo.class
-net/minecraft/client/renderer/PostPass$TargetInput.class
+net/minecraft/client/renderer/PostChainConfig$Pass.class
+net/minecraft/client/renderer/PostPass$InputTexture.class
+net/minecraft/client/renderer/LevelRenderer.class
 net/minecraft/client/renderer/PostPass$TextureInput.class
+net/minecraft/client/renderer/PostChain.class
 net/minecraft/client/renderer/PostPass.class
-net/minecraft/client/renderer/Projection.class
 net/minecraft/client/renderer/ProjectionMatrixBuffer.class
-net/minecraft/client/renderer/LevelEventHandler.class
 net/minecraft/client/renderer/RenderBuffers.class
 net/minecraft/client/renderer/RunningTrimmedMean.class
 net/minecraft/client/renderer/ScreenEffectRenderer.class
 net/minecraft/client/renderer/SectionBufferBuilderPack.class
-net/minecraft/client/renderer/RenderPipelines.class
+net/minecraft/client/renderer/PostPass$TargetInput.class
 net/minecraft/client/renderer/SectionBufferBuilderPool.class
-net/minecraft/client/renderer/SectionOcclusionGraph$GraphStorage.class
+net/minecraft/client/renderer/RenderPipelines.class
 net/minecraft/client/renderer/SectionOcclusionGraph$GraphState.class
+net/minecraft/client/renderer/SectionOcclusionGraph$GraphStorage.class
+net/minecraft/client/renderer/SectionOcclusionGraph$SectionToNodeMap.class
+net/minecraft/client/renderer/Projection.class
 net/minecraft/client/renderer/SectionOcclusionGraph$Node.class
-net/minecraft/client/renderer/PostChain.class
-net/minecraft/client/renderer/ShaderDefines$Builder.class
-net/minecraft/client/renderer/PostPass$InputTexture.class
 net/minecraft/client/renderer/ShaderDefines.class
 net/minecraft/client/renderer/ShaderManager$CompilationException.class
+net/minecraft/client/renderer/ShaderDefines$Builder.class
 net/minecraft/client/renderer/ShaderManager$CompilationCache.class
 net/minecraft/client/renderer/ShaderManager$Configs.class
 net/minecraft/client/renderer/ShaderManager$ShaderSourceKey.class
@@ -37394,83 +38885,82 @@ net/minecraft/client/renderer/Sheets.class
 net/minecraft/client/renderer/ShaderManager.class
 net/minecraft/client/renderer/SpriteCoordinateExpander.class
 net/minecraft/client/renderer/SpriteMapper.class
-net/minecraft/client/renderer/StagedVertexBuffer$Draw.class
 net/minecraft/client/renderer/StagedVertexBuffer$ExecuteInfo.class
 net/minecraft/client/renderer/StagedVertexBuffer$GpuBufferPool$PendingRecycle.class
 net/minecraft/client/renderer/StagedVertexBuffer$GpuBufferPool.class
-net/minecraft/client/renderer/SectionOcclusionGraph$SectionToNodeMap.class
+net/minecraft/client/renderer/SkyRenderer.class
 net/minecraft/client/renderer/StagedVertexBuffer.class
-net/minecraft/client/renderer/SubmitNodeCollector$CustomGeometryRenderer.class
-net/minecraft/client/renderer/SubmitNodeCollector.class
-net/minecraft/client/renderer/SubmitNodeCollection.class
-net/minecraft/client/renderer/UiLightmap.class
-net/minecraft/client/renderer/SubmitNodeStorage.class
-net/minecraft/client/renderer/UniformValue$FloatUniform.class
-net/minecraft/client/renderer/UniformValue$IntUniform.class
-net/minecraft/client/renderer/UniformValue$Type.class
 net/minecraft/client/renderer/SectionOcclusionGraph.class
+net/minecraft/client/renderer/StagedVertexBuffer$Draw.class
+net/minecraft/client/renderer/SubmitNodeCollector.class
+net/minecraft/client/renderer/UiLightmap.class
+net/minecraft/client/renderer/UniformValue$FloatUniform.class
+net/minecraft/client/renderer/SubmitNodeStorage.class
+net/minecraft/client/renderer/SubmitNodeCollection.class
+net/minecraft/client/renderer/UniformValue$Type.class
 net/minecraft/client/renderer/UniformValue.class
 net/minecraft/client/renderer/WeatherEffectRenderer$ColumnInstance.class
 net/minecraft/client/renderer/ViewArea.class
 net/minecraft/client/renderer/WorldBorderRenderer.class
 net/minecraft/client/renderer/WeatherEffectRenderer.class
-net/minecraft/client/renderer/SkyRenderer.class
-net/minecraft/client/renderer/chunk/ChunkSectionLayerGroup.class
+net/minecraft/client/renderer/UniformValue$IntUniform.class
+net/minecraft/client/renderer/SubmitNodeCollector$CustomGeometryRenderer.class
 net/minecraft/client/renderer/chunk/ChunkSectionLayer.class
+net/minecraft/client/renderer/chunk/ChunkSectionLayerGroup.class
 net/minecraft/client/renderer/chunk/ChunkSectionsToRender.class
 net/minecraft/client/renderer/chunk/CompiledSectionMesh.class
 net/minecraft/client/renderer/chunk/RenderRegionCache.class
 net/minecraft/client/renderer/chunk/RenderSectionRegion.class
 net/minecraft/client/renderer/chunk/SectionCompiler$Results.class
 net/minecraft/client/renderer/chunk/SectionCopy.class
-net/minecraft/client/renderer/chunk/SectionMesh$SectionDraw.class
-net/minecraft/client/renderer/chunk/SectionCompiler.class
 net/minecraft/client/renderer/chunk/SectionMesh.class
-net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$ResortTransparencyTask.class
 net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$CompileTask.class
+net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$ResortTransparencyTask.class
 net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$SectionTask$SectionTaskResult.class
 net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$SectionTask.class
 net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSectionBufferSlice.class
 net/minecraft/client/renderer/chunk/SectionRenderDispatcher$SectionUberBuffers.class
 net/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection.class
-net/minecraft/client/renderer/chunk/SectionTaskDynamicQueue.class
-net/minecraft/client/renderer/chunk/VisibilitySet.class
-net/minecraft/client/renderer/chunk/VisGraph.class
 net/minecraft/client/renderer/chunk/SectionRenderDispatcher.class
+net/minecraft/client/renderer/chunk/SectionTaskDynamicQueue.class
 net/minecraft/client/renderer/chunk/TranslucencyPointOfView.class
+net/minecraft/client/renderer/chunk/SectionMesh$SectionDraw.class
+net/minecraft/client/renderer/chunk/VisibilitySet.class
+net/minecraft/client/renderer/chunk/SectionCompiler.class
+net/minecraft/client/renderer/chunk/VisGraph.class
 net/minecraft/client/renderer/fog/FogData.class
-net/minecraft/client/renderer/fog/FogRenderer$FogMode.class
+net/minecraft/client/renderer/fog/environment/AtmosphericFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/BlindnessFogEnvironment.class
 net/minecraft/client/renderer/fog/FogRenderer.class
 net/minecraft/client/renderer/fog/environment/DarknessFogEnvironment.class
-net/minecraft/client/renderer/fog/environment/AtmosphericFogEnvironment.class
 net/minecraft/client/renderer/fog/environment/FogEnvironment.class
-net/minecraft/client/renderer/fog/environment/BlindnessFogEnvironment.class
 net/minecraft/client/renderer/fog/environment/MobEffectFogEnvironment.class
+net/minecraft/client/renderer/fog/environment/LavaFogEnvironment.class
 net/minecraft/client/renderer/fog/environment/PowderedSnowFogEnvironment.class
 net/minecraft/client/renderer/fog/environment/WaterFogEnvironment.class
-net/minecraft/client/renderer/fog/environment/LavaFogEnvironment.class
-net/minecraft/client/renderer/state/GameRenderState.class
+net/minecraft/client/renderer/fog/FogRenderer$FogMode.class
 net/minecraft/client/renderer/state/LightmapRenderState.class
+net/minecraft/client/renderer/state/GameRenderState.class
 net/minecraft/client/renderer/state/MapRenderState$MapDecorationRenderState.class
 net/minecraft/client/renderer/state/MapRenderState.class
 net/minecraft/client/renderer/state/OptionsRenderState.class
 net/minecraft/client/renderer/state/WindowRenderState.class
 net/minecraft/client/renderer/state/level/BlockBreakingRenderState.class
-net/minecraft/client/renderer/state/level/CameraEntityRenderState.class
 net/minecraft/client/renderer/state/level/BlockOutlineRenderState.class
+net/minecraft/client/renderer/state/level/CameraEntityRenderState.class
 net/minecraft/client/renderer/state/level/CameraRenderState.class
-net/minecraft/client/renderer/state/level/LevelRenderState.class
 net/minecraft/client/renderer/state/level/ChunkLoadingRenderState.class
 net/minecraft/client/renderer/state/level/ParticleGroupRenderState.class
 net/minecraft/client/renderer/state/level/QuadParticleRenderState$ParticleConsumer.class
 net/minecraft/client/renderer/state/level/ParticlesRenderState.class
 net/minecraft/client/renderer/state/level/QuadParticleRenderState$Storage.class
-net/minecraft/client/renderer/state/level/SectionUpdateRenderState.class
 net/minecraft/client/renderer/state/level/SkyRenderState.class
+net/minecraft/client/renderer/state/level/SectionUpdateRenderState.class
 net/minecraft/client/renderer/state/level/WeatherRenderState.class
-net/minecraft/client/renderer/state/level/QuadParticleRenderState.class
 net/minecraft/client/renderer/state/level/WorldBorderRenderState$DistancePerDirection.class
+net/minecraft/client/renderer/state/level/LevelRenderState.class
 net/minecraft/client/renderer/state/level/WorldBorderRenderState.class
+net/minecraft/client/renderer/state/level/QuadParticleRenderState.class
 === grep Sampler|BLIT|[bB]lit[A-Z(]|mainRenderTarget
 class net.minecraft.client.StringSplitter$FlatComponents { :: Compiled from "ClientMetricsSamplersProvider.java"
 public class net.minecraft.client.profiling.ClientMetricsSamplersProvider implements net.minecraft.util.profiling.metrics.MetricsSamplerProvider { :: public class net.minecraft.client.profiling.ClientMetricsSamplersProvider implements net.minecraft.util.profiling.metrics.MetricsSamplerProvider {
