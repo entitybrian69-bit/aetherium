@@ -14023,6 +14023,26 @@ Error: class not found: net.minecraft.client.renderer.chunk.SectionRenderDispatc
 Error: class not found: net.minecraft.world.level.BlockAndLightGetter
 === net.minecraft.client.renderer.OrderedSubmitNodeCollector
 Error: class not found: net.minecraft.client.renderer.OrderedSubmitNodeCollector
+=== net.minecraft.client.renderer.block.model.BlockModelPart
+Error: class not found: net.minecraft.client.renderer.block.model.BlockModelPart
+=== com.mojang.blaze3d.opengl.GlTexture
+Error: class not found: com.mojang.blaze3d.opengl.GlTexture
+=== net.minecraft.client.renderer.entity.state.PlayerRenderState
+Error: class not found: net.minecraft.client.renderer.entity.state.PlayerRenderState
+=== net.minecraft.client.renderer.entity.state.AvatarRenderState
+Error: class not found: net.minecraft.client.renderer.entity.state.AvatarRenderState
+=== net.minecraft.client.renderer.entity.state.ItemFrameRenderState
+Error: class not found: net.minecraft.client.renderer.entity.state.ItemFrameRenderState
+=== net.minecraft.client.renderer.entity.state.MinecartRenderState
+Error: class not found: net.minecraft.client.renderer.entity.state.MinecartRenderState
+=== net.minecraft.client.renderer.blockentity.state.SignRenderState
+Error: class not found: net.minecraft.client.renderer.blockentity.state.SignRenderState
+=== net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState
+Error: class not found: net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState
+=== net.minecraft.client.renderer.entity.layers.WingsLayer
+Error: class not found: net.minecraft.client.renderer.entity.layers.WingsLayer
+=== net.minecraft.client.renderer.entity.state.ArmorStandRenderState
+Error: class not found: net.minecraft.client.renderer.entity.state.ArmorStandRenderState
 === code net.minecraft.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
   private static final java.util.concurrent.ExecutorService BACKGROUND_EXECUTOR; :: private static final java.util.concurrent.ExecutorService BACKGROUND_EXECUTOR;
   private static java.util.concurrent.ExecutorService makeExecutor(java.lang.String); :: private static java.util.concurrent.ExecutorService makeExecutor(java.lang.String);
@@ -44329,6 +44349,147 @@ Code:
 85: aaload
 86: areturn
 }
+=== method net.minecraft.client.renderer.block.ModelBlockRenderer$Cache :: (method_|lambda|getLightColor|getShadeBrightness|enable|disable)
+##   private boolean enabled;
+
+##   public void enable();
+Code:
+0: aload_0
+1: iconst_1
+2: putfield      #76                 // Field enabled:Z
+5: return
+
+##   public void disable();
+Code:
+0: aload_0
+1: iconst_0
+2: putfield      #76                 // Field enabled:Z
+5: aload_0
+6: getfield      #60                 // Field colorCache:Lit/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap;
+9: invokevirtual #80                 // Method it/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap.clear:()V
+12: aload_0
+13: getfield      #71                 // Field brightnessCache:Lit/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap;
+16: invokevirtual #81                 // Method it/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap.clear:()V
+19: return
+
+##   public int getLightColor(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockAndTintGetter, net.minecraft.core.BlockPos);
+Code:
+0: aload_3
+1: invokevirtual #92                 // Method net/minecraft/core/BlockPos.asLong:()J
+4: lstore        4
+6: aload_0
+7: getfield      #76                 // Field enabled:Z
+10: ifeq          34
+13: aload_0
+14: getfield      #60                 // Field colorCache:Lit/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap;
+17: lload         4
+19: invokevirtual #95                 // Method it/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap.get:(J)I
+22: istore        6
+24: iload         6
+26: ldc           #96                 // int 2147483647
+28: if_icmpeq     34
+31: iload         6
+33: ireturn
+34: aload_2
+35: aload_1
+36: aload_3
+37: invokestatic  #101                // Method net/minecraft/client/renderer/LevelRenderer.getLightColor:(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I
+40: istore        6
+42: aload_0
+43: getfield      #76                 // Field enabled:Z
+46: ifeq          81
+49: aload_0
+50: getfield      #60                 // Field colorCache:Lit/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap;
+53: invokevirtual #105                // Method it/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap.size:()I
+56: bipush        100
+58: if_icmpne     69
+61: aload_0
+62: getfield      #60                 // Field colorCache:Lit/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap;
+65: invokevirtual #108                // Method it/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap.removeFirstInt:()I
+68: pop
+69: aload_0
+70: getfield      #60                 // Field colorCache:Lit/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap;
+73: lload         4
+75: iload         6
+77: invokevirtual #112                // Method it/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap.put:(JI)I
+80: pop
+81: iload         6
+83: ireturn
+
+##   public float getShadeBrightness(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockAndTintGetter, net.minecraft.core.BlockPos);
+Code:
+0: aload_3
+1: invokevirtual #92                 // Method net/minecraft/core/BlockPos.asLong:()J
+4: lstore        4
+6: aload_0
+7: getfield      #76                 // Field enabled:Z
+10: ifeq          35
+13: aload_0
+14: getfield      #71                 // Field brightnessCache:Lit/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap;
+17: lload         4
+19: invokevirtual #124                // Method it/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap.get:(J)F
+22: fstore        6
+24: fload         6
+26: invokestatic  #130                // Method java/lang/Float.isNaN:(F)Z
+29: ifne          35
+32: fload         6
+34: freturn
+35: aload_1
+36: aload_2
+37: aload_3
+38: invokevirtual #135                // Method net/minecraft/world/level/block/state/BlockState.getShadeBrightness:(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)F
+41: fstore        6
+43: aload_0
+44: getfield      #76                 // Field enabled:Z
+47: ifeq          82
+50: aload_0
+51: getfield      #71                 // Field brightnessCache:Lit/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap;
+54: invokevirtual #136                // Method it/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap.size:()I
+57: bipush        100
+59: if_icmpne     70
+62: aload_0
+63: getfield      #71                 // Field brightnessCache:Lit/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap;
+66: invokevirtual #140                // Method it/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap.removeFirstFloat:()F
+69: pop
+70: aload_0
+71: getfield      #71                 // Field brightnessCache:Lit/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap;
+74: lload         4
+76: fload         6
+78: invokevirtual #143                // Method it/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap.put:(JF)F
+81: pop
+82: fload         6
+84: freturn
+
+##   private it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap method_20552();
+Code:
+0: new           #14                 // class net/minecraft/client/renderer/block/ModelBlockRenderer$Cache$2
+3: dup
+4: aload_0
+5: bipush        100
+7: ldc           #146                // float 0.25f
+9: invokespecial #149                // Method net/minecraft/client/renderer/block/ModelBlockRenderer$Cache$2."<init>":(Lnet/minecraft/client/renderer/block/ModelBlockRenderer$Cache;IF)V
+12: astore_1
+13: aload_1
+14: ldc           #150                // float NaNf
+16: invokevirtual #154                // Method it/unimi/dsi/fastutil/longs/Long2FloatLinkedOpenHashMap.defaultReturnValue:(F)V
+19: aload_1
+20: areturn
+
+##   private it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap method_20553();
+Code:
+0: new           #16                 // class net/minecraft/client/renderer/block/ModelBlockRenderer$Cache$1
+3: dup
+4: aload_0
+5: bipush        100
+7: ldc           #146                // float 0.25f
+9: invokespecial #156                // Method net/minecraft/client/renderer/block/ModelBlockRenderer$Cache$1."<init>":(Lnet/minecraft/client/renderer/block/ModelBlockRenderer$Cache;IF)V
+12: astore_1
+13: aload_1
+14: ldc           #96                 // int 2147483647
+16: invokevirtual #159                // Method it/unimi/dsi/fastutil/longs/Long2IntLinkedOpenHashMap.defaultReturnValue:(I)V
+19: aload_1
+20: areturn
+}
 === package listing (client.gui.screens, client.input, client, renderer, particle, model.geom, blaze3d)
 net/minecraft/client/particle/HeartParticle$Provider.class
 net/minecraft/client/particle/HeartParticle$AngryVillagerProvider.class
@@ -44726,49 +44887,3 @@ net/minecraft/client/particle/FireworkParticles$Starter.class
 net/minecraft/client/particle/AttackSweepParticle$Provider.class
 com/mojang/blaze3d/platform/GlStateManager.class
 com/mojang/blaze3d/systems/RenderSystem.class
-=== grep ignette|BrightnessGetter|LightCoords|getLightColor|setSectionDirty|SnowAndRain|class .*Weather|FramerateLimit|getCloudHeight|class .*Fog|calculateFov|addDestroyBlockEffect|addBreakingBlockEffect|renderStars|renderSunMoonAndStars|class .*Sky|limitDisplayFPS|setRotation\(float, float\)
-public class net.minecraft.client.multiplayer.ClientLevel extends net.minecraft.world.level.Level { ::   public void setSectionDirtyWithNeighbors(int, int, int);
-public class net.minecraft.client.multiplayer.ClientLevel extends net.minecraft.world.level.Level { ::   public void addDestroyBlockEffect(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState);
-public class net.minecraft.client.Minecraft extends net.minecraft.util.thread.ReentrantBlockableEventLoop<java.lang.Runnable> implements net.minecraft.world.SnooperPopulator, com.mojang.blaze3d.platform.WindowEventHandler { ::   private int getFramerateLimit();
-class net.minecraft.client.gui.Font$StringRenderOutput implements net.minecraft.util.FormattedCharSink { ::   private final int packedLightCoords;
-public class net.minecraft.client.gui.Gui extends net.minecraft.client.gui.GuiComponent { ::   public float vignetteBrightness;
-public class net.minecraft.client.gui.Gui extends net.minecraft.client.gui.GuiComponent { ::   private void updateVignetteBrightness(net.minecraft.world.entity.Entity);
-public class net.minecraft.client.gui.Gui extends net.minecraft.client.gui.GuiComponent { ::   private void renderVignette(net.minecraft.world.entity.Entity);
-public abstract class net.minecraft.client.renderer.entity.EntityRenderer<T extends net.minecraft.world.entity.Entity> { ::   public final int getPackedLightCoords(T, float);
-public class net.minecraft.client.renderer.entity.EntityRenderDispatcher implements net.minecraft.server.packs.resources.ResourceManagerReloadListener { ::   public <E extends net.minecraft.world.entity.Entity> int getPackedLightCoords(E, float);
-public final class net.minecraft.client.renderer.DimensionSpecialEffects$SkyType extends java.lang.Enum<net.minecraft.client.renderer.DimensionSpecialEffects$SkyType> { :: public final class net.minecraft.client.renderer.DimensionSpecialEffects$SkyType extends java.lang.Enum<net.minecraft.client.renderer.DimensionSpecialEffects$SkyType> {
-public abstract class net.minecraft.client.renderer.DimensionSpecialEffects { ::   public float getCloudHeight();
-public class net.minecraft.client.renderer.FogRenderer { :: public class net.minecraft.client.renderer.FogRenderer {
-public final class net.minecraft.client.renderer.FogRenderer$FogMode extends java.lang.Enum<net.minecraft.client.renderer.FogRenderer$FogMode> { :: public final class net.minecraft.client.renderer.FogRenderer$FogMode extends java.lang.Enum<net.minecraft.client.renderer.FogRenderer$FogMode> {
-class net.minecraft.client.renderer.block.ModelBlockRenderer$Cache { ::   public int getLightColor(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockAndTintGetter, net.minecraft.core.BlockPos);
-public class net.minecraft.client.renderer.block.LiquidBlockRenderer { ::   private int getLightColor(net.minecraft.world.level.BlockAndTintGetter, net.minecraft.core.BlockPos);
-public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   private void renderSnowAndRain(net.minecraft.client.renderer.LightTexture, float, double, double, double);
-public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   public void setSectionDirtyWithNeighbors(int, int, int);
-public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   public void setSectionDirty(int, int, int);
-public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   private void setSectionDirty(int, int, int, boolean);
-public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   public static int getLightColor(net.minecraft.world.level.BlockAndTintGetter, net.minecraft.core.BlockPos);
-public class net.minecraft.client.renderer.LevelRenderer implements net.minecraft.server.packs.resources.ResourceManagerReloadListener,java.lang.AutoCloseable { ::   public static int getLightColor(net.minecraft.world.level.BlockAndTintGetter, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.BlockPos);
-public class net.minecraft.client.particle.GlowParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.HugeExplosionParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.SimpleAnimatedParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.DripParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.VibrationSignalParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.LavaParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.TerrainParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.EnchantmentTableParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.AttackSweepParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public abstract class net.minecraft.client.particle.Particle { ::   protected int getLightColor(float);
-public class net.minecraft.client.particle.PortalParticle extends net.minecraft.client.particle.TextureSheetParticle { ::   public int getLightColor(float);
-public class net.minecraft.client.particle.FlameParticle extends net.minecraft.client.particle.RisingParticle { ::   public int getLightColor(float);
-public final class net.minecraft.world.level.lighting.SkyLightEngine extends net.minecraft.world.level.lighting.LayerLightEngine<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap, net.minecraft.world.level.lighting.SkyLightSectionStorage> { :: public final class net.minecraft.world.level.lighting.SkyLightEngine extends net.minecraft.world.level.lighting.LayerLightEngine<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap, net.minecraft.world.level.lighting.SkyLightSectionStorage> {
-public class net.minecraft.world.level.lighting.SkyLightSectionStorage extends net.minecraft.world.level.lighting.LayerLightSectionStorage<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap> { :: public class net.minecraft.world.level.lighting.SkyLightSectionStorage extends net.minecraft.world.level.lighting.LayerLightSectionStorage<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap> {
-public final class net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap extends net.minecraft.world.level.lighting.DataLayerStorageMap<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap> { :: public final class net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap extends net.minecraft.world.level.lighting.DataLayerStorageMap<net.minecraft.world.level.lighting.SkyLightSectionStorage$SkyDataLayerStorageMap> {
-public abstract class net.minecraft.world.level.Level implements net.minecraft.world.level.LevelAccessor,java.lang.AutoCloseable { ::   public void addDestroyBlockEffect(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState);
-public final class net.minecraft.world.level.material.FogType extends java.lang.Enum<net.minecraft.world.level.material.FogType> { :: public final class net.minecraft.world.level.material.FogType extends java.lang.Enum<net.minecraft.world.level.material.FogType> {
-public class net.minecraft.world.level.storage.loot.predicates.WeatherCheck$Serializer implements net.minecraft.world.level.storage.loot.Serializer<net.minecraft.world.level.storage.loot.predicates.WeatherCheck> { :: public class net.minecraft.world.level.storage.loot.predicates.WeatherCheck$Serializer implements net.minecraft.world.level.storage.loot.Serializer<net.minecraft.world.level.storage.loot.predicates.WeatherCheck> {
-public class net.minecraft.world.level.storage.loot.predicates.WeatherCheck$Builder implements net.minecraft.world.level.storage.loot.predicates.LootItemCondition$Builder { :: public class net.minecraft.world.level.storage.loot.predicates.WeatherCheck$Builder implements net.minecraft.world.level.storage.loot.predicates.LootItemCondition$Builder {
-public class net.minecraft.world.level.storage.loot.predicates.WeatherCheck implements net.minecraft.world.level.storage.loot.predicates.LootItemCondition { :: public class net.minecraft.world.level.storage.loot.predicates.WeatherCheck implements net.minecraft.world.level.storage.loot.predicates.LootItemCondition {
-public class net.minecraft.world.level.block.WeatheringCopperStairBlock extends net.minecraft.world.level.block.StairBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperStairBlock extends net.minecraft.world.level.block.StairBlock implements net.minecraft.world.level.block.WeatheringCopper {
-public class net.minecraft.world.level.block.WeatheringCopperSlabBlock extends net.minecraft.world.level.block.SlabBlock implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperSlabBlock extends net.minecraft.world.level.block.SlabBlock implements net.minecraft.world.level.block.WeatheringCopper {
-public final class net.minecraft.world.level.block.WeatheringCopper$WeatherState extends java.lang.Enum<net.minecraft.world.level.block.WeatheringCopper$WeatherState> { :: public final class net.minecraft.world.level.block.WeatheringCopper$WeatherState extends java.lang.Enum<net.minecraft.world.level.block.WeatheringCopper$WeatherState> {
-public class net.minecraft.world.level.block.WeatheringCopperFullBlock extends net.minecraft.world.level.block.Block implements net.minecraft.world.level.block.WeatheringCopper { :: public class net.minecraft.world.level.block.WeatheringCopperFullBlock extends net.minecraft.world.level.block.Block implements net.minecraft.world.level.block.WeatheringCopper {
