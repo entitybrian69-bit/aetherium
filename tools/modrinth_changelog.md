@@ -3,6 +3,14 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.15.0
+**Far terrain and the chunk streaming tweaks on every version.** Both were Minecraft 1.16.5 only until now; they work on every version from 1.16.5 to 26.3.
+
+- Far terrain (Quality page, Overworld): a cheap low-detail outline of the land beyond your render distance, built from chunks you already received this session. Chunks inside your render distance that are not built yet show the outline too, and the distance fog moves out to the new edge.
+- On 1.17 and newer it has its own small OpenGL 3 renderer: a few large draws for the whole outline, nothing added to the real chunks, fog and daylight done on the GPU.
+- It turns itself off after any error, with shader packs, and on the Vulkan backend (26.2+). Off (0) by default.
+- Merge chunk rebuilds and Smarter chunk culling (sections hidden in the fog are neither drawn nor rebuilt) now also run on 26.2 and 26.3, so every version has the full chunk streaming set.
+
 ## 1.14.0
 **Render scale on every version.** The Render scale slider (Performance page), until now only on Minecraft 1.16.5, works on every version from 1.16.5 to 26.3.
 
