@@ -41,7 +41,7 @@ import net.minecraft.core.BlockPos;
 // @era:t-cull-end
 
 /**
- * The visibility search of {@code LevelRenderer.setupRender} (1.12.0, Minecraft 1.16.5).
+ * The chunk visibility search (1.12.0 on Minecraft 1.16.5; 1.13.0 on every version).
  *
  * <p>Directional culling: vanilla's breadth-first search walks from the camera section to its
  * neighbours through faces that can see each other, but it may step back towards the camera along
@@ -53,8 +53,9 @@ import net.minecraft.core.BlockPos;
  * <p>Ocean floor culling ({@code OceanFloor}, off by default) refuses steps into sections deep
  * below an ocean floor while the camera is above the water.</p>
  *
- * <p>A redirect of the single call site (offset 1001) instead of a cancellable inject, so the
- * search allocates nothing per step.</p>
+ * <p>On 1.16.5 a redirect of the search's single neighbour lookup, so the search allocates
+ * nothing per step; on 1.17+ a HEAD inject into that neighbour lookup ({@code getRelativeFrom}),
+ * whose only caller is the visibility search.</p>
  */
 // @era:t-cull-begin c202|c215
 @Mixin(targets = "net.minecraft.client.renderer.SectionOcclusionGraph")

@@ -39,18 +39,21 @@ public abstract class TuningCompileQueueMixin {
             //~ target = "Lnet/minecraft/core/BlockPos;distToCenterSqr(Lnet/minecraft/core/Position;)D"),
             //~ require = 0)
     //~ private double aetherium$priority(final BlockPos origin, final Position cameraPos) {
-        //~ final double distSq = origin.distToCenterSqr(cameraPos);
-        //~ if (!Tuning.viewFirstBuilding || distSq <= 24.0 * 24.0 || !(cameraPos instanceof Vec3)) {
+        //~ // Vanilla's BlockPos.distToCenterSqr, written out (the argument is always the camera Vec3).
+        //~ final Vec3 eye = (Vec3) cameraPos;
+        //~ final double dx = origin.getX() + 0.5 - eye.x;
+        //~ final double dy = origin.getY() + 0.5 - eye.y;
+        //~ final double dz = origin.getZ() + 0.5 - eye.z;
+        //~ final double distSq = dx * dx + dy * dy + dz * dz;
+        //~ if (!Tuning.viewFirstBuilding || distSq <= 24.0 * 24.0) {
             //~ return distSq;
         //~ }
         //~ final Camera camera = ClientHooks.mainCamera(Minecraft.getInstance());
         //~ if (camera == null) {
             //~ return distSq;
         //~ }
-        //~ final Vec3 eye = (Vec3) cameraPos;
         //~ final var look = camera.getLookVector();
-        //~ final double cos = ((origin.getX() + 0.5 - eye.x) * look.x() + (origin.getY() + 0.5 - eye.y) * look.y()
-                //~ + (origin.getZ() + 0.5 - eye.z) * look.z()) / Math.sqrt(distSq);
+        //~ final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
         //~ return distSq * (1.0 + 0.75 * (1.0 - cos));
     //~ }
     // @era:t-compile-queue-else q2111
@@ -58,18 +61,21 @@ public abstract class TuningCompileQueueMixin {
             //~ target = "Lnet/minecraft/core/BlockPos;distToCenterSqr(Lnet/minecraft/core/Position;)D"),
             //~ require = 0)
     //~ private double aetherium$priority(final BlockPos origin, final Position cameraPos) {
-        //~ final double distSq = origin.distToCenterSqr(cameraPos);
-        //~ if (!Tuning.viewFirstBuilding || distSq <= 24.0 * 24.0 || !(cameraPos instanceof Vec3)) {
+        //~ // Vanilla's BlockPos.distToCenterSqr, written out (the argument is always the camera Vec3).
+        //~ final Vec3 eye = (Vec3) cameraPos;
+        //~ final double dx = origin.getX() + 0.5 - eye.x;
+        //~ final double dy = origin.getY() + 0.5 - eye.y;
+        //~ final double dz = origin.getZ() + 0.5 - eye.z;
+        //~ final double distSq = dx * dx + dy * dy + dz * dz;
+        //~ if (!Tuning.viewFirstBuilding || distSq <= 24.0 * 24.0) {
             //~ return distSq;
         //~ }
         //~ final Camera camera = ClientHooks.mainCamera(Minecraft.getInstance());
         //~ if (camera == null) {
             //~ return distSq;
         //~ }
-        //~ final Vec3 eye = (Vec3) cameraPos;
         //~ final var look = camera.forwardVector();
-        //~ final double cos = ((origin.getX() + 0.5 - eye.x) * look.x() + (origin.getY() + 0.5 - eye.y) * look.y()
-                //~ + (origin.getZ() + 0.5 - eye.z) * look.z()) / Math.sqrt(distSq);
+        //~ final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
         //~ return distSq * (1.0 + 0.75 * (1.0 - cos));
     //~ }
     // @era:t-compile-queue-end
