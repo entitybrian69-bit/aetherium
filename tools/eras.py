@@ -102,6 +102,8 @@ ERAS = {
     # needsUpdate flag); 1.18-1.20.1 filter renderChunksInFrustum after applyFrustum
     # (needsFrustumUpdate); 1.20.2-26.1 filter visibleSections after applyFrustum
     # (SectionOcclusionGraph.needsFrustumUpdate); 26.2 has no applyFrustum.
+    # 26.2+: the frustum pass (and the fog cull after it) moved to LevelExtractor.
+    "fog-cull-x": [("none", "..26.1"), ("extract", "26.2..")],
     "fog-cull": [("none", "..1.16.5"), ("bfs", "1.17..1.17.1"), ("info", "1.18..1.20.1"),
                  ("section", "1.20.2..26.1"), ("none", "26.2..")],
     # Visible-section search throttle: the search runs on the render thread in setupRender up to

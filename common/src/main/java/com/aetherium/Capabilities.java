@@ -209,11 +209,18 @@ public final class Capabilities {
     //~ public static final boolean FRAME_FRUSTUM = false;
     // @era:frustum-cap-end
 
-    /** Visible sections wholly inside the fog are skipped (1.17..26.1; 1.16.5 culls in STREAMING). */
+    /** 26.2+: the frustum pass moved to LevelExtractor, so the fog cull filters there (FogCullExtractMixin). */
+    // @era:fog-cull-x-begin none
+    public static final boolean FOG_CULL_EXTRACT = false;
+    // @era:fog-cull-x-else extract
+    //~ public static final boolean FOG_CULL_EXTRACT = true;
+    // @era:fog-cull-x-end
+
+    /** Visible sections wholly inside the fog are skipped (1.17+; 1.16.5 culls in STREAMING). */
     // @era:fog-cull-begin bfs|info|section
     public static final boolean FOG_CULL = true;
     // @era:fog-cull-else none
-    //~ public static final boolean FOG_CULL = false;
+    //~ public static final boolean FOG_CULL = FOG_CULL_EXTRACT;
     // @era:fog-cull-end
 
     /** Which list the fog cull filters: RenderChunkInfo (1.17..1.20.1) or RenderSection (1.20.2..26.1). */
@@ -225,7 +232,7 @@ public final class Capabilities {
     //~ public static final boolean FOG_CULL_SECTION = false;
     // @era:fog-cull-else none
     //~ public static final boolean FOG_CULL_INFO = false;
-    //~ public static final boolean FOG_CULL_SECTION = false;
+    //~ public static final boolean FOG_CULL_SECTION = FOG_CULL_EXTRACT;
     // @era:fog-cull-end
 
     /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */

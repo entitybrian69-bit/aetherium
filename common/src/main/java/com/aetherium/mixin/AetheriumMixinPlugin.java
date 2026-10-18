@@ -194,6 +194,9 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if ("FogCullMixin".equals(simpleName)) {
             return Capabilities.FOG_CULL;
         }
+        if ("FogCullExtractMixin".equals(simpleName)) {
+            return Capabilities.FOG_CULL_EXTRACT;
+        }
         if ("RenderChunkInfoAccessor".equals(simpleName)) {
             return Capabilities.FOG_CULL_INFO;
         }

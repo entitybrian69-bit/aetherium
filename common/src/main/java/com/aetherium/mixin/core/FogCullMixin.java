@@ -36,10 +36,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:fog-cull-else none
+//~ // @era:fog-cull-x-begin none
+//~ // @era:fog-cull-x-else extract
+//~ //~ import net.minecraft.client.renderer.SectionOcclusionGraph;
+//~ //~ import org.spongepowered.asm.mixin.Final;
+//~ //~ import org.spongepowered.asm.mixin.Shadow;
+//~ // @era:fog-cull-x-end
 // @era:fog-cull-end
 
 /**
- * Fog cull (1.17..26.1, part of "Smarter chunk culling"): after vanilla filled its visible-section
+ * Fog cull (1.17+, part of "Smarter chunk culling"; on 26.2+ the filter itself is in
+ * FogCullExtractMixin, as the frustum pass moved to LevelExtractor): after vanilla filled its visible-section
  * list for the frustum, sections wholly inside solid fog are removed from it, so they are neither
  * drawn nor rebuilt while hidden (Sodium's fog occlusion does the same). The list is compacted in
  * place. When the fog limit moves, {@link #aetheriumRefreshFogCull} makes vanilla refill the list
@@ -125,9 +132,24 @@ public abstract class FogCullMixin implements FogCullAccess {
         //~ this.needsUpdate = true;
     //~ }
     // @era:fog-cull-else none
+    //~ // @era:fog-cull-x-begin none
     //~ @Override
     //~ public void aetheriumRefreshFogCull() {
     //~ }
+    //~ // @era:fog-cull-x-else extract
+    //~ //~ @Shadow
+    //~ //~ @Final
+    //~ //~ private SectionOcclusionGraph sectionOcclusionGraph;
+
+    //~ //~ /** 26.2+: the list is filtered by FogCullExtractMixin; the refresh still asks for a frustum pass. */
+    //~ //~ @Override
+    //~ //~ public void aetheriumRefreshFogCull() {
+        //~ //~ final Object graph = this.sectionOcclusionGraph;
+        //~ //~ if (graph instanceof SectionOcclusionGraphAccessor) {
+            //~ //~ ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
+        //~ //~ }
+    //~ //~ }
+    //~ // @era:fog-cull-x-end
     // @era:fog-cull-end
 
     @SuppressWarnings("unchecked")
