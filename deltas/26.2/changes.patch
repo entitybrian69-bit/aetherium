@@ -1286,7 +1286,7 @@ index 5d253f5..fdcd082 100644
      // @era:fog-else params
      //~ /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
 diff --git a/common/src/main/java/com/aetherium/client/TuningClient.java b/common/src/main/java/com/aetherium/client/TuningClient.java
-index af4acea..899aa15 100644
+index 507c54a..39cb4d4 100644
 --- a/common/src/main/java/com/aetherium/client/TuningClient.java
 +++ b/common/src/main/java/com/aetherium/client/TuningClient.java
 @@ -3,14 +3,13 @@ package com.aetherium.client;
@@ -1294,7 +1294,7 @@ index af4acea..899aa15 100644
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.screens.Screen;
 -// @era:t-client-begin v16
-+// @era:t-client-begin v19|v262
++// @era:t-client-begin v262
  import it.unimi.dsi.fastutil.longs.LongIterator;
  import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  import net.minecraft.client.gui.screens.ChatScreen;
@@ -1305,12 +1305,13 @@ index af4acea..899aa15 100644
  import net.minecraft.core.BlockPos;
  import net.minecraft.core.Direction;
  import net.minecraft.core.SectionPos;
-@@ -21,14 +20,14 @@ import net.minecraft.world.level.block.LeavesBlock;
+@@ -20,15 +19,14 @@ import net.minecraft.world.level.block.Blocks;
+ import net.minecraft.world.level.block.LeavesBlock;
  import net.minecraft.world.level.block.PipeBlock;
  import net.minecraft.world.level.block.state.BlockState;
- import org.lwjgl.glfw.GLFW;
+-import org.lwjgl.glfw.GLFW;
 -// @era:t-client-else none
--// @era:t-client-else v19|v262
+-// @era:t-client-else v19
 +// @era:t-client-else v16
  //~ import it.unimi.dsi.fastutil.longs.LongIterator;
  //~ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -1322,15 +1323,25 @@ index af4acea..899aa15 100644
  //~ import net.minecraft.core.BlockPos;
  //~ import net.minecraft.core.Direction;
  //~ import net.minecraft.core.SectionPos;
-@@ -39,6 +38,7 @@ import org.lwjgl.glfw.GLFW;
+@@ -39,7 +37,8 @@ import org.lwjgl.glfw.GLFW;
  //~ import net.minecraft.world.level.block.PipeBlock;
  //~ import net.minecraft.world.level.block.state.BlockState;
  //~ import org.lwjgl.glfw.GLFW;
+-// @era:t-client-else v262
 +// @era:t-client-else none
++// @era:t-client-else v19
+ //~ import it.unimi.dsi.fastutil.longs.LongIterator;
+ //~ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+ //~ import net.minecraft.client.gui.screens.ChatScreen;
+@@ -55,6 +54,7 @@ import org.lwjgl.glfw.GLFW;
+ //~ import net.minecraft.world.level.block.LeavesBlock;
+ //~ import net.minecraft.world.level.block.PipeBlock;
+ //~ import net.minecraft.world.level.block.state.BlockState;
++//~ import org.lwjgl.glfw.GLFW;
  // @era:t-client-end
  
  /**
-@@ -61,7 +61,7 @@ public final class TuningClient {
+@@ -77,7 +77,7 @@ public final class TuningClient {
      private TuningClient() {
      }
  
@@ -1339,16 +1350,17 @@ index af4acea..899aa15 100644
      private static final long GC_SPACING_NANOS = 10_000_000_000L;
      private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
      private static long lastGc;
-@@ -80,7 +80,7 @@ public final class TuningClient {
+@@ -96,15 +96,15 @@ public final class TuningClient {
              return 0;
          }
          if (Tuning.dynamicFps) {
 -            final long window = mc.getWindow().getWindow();
-+            final long window = mc.getWindow().handle();
-             if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
+-            if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
++            // 26.3 replaced GLFW with SDL; the window tracks its own minimized state.
++            if (mc.getWindow().isIconified()) {
                  return MINIMIZED_FPS;
              }
-@@ -88,7 +88,7 @@ public final class TuningClient {
+             if (!mc.isWindowActive()) {
                  return BACKGROUND_FPS;
              }
          }
@@ -1357,7 +1369,7 @@ index af4acea..899aa15 100644
          if (Tuning.menuFps > 0 && mc.level != null && screen != null && !(screen instanceof ChatScreen)
                  && !screen.getClass().getName().startsWith("com.aetherium.")) {
              // Aetherium's own screen keeps full speed for its animations.
-@@ -105,14 +105,14 @@ public final class TuningClient {
+@@ -121,14 +121,14 @@ public final class TuningClient {
          if (!loadingScreen(next)) {
              return;
          }
@@ -1374,7 +1386,7 @@ index af4acea..899aa15 100644
                  || screen instanceof ConnectScreen || screen instanceof ProgressScreen;
      }
  
-@@ -134,7 +134,7 @@ public final class TuningClient {
+@@ -150,7 +150,7 @@ public final class TuningClient {
          if (gcPending) {
              gcPending = false;
              final long now = System.nanoTime();
@@ -1383,7 +1395,7 @@ index af4acea..899aa15 100644
                  lastGc = now;
                  System.gc();
              }
-@@ -155,7 +155,8 @@ public final class TuningClient {
+@@ -171,7 +171,8 @@ public final class TuningClient {
              final LongIterator it = DIRTY_LIGHT.iterator();
              while (it.hasNext()) {
                  final long key = it.nextLong();
@@ -1393,7 +1405,7 @@ index af4acea..899aa15 100644
              }
          }
          DIRTY_LIGHT.clear();
-@@ -176,7 +177,7 @@ public final class TuningClient {
+@@ -192,7 +193,7 @@ public final class TuningClient {
          final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
          final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
          if (changed && mc.levelRenderer != null && mc.level != null) {
@@ -1402,7 +1414,7 @@ index af4acea..899aa15 100644
          }
          lastLeaves = leaves;
          lastMesh = mesh;
-@@ -229,23 +230,7 @@ public final class TuningClient {
+@@ -245,23 +246,7 @@ public final class TuningClient {
      public static double distanceToCamera(final Entity entity) {
          return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
      }
@@ -1427,7 +1439,7 @@ index af4acea..899aa15 100644
      //~ private static final long GC_SPACING_NANOS = 10_000_000_000L;
      //~ private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
      //~ private static long lastGc;
-@@ -264,7 +249,7 @@ public final class TuningClient {
+@@ -280,7 +265,7 @@ public final class TuningClient {
              //~ return 0;
          //~ }
          //~ if (Tuning.dynamicFps) {
@@ -1436,7 +1448,7 @@ index af4acea..899aa15 100644
              //~ if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
                  //~ return MINIMIZED_FPS;
              //~ }
-@@ -296,7 +281,7 @@ public final class TuningClient {
+@@ -312,7 +297,7 @@ public final class TuningClient {
      //~ }
  
      //~ private static boolean loadingScreen(final Screen screen) {
@@ -1445,7 +1457,7 @@ index af4acea..899aa15 100644
                  //~ || screen instanceof ConnectScreen || screen instanceof ProgressScreen;
      //~ }
  
-@@ -413,7 +398,23 @@ public final class TuningClient {
+@@ -429,7 +414,23 @@ public final class TuningClient {
      //~ public static double distanceToCamera(final Entity entity) {
          //~ return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
      //~ }
@@ -1470,7 +1482,17 @@ index af4acea..899aa15 100644
      //~ private static final long GC_SPACING_NANOS = 10_000_000_000L;
      //~ private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
      //~ private static long lastGc;
-@@ -440,7 +441,7 @@ public final class TuningClient {
+@@ -448,15 +449,15 @@ public final class TuningClient {
+             //~ return 0;
+         //~ }
+         //~ if (Tuning.dynamicFps) {
+-            //~ // 26.3 replaced GLFW with SDL; the window tracks its own minimized state.
+-            //~ if (mc.getWindow().isIconified()) {
++            //~ final long window = mc.getWindow().handle();
++            //~ if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
+                 //~ return MINIMIZED_FPS;
+             //~ }
+             //~ if (!mc.isWindowActive()) {
                  //~ return BACKGROUND_FPS;
              //~ }
          //~ }
@@ -1479,7 +1501,7 @@ index af4acea..899aa15 100644
          //~ if (Tuning.menuFps > 0 && mc.level != null && screen != null && !(screen instanceof ChatScreen)
                  //~ && !screen.getClass().getName().startsWith("com.aetherium.")) {
              //~ // Aetherium's own screen keeps full speed for its animations.
-@@ -457,7 +458,7 @@ public final class TuningClient {
+@@ -473,7 +474,7 @@ public final class TuningClient {
          //~ if (!loadingScreen(next)) {
              //~ return;
          //~ }
@@ -1488,7 +1510,7 @@ index af4acea..899aa15 100644
              //~ return; // already behind a loading screen
          //~ }
          //~ gcPending = true; // collected on the next tick, once the loading screen is on screen
-@@ -486,7 +487,7 @@ public final class TuningClient {
+@@ -502,7 +503,7 @@ public final class TuningClient {
          //~ if (gcPending) {
              //~ gcPending = false;
              //~ final long now = System.nanoTime();
@@ -1497,7 +1519,7 @@ index af4acea..899aa15 100644
                  //~ lastGc = now;
                  //~ System.gc();
              //~ }
-@@ -507,8 +508,7 @@ public final class TuningClient {
+@@ -523,8 +524,7 @@ public final class TuningClient {
              //~ final LongIterator it = DIRTY_LIGHT.iterator();
              //~ while (it.hasNext()) {
                  //~ final long key = it.nextLong();
@@ -1507,7 +1529,7 @@ index af4acea..899aa15 100644
              //~ }
          //~ }
          //~ DIRTY_LIGHT.clear();
-@@ -529,7 +529,7 @@ public final class TuningClient {
+@@ -545,7 +545,7 @@ public final class TuningClient {
          //~ final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
          //~ final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
          //~ if (changed && mc.levelRenderer != null && mc.level != null) {
@@ -6258,7 +6280,7 @@ index 9d536e7..ab1b92f 100644
      // @era:t-http-textureacc-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
-index b3860b7..aec3282 100644
+index 6f19691..bb8dd2b 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
 @@ -1,60 +1,60 @@
@@ -6387,7 +6409,7 @@ index b3860b7..aec3282 100644
 -        if (Tuning.detailDistanceSq != Double.MAX_VALUE && !(entity instanceof Player)
 +    private void aetherium$layer(final RenderLayer layer, final PoseStack poseStack, final SubmitNodeCollector nodes,
 +                                 final int light, final EntityRenderState state, final float yRot, final float xRot) {
-+        if (Tuning.detailDistanceSq != Double.MAX_VALUE && state.entityType != EntityType.PLAYER
++        if (Tuning.detailDistanceSq != Double.MAX_VALUE && !com.aetherium.client.PlayerType.is(state.entityType)
                  && (layer instanceof HumanoidArmorLayer || layer instanceof ItemInHandLayer
 -                        || layer instanceof ElytraLayer || layer instanceof CustomHeadLayer
 +                        || layer instanceof WingsLayer || layer instanceof CustomHeadLayer
@@ -6458,7 +6480,7 @@ index b3860b7..aec3282 100644
 -            //~ require = 0)
 -    //~ private void aetherium$layer(final RenderLayer layer, final PoseStack poseStack, final SubmitNodeCollector nodes,
 -                                 //~ final int light, final EntityRenderState state, final float yRot, final float xRot) {
--        //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && state.entityType != EntityType.PLAYER
+-        //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && !com.aetherium.client.PlayerType.is(state.entityType)
 -                //~ && (layer instanceof HumanoidArmorLayer || layer instanceof ItemInHandLayer
 -                        //~ || layer instanceof WingsLayer || layer instanceof CustomHeadLayer
 -                        //~ || layer instanceof StuckInBodyLayer)
@@ -7383,7 +7405,7 @@ index 2853beb..b73a422 100644
  
      //~ @Unique
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java
-index ca16ad3..0eb4ff9 100644
+index 7d884d7..1419717 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java
 @@ -1,17 +1,26 @@
@@ -7462,7 +7484,7 @@ index ca16ad3..0eb4ff9 100644
 +    @Inject(method = "extractShadow", at = @At("HEAD"), cancellable = true, require = 0)
 +    private void aetherium$shadow(final EntityRenderState state, final Minecraft mc, final Level level,
 +                                  final CallbackInfo ci) {
-+        if (state.entityType != EntityType.PLAYER && Tuning.beyondDetail(state.distanceToCameraSq)) {
++        if (!com.aetherium.client.PlayerType.is(state.entityType) && Tuning.beyondDetail(state.distanceToCameraSq)) {
 +            state.shadowPieces.clear();
 +            state.shadowRadius = 0.0F;
              ci.cancel();
@@ -7490,7 +7512,7 @@ index ca16ad3..0eb4ff9 100644
 -    //~ @Inject(method = "extractShadow", at = @At("HEAD"), cancellable = true, require = 0)
 -    //~ private void aetherium$shadow(final EntityRenderState state, final Minecraft mc, final Level level,
 -                                  //~ final CallbackInfo ci) {
--        //~ if (state.entityType != EntityType.PLAYER && Tuning.beyondDetail(state.distanceToCameraSq)) {
+-        //~ if (!com.aetherium.client.PlayerType.is(state.entityType) && Tuning.beyondDetail(state.distanceToCameraSq)) {
 -            //~ state.shadowPieces.clear();
 -            //~ state.shadowRadius = 0.0F;
 -            //~ ci.cancel();

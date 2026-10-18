@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.lwjgl.glfw.GLFW;
 // @era:t-client-else none
-// @era:t-client-else v19|v262
+// @era:t-client-else v19
 //~ import it.unimi.dsi.fastutil.longs.LongIterator;
 //~ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 //~ import net.minecraft.client.gui.screens.ChatScreen;
@@ -39,6 +39,22 @@ import org.lwjgl.glfw.GLFW;
 //~ import net.minecraft.world.level.block.PipeBlock;
 //~ import net.minecraft.world.level.block.state.BlockState;
 //~ import org.lwjgl.glfw.GLFW;
+// @era:t-client-else v262
+//~ import it.unimi.dsi.fastutil.longs.LongIterator;
+//~ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+//~ import net.minecraft.client.gui.screens.ChatScreen;
+//~ import net.minecraft.client.gui.screens.ConnectScreen;
+//~ import net.minecraft.client.gui.screens.LevelLoadingScreen;
+//~ import net.minecraft.client.gui.screens.ProgressScreen;
+//~ import net.minecraft.core.BlockPos;
+//~ import net.minecraft.core.Direction;
+//~ import net.minecraft.core.SectionPos;
+//~ import net.minecraft.world.entity.Entity;
+//~ import net.minecraft.world.level.BlockGetter;
+//~ import net.minecraft.world.level.block.Blocks;
+//~ import net.minecraft.world.level.block.LeavesBlock;
+//~ import net.minecraft.world.level.block.PipeBlock;
+//~ import net.minecraft.world.level.block.state.BlockState;
 // @era:t-client-end
 
 /**
@@ -432,8 +448,8 @@ public final class TuningClient {
             //~ return 0;
         //~ }
         //~ if (Tuning.dynamicFps) {
-            //~ final long window = mc.getWindow().handle();
-            //~ if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
+            //~ // 26.3 replaced GLFW with SDL; the window tracks its own minimized state.
+            //~ if (mc.getWindow().isIconified()) {
                 //~ return MINIMIZED_FPS;
             //~ }
             //~ if (!mc.isWindowActive()) {

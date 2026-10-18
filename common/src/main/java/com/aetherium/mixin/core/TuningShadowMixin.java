@@ -103,7 +103,7 @@ public abstract class TuningShadowMixin {
     //~ @Inject(method = "extractShadow", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$shadow(final EntityRenderState state, final Minecraft mc, final Level level,
                                   //~ final CallbackInfo ci) {
-        //~ if (state.entityType != EntityType.PLAYER && Tuning.beyondDetail(state.distanceToCameraSq)) {
+        //~ if (!com.aetherium.client.PlayerType.is(state.entityType) && Tuning.beyondDetail(state.distanceToCameraSq)) {
             //~ state.shadowPieces.clear();
             //~ state.shadowRadius = 0.0F;
             //~ ci.cancel();

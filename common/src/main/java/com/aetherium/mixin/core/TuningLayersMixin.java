@@ -153,7 +153,7 @@ public abstract class TuningLayersMixin {
             //~ require = 0)
     //~ private void aetherium$layer(final RenderLayer layer, final PoseStack poseStack, final SubmitNodeCollector nodes,
                                  //~ final int light, final EntityRenderState state, final float yRot, final float xRot) {
-        //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && state.entityType != EntityType.PLAYER
+        //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && !com.aetherium.client.PlayerType.is(state.entityType)
                 //~ && (layer instanceof HumanoidArmorLayer || layer instanceof ItemInHandLayer
                         //~ || layer instanceof WingsLayer || layer instanceof CustomHeadLayer
                         //~ || layer instanceof StuckInBodyLayer)
