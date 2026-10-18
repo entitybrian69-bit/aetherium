@@ -1087,10 +1087,10 @@ index b52e5ad..dcc73b2 100644
      // @era:autobench-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 47543d5..d55ce59 100644
+index f0f2a33..db16e3e 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -430,10 +430,10 @@ public final class ClientHooks {
+@@ -431,10 +431,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -1105,7 +1105,7 @@ index 47543d5..d55ce59 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -485,10 +485,10 @@ public final class ClientHooks {
+@@ -495,10 +495,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -2653,205 +2653,255 @@ index afb236d..ffe04fe 100644
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
 diff --git a/common/src/main/java/com/aetherium/client/OceanFloor.java b/common/src/main/java/com/aetherium/client/OceanFloor.java
-index 37558b9..7ce5335 100644
+index 4aaab32..b13e6f5 100644
 --- a/common/src/main/java/com/aetherium/client/OceanFloor.java
 +++ b/common/src/main/java/com/aetherium/client/OceanFloor.java
-@@ -1,19 +1,19 @@
+@@ -1,28 +1,28 @@
  package com.aetherium.client;
  
--// @era:t-ocean-floor-begin none
+-// @era:t-ocean-floor-begin o17
 +// @era:t-ocean-floor-begin v16
-+import com.aetherium.perf.Tuning;
-+import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
-+import net.minecraft.client.Camera;
-+import net.minecraft.client.multiplayer.ClientLevel;
-+import net.minecraft.core.BlockPos;
+ import com.aetherium.perf.Tuning;
+ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
+ import net.minecraft.client.Camera;
+ import net.minecraft.client.multiplayer.ClientLevel;
+ import net.minecraft.core.BlockPos;
 +import net.minecraft.tags.FluidTags;
 +import net.minecraft.tags.Tag;
 +import net.minecraft.world.level.material.Fluid;
 +import net.minecraft.world.level.ChunkPos;
-+import net.minecraft.world.level.chunk.LevelChunk;
-+import net.minecraft.world.level.levelgen.Heightmap;
-+// @era:t-ocean-floor-else none
- 
+ import net.minecraft.world.level.chunk.LevelChunk;
+ import net.minecraft.world.level.levelgen.Heightmap;
+-import net.minecraft.world.level.material.FogType;
+-// @era:t-ocean-floor-else none
+-
 -// @era:t-ocean-floor-else v16
--//~ import com.aetherium.perf.Tuning;
--//~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
--//~ import net.minecraft.client.Camera;
--//~ import net.minecraft.client.multiplayer.ClientLevel;
--//~ import net.minecraft.core.BlockPos;
++// @era:t-ocean-floor-else o17
+ //~ import com.aetherium.perf.Tuning;
+ //~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
+ //~ import net.minecraft.client.Camera;
+ //~ import net.minecraft.client.multiplayer.ClientLevel;
+ //~ import net.minecraft.core.BlockPos;
 -//~ import net.minecraft.tags.FluidTags;
 -//~ import net.minecraft.tags.Tag;
 -//~ import net.minecraft.world.level.material.Fluid;
 -//~ import net.minecraft.world.level.ChunkPos;
--//~ import net.minecraft.world.level.chunk.LevelChunk;
--//~ import net.minecraft.world.level.levelgen.Heightmap;
+ //~ import net.minecraft.world.level.chunk.LevelChunk;
+ //~ import net.minecraft.world.level.levelgen.Heightmap;
++//~ import net.minecraft.world.level.material.FogType;
++// @era:t-ocean-floor-else none
++
  // @era:t-ocean-floor-end
  
  /**
-@@ -31,93 +31,93 @@ public final class OceanFloor {
+@@ -40,17 +40,20 @@ public final class OceanFloor {
      private OceanFloor() {
      }
  
--    // @era:t-ocean-floor-begin none
--    public static void capture(final net.minecraft.world.level.chunk.LevelChunk chunk) {
--    }
+-    // @era:t-ocean-floor-begin o17
 +    // @era:t-ocean-floor-begin v16
-+    private static final int NOT_OCEAN = Integer.MIN_VALUE;
-+    private static final int MARGIN = 8;
-+    private static final int MAX_CHUNKS = 65536;
-+    private static final Long2IntLinkedOpenHashMap FLOOR = new Long2IntLinkedOpenHashMap();
-+    /** This frame: option on, camera above the sea surface and not inside a fluid. */
-+    private static boolean active;
+     private static final int NOT_OCEAN = Integer.MIN_VALUE;
+     private static final int MARGIN = 8;
+     private static final int MAX_CHUNKS = 65536;
+-    /** The deepest water column bottom per chunk; an own key, as ChunkPos packing was renamed in 26.1. */
+     private static final Long2IntLinkedOpenHashMap FLOOR = new Long2IntLinkedOpenHashMap();
+     /** This frame: option on, camera above the sea surface and not inside a fluid. */
+     private static boolean active;
  
--    public static void frame(final net.minecraft.client.multiplayer.ClientLevel level,
--                             final net.minecraft.client.Camera camera) {
--    }
+-    private static long key(final int chunkX, final int chunkZ) {
+-        return (chunkX & 0xFFFFFFFFL) | ((chunkZ & 0xFFFFFFFFL) << 32);
 +    /** {@code Tag.Named} extends {@code Tag}; widened once, as {@code FluidState.is} takes a {@code Tag}. */
 +    private static final Tag<Fluid> WATER = fluidTag(FluidTags.WATER);
- 
--    public static boolean below(final net.minecraft.core.BlockPos origin) {
--        return false;
++
 +    @SuppressWarnings("unchecked")
 +    private static Tag<Fluid> fluidTag(final Object named) {
 +        return (Tag<Fluid>) named;
      }
  
--    public static void levelChanged() {
-+    /** A chunk arrived from the server (ClientChunkCache.replaceWithPacketData). */
-+    public static void capture(final LevelChunk chunk) {
-+        if (chunk == null || !Tuning.oceanFloorCulling) {
-+            return;
-+        }
+     /** A chunk arrived from the server (ClientChunkCache.replaceWithPacketData). */
+@@ -58,7 +61,8 @@ public final class OceanFloor {
+         if (chunk == null || !Tuning.oceanFloorCulling) {
+             return;
+         }
+-        final long key = key(chunk.getPos().getMinBlockX() >> 4, chunk.getPos().getMinBlockZ() >> 4);
 +        final ChunkPos pos = chunk.getPos();
 +        final long key = ChunkPos.asLong(pos.x, pos.z);
-+        if (FLOOR.size() >= MAX_CHUNKS) {
-+            FLOOR.clear();
-+        }
-+        try {
-+            int floor = Integer.MAX_VALUE;
-+            for (int x = 2; x < 16; x += 4) {
-+                for (int z = 2; z < 16; z += 4) {
-+                    final int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-+                    // getHeight is the top block on some versions and the free block above it on
-+                    // others: accept water at either.
-+                    int y = water(chunk, x, top, z) ? top : top - 1;
-+                    if (!water(chunk, x, y, z)) {
-+                        FLOOR.remove(key);
-+                        return;
-+                    }
+         if (FLOOR.size() >= MAX_CHUNKS) {
+             FLOOR.clear();
+         }
+@@ -74,8 +78,7 @@ public final class OceanFloor {
+                         FLOOR.remove(key);
+                         return;
+                     }
+-                    // Out-of-range heights read as empty fluid, which ends the column (1.17+).
+-                    for (int guard = 0; guard < 4096 && water(chunk, x, y, z); guard++) {
 +                    while (y > 0 && water(chunk, x, y, z)) {
-+                        y--;
-+                    }
-+                    floor = Math.min(floor, y);
-+                }
-+            }
-+            FLOOR.put(key, floor);
-+        } catch (final RuntimeException e) {
-+            FLOOR.remove(key); // missing heightmap or section: simply not culled
-+        }
+                         y--;
+                     }
+                     floor = Math.min(floor, y);
+@@ -87,71 +90,41 @@ public final class OceanFloor {
+         }
      }
+ 
+-    /**
+-     * Any fluid: the tag API differs on every few versions (Tag, TagKey, TypedInstance), and a lava
+-     * sea hides what lies below it just as well as water.
+-     */
+     private static boolean water(final LevelChunk chunk, final int x, final int y, final int z) {
+-        return !chunk.getFluidState(x, y, z).isEmpty();
++        return y >= 0 && y < 256 && chunk.getFluidState(x, y, z).is(WATER);
+     }
+ 
+-    /** Once per frame, before the visibility search (frame start). */
++    /** Once per frame, before the visibility search (LevelRenderer.renderLevel HEAD). */
+     public static void frame(final ClientLevel level, final Camera camera) {
+         active = Tuning.oceanFloorCulling && level != null && camera != null && !FLOOR.isEmpty()
+-                && ClientHooks.cameraY(camera) > level.getSeaLevel() + 1
+-                && camera.getFluidInCamera() == FogType.NONE;
++                && camera.getPosition().y > level.getSeaLevel() + 1
++                && camera.getFluidInCamera().isEmpty();
+     }
+ 
+     /** True when the section at this origin lies entirely below an ocean floor (minus the margin). */
+     public static boolean below(final BlockPos origin) {
+-        return belowSection(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
+-    }
+-
+-    /** {@link #below} for section coordinates (the visibility search, no allocation). */
+-    public static boolean belowSection(final int sectionX, final int sectionY, final int sectionZ) {
+         if (!active) {
+             return false;
+         }
+-        final int floor = FLOOR.getOrDefault(key(sectionX, sectionZ), NOT_OCEAN);
+-        return floor != NOT_OCEAN && (sectionY << 4) + 16 <= floor - MARGIN;
++        final int floor = FLOOR.getOrDefault(ChunkPos.asLong(origin.getX() >> 4, origin.getZ() >> 4), NOT_OCEAN);
++        return floor != NOT_OCEAN && origin.getY() + 16 <= floor - MARGIN;
+     }
+ 
+     public static void levelChanged() {
+         FLOOR.clear();
+         active = false;
+     }
+-    // @era:t-ocean-floor-else none
+-    //~ public static void capture(final net.minecraft.world.level.chunk.LevelChunk chunk) {
+-    //~ }
+-
+-    //~ public static void frame(final net.minecraft.client.multiplayer.ClientLevel level,
+-                             //~ final net.minecraft.client.Camera camera) {
+-    //~ }
+-
+-    //~ public static boolean below(final net.minecraft.core.BlockPos origin) {
+-        //~ return false;
+-    //~ }
+-
+-    //~ public static boolean belowSection(final int sectionX, final int sectionY, final int sectionZ) {
+-        //~ return false;
+-    //~ }
+-
+-    //~ public static void levelChanged() {
+-    //~ }
 -    // @era:t-ocean-floor-else v16
--    //~ private static final int NOT_OCEAN = Integer.MIN_VALUE;
--    //~ private static final int MARGIN = 8;
--    //~ private static final int MAX_CHUNKS = 65536;
--    //~ private static final Long2IntLinkedOpenHashMap FLOOR = new Long2IntLinkedOpenHashMap();
--    //~ /** This frame: option on, camera above the sea surface and not inside a fluid. */
--    //~ private static boolean active;
++    // @era:t-ocean-floor-else o17
+     //~ private static final int NOT_OCEAN = Integer.MIN_VALUE;
+     //~ private static final int MARGIN = 8;
+     //~ private static final int MAX_CHUNKS = 65536;
++    //~ /** The deepest water column bottom per chunk; an own key, as ChunkPos packing was renamed in 26.1. */
+     //~ private static final Long2IntLinkedOpenHashMap FLOOR = new Long2IntLinkedOpenHashMap();
+     //~ /** This frame: option on, camera above the sea surface and not inside a fluid. */
+     //~ private static boolean active;
  
 -    //~ /** {@code Tag.Named} extends {@code Tag}; widened once, as {@code FluidState.is} takes a {@code Tag}. */
 -    //~ private static final Tag<Fluid> WATER = fluidTag(FluidTags.WATER);
-+    private static boolean water(final LevelChunk chunk, final int x, final int y, final int z) {
-+        return y >= 0 && y < 256 && chunk.getFluidState(x, y, z).is(WATER);
-+    }
- 
+-
 -    //~ @SuppressWarnings("unchecked")
 -    //~ private static Tag<Fluid> fluidTag(final Object named) {
 -        //~ return (Tag<Fluid>) named;
--    //~ }
-+    /** Once per frame, before the visibility search (LevelRenderer.renderLevel HEAD). */
-+    public static void frame(final ClientLevel level, final Camera camera) {
-+        active = Tuning.oceanFloorCulling && level != null && camera != null && !FLOOR.isEmpty()
-+                && camera.getPosition().y > level.getSeaLevel() + 1
-+                && camera.getFluidInCamera().isEmpty();
-+    }
++    //~ private static long key(final int chunkX, final int chunkZ) {
++        //~ return (chunkX & 0xFFFFFFFFL) | ((chunkZ & 0xFFFFFFFFL) << 32);
+     //~ }
  
--    //~ /** A chunk arrived from the server (ClientChunkCache.replaceWithPacketData). */
--    //~ public static void capture(final LevelChunk chunk) {
--        //~ if (chunk == null || !Tuning.oceanFloorCulling) {
--            //~ return;
--        //~ }
+     //~ /** A chunk arrived from the server (ClientChunkCache.replaceWithPacketData). */
+@@ -159,8 +132,7 @@ public final class OceanFloor {
+         //~ if (chunk == null || !Tuning.oceanFloorCulling) {
+             //~ return;
+         //~ }
 -        //~ final ChunkPos pos = chunk.getPos();
 -        //~ final long key = ChunkPos.asLong(pos.x, pos.z);
--        //~ if (FLOOR.size() >= MAX_CHUNKS) {
--            //~ FLOOR.clear();
--        //~ }
--        //~ try {
--            //~ int floor = Integer.MAX_VALUE;
--            //~ for (int x = 2; x < 16; x += 4) {
--                //~ for (int z = 2; z < 16; z += 4) {
--                    //~ final int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
--                    //~ // getHeight is the top block on some versions and the free block above it on
--                    //~ // others: accept water at either.
--                    //~ int y = water(chunk, x, top, z) ? top : top - 1;
--                    //~ if (!water(chunk, x, y, z)) {
--                        //~ FLOOR.remove(key);
--                        //~ return;
--                    //~ }
++        //~ final long key = key(chunk.getPos().getMinBlockX() >> 4, chunk.getPos().getMinBlockZ() >> 4);
+         //~ if (FLOOR.size() >= MAX_CHUNKS) {
+             //~ FLOOR.clear();
+         //~ }
+@@ -176,7 +148,8 @@ public final class OceanFloor {
+                         //~ FLOOR.remove(key);
+                         //~ return;
+                     //~ }
 -                    //~ while (y > 0 && water(chunk, x, y, z)) {
--                        //~ y--;
--                    //~ }
--                    //~ floor = Math.min(floor, y);
--                //~ }
--            //~ }
--            //~ FLOOR.put(key, floor);
--        //~ } catch (final RuntimeException e) {
--            //~ FLOOR.remove(key); // missing heightmap or section: simply not culled
--        //~ }
--    //~ }
-+    /** True when the section at this origin lies entirely below an ocean floor (minus the margin). */
-+    public static boolean below(final BlockPos origin) {
-+        if (!active) {
-+            return false;
-+        }
-+        final int floor = FLOOR.getOrDefault(ChunkPos.asLong(origin.getX() >> 4, origin.getZ() >> 4), NOT_OCEAN);
-+        return floor != NOT_OCEAN && origin.getY() + 16 <= floor - MARGIN;
-+    }
++                    //~ // Out-of-range heights read as empty fluid, which ends the column (1.17+).
++                    //~ for (int guard = 0; guard < 4096 && water(chunk, x, y, z); guard++) {
+                         //~ y--;
+                     //~ }
+                     //~ floor = Math.min(floor, y);
+@@ -188,29 +161,56 @@ public final class OceanFloor {
+         //~ }
+     //~ }
  
--    //~ private static boolean water(final LevelChunk chunk, final int x, final int y, final int z) {
++    //~ /**
++     //~ * Any fluid: the tag API differs on every few versions (Tag, TagKey, TypedInstance), and a lava
++     //~ * sea hides what lies below it just as well as water.
++     //~ */
+     //~ private static boolean water(final LevelChunk chunk, final int x, final int y, final int z) {
 -        //~ return y >= 0 && y < 256 && chunk.getFluidState(x, y, z).is(WATER);
-+    public static void levelChanged() {
-+        FLOOR.clear();
-+        active = false;
-+    }
-+    // @era:t-ocean-floor-else none
-+    //~ public static void capture(final net.minecraft.world.level.chunk.LevelChunk chunk) {
++        //~ return !chunk.getFluidState(x, y, z).isEmpty();
      //~ }
  
 -    //~ /** Once per frame, before the visibility search (LevelRenderer.renderLevel HEAD). */
--    //~ public static void frame(final ClientLevel level, final Camera camera) {
--        //~ active = Tuning.oceanFloorCulling && level != null && camera != null && !FLOOR.isEmpty()
++    //~ /** Once per frame, before the visibility search (frame start). */
+     //~ public static void frame(final ClientLevel level, final Camera camera) {
+         //~ active = Tuning.oceanFloorCulling && level != null && camera != null && !FLOOR.isEmpty()
 -                //~ && camera.getPosition().y > level.getSeaLevel() + 1
 -                //~ && camera.getFluidInCamera().isEmpty();
-+    //~ public static void frame(final net.minecraft.client.multiplayer.ClientLevel level,
-+                             //~ final net.minecraft.client.Camera camera) {
++                //~ && ClientHooks.cameraY(camera) > level.getSeaLevel() + 1
++                //~ && camera.getFluidInCamera() == FogType.NONE;
      //~ }
  
--    //~ /** True when the section at this origin lies entirely below an ocean floor (minus the margin). */
--    //~ public static boolean below(final BlockPos origin) {
--        //~ if (!active) {
--            //~ return false;
--        //~ }
+     //~ /** True when the section at this origin lies entirely below an ocean floor (minus the margin). */
+     //~ public static boolean below(final BlockPos origin) {
++        //~ return belowSection(origin.getX() >> 4, origin.getY() >> 4, origin.getZ() >> 4);
++    //~ }
++
++    //~ /** {@link #below} for section coordinates (the visibility search, no allocation). */
++    //~ public static boolean belowSection(final int sectionX, final int sectionY, final int sectionZ) {
+         //~ if (!active) {
+             //~ return false;
+         //~ }
 -        //~ final int floor = FLOOR.getOrDefault(ChunkPos.asLong(origin.getX() >> 4, origin.getZ() >> 4), NOT_OCEAN);
 -        //~ return floor != NOT_OCEAN && origin.getY() + 16 <= floor - MARGIN;
-+    //~ public static boolean below(final net.minecraft.core.BlockPos origin) {
-+        //~ return false;
++        //~ final int floor = FLOOR.getOrDefault(key(sectionX, sectionZ), NOT_OCEAN);
++        //~ return floor != NOT_OCEAN && (sectionY << 4) + 16 <= floor - MARGIN;
      //~ }
  
      //~ public static void levelChanged() {
--        //~ FLOOR.clear();
--        //~ active = false;
+         //~ FLOOR.clear();
+         //~ active = false;
      //~ }
++    // @era:t-ocean-floor-else none
++    //~ public static void capture(final net.minecraft.world.level.chunk.LevelChunk chunk) {
++    //~ }
++
++    //~ public static void frame(final net.minecraft.client.multiplayer.ClientLevel level,
++                             //~ final net.minecraft.client.Camera camera) {
++    //~ }
++
++    //~ public static boolean below(final net.minecraft.core.BlockPos origin) {
++        //~ return false;
++    //~ }
++
++    //~ public static boolean belowSection(final int sectionX, final int sectionY, final int sectionZ) {
++        //~ return false;
++    //~ }
++
++    //~ public static void levelChanged() {
++    //~ }
      // @era:t-ocean-floor-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
@@ -9153,16 +9203,16 @@ index 5050292..6b752dd 100644
      // @era:t-crowd-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
-index 32cadd7..36ce1ed 100644
+index 3457c55..08e38db 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
-@@ -1,14 +1,23 @@
+@@ -1,15 +1,24 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:t-cull-begin c202
 +// @era:t-cull-begin v16
-+import com.aetherium.client.OceanFloor;
+ import com.aetherium.client.OceanFloor;
  import com.aetherium.perf.Tuning;
 +import net.minecraft.client.renderer.LevelRenderer;
 +import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
@@ -9175,6 +9225,7 @@ index 32cadd7..36ce1ed 100644
 -import net.minecraft.core.BlockPos;
 +import org.spongepowered.asm.mixin.injection.Redirect;
 +// @era:t-cull-else c202
++//~ import com.aetherium.client.OceanFloor;
 +//~ import com.aetherium.perf.Tuning;
 +//~ import net.minecraft.core.Direction;
 +//~ import org.spongepowered.asm.mixin.injection.At;
@@ -9183,9 +9234,9 @@ index 32cadd7..36ce1ed 100644
 +//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 +//~ import net.minecraft.core.BlockPos;
  // @era:t-cull-else c17
+ //~ import com.aetherium.client.OceanFloor;
  //~ import com.aetherium.perf.Tuning;
- //~ import net.minecraft.core.Direction;
-@@ -26,15 +35,6 @@ import net.minecraft.core.BlockPos;
+@@ -29,15 +38,6 @@ import net.minecraft.core.BlockPos;
  //~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
  //~ import net.minecraft.core.SectionPos;
  // @era:t-cull-else none
@@ -9201,9 +9252,9 @@ index 32cadd7..36ce1ed 100644
  // @era:t-cull-end
  
  /**
-@@ -53,48 +53,57 @@ import net.minecraft.core.BlockPos;
-  * <p>A redirect of the single call site (offset 1001) instead of a cancellable inject, so the
-  * search allocates nothing per step.</p>
+@@ -57,60 +57,57 @@ import net.minecraft.core.BlockPos;
+  * nothing per step; on 1.17+ a HEAD inject into that neighbour lookup ({@code getRelativeFrom}),
+  * whose only caller is the visibility search.</p>
   */
 -// @era:t-cull-begin c202|c215
 -@Mixin(targets = "net.minecraft.client.renderer.SectionOcclusionGraph")
@@ -9224,7 +9275,7 @@ index 32cadd7..36ce1ed 100644
 -    @Inject(method = "getRelativeFrom", at = @At("HEAD"), cancellable = true, require = 0)
 -    private void aetherium$neighbour(final BlockPos camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
 -                                     final CallbackInfoReturnable<?> cir) {
--        if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+-        if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
 -            cir.setReturnValue(null);
 +    // @era:t-cull-begin v16
 +    @Redirect(method = "setupRender", at = @At(value = "INVOKE",
@@ -9236,11 +9287,22 @@ index 32cadd7..36ce1ed 100644
 +        if (Tuning.directionalCulling && towardsCamera(camera, from.getOrigin(), direction)) {
 +            return null;
          }
+-    }
+-
+-    /**
+-     * Directional culling, and ocean floor culling ({@code OceanFloor}, off by default): no step into
+-     * a section deep below an ocean floor while the camera is above the water.
+-     */
+-    private static boolean aetherium$refuse(final int cx, final int cy, final int cz, final int fx, final int fy,
+-                                            final int fz, final Direction direction) {
+-        if (Tuning.directionalCulling && aetherium$towardsCamera(cx, cy, cz, fx, fy, fz, direction)) {
+-            return true;
 +        final ChunkRenderDispatcher.RenderChunk next =
 +                ((TuningLevelAccessor) (Object) self).aetherium$relativeFrom(camera, from, direction);
 +        if (next != null && OceanFloor.below(next.getOrigin())) {
 +            return null;
-+        }
+         }
+-        return OceanFloor.belowSection(fx + direction.getStepX(), fy + direction.getStepY(), fz + direction.getStepZ());
 +        return next;
      }
  
@@ -9280,9 +9342,9 @@ index 32cadd7..36ce1ed 100644
 -    //~ private void aetherium$neighbour(final BlockPos camera, final ChunkRenderDispatcher.RenderChunk from, final Direction direction,
 +    //~ private void aetherium$neighbour(final BlockPos camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
                                       //~ final CallbackInfoReturnable<?> cir) {
-         //~ if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+         //~ if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
              //~ cir.setReturnValue(null);
-@@ -115,16 +124,16 @@ public abstract class TuningCullMixin {
+@@ -143,16 +140,16 @@ public abstract class TuningCullMixin {
          //~ final int sz = direction.getStepZ();
          //~ return sz > 0 ? fz < cz : fz > cz;
      //~ }
@@ -9297,12 +9359,12 @@ index 32cadd7..36ce1ed 100644
 -    //~ private void aetherium$neighbour(final long camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
 +    //~ private void aetherium$neighbour(final BlockPos camera, final ChunkRenderDispatcher.RenderChunk from, final Direction direction,
                                       //~ final CallbackInfoReturnable<?> cir) {
--        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
-+        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+-        //~ if (aetherium$refuse(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
++        //~ if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
              //~ cir.setReturnValue(null);
          //~ }
      //~ }
-@@ -143,43 +152,34 @@ public abstract class TuningCullMixin {
+@@ -183,43 +180,46 @@ public abstract class TuningCullMixin {
          //~ final int sz = direction.getStepZ();
          //~ return sz > 0 ? fz < cz : fz > cz;
      //~ }
@@ -9316,11 +9378,6 @@ index 32cadd7..36ce1ed 100644
 -                                                                  //~ final Direction direction) {
 -        //~ if (Tuning.directionalCulling && towardsCamera(camera, from.getOrigin(), direction)) {
 -            //~ return null;
--        //~ }
--        //~ final ChunkRenderDispatcher.RenderChunk next =
--                //~ ((TuningLevelAccessor) (Object) self).aetherium$relativeFrom(camera, from, direction);
--        //~ if (next != null && OceanFloor.below(next.getOrigin())) {
--            //~ return null;
 +    // @era:t-cull-else c215
 +    //~ /**
 +     //~ * Directional culling: refuse a search step that moves back towards the camera on its axis.
@@ -9330,10 +9387,26 @@ index 32cadd7..36ce1ed 100644
 +    //~ @Inject(method = "getRelativeFrom", at = @At("HEAD"), cancellable = true, require = 0)
 +    //~ private void aetherium$neighbour(final long camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
 +                                     //~ final CallbackInfoReturnable<?> cir) {
-+        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
++        //~ if (aetherium$refuse(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
 +            //~ cir.setReturnValue(null);
          //~ }
+-        //~ final ChunkRenderDispatcher.RenderChunk next =
+-                //~ ((TuningLevelAccessor) (Object) self).aetherium$relativeFrom(camera, from, direction);
+-        //~ if (next != null && OceanFloor.below(next.getOrigin())) {
+-            //~ return null;
++    //~ }
++
++    //~ /**
++     //~ * Directional culling, and ocean floor culling ({@code OceanFloor}, off by default): no step into
++     //~ * a section deep below an ocean floor while the camera is above the water.
++     //~ */
++    //~ private static boolean aetherium$refuse(final int cx, final int cy, final int cz, final int fx, final int fy,
++                                            //~ final int fz, final Direction direction) {
++        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(cx, cy, cz, fx, fy, fz, direction)) {
++            //~ return true;
+         //~ }
 -        //~ return next;
++        //~ return OceanFloor.belowSection(fx + direction.getStepX(), fy + direction.getStepY(), fz + direction.getStepZ());
      //~ }
  
 -    //~ /** True when stepping from the section at {@code origin} in {@code direction} moves back towards the camera's section. */
@@ -9406,7 +9479,7 @@ index d526b63..2a80692 100644
      //~ @Redirect(method = "extractRenderState(Lnet/minecraft/world/entity/decoration/ItemFrame;Lnet/minecraft/client/renderer/entity/state/ItemFrameRenderState;F)V",
              //~ at = @At(value = "INVOKE",
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
-index 119cd7b..5b46cab 100644
+index e591891..2d7c86f 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
 @@ -1,37 +1,37 @@
@@ -9456,12 +9529,12 @@ index 119cd7b..5b46cab 100644
  //~ import org.spongepowered.asm.mixin.injection.Redirect;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:t-gl-state-else none
+ // @era:t-gl-state-else g215
+ //~ import com.aetherium.perf.RenderMods;
+ //~ import com.aetherium.perf.Tuning;
+@@ -67,7 +67,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ //~ @Mixin(targets = "com.mojang.blaze3d.opengl.GlStateManager")
  // @era:t-gl-state-end
- 
- /**
-@@ -56,7 +56,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-  */
- @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
  public abstract class TuningGlStateMixin {
 -    // @era:t-gl-state-begin g17
 +    // @era:t-gl-state-begin v16
@@ -9476,7 +9549,7 @@ index 119cd7b..5b46cab 100644
      @Unique
      private static boolean aetherium$viewportKnown;
      @Unique
-@@ -67,13 +75,59 @@ public abstract class TuningGlStateMixin {
+@@ -78,13 +86,59 @@ public abstract class TuningGlStateMixin {
      private static int aetherium$vw;
      @Unique
      private static int aetherium$vh;
@@ -9537,7 +9610,7 @@ index 119cd7b..5b46cab 100644
      @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
      private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
          if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
-@@ -88,29 +142,45 @@ public abstract class TuningGlStateMixin {
+@@ -99,29 +153,45 @@ public abstract class TuningGlStateMixin {
          GL11.glViewport(x, y, w, h);
      }
  
@@ -9599,7 +9672,7 @@ index 119cd7b..5b46cab 100644
      //~ @Unique
      //~ private static boolean aetherium$viewportKnown;
      //~ @Unique
-@@ -141,16 +211,30 @@ public abstract class TuningGlStateMixin {
+@@ -152,16 +222,30 @@ public abstract class TuningGlStateMixin {
          //~ aetherium$vh = h;
          //~ GL11.glViewport(x, y, w, h);
      //~ }
@@ -9636,7 +9709,7 @@ index 119cd7b..5b46cab 100644
      //~ @Unique
      //~ private static boolean aetherium$viewportKnown;
      //~ @Unique
-@@ -161,59 +245,13 @@ public abstract class TuningGlStateMixin {
+@@ -172,59 +256,13 @@ public abstract class TuningGlStateMixin {
      //~ private static int aetherium$vw;
      //~ @Unique
      //~ private static int aetherium$vh;
@@ -9697,7 +9770,7 @@ index 119cd7b..5b46cab 100644
      //~ @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
      //~ private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
          //~ if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
-@@ -227,44 +265,6 @@ public abstract class TuningGlStateMixin {
+@@ -238,45 +276,7 @@ public abstract class TuningGlStateMixin {
          //~ aetherium$vh = h;
          //~ GL11.glViewport(x, y, w, h);
      //~ }
@@ -9741,8 +9814,9 @@ index 119cd7b..5b46cab 100644
 -        //~ aetherium$overlaySize = size;
 -    //~ }
 +    // @era:t-gl-state-else none
-     // @era:t-gl-state-end
- }
+     // @era:t-gl-state-else g215
+     //~ @Unique
+     //~ private static boolean aetherium$viewportKnown;
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
 index c4a5001..688b9e5 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
@@ -12340,10 +12414,10 @@ index 3ccd445..f069e2d 100644
      // @era:options-end
  
 diff --git a/common/src/main/java/com/aetherium/perf/TuningSupport.java b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-index f94a92c..e40a106 100644
+index 30d1583..f646a1b 100644
 --- a/common/src/main/java/com/aetherium/perf/TuningSupport.java
 +++ b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-@@ -70,10 +70,10 @@ public final class TuningSupport {
+@@ -94,10 +94,10 @@ public final class TuningSupport {
      //~ public static final boolean EXPLOSION = false;
      // @era:t-explosion-end
  
@@ -12358,7 +12432,7 @@ index f94a92c..e40a106 100644
      // @era:t-far-terrain-end
  
      // @era:t-flight-preload-begin f20|f215|f216|v16
-@@ -124,10 +124,10 @@ public final class TuningSupport {
+@@ -148,10 +148,10 @@ public final class TuningSupport {
      //~ public static final boolean LAYERS = false;
      // @era:t-layers-end
  
@@ -12373,7 +12447,7 @@ index f94a92c..e40a106 100644
      // @era:t-lazy-data-fixers-end
  
      // @era:t-leaf-cull-begin f17|f212|f215|v16
-@@ -148,10 +148,10 @@ public final class TuningSupport {
+@@ -172,10 +172,10 @@ public final class TuningSupport {
      //~ public static final boolean LEVEL = false;
      // @era:t-level-end
  
@@ -12388,9 +12462,19 @@ index f94a92c..e40a106 100644
      // @era:t-levelacc-end
  
      // @era:t-light-begin v16
-@@ -184,10 +184,10 @@ public final class TuningSupport {
+@@ -208,16 +208,16 @@ public final class TuningSupport {
      //~ public static final boolean MINECART = false;
      // @era:t-minecart-end
+ 
+-    // @era:t-damage-tint-begin none
+-    public static final boolean DAMAGE_TINT = false;
+-    // @era:t-damage-tint-else v16
+-    //~ public static final boolean DAMAGE_TINT = true;
++    // @era:t-damage-tint-begin v16
++    public static final boolean DAMAGE_TINT = true;
++    // @era:t-damage-tint-else none
++    //~ public static final boolean DAMAGE_TINT = false;
+     // @era:t-damage-tint-end
  
 -    // @era:t-crowd-begin c17
 -    public static final boolean CROWD = true;
@@ -12403,22 +12487,7 @@ index f94a92c..e40a106 100644
      // @era:t-crowd-end
  
      // @era:t-name-tag-begin n17|n212|v16
-@@ -196,10 +196,10 @@ public final class TuningSupport {
-     //~ public static final boolean NAME_TAG = false;
-     // @era:t-name-tag-end
- 
--    // @era:t-ocean-floor-begin none
--    public static final boolean OCEAN_FLOOR = false;
--    // @era:t-ocean-floor-else v16
--    //~ public static final boolean OCEAN_FLOOR = true;
-+    // @era:t-ocean-floor-begin v16
-+    public static final boolean OCEAN_FLOOR = true;
-+    // @era:t-ocean-floor-else none
-+    //~ public static final boolean OCEAN_FLOOR = false;
-     // @era:t-ocean-floor-end
- 
-     // @era:t-portal-begin p21|p215|v16
-@@ -214,10 +214,10 @@ public final class TuningSupport {
+@@ -244,10 +244,10 @@ public final class TuningSupport {
      //~ public static final boolean SERVER_IDLE = false;
      // @era:t-server-idle-end
  
@@ -12433,7 +12502,7 @@ index f94a92c..e40a106 100644
      // @era:t-server-light-end
  
      // @era:t-shadow-begin s17|s212|s219|v16
-@@ -238,16 +238,16 @@ public final class TuningSupport {
+@@ -268,16 +268,16 @@ public final class TuningSupport {
      //~ public static final boolean SKIN = false;
      // @era:t-skin-end
  
@@ -12458,7 +12527,7 @@ index f94a92c..e40a106 100644
      // @era:t-skull-lookup-end
  
      // @era:t-sky-begin e17|e21|v16
-@@ -256,10 +256,10 @@ public final class TuningSupport {
+@@ -286,10 +286,10 @@ public final class TuningSupport {
      //~ public static final boolean SKY = false;
      // @era:t-sky-end
  
@@ -12512,7 +12581,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index f5e95d4..0dfbfa8 100644
+index fe2ac84..0f57948 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

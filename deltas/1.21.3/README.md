@@ -29,15 +29,18 @@ neoforge_version=21.3.97
 - `registry=builtin`
 - `sky=renderer`
 - `t-ao-cache=v16`
-- `t-autosave=s18`
+- `t-autosave=s214`
 - `t-beam=v16`
 - `t-block-entity=b17`
 - `t-build-order=none`
 - `t-chunk-save=c21`
 - `t-client=v16`
+- `t-clouds=none`
 - `t-color-filter=r17`
+- `t-compile-queue=q212`
 - `t-crowd=c17`
 - `t-cull=c202`
+- `t-damage-tint=none`
 - `t-explosion=x212`
 - `t-far-terrain=none`
 - `t-flight-preload=f20`
@@ -59,7 +62,7 @@ neoforge_version=21.3.97
 - `t-map=m212`
 - `t-minecart=m212`
 - `t-name-tag=n212`
-- `t-ocean-floor=none`
+- `t-ocean-floor=o17`
 - `t-portal=p21`
 - `t-raw-frame=r212`
 - `t-server-idle=v16`
@@ -70,7 +73,9 @@ neoforge_version=21.3.97
 - `t-skull-lookup=none`
 - `t-skull=none`
 - `t-sky=none`
+- `t-sort=s212`
 - `t-view-areaacc=none`
+- `t-weather=w212`
 - `t-world-cache=r17`
 - `t-world=w21`
 - `weather=effect`
@@ -110,7 +115,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.3.t
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningCompileQueueMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java`
@@ -123,6 +130,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.3.t
 - `common/src/main/java/com/aetherium/mixin/core/TuningNameTagMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningSortMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningWeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`

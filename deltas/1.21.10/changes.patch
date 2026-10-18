@@ -204,10 +204,25 @@ index e5e224a..02c8446 100644
      // @era:input-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 47543d5..80cd538 100644
+index f0f2a33..2beb0dc 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -456,10 +456,10 @@ public final class ClientHooks {
+@@ -453,10 +453,10 @@ public final class ClientHooks {
+ 
+     /** The camera's eye height (Camera.getPosition became position() in 1.21.6). */
+     public static double cameraY(final net.minecraft.client.Camera camera) {
+-        // @era:cam-pos-begin getter
+-        return camera.getPosition().y;
+-        // @era:cam-pos-else position
+-        //~ return camera.position().y;
++        // @era:cam-pos-begin position
++        return camera.position().y;
++        // @era:cam-pos-else getter
++        //~ return camera.getPosition().y;
+         // @era:cam-pos-end
+     }
+ 
+@@ -466,10 +466,10 @@ public final class ClientHooks {
          if (camera == null) {
              return 0.0;
          }
@@ -3933,19 +3948,167 @@ index 018e37c..5f8f653 100644
                  //~ saved++;
              //~ }
          //~ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCloudsMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningCloudsMixin.java
+index d240c55..99ebd97 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningCloudsMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningCloudsMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:t-clouds-begin none
+-// @era:t-clouds-else k216
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.client.OptionInstance;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:t-clouds-begin k216
++import com.aetherium.perf.Tuning;
++import net.minecraft.client.OptionInstance;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:t-clouds-else none
+ // @era:t-clouds-else k261
+ //~ import com.aetherium.perf.Tuning;
+ //~ import org.spongepowered.asm.mixin.Unique;
+@@ -26,21 +26,21 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.CloudRenderer")
+ public abstract class TuningCloudsMixin {
+-    // @era:t-clouds-begin none
+-    // @era:t-clouds-else k216
+-    //~ /** The vanilla cloud range (in chunks) scaled by the cloud distance option, at least 2 chunks. */
+-    //~ @Unique
+-    //~ private static int aetherium$scaled(final int range) {
+-        //~ final int percent = Tuning.cloudDistance;
+-        //~ return percent >= 100 ? range : Math.max(2, (range * percent + 50) / 100);
+-    //~ }
++    // @era:t-clouds-begin k216
++    /** The vanilla cloud range (in chunks) scaled by the cloud distance option, at least 2 chunks. */
++    @Unique
++    private static int aetherium$scaled(final int range) {
++        final int percent = Tuning.cloudDistance;
++        return percent >= 100 ? range : Math.max(2, (range * percent + 50) / 100);
++    }
+ 
+-    //~ @Redirect(method = "render", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;"), require = 0)
+-    //~ private Object aetherium$cloudRange(final OptionInstance<?> option) {
+-        //~ final Object range = option.get();
+-        //~ return range instanceof Integer ? Integer.valueOf(aetherium$scaled(((Integer) range).intValue())) : range;
+-    //~ }
++    @Redirect(method = "render", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;"), require = 0)
++    private Object aetherium$cloudRange(final OptionInstance<?> option) {
++        final Object range = option.get();
++        return range instanceof Integer ? Integer.valueOf(aetherium$scaled(((Integer) range).intValue())) : range;
++    }
++    // @era:t-clouds-else none
+     // @era:t-clouds-else k261
+     //~ /** The vanilla cloud range (in chunks) scaled by the cloud distance option, at least 2 chunks. */
+     //~ @Unique
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCompileQueueMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningCompileQueueMixin.java
+index f2b8928..7040284 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningCompileQueueMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningCompileQueueMixin.java
+@@ -1,17 +1,17 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:t-compile-queue-begin none
+-// @era:t-compile-queue-else q212
+-//~ import com.aetherium.client.ClientHooks;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.core.Position;
+-//~ import net.minecraft.world.phys.Vec3;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:t-compile-queue-begin q212
++import com.aetherium.client.ClientHooks;
++import com.aetherium.perf.Tuning;
++import net.minecraft.client.Camera;
++import net.minecraft.client.Minecraft;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Position;
++import net.minecraft.world.phys.Vec3;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:t-compile-queue-else none
+ // @era:t-compile-queue-else q2111
+ //~ import com.aetherium.client.ClientHooks;
+ //~ import com.aetherium.perf.Tuning;
+@@ -33,29 +33,29 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.CompileTaskDynamicQueue")
+ public abstract class TuningCompileQueueMixin {
+-    // @era:t-compile-queue-begin none
+-    // @era:t-compile-queue-else q212
+-    //~ @Redirect(method = "poll", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/core/BlockPos;distToCenterSqr(Lnet/minecraft/core/Position;)D"),
+-            //~ require = 0)
+-    //~ private double aetherium$priority(final BlockPos origin, final Position cameraPos) {
+-        //~ // Vanilla's BlockPos.distToCenterSqr, written out (the argument is always the camera Vec3).
+-        //~ final Vec3 eye = (Vec3) cameraPos;
+-        //~ final double dx = origin.getX() + 0.5 - eye.x;
+-        //~ final double dy = origin.getY() + 0.5 - eye.y;
+-        //~ final double dz = origin.getZ() + 0.5 - eye.z;
+-        //~ final double distSq = dx * dx + dy * dy + dz * dz;
+-        //~ if (!Tuning.viewFirstBuilding || distSq <= 24.0 * 24.0) {
+-            //~ return distSq;
+-        //~ }
+-        //~ final Camera camera = ClientHooks.mainCamera(Minecraft.getInstance());
+-        //~ if (camera == null) {
+-            //~ return distSq;
+-        //~ }
+-        //~ final var look = camera.getLookVector();
+-        //~ final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
+-        //~ return distSq * (1.0 + 0.75 * (1.0 - cos));
+-    //~ }
++    // @era:t-compile-queue-begin q212
++    @Redirect(method = "poll", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/core/BlockPos;distToCenterSqr(Lnet/minecraft/core/Position;)D"),
++            require = 0)
++    private double aetherium$priority(final BlockPos origin, final Position cameraPos) {
++        // Vanilla's BlockPos.distToCenterSqr, written out (the argument is always the camera Vec3).
++        final Vec3 eye = (Vec3) cameraPos;
++        final double dx = origin.getX() + 0.5 - eye.x;
++        final double dy = origin.getY() + 0.5 - eye.y;
++        final double dz = origin.getZ() + 0.5 - eye.z;
++        final double distSq = dx * dx + dy * dy + dz * dz;
++        if (!Tuning.viewFirstBuilding || distSq <= 24.0 * 24.0) {
++            return distSq;
++        }
++        final Camera camera = ClientHooks.mainCamera(Minecraft.getInstance());
++        if (camera == null) {
++            return distSq;
++        }
++        final var look = camera.getLookVector();
++        final double cos = (dx * look.x() + dy * look.y() + dz * look.z()) / Math.sqrt(distSq);
++        return distSq * (1.0 + 0.75 * (1.0 - cos));
++    }
++    // @era:t-compile-queue-else none
+     // @era:t-compile-queue-else q2111
+     //~ @Redirect(method = "poll", at = @At(value = "INVOKE",
+             //~ target = "Lnet/minecraft/core/BlockPos;distToCenterSqr(Lnet/minecraft/core/Position;)D"),
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
-index 32cadd7..b56aaec 100644
+index 3457c55..e7a0b36 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
-@@ -1,30 +1,30 @@
+@@ -1,7 +1,7 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:t-cull-begin c202
 +// @era:t-cull-begin c215
+ import com.aetherium.client.OceanFloor;
  import com.aetherium.perf.Tuning;
  import net.minecraft.core.Direction;
- import org.spongepowered.asm.mixin.injection.At;
+@@ -9,25 +9,25 @@ import org.spongepowered.asm.mixin.injection.At;
  import org.spongepowered.asm.mixin.injection.Inject;
  import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
@@ -3953,6 +4116,7 @@ index 32cadd7..b56aaec 100644
 -// @era:t-cull-else c17
 +import net.minecraft.core.SectionPos;
 +// @era:t-cull-else c202
+ //~ import com.aetherium.client.OceanFloor;
  //~ import com.aetherium.perf.Tuning;
  //~ import net.minecraft.core.Direction;
  //~ import org.spongepowered.asm.mixin.injection.At;
@@ -3963,6 +4127,7 @@ index 32cadd7..b56aaec 100644
  //~ import net.minecraft.core.BlockPos;
 -// @era:t-cull-else c215
 +// @era:t-cull-else c17
+ //~ import com.aetherium.client.OceanFloor;
  //~ import com.aetherium.perf.Tuning;
  //~ import net.minecraft.core.Direction;
  //~ import org.spongepowered.asm.mixin.injection.At;
@@ -3975,7 +4140,7 @@ index 32cadd7..b56aaec 100644
  // @era:t-cull-else none
  // @era:t-cull-else v16
  //~ import com.aetherium.client.OceanFloor;
-@@ -59,16 +59,16 @@ import net.minecraft.core.BlockPos;
+@@ -63,16 +63,16 @@ import net.minecraft.core.BlockPos;
  //~ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  // @era:t-cull-end
  public abstract class TuningCullMixin {
@@ -3990,12 +4155,12 @@ index 32cadd7..b56aaec 100644
 -    private void aetherium$neighbour(final BlockPos camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
 +    private void aetherium$neighbour(final long camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
                                       final CallbackInfoReturnable<?> cir) {
--        if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
-+        if (Tuning.directionalCulling && aetherium$towardsCamera(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
+-        if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
++        if (aetherium$refuse(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
              cir.setReturnValue(null);
          }
      }
-@@ -87,14 +87,14 @@ public abstract class TuningCullMixin {
+@@ -103,14 +103,14 @@ public abstract class TuningCullMixin {
          final int sz = direction.getStepZ();
          return sz > 0 ? fz < cz : fz > cz;
      }
@@ -4010,9 +4175,9 @@ index 32cadd7..b56aaec 100644
 -    //~ private void aetherium$neighbour(final BlockPos camera, final ChunkRenderDispatcher.RenderChunk from, final Direction direction,
 +    //~ private void aetherium$neighbour(final BlockPos camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
                                       //~ final CallbackInfoReturnable<?> cir) {
-         //~ if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+         //~ if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
              //~ cir.setReturnValue(null);
-@@ -115,16 +115,16 @@ public abstract class TuningCullMixin {
+@@ -143,16 +143,16 @@ public abstract class TuningCullMixin {
          //~ final int sz = direction.getStepZ();
          //~ return sz > 0 ? fz < cz : fz > cz;
      //~ }
@@ -4027,8 +4192,8 @@ index 32cadd7..b56aaec 100644
 -    //~ private void aetherium$neighbour(final long camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
 +    //~ private void aetherium$neighbour(final BlockPos camera, final ChunkRenderDispatcher.RenderChunk from, final Direction direction,
                                       //~ final CallbackInfoReturnable<?> cir) {
--        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
-+        //~ if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+-        //~ if (aetherium$refuse(SectionPos.x(camera), SectionPos.y(camera), SectionPos.z(camera), SectionPos.x(from.getSectionNode()), SectionPos.y(from.getSectionNode()), SectionPos.z(from.getSectionNode()), direction)) {
++        //~ if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
              //~ cir.setReturnValue(null);
          //~ }
      //~ }
@@ -4168,24 +4333,24 @@ index d526b63..ecf8231 100644
      //~ private ItemStack aetherium$frameItem(final ItemFrame frame) {
          //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera(frame))) {
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
-index 119cd7b..351cd88 100644
+index e591891..94beb9a 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java
-@@ -1,16 +1,17 @@
+@@ -1,16 +1,23 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:t-gl-state-begin g17
--import com.aetherium.perf.RenderMods;
--import com.aetherium.perf.Tuning;
--import org.lwjgl.opengl.GL11;
--import org.spongepowered.asm.mixin.Unique;
--import org.spongepowered.asm.mixin.injection.At;
--import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:t-gl-state-begin g215
+ import com.aetherium.perf.RenderMods;
+ import com.aetherium.perf.Tuning;
+ import org.lwjgl.opengl.GL11;
+ import org.spongepowered.asm.mixin.Unique;
+ import org.spongepowered.asm.mixin.injection.At;
+ import org.spongepowered.asm.mixin.injection.Redirect;
 -import org.lwjgl.opengl.GL30;
 -import org.spongepowered.asm.mixin.injection.Inject;
 -import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:t-gl-state-begin none
 +// @era:t-gl-state-else g17
 +//~ import com.aetherium.perf.RenderMods;
 +//~ import com.aetherium.perf.Tuning;
@@ -4199,30 +4364,43 @@ index 119cd7b..351cd88 100644
  // @era:t-gl-state-else g212
  //~ import com.aetherium.perf.RenderMods;
  //~ import com.aetherium.perf.Tuning;
-@@ -18,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
- //~ import org.spongepowered.asm.mixin.Unique;
- //~ import org.spongepowered.asm.mixin.injection.At;
+@@ -32,13 +39,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ //~ import org.spongepowered.asm.mixin.injection.Inject;
  //~ import org.spongepowered.asm.mixin.injection.Redirect;
--// @era:t-gl-state-else none
- // @era:t-gl-state-else v16
- //~ import com.aetherium.perf.RenderMods;
- //~ import com.aetherium.perf.Tuning;
-@@ -56,60 +56,61 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+ //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-// @era:t-gl-state-else g215
+-//~ import com.aetherium.perf.RenderMods;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import org.lwjgl.opengl.GL11;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+ // @era:t-gl-state-end
+ 
+ /**
+@@ -61,13 +61,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+  * <p>Both are off next to OptiFine, Iris or Canvas ({@link RenderMods}), which change GL state
+  * behind {@code GlStateManager}'s back.</p>
   */
- @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
+-// @era:t-gl-state-begin g17|g212|none|v16
+-@Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
+-// @era:t-gl-state-else g215
+-//~ @Mixin(targets = "com.mojang.blaze3d.opengl.GlStateManager")
++// @era:t-gl-state-begin g215
++@Mixin(targets = "com.mojang.blaze3d.opengl.GlStateManager")
++// @era:t-gl-state-else g17|g212|none|v16
++//~ @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
+ // @era:t-gl-state-end
  public abstract class TuningGlStateMixin {
 -    // @era:t-gl-state-begin g17
--    @Unique
--    private static boolean aetherium$viewportKnown;
--    @Unique
--    private static int aetherium$vx;
--    @Unique
--    private static int aetherium$vy;
--    @Unique
--    private static int aetherium$vw;
--    @Unique
--    private static int aetherium$vh;
-+    // @era:t-gl-state-begin none
++    // @era:t-gl-state-begin g215
+     @Unique
+     private static boolean aetherium$viewportKnown;
+     @Unique
+@@ -98,29 +98,60 @@ public abstract class TuningGlStateMixin {
+         aetherium$vh = h;
+         GL11.glViewport(x, y, w, h);
+     }
 +    // @era:t-gl-state-else g17
 +    //~ @Unique
 +    //~ private static boolean aetherium$viewportKnown;
@@ -4235,29 +4413,14 @@ index 119cd7b..351cd88 100644
 +    //~ @Unique
 +    //~ private static int aetherium$vh;
  
--    @Unique
--    private static boolean aetherium$trim() {
--        return Tuning.glStateCache && !RenderMods.PRESENT;
--    }
+-    private static final int GL_FRAMEBUFFER = 36160;
 +    //~ @Unique
 +    //~ private static boolean aetherium$trim() {
 +        //~ return Tuning.glStateCache && !RenderMods.PRESENT;
 +    //~ }
  
--    /** Vanilla still records the viewport in GlStateManager.Viewport; only the repeated GL call is skipped. */
--    @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
--    private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
--        if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
--                && w == aetherium$vw && h == aetherium$vh) {
--            return;
--        }
--        aetherium$viewportKnown = true;
--        aetherium$vx = x;
--        aetherium$vy = y;
--        aetherium$vw = w;
--        aetherium$vh = h;
--        GL11.glViewport(x, y, w, h);
--    }
+-    @Unique
+-    private static int aetherium$fbo = -1;
 +    //~ /** Vanilla still records the viewport in GlStateManager.Viewport; only the repeated GL call is skipped. */
 +    //~ @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
 +    //~ private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
@@ -4273,14 +4436,6 @@ index 119cd7b..351cd88 100644
 +        //~ GL11.glViewport(x, y, w, h);
 +    //~ }
  
--    private static final int GL_FRAMEBUFFER = 36160;
-+    //~ private static final int GL_FRAMEBUFFER = 36160;
- 
--    @Unique
--    private static int aetherium$fbo = -1;
-+    //~ @Unique
-+    //~ private static int aetherium$fbo = -1;
- 
 -    /** 1.17 - 1.21.1 bind every framebuffer through GL30 without a cache (1.21.2 added its own). */
 -    @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL30;glBindFramebuffer(II)V"), require = 0)
 -    private static void aetherium$bindCore(final int target, final int id) {
@@ -4293,6 +4448,15 @@ index 119cd7b..351cd88 100644
 -        }
 -        GL30.glBindFramebuffer(target, id);
 -    }
++    //~ private static final int GL_FRAMEBUFFER = 36160;
+ 
+-    @Inject(method = "_glDeleteFramebuffers", at = @At("HEAD"), require = 0)
+-    private static void aetherium$deleteFbo(final int id, final CallbackInfo ci) {
+-        aetherium$fbo = -1;
+-    }
++    //~ @Unique
++    //~ private static int aetherium$fbo = -1;
++
 +    //~ /** 1.17 - 1.21.1 bind every framebuffer through GL30 without a cache (1.21.2 added its own). */
 +    //~ @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL30;glBindFramebuffer(II)V"), require = 0)
 +    //~ private static void aetherium$bindCore(final int target, final int id) {
@@ -4305,11 +4469,7 @@ index 119cd7b..351cd88 100644
 +        //~ }
 +        //~ GL30.glBindFramebuffer(target, id);
 +    //~ }
- 
--    @Inject(method = "_glDeleteFramebuffers", at = @At("HEAD"), require = 0)
--    private static void aetherium$deleteFbo(final int id, final CallbackInfo ci) {
--        aetherium$fbo = -1;
--    }
++
 +    //~ @Inject(method = "_glDeleteFramebuffers", at = @At("HEAD"), require = 0)
 +    //~ private static void aetherium$deleteFbo(final int id, final CallbackInfo ci) {
 +        //~ aetherium$fbo = -1;
@@ -4317,14 +4477,43 @@ index 119cd7b..351cd88 100644
      // @era:t-gl-state-else g212
      //~ @Unique
      //~ private static boolean aetherium$viewportKnown;
-@@ -141,7 +142,6 @@ public abstract class TuningGlStateMixin {
-         //~ aetherium$vh = h;
-         //~ GL11.glViewport(x, y, w, h);
+@@ -277,36 +308,5 @@ public abstract class TuningGlStateMixin {
+         //~ aetherium$overlayTexture = texture;
+         //~ aetherium$overlaySize = size;
      //~ }
--    // @era:t-gl-state-else none
-     // @era:t-gl-state-else v16
-     //~ private static final int GL_FRAMEBUFFER = 36160;
-     //~ private static final int GL_VERTEX_ARRAY = 32884;
+-    // @era:t-gl-state-else g215
+-    //~ @Unique
+-    //~ private static boolean aetherium$viewportKnown;
+-    //~ @Unique
+-    //~ private static int aetherium$vx;
+-    //~ @Unique
+-    //~ private static int aetherium$vy;
+-    //~ @Unique
+-    //~ private static int aetherium$vw;
+-    //~ @Unique
+-    //~ private static int aetherium$vh;
+-
+-    //~ @Unique
+-    //~ private static boolean aetherium$trim() {
+-        //~ return Tuning.glStateCache && !RenderMods.PRESENT;
+-    //~ }
+-
+-    //~ /** Vanilla still records the viewport in GlStateManager.Viewport; only the repeated GL call is skipped. */
+-    //~ @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
+-    //~ private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
+-        //~ if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
+-                //~ && w == aetherium$vw && h == aetherium$vh) {
+-            //~ return;
+-        //~ }
+-        //~ aetherium$viewportKnown = true;
+-        //~ aetherium$vx = x;
+-        //~ aetherium$vy = y;
+-        //~ aetherium$vw = w;
+-        //~ aetherium$vh = h;
+-        //~ GL11.glViewport(x, y, w, h);
+-    //~ }
+     // @era:t-gl-state-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
 index c4a5001..308d127 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
@@ -6060,6 +6249,120 @@ index 55b0a54..99ce53e 100644
      // @era:t-sky-else v16
      //~ @Shadow
      //~ private boolean generateClouds;
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSortMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSortMixin.java
+index b512b03..16bad7d 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningSortMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningSortMixin.java
+@@ -1,11 +1,11 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:t-sort-begin none
+-// @era:t-sort-else s212
+-//~ import com.aetherium.perf.Tuning;
+-//~ import org.spongepowered.asm.mixin.injection.Constant;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyConstant;
++// @era:t-sort-begin s212
++import com.aetherium.perf.Tuning;
++import org.spongepowered.asm.mixin.injection.Constant;
++import org.spongepowered.asm.mixin.injection.ModifyConstant;
++// @era:t-sort-else none
+ // @era:t-sort-end
+ 
+ /**
+@@ -13,16 +13,16 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class TuningSortMixin {
+-    // @era:t-sort-begin none
+-    // @era:t-sort-else s212
+-    //~ /**
+-     //~ * Calmer translucent sorting: when the camera enters a new block, vanilla re-sorts at least 15
+-     //~ * nearby translucent sections in that frame (or an eighth of them); with the option on, at
+-     //~ * least 8. The remaining sections are still re-sorted on later moves.
+-     //~ */
+-    //~ @ModifyConstant(method = "scheduleTranslucentSectionResort", constant = @Constant(intValue = 15), require = 0)
+-    //~ private int aetherium$sortCount(final int original) {
+-        //~ return Tuning.calmSorting ? 8 : original;
+-    //~ }
++    // @era:t-sort-begin s212
++    /**
++     * Calmer translucent sorting: when the camera enters a new block, vanilla re-sorts at least 15
++     * nearby translucent sections in that frame (or an eighth of them); with the option on, at
++     * least 8. The remaining sections are still re-sorted on later moves.
++     */
++    @ModifyConstant(method = "scheduleTranslucentSectionResort", constant = @Constant(intValue = 15), require = 0)
++    private int aetherium$sortCount(final int original) {
++        return Tuning.calmSorting ? 8 : original;
++    }
++    // @era:t-sort-else none
+     // @era:t-sort-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningWeatherMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningWeatherMixin.java
+index 1a7718a..f339cc3 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningWeatherMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningWeatherMixin.java
+@@ -1,15 +1,15 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:t-weather-begin none
++// @era:t-weather-begin w219
++import com.aetherium.perf.Tuning;
++import org.spongepowered.asm.mixin.injection.Constant;
++import org.spongepowered.asm.mixin.injection.ModifyConstant;
++// @era:t-weather-else none
+ // @era:t-weather-else w212
+ //~ import com.aetherium.perf.Tuning;
+ //~ import org.spongepowered.asm.mixin.injection.Constant;
+ //~ import org.spongepowered.asm.mixin.injection.ModifyConstant;
+-// @era:t-weather-else w219
+-//~ import com.aetherium.perf.Tuning;
+-//~ import org.spongepowered.asm.mixin.injection.Constant;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyConstant;
+ // @era:t-weather-else w2111
+ //~ import com.aetherium.perf.Tuning;
+ //~ import net.minecraft.client.OptionInstance;
+@@ -24,7 +24,19 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.WeatherEffectRenderer")
+ public abstract class TuningWeatherMixin {
+-    // @era:t-weather-begin none
++    // @era:t-weather-begin w219
++    /** Lighter weather: the rain and snow radius 10 (fancy graphics) becomes 6. */
++    @ModifyConstant(method = "extractRenderState", constant = @Constant(intValue = 10), require = 0)
++    private int aetherium$weatherRadiusFancy(final int radius) {
++        return Tuning.lightWeather ? 6 : radius;
++    }
++
++    /** Lighter weather: the rain and snow radius 5 (fast graphics) becomes 3. */
++    @ModifyConstant(method = "extractRenderState", constant = @Constant(intValue = 5), require = 0)
++    private int aetherium$weatherRadiusFast(final int radius) {
++        return Tuning.lightWeather ? 3 : radius;
++    }
++    // @era:t-weather-else none
+     // @era:t-weather-else w212
+     //~ /** Lighter weather: the rain and snow radius 10 (fancy graphics) becomes 6. */
+     //~ @ModifyConstant(method = "render", constant = @Constant(intValue = 10), require = 0)
+@@ -37,18 +49,6 @@ public abstract class TuningWeatherMixin {
+     //~ private int aetherium$weatherRadiusFast(final int radius) {
+         //~ return Tuning.lightWeather ? 3 : radius;
+     //~ }
+-    // @era:t-weather-else w219
+-    //~ /** Lighter weather: the rain and snow radius 10 (fancy graphics) becomes 6. */
+-    //~ @ModifyConstant(method = "extractRenderState", constant = @Constant(intValue = 10), require = 0)
+-    //~ private int aetherium$weatherRadiusFancy(final int radius) {
+-        //~ return Tuning.lightWeather ? 6 : radius;
+-    //~ }
+-
+-    //~ /** Lighter weather: the rain and snow radius 5 (fast graphics) becomes 3. */
+-    //~ @ModifyConstant(method = "extractRenderState", constant = @Constant(intValue = 5), require = 0)
+-    //~ private int aetherium$weatherRadiusFast(final int radius) {
+-        //~ return Tuning.lightWeather ? 3 : radius;
+-    //~ }
+     // @era:t-weather-else w2111
+     //~ /**
+      //~ * Lighter weather: the vanilla weather radius option (3 - 10 blocks, default 10) is capped at 6
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java b/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
 index f4b7685..56aed81 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java
@@ -6379,10 +6682,10 @@ index f85e6e7..5c91b44 100644
  //~ }
  // @era:zoom-fov-else camera
 diff --git a/common/src/main/java/com/aetherium/perf/TuningSupport.java b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-index f94a92c..85f3074 100644
+index 30d1583..23d1af1 100644
 --- a/common/src/main/java/com/aetherium/perf/TuningSupport.java
 +++ b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-@@ -34,10 +34,10 @@ public final class TuningSupport {
+@@ -34,34 +34,34 @@ public final class TuningSupport {
      //~ public static final boolean BLOCK_ENTITY = false;
      // @era:t-block-entity-end
  
@@ -6396,23 +6699,48 @@ index f94a92c..85f3074 100644
 +    //~ public static final boolean BUILD_ORDER = true;
      // @era:t-build-order-end
  
+-    // @era:t-clouds-begin none
+-    public static final boolean CLOUDS = false;
+-    // @era:t-clouds-else k216|k261|k263
+-    //~ public static final boolean CLOUDS = true;
++    // @era:t-clouds-begin k216|k261|k263
++    public static final boolean CLOUDS = true;
++    // @era:t-clouds-else none
++    //~ public static final boolean CLOUDS = false;
+     // @era:t-clouds-end
+ 
+-    // @era:t-sort-begin none
+-    public static final boolean SORT = false;
+-    // @era:t-sort-else s212
+-    //~ public static final boolean SORT = true;
++    // @era:t-sort-begin s212
++    public static final boolean SORT = true;
++    // @era:t-sort-else none
++    //~ public static final boolean SORT = false;
+     // @era:t-sort-end
+ 
+-    // @era:t-weather-begin none
+-    public static final boolean WEATHER = false;
+-    // @era:t-weather-else w2111|w212|w219
+-    //~ public static final boolean WEATHER = true;
++    // @era:t-weather-begin w2111|w212|w219
++    public static final boolean WEATHER = true;
++    // @era:t-weather-else none
++    //~ public static final boolean WEATHER = false;
+     // @era:t-weather-end
+ 
+-    // @era:t-compile-queue-begin none
+-    public static final boolean COMPILE_QUEUE = false;
+-    // @era:t-compile-queue-else q2111|q212
+-    //~ public static final boolean COMPILE_QUEUE = true;
++    // @era:t-compile-queue-begin q2111|q212
++    public static final boolean COMPILE_QUEUE = true;
++    // @era:t-compile-queue-else none
++    //~ public static final boolean COMPILE_QUEUE = false;
+     // @era:t-compile-queue-end
+ 
      // @era:t-chunk-save-begin c21|c214|c26|v16
-@@ -88,10 +88,10 @@ public final class TuningSupport {
-     //~ public static final boolean FRAME_ITEM = false;
-     // @era:t-frame-item-end
- 
--    // @era:t-gl-state-begin g17|g212|v16
--    public static final boolean GL_STATE = true;
--    // @era:t-gl-state-else none
--    //~ public static final boolean GL_STATE = false;
-+    // @era:t-gl-state-begin none
-+    public static final boolean GL_STATE = false;
-+    // @era:t-gl-state-else g17|g212|v16
-+    //~ public static final boolean GL_STATE = true;
-     // @era:t-gl-state-end
- 
-     // @era:t-glint-begin g21|g212|g219|v16
-@@ -112,10 +112,10 @@ public final class TuningSupport {
+@@ -136,10 +136,10 @@ public final class TuningSupport {
      //~ public static final boolean GRASS_QUADS = false;
      // @era:t-grass-quads-end
  
@@ -6427,7 +6755,7 @@ index f94a92c..85f3074 100644
      // @era:t-http-textureacc-end
  
      // @era:t-layers-begin l212|l219|v16
-@@ -142,10 +142,10 @@ public final class TuningSupport {
+@@ -166,10 +166,10 @@ public final class TuningSupport {
      //~ public static final boolean LEAVES = false;
      // @era:t-leaves-end
  
@@ -6442,7 +6770,7 @@ index f94a92c..85f3074 100644
      // @era:t-level-end
  
      // @era:t-levelacc-begin none
-@@ -166,10 +166,10 @@ public final class TuningSupport {
+@@ -190,10 +190,10 @@ public final class TuningSupport {
      //~ public static final boolean LIGHTMAP = false;
      // @era:t-lightmap-end
  
@@ -6457,7 +6785,7 @@ index f94a92c..85f3074 100644
      // @era:t-loading-end
  
      // @era:t-map-begin m212|v16
-@@ -232,10 +232,10 @@ public final class TuningSupport {
+@@ -262,10 +262,10 @@ public final class TuningSupport {
      //~ public static final boolean SIGN = false;
      // @era:t-sign-end
  
@@ -6472,7 +6800,7 @@ index f94a92c..85f3074 100644
      // @era:t-skin-end
  
      // @era:t-skull-begin none
-@@ -250,10 +250,10 @@ public final class TuningSupport {
+@@ -280,10 +280,10 @@ public final class TuningSupport {
      //~ public static final boolean SKULL_LOOKUP = true;
      // @era:t-skull-lookup-end
  

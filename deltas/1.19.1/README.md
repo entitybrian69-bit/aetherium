@@ -69,9 +69,12 @@ neoforge_version=unavailable (module disabled)
 - `t-build-order=b17`
 - `t-chunk-save=v16`
 - `t-client=v16`
+- `t-clouds=none`
 - `t-color-filter=r17`
+- `t-compile-queue=none`
 - `t-crowd=c17`
 - `t-cull=c17`
+- `t-damage-tint=none`
 - `t-explosion=v16`
 - `t-far-terrain=none`
 - `t-flight-preload=v16`
@@ -89,11 +92,11 @@ neoforge_version=unavailable (module disabled)
 - `t-levelacc=none`
 - `t-light=v16`
 - `t-lightmap=v16`
-- `t-loading=v16`
+- `t-loading=d194`
 - `t-map=v16`
 - `t-minecart=v16`
 - `t-name-tag=n17`
-- `t-ocean-floor=none`
+- `t-ocean-floor=o17`
 - `t-portal=v16`
 - `t-server-idle=v16`
 - `t-server-light=v16`
@@ -103,7 +106,9 @@ neoforge_version=unavailable (module disabled)
 - `t-skull-lookup=none`
 - `t-skull=none`
 - `t-sky=e17`
+- `t-sort=none`
 - `t-view-areaacc=none`
+- `t-weather=none`
 - `t-world-cache=r17`
 - `t-world=w182`
 - `vignette=render`
@@ -179,7 +184,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.19.1.t
 - `common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/TuningLoadingMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java`

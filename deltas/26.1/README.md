@@ -78,14 +78,17 @@ neoforge_version=26.1.2.115
 - `t-build-order=none`
 - `t-chunk-save=c26`
 - `t-client=v19`
+- `t-clouds=k261`
 - `t-color-filter=r17`
+- `t-compile-queue=q2111`
 - `t-crowd=c17`
 - `t-cull=c215`
+- `t-damage-tint=none`
 - `t-explosion=x212`
 - `t-far-terrain=none`
 - `t-flight-preload=f216`
 - `t-frame-item=f212`
-- `t-gl-state=none`
+- `t-gl-state=g215`
 - `t-glint=none`
 - `t-grass-quads=none`
 - `t-grass=none`
@@ -102,7 +105,7 @@ neoforge_version=26.1.2.115
 - `t-map=m212`
 - `t-minecart=m219`
 - `t-name-tag=n212`
-- `t-ocean-floor=none`
+- `t-ocean-floor=o17`
 - `t-portal=p215`
 - `t-raw-frame=r215`
 - `t-server-idle=v16`
@@ -113,7 +116,9 @@ neoforge_version=26.1.2.115
 - `t-skull-lookup=none`
 - `t-skull=none`
 - `t-sky=none`
+- `t-sort=s212`
 - `t-view-areaacc=none`
+- `t-weather=w2111`
 - `t-world-cache=r17`
 - `t-world=w21`
 - `vignette=extract`
@@ -204,6 +209,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.1.txt
 - `common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningCloudsMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningCompileQueueMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java`
@@ -225,6 +232,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.1.txt
 - `common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningSortMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningWeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`

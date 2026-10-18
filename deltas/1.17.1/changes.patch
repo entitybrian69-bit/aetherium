@@ -241,10 +241,10 @@ index e5e224a..a041b7e 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 47543d5..d55ce59 100644
+index f0f2a33..db16e3e 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -430,10 +430,10 @@ public final class ClientHooks {
+@@ -431,10 +431,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -259,7 +259,7 @@ index 47543d5..d55ce59 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -485,10 +485,10 @@ public final class ClientHooks {
+@@ -495,10 +495,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -4301,15 +4301,16 @@ index 018e37c..2e89aaf 100644
      //~ @Unique
      //~ private static final int AETHERIUM$PER_TICK = 16;
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
-index 32cadd7..5142edb 100644
+index 3457c55..923e5cb 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java
-@@ -1,21 +1,21 @@
+@@ -1,23 +1,23 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:t-cull-begin c202
 +// @era:t-cull-begin c17
+ import com.aetherium.client.OceanFloor;
  import com.aetherium.perf.Tuning;
  import net.minecraft.core.Direction;
  import org.spongepowered.asm.mixin.injection.At;
@@ -4320,6 +4321,7 @@ index 32cadd7..5142edb 100644
  import net.minecraft.core.BlockPos;
 -// @era:t-cull-else c17
 +// @era:t-cull-else c202
+ //~ import com.aetherium.client.OceanFloor;
  //~ import com.aetherium.perf.Tuning;
  //~ import net.minecraft.core.Direction;
  //~ import org.spongepowered.asm.mixin.injection.At;
@@ -4329,10 +4331,10 @@ index 32cadd7..5142edb 100644
 +//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
  //~ import net.minecraft.core.BlockPos;
  // @era:t-cull-else c215
- //~ import com.aetherium.perf.Tuning;
-@@ -53,20 +53,20 @@ import net.minecraft.core.BlockPos;
-  * <p>A redirect of the single call site (offset 1001) instead of a cancellable inject, so the
-  * search allocates nothing per step.</p>
+ //~ import com.aetherium.client.OceanFloor;
+@@ -57,20 +57,20 @@ import net.minecraft.core.BlockPos;
+  * nothing per step; on 1.17+ a HEAD inject into that neighbour lookup ({@code getRelativeFrom}),
+  * whose only caller is the visibility search.</p>
   */
 -// @era:t-cull-begin c202|c215
 -@Mixin(targets = "net.minecraft.client.renderer.SectionOcclusionGraph")
@@ -4355,9 +4357,9 @@ index 32cadd7..5142edb 100644
 -    private void aetherium$neighbour(final BlockPos camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
 +    private void aetherium$neighbour(final BlockPos camera, final ChunkRenderDispatcher.RenderChunk from, final Direction direction,
                                       final CallbackInfoReturnable<?> cir) {
-         if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+         if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
              cir.setReturnValue(null);
-@@ -87,14 +87,14 @@ public abstract class TuningCullMixin {
+@@ -103,14 +103,14 @@ public abstract class TuningCullMixin {
          final int sz = direction.getStepZ();
          return sz > 0 ? fz < cz : fz > cz;
      }
@@ -4372,7 +4374,7 @@ index 32cadd7..5142edb 100644
 -    //~ private void aetherium$neighbour(final BlockPos camera, final ChunkRenderDispatcher.RenderChunk from, final Direction direction,
 +    //~ private void aetherium$neighbour(final BlockPos camera, final SectionRenderDispatcher.RenderSection from, final Direction direction,
                                       //~ final CallbackInfoReturnable<?> cir) {
-         //~ if (Tuning.directionalCulling && aetherium$towardsCamera(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
+         //~ if (aetherium$refuse(camera.getX() >> 4, camera.getY() >> 4, camera.getZ() >> 4, from.getOrigin().getX() >> 4, from.getOrigin().getY() >> 4, from.getOrigin().getZ() >> 4, direction)) {
              //~ cir.setReturnValue(null);
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java
 index c4a5001..688b9e5 100644
@@ -5470,10 +5472,10 @@ index 3ccd445..f069e2d 100644
      // @era:options-end
  
 diff --git a/common/src/main/java/com/aetherium/perf/TuningSupport.java b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-index f94a92c..e3a66f3 100644
+index 30d1583..7738565 100644
 --- a/common/src/main/java/com/aetherium/perf/TuningSupport.java
 +++ b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-@@ -124,10 +124,10 @@ public final class TuningSupport {
+@@ -148,10 +148,10 @@ public final class TuningSupport {
      //~ public static final boolean LAYERS = false;
      // @era:t-layers-end
  
@@ -5488,7 +5490,7 @@ index f94a92c..e3a66f3 100644
      // @era:t-lazy-data-fixers-end
  
      // @era:t-leaf-cull-begin f17|f212|f215|v16
-@@ -214,10 +214,10 @@ public final class TuningSupport {
+@@ -244,10 +244,10 @@ public final class TuningSupport {
      //~ public static final boolean SERVER_IDLE = false;
      // @era:t-server-idle-end
  
@@ -5542,7 +5544,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index f5e95d4..5659478 100644
+index fe2ac84..ee4e856 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
