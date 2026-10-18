@@ -32,6 +32,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+// @era:t-gl-state-else g215
+//~ import com.aetherium.perf.RenderMods;
+//~ import com.aetherium.perf.Tuning;
+//~ import org.lwjgl.opengl.GL11;
+//~ import org.spongepowered.asm.mixin.Unique;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Redirect;
 // @era:t-gl-state-end
 
 /**
@@ -54,7 +61,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * <p>Both are off next to OptiFine, Iris or Canvas ({@link RenderMods}), which change GL state
  * behind {@code GlStateManager}'s back.</p>
  */
+// @era:t-gl-state-begin g17|g212|none|v16
 @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
+// @era:t-gl-state-else g215
+//~ @Mixin(targets = "com.mojang.blaze3d.opengl.GlStateManager")
+// @era:t-gl-state-end
 public abstract class TuningGlStateMixin {
     // @era:t-gl-state-begin g17
     @Unique
@@ -265,6 +276,37 @@ public abstract class TuningGlStateMixin {
     //~ private static void aetherium$overlayFull(final int texture, final int size, final CallbackInfo ci) {
         //~ aetherium$overlayTexture = texture;
         //~ aetherium$overlaySize = size;
+    //~ }
+    // @era:t-gl-state-else g215
+    //~ @Unique
+    //~ private static boolean aetherium$viewportKnown;
+    //~ @Unique
+    //~ private static int aetherium$vx;
+    //~ @Unique
+    //~ private static int aetherium$vy;
+    //~ @Unique
+    //~ private static int aetherium$vw;
+    //~ @Unique
+    //~ private static int aetherium$vh;
+
+    //~ @Unique
+    //~ private static boolean aetherium$trim() {
+        //~ return Tuning.glStateCache && !RenderMods.PRESENT;
+    //~ }
+
+    //~ /** Vanilla still records the viewport in GlStateManager.Viewport; only the repeated GL call is skipped. */
+    //~ @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
+    //~ private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
+        //~ if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
+                //~ && w == aetherium$vw && h == aetherium$vh) {
+            //~ return;
+        //~ }
+        //~ aetherium$viewportKnown = true;
+        //~ aetherium$vx = x;
+        //~ aetherium$vy = y;
+        //~ aetherium$vw = w;
+        //~ aetherium$vh = h;
+        //~ GL11.glViewport(x, y, w, h);
     //~ }
     // @era:t-gl-state-end
 }

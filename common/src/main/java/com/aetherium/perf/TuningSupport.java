@@ -40,6 +40,12 @@ public final class TuningSupport {
     //~ public static final boolean BUILD_ORDER = false;
     // @era:t-build-order-end
 
+    // @era:t-clouds-begin none
+    public static final boolean CLOUDS = false;
+    // @era:t-clouds-else k216|k261|k263
+    //~ public static final boolean CLOUDS = true;
+    // @era:t-clouds-end
+
     // @era:t-sort-begin none
     public static final boolean SORT = false;
     // @era:t-sort-else s212
@@ -106,7 +112,7 @@ public final class TuningSupport {
     //~ public static final boolean FRAME_ITEM = false;
     // @era:t-frame-item-end
 
-    // @era:t-gl-state-begin g17|g212|v16
+    // @era:t-gl-state-begin g17|g212|g215|v16
     public static final boolean GL_STATE = true;
     // @era:t-gl-state-else none
     //~ public static final boolean GL_STATE = false;
@@ -315,6 +321,8 @@ public final class TuningSupport {
                 return BUILD_ORDER;
             case "TuningCompileQueueMixin":
                 return COMPILE_QUEUE;
+            case "TuningCloudsMixin":
+                return CLOUDS;
             case "TuningSortMixin":
                 return SORT;
             case "TuningWeatherMixin":
@@ -506,7 +514,7 @@ public final class TuningSupport {
             case "quality.shader_preset":
                 return COLOR_FILTER && WORLD;
             case "quality.cloud_distance":
-                return SKY;
+                return SKY || CLOUDS;
             case "quality.fast_grass":
                 return GRASS && GRASS_QUADS;
             case "quality.leaves":
