@@ -1,7 +1,7 @@
 # Aetherium port: Minecraft 1.16.5
 
 - Java toolchain: **8** (mixin compatibilityLevel `JAVA_8`)
-- Fabric loader floor: **0.14.24**, Loom **1.16.1**
+- Fabric loader floor: **0.14.25**, Loom **1.16.1**
 - Fabric API (compile-only, optional at runtime): **0.42.0+1.16**
 - NeoForge: **does not exist for this version - the neoforge module is disabled**
 - Mappings: officialMojangMappings()
@@ -14,7 +14,7 @@
 ```properties
 minecraft_version=1.16.5
 java_version=8
-fabric_loader_version=0.14.24
+fabric_loader_version=0.14.25
 fabric_api_version=0.42.0+1.16
 neoforge_version=unavailable (module disabled)
 ```

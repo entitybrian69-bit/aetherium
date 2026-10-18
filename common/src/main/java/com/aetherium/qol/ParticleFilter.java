@@ -19,7 +19,9 @@ public final class ParticleFilter {
     public static final int PORTALS = 7;
     public static final int AMBIENT = 8;
     public static final int TOTEM = 9;
-    public static final int COUNT = 10;
+    /** Redstone dust: wire, torches, repeaters, comparators, levers and redstone ore (1.10.0). */
+    public static final int REDSTONE = 10;
+    public static final int COUNT = 11;
 
     private static final Map<String, Integer> BY_NAME = new HashMap<String, Integer>();
     private static final boolean[] ENABLED = new boolean[COUNT];
@@ -42,6 +44,7 @@ public final class ParticleFilter {
         put(PORTALS, "portal", "reverse_portal");
         put(AMBIENT, "ash", "white_ash", "crimson_spore", "warped_spore", "mycelium", "underwater", "spore_blossom_air");
         put(TOTEM, "totem_of_undying");
+        put(REDSTONE, "dust");
     }
 
     private ParticleFilter() {

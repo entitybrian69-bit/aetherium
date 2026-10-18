@@ -142,6 +142,8 @@ public final class AetheriumConfig {
             "quality.particles.ambient", true, "Floating ambient particles: Nether ash and spores, mycelium and the underwater haze.");
     public final ConfigValue<Boolean> particlesTotem = ConfigValue.bool(
             "quality.particles.totem", true, "The burst from a Totem of Undying.");
+    public final ConfigValue<Boolean> particlesRedstone = ConfigValue.bool(
+            "quality.particles.redstone", true, "The red dust from powered redstone wire, torches, repeaters, comparators, levers and redstone ore. Off helps a lot near big redstone builds.");
     public final ConfigValue<Boolean> particlesBlockBreak = ConfigValue.bool(
             "quality.particles.block_break", true, "Fragments when blocks are broken, and the chips while mining one.");
 

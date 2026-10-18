@@ -222,6 +222,7 @@ public final class AetheriumPages {
         page.add(sceneryRow(bool("quality.particles_portals", "Portal particles", config.particlesPortals)));
         page.add(sceneryRow(bool("quality.particles_ambient", "Ambient particles", config.particlesAmbient)));
         page.add(sceneryRow(bool("quality.particles_totem", "Totem particles", config.particlesTotem)));
+        page.add(sceneryRow(bool("quality.particles_redstone", "Redstone particles", config.particlesRedstone)));
         page.add(sceneryRow(bool("quality.particles_block_break", "Block breaking particles", config.particlesBlockBreak)));
     }
 

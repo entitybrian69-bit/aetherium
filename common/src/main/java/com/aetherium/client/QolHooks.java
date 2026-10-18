@@ -84,6 +84,7 @@ public final class QolHooks {
         ParticleFilter.set(ParticleFilter.PORTALS, !scenery || config.particlesPortals.get().booleanValue());
         ParticleFilter.set(ParticleFilter.AMBIENT, !scenery || config.particlesAmbient.get().booleanValue());
         ParticleFilter.set(ParticleFilter.TOTEM, !scenery || config.particlesTotem.get().booleanValue());
+        ParticleFilter.set(ParticleFilter.REDSTONE, !scenery || config.particlesRedstone.get().booleanValue());
         ParticleFilter.setBlockBreaking(!scenery || config.particlesBlockBreak.get().booleanValue());
 
         FreelookHooks.configure(config);

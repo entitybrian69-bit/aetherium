@@ -10,7 +10,7 @@ import java.io.File
 val expect = mapOf(
     "minecraft_version" to "1.16.5",
     "java_version" to "8",
-    "fabric_loader_version" to "0.14.24",
+    "fabric_loader_version" to "0.14.25",
     "fabric_api_version" to "0.42.0+1.16",
     "neoforge_version" to "unavailable"
 )
