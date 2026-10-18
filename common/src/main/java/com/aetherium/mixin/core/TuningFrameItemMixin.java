@@ -27,7 +27,7 @@ public abstract class TuningFrameItemMixin {
                     target = "Lnet/minecraft/world/entity/decoration/ItemFrame;getItem()Lnet/minecraft/world/item/ItemStack;"),
             require = 0)
     private ItemStack aetherium$frameItem(final ItemFrame frame) {
-        if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera(frame))) {
+        if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera((net.minecraft.world.entity.Entity) (Object) frame))) {
             return ItemStack.EMPTY;
         }
         return frame.getItem();
@@ -40,7 +40,7 @@ public abstract class TuningFrameItemMixin {
                     //~ ordinal = 1),
             //~ require = 0)
     //~ private ItemStack aetherium$frameItem(final ItemFrame frame) {
-        //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera(frame))) {
+        //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera((net.minecraft.world.entity.Entity) (Object) frame))) {
             //~ return ItemStack.EMPTY;
         //~ }
         //~ return frame.getItem();
@@ -51,7 +51,7 @@ public abstract class TuningFrameItemMixin {
                     //~ target = "Lnet/minecraft/world/entity/decoration/ItemFrame;getItem()Lnet/minecraft/world/item/ItemStack;"),
             //~ require = 0)
     //~ private ItemStack aetherium$frameItem(final ItemFrame frame) {
-        //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera(frame))) {
+        //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera((net.minecraft.world.entity.Entity) (Object) frame))) {
             //~ return ItemStack.EMPTY;
         //~ }
         //~ return frame.getItem();

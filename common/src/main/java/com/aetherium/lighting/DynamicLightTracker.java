@@ -103,7 +103,7 @@ public final class DynamicLightTracker {
             if (entities) {
                 if (entity instanceof ItemEntity) {
                     level = Math.max(level, luminance(((ItemEntity) entity).getItem()));
-                } else if (entity instanceof Blaze) {
+                } else if ((Object) entity instanceof Blaze) {
                     level = Math.max(level, 10);
                 }
                 if (entity.isOnFire()) {
