@@ -53,7 +53,8 @@ neoforge_version=21.10.64
 - `particle-fast=none`
 - `qol16=none`
 - `registry=builtin`
-- `render-scale=none`
+- `render-scale=r215`
+- `rs-api=r215`
 - `screen-owner=minecraft`
 - `screen-pkg=options`
 - `scroll=four`
@@ -153,6 +154,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.10.
 - `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
+- `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/TuningClient.java`
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`

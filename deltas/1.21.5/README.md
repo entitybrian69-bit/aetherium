@@ -44,7 +44,8 @@ neoforge_version=21.5.81
 - `particle-fast=inner`
 - `qol16=none`
 - `registry=builtin`
-- `render-scale=none`
+- `render-scale=r215`
+- `rs-api=r215`
 - `search-throttle=none`
 - `section-api=srd-ro`
 - `section-compile=none`
@@ -136,6 +137,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.5.t
 - `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/FlightPreload.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
+- `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java`

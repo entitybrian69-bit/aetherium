@@ -60,7 +60,8 @@ neoforge_version=26.1.2.115
 - `registry=builtin`
 - `reload=all-changed`
 - `remapJar-block-removed`
-- `render-scale=none`
+- `render-scale=r215`
+- `rs-api=r215`
 - `screen-owner=minecraft`
 - `screen-pkg=options`
 - `scroll=four`
@@ -166,6 +167,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.1.txt
 - `common/src/main/java/com/aetherium/client/GrassQuads.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
+- `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/TuningClient.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`

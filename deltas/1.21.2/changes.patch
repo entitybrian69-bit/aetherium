@@ -5,10 +5,10 @@
 # apply:  git apply --whitespace=nowarn deltas/1.21.2/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.2/changes.patch
 diff --git a/common/src/main/java/com/aetherium/client/RawFrame.java b/common/src/main/java/com/aetherium/client/RawFrame.java
-index 5849cef..33530a2 100644
+index 2b2afd8..1a7b810 100644
 --- a/common/src/main/java/com/aetherium/client/RawFrame.java
 +++ b/common/src/main/java/com/aetherium/client/RawFrame.java
-@@ -143,10 +143,10 @@ public final class RawFrame {
+@@ -223,10 +223,10 @@ public final class RawFrame {
  
      /** A vanilla post effect is on (spectating a creeper, an enderman, ...). */
      public static boolean postEffect(final Minecraft mc) {
@@ -23,6 +23,42 @@ index 5849cef..33530a2 100644
          // @era:t-raw-frame-else none
          //~ return true;
          // @era:t-raw-frame-end
+diff --git a/common/src/main/java/com/aetherium/client/ScaledRenderTarget.java b/common/src/main/java/com/aetherium/client/ScaledRenderTarget.java
+index e0d418e..7d3fd7f 100644
+--- a/common/src/main/java/com/aetherium/client/ScaledRenderTarget.java
++++ b/common/src/main/java/com/aetherium/client/ScaledRenderTarget.java
+@@ -21,12 +21,12 @@ public final class ScaledRenderTarget extends RenderTarget {
+     private static RenderTarget swapped;
+ 
+     private ScaledRenderTarget(final int width, final int height) {
+-        // @era:rs-api-begin r17
++        // @era:rs-api-begin r212
+         super(true);
+-        this.resize(width, height, Minecraft.ON_OSX);
+-        // @era:rs-api-else r212
++        this.resize(width, height);
++        // @era:rs-api-else r17
+         //~ super(true);
+-        //~ this.resize(width, height);
++        //~ this.resize(width, height, Minecraft.ON_OSX);
+         // @era:rs-api-else r215
+         //~ super("Aetherium render scale", true);
+         //~ this.createBuffers(width, height);
+@@ -48,10 +48,10 @@ public final class ScaledRenderTarget extends RenderTarget {
+ 
+     private void ensureSize(final int width, final int height) {
+         if (width != this.width || height != this.height) {
+-            // @era:rs-api-begin r17
+-            this.resize(width, height, Minecraft.ON_OSX);
+-            // @era:rs-api-else r212|r215
+-            //~ this.resize(width, height);
++            // @era:rs-api-begin r212|r215
++            this.resize(width, height);
++            // @era:rs-api-else r17
++            //~ this.resize(width, height, Minecraft.ON_OSX);
+             // @era:rs-api-end
+         }
+     }
 diff --git a/common/src/main/java/com/aetherium/client/SceneryHooks.java b/common/src/main/java/com/aetherium/client/SceneryHooks.java
 index 5d253f5..b9be9f5 100644
 --- a/common/src/main/java/com/aetherium/client/SceneryHooks.java

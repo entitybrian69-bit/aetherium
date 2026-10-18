@@ -27,6 +27,8 @@ neoforge_version=21.2.1-beta
 - `mesh-exec=tracing`
 - `occlusion-box=renderer`
 - `registry=builtin`
+- `render-scale=r212`
+- `rs-api=r212`
 - `sky=renderer`
 - `t-ao-cache=v16`
 - `t-autosave=s214`
@@ -108,6 +110,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.2.t
 
 - `gradle.properties`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
+- `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`

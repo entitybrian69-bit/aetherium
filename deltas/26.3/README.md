@@ -169,6 +169,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/client/GrassQuads.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
+- `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/TuningClient.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
@@ -193,13 +194,16 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumCaptureMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/GlowSeenMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/RenderScaleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullCompiledMixin.java`
