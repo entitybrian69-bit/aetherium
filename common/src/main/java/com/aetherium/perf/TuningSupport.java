@@ -34,10 +34,10 @@ public final class TuningSupport {
     //~ public static final boolean BLOCK_ENTITY = false;
     // @era:t-block-entity-end
 
-    // @era:t-build-order-begin none
-    public static final boolean BUILD_ORDER = false;
-    // @era:t-build-order-else v16
-    //~ public static final boolean BUILD_ORDER = true;
+    // @era:t-build-order-begin b17|b202|v16
+    public static final boolean BUILD_ORDER = true;
+    // @era:t-build-order-else none
+    //~ public static final boolean BUILD_ORDER = false;
     // @era:t-build-order-end
 
     // @era:t-chunk-save-begin c21|c214|c26|v16

@@ -23,6 +23,7 @@ neoforge_version=unavailable (module disabled)
 
 - `anim=on`
 - `bg-threads=property`
+- `cam-pos=getter`
 - `camera-get=getter`
 - `chunk-renderer=none`
 - `chunk-upload=srd`
@@ -49,6 +50,11 @@ neoforge_version=unavailable (module disabled)
 - `section-vis=sections`
 - `simdist=sim`
 - `sky=rb193`
+- `t-chunk-save=v16`
+- `t-glint=v16`
+- `t-portal=v16`
+- `t-sky=e17`
+- `t-world=w206`
 - `vignette=render`
 - `zoom-cam=double`
 - `zoom=on`
@@ -95,6 +101,11 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.5.t
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 
 ## Verifying this row before shipping it

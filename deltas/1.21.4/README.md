@@ -30,6 +30,51 @@ neoforge_version=21.4.158
 - `occlusion-box=renderer`
 - `registry=builtin`
 - `sky=renderer`
+- `t-ao-cache=v16`
+- `t-autosave=s214`
+- `t-beam=v16`
+- `t-block-entity=b17`
+- `t-build-order=none`
+- `t-chunk-save=c214`
+- `t-client=v16`
+- `t-color-filter=r17`
+- `t-crowd=c17`
+- `t-cull=c202`
+- `t-explosion=x212`
+- `t-far-terrain=none`
+- `t-flight-preload=f20`
+- `t-frame-item=f212`
+- `t-gl-state=g212`
+- `t-glint=g212`
+- `t-grass-quads=v16`
+- `t-grass=g19`
+- `t-http-textureacc=none`
+- `t-layers=l212`
+- `t-lazy-data-fixers=none`
+- `t-leaf-cull=f212`
+- `t-leaves=v16`
+- `t-level=none`
+- `t-levelacc=none`
+- `t-light=v16`
+- `t-lightmap=v16`
+- `t-loading=d194`
+- `t-map=m212`
+- `t-minecart=m212`
+- `t-name-tag=n212`
+- `t-ocean-floor=none`
+- `t-portal=p21`
+- `t-raw-frame=r212`
+- `t-server-idle=v16`
+- `t-server-light=none`
+- `t-shadow=s212`
+- `t-sign=s214`
+- `t-skin=none`
+- `t-skull-lookup=none`
+- `t-skull=none`
+- `t-sky=none`
+- `t-view-areaacc=none`
+- `t-world-cache=r17`
+- `t-world=w21`
 - `weather=effect`
 - `zoom-fov=float`
 
@@ -59,6 +104,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.4.t
 ## Files the generated patch touches
 
 - `gradle.properties`
+- `common/src/main/java/com/aetherium/client/RawFrame.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
@@ -67,8 +113,27 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.4.t
 - `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningGlStateMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningHttpTextureAccessor.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningMapMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningMinecartMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningNameTagMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningSkinMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
+- `common/src/main/java/com/aetherium/perf/TuningSupport.java`
 
 ## Verifying this row before shipping it
 

@@ -24,6 +24,7 @@ neoforge_version=unavailable (module disabled)
 - `anim=on`
 - `background=none`
 - `bg-threads=property`
+- `cam-pos=getter`
 - `camera-get=getter`
 - `chunk-renderer=none`
 - `chunk-upload=crd`
@@ -56,6 +57,14 @@ neoforge_version=unavailable (module disabled)
 - `simdist=sim`
 - `sky=rb193`
 - `sprite-u=d`
+- `t-build-order=b17`
+- `t-chunk-save=v16`
+- `t-cull=c17`
+- `t-glint=v16`
+- `t-level=l20`
+- `t-portal=v16`
+- `t-sky=e17`
+- `t-world=w182`
 - `vignette=render`
 - `zoom-cam=double`
 - `zoom=on`
@@ -115,6 +124,14 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.txt
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningCullMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningGlintMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningPortalMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningSkyMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
