@@ -133,6 +133,8 @@ jobs:
             failed=$(sed -n 's/^targets [0-9]*, failed \([0-9]*\)$/\1/p' "$out/report.txt")
             unused=$(sed -n 's/^unused injectors \([0-9]*\)$/\1/p' "$out/report.txt")
             echo "::notice::smoke ${{ matrix.version }}: failed targets $failed, unused injectors $unused"
+            scale=$(sed -n 's/^render scale //p' "$out/report.txt")
+            case "$scale" in FAILED*) echo "::error::smoke ${{ matrix.version }}: render scale $scale" ;; *) echo "::notice::smoke ${{ matrix.version }}: render scale $scale" ;; esac
           else
             echo "::error::smoke ${{ matrix.version }}: no report (see smoke/${{ matrix.version }}/client-tail.txt)"
           fi
@@ -164,7 +166,7 @@ jobs:
             for r in smoke/*/; do
               v=$(basename "$r")
               if [ -f "$r/report.txt" ]; then
-                echo "- $v: $(grep -m1 '^targets' "$r/report.txt"), $(grep -m1 '^unused injectors' "$r/report.txt")"
+                echo "- $v: $(grep -m1 '^targets' "$r/report.txt"), $(grep -m1 '^unused injectors' "$r/report.txt"), $(grep -m1 '^render scale' "$r/report.txt")"
               else
                 echo "- $v: NO REPORT ($(cat "$r/status.txt" 2>/dev/null))"
               fi

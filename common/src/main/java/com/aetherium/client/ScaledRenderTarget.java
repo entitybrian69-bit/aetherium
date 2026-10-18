@@ -118,7 +118,52 @@ public final class ScaledRenderTarget extends RenderTarget {
             ((MainTargetAccessor) minecraft).aetheriumSetMainTarget(main);
         }
     }
+
+    /**
+     * CI smoke test (title screen, render thread): builds a half-size target, swaps it in and
+     * back through the accessor and upscales it once into the real target with the same blit a
+     * scaled frame uses. Returns "ok", or "FAILED: why".
+     */
+    public static String selfTest() {
+        final Minecraft minecraft = Minecraft.getInstance();
+        final MainTargetAccessor access = (MainTargetAccessor) minecraft;
+        final RenderTarget main = access.aetheriumMainTarget();
+        final ScaledRenderTarget test = new ScaledRenderTarget(RenderScale.scaled(main.width, 50),
+                RenderScale.scaled(main.height, 50));
+        access.aetheriumSetMainTarget(test);
+        final boolean swappedIn = minecraft.getMainRenderTarget() == test;
+        access.aetheriumSetMainTarget(main);
+        if (!swappedIn) {
+            return "FAILED: getMainRenderTarget() did not return the swapped-in target";
+        }
+        if (minecraft.getMainRenderTarget() != main) {
+            return "FAILED: the real target was not put back";
+        }
+        while (org.lwjgl.opengl.GL11.glGetError() != 0) {
+            // drain errors raised before this test
+        }
+        if (!RawFrame.upscale(test, main)) {
+            return "FAILED: upscale blit refused (texture not reachable or framebuffer incomplete)";
+        }
+        final int error = org.lwjgl.opengl.GL11.glGetError();
+        // @era:rs-api-begin r17|r212
+        main.bindWrite(true);
+        // @era:rs-api-else r215
+        // @era:rs-api-end
+        return error == 0 ? "ok (" + test.width + "x" + test.height + " -> " + main.width + "x" + main.height + ")"
+                : "FAILED: GL error 0x" + Integer.toHexString(error) + " after the upscale blit";
+    }
 }
+// @era:render-scale-else none
+//~ public final class ScaledRenderTarget {
+    //~ private ScaledRenderTarget() {
+    //~ }
+
+    //~ /** CI smoke test: render scale does not exist on this version. */
+    //~ public static String selfTest() {
+        //~ return "skipped (not on this version)";
+    //~ }
+//~ }
 // @era:render-scale-else target
 //~ public final class ScaledRenderTarget extends RenderTarget {
     //~ /** GL_LINEAR: smooth upscale. RenderTarget.createBuffers resets the filter to GL_NEAREST. */
@@ -199,10 +244,20 @@ public final class ScaledRenderTarget extends RenderTarget {
             //~ ((MainTargetAccessor) minecraft).aetheriumSetMainTarget(main);
         //~ }
     //~ }
-//~ }
-// @era:render-scale-else none
-//~ public final class ScaledRenderTarget {
-    //~ private ScaledRenderTarget() {
+
+    //~ /** CI smoke test: a half-size target swapped in and back. Returns "ok", or "FAILED: why". */
+    //~ public static String selfTest() {
+        //~ final Minecraft minecraft = Minecraft.getInstance();
+        //~ final MainTargetAccessor access = (MainTargetAccessor) minecraft;
+        //~ final RenderTarget main = access.aetheriumMainTarget();
+        //~ final ScaledRenderTarget test = new ScaledRenderTarget(RenderScale.scaled(main.width, 50),
+                //~ RenderScale.scaled(main.height, 50));
+        //~ access.aetheriumSetMainTarget(test);
+        //~ final boolean swappedIn = minecraft.getMainRenderTarget() == test;
+        //~ access.aetheriumSetMainTarget(main);
+        //~ main.bindWrite(true);
+        //~ return swappedIn && minecraft.getMainRenderTarget() == main ? "ok"
+                //~ : "FAILED: the main render target could not be swapped";
     //~ }
 //~ }
 // @era:render-scale-end

@@ -177,6 +177,13 @@ public final class SmokeTest {
             }
         }
         out.append('\n');
+        String renderScale;
+        try {
+            renderScale = com.aetherium.client.ScaledRenderTarget.selfTest();
+        } catch (final Throwable error) {
+            renderScale = "FAILED: " + error;
+        }
+        out.append("render scale ").append(renderScale).append('\n');
         try {
             final File dir = new File(DIR);
             dir.mkdirs();
