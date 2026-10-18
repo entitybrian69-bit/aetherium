@@ -40,6 +40,24 @@ public final class TuningSupport {
     //~ public static final boolean BUILD_ORDER = false;
     // @era:t-build-order-end
 
+    // @era:t-sort-begin none
+    public static final boolean SORT = false;
+    // @era:t-sort-else s212
+    //~ public static final boolean SORT = true;
+    // @era:t-sort-end
+
+    // @era:t-weather-begin none
+    public static final boolean WEATHER = false;
+    // @era:t-weather-else w2111|w212|w219
+    //~ public static final boolean WEATHER = true;
+    // @era:t-weather-end
+
+    // @era:t-compile-queue-begin none
+    public static final boolean COMPILE_QUEUE = false;
+    // @era:t-compile-queue-else q2111|q212
+    //~ public static final boolean COMPILE_QUEUE = true;
+    // @era:t-compile-queue-end
+
     // @era:t-chunk-save-begin c21|c214|c26|v16
     public static final boolean CHUNK_SAVE = true;
     // @era:t-chunk-save-else none
@@ -295,6 +313,12 @@ public final class TuningSupport {
                 return BLOCK_ENTITY;
             case "TuningBuildOrderMixin":
                 return BUILD_ORDER;
+            case "TuningCompileQueueMixin":
+                return COMPILE_QUEUE;
+            case "TuningSortMixin":
+                return SORT;
+            case "TuningWeatherMixin":
+                return WEATHER;
             case "TuningChunkSaveMixin":
                 return CHUNK_SAVE;
             case "TuningCullMixin":
@@ -430,8 +454,9 @@ public final class TuningSupport {
                 // 1.16.5 in TuningLevelMixin; 1.17 - 26.1 in the fog cull filter (FogCullHooks).
                 return LEVEL || com.aetherium.Capabilities.FOG_CULL;
             case "perf.translucent_sort_throttle":
+                return LEVEL || SORT;
             case "quality.light_weather":
-                return LEVEL;
+                return LEVEL || WEATHER;
             case "perf.explosion_particles":
                 return EXPLOSION;
             case "perf.light_updates":
@@ -455,7 +480,7 @@ public final class TuningSupport {
             case "perf.directional_culling":
                 return CULL;
             case "perf.view_first_building":
-                return BUILD_ORDER;
+                return BUILD_ORDER || COMPILE_QUEUE;
             case "perf.portal_preload":
                 return PORTAL;
             case "perf.fast_loading":
