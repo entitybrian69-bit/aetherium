@@ -10,6 +10,7 @@ import com.aetherium.gui.Page;
 import com.aetherium.gui.PixelArt;
 import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.RenderToggles;
+import com.aetherium.perf.Tuning;
 import com.aetherium.perf.WorkerThreads;
 import com.aetherium.gui.Setting;
 import com.aetherium.mixin.AetheriumMixinPlugin;
@@ -45,6 +46,7 @@ public final class AetheriumPages {
     private static final String[] PARTICLES = {"All", "Decreased", "Minimal"};
     private static final String[] PRESETS = {"Max FPS", "Balanced", "Quality"};
     private static final String[] LIGHTS = {"Off", "Fast", "Fancy"};
+    private static final String[] LEAVES = {"Graphics", "Fast", "Fancy"};
     private static final String[] CORNERS = {"Top left", "Top right", "Bottom left", "Bottom right"};
     private static final String[] CORNER_KEYS = {"top-left", "top-right", "bottom-left", "bottom-right"};
 
@@ -177,6 +179,15 @@ public final class AetheriumPages {
         page.add(flag("quality.shadows", "Entity shadows", "Round shadows under mobs and items.",
                 VanillaOptions::getEntityShadows, VanillaOptions::setEntityShadows).presetMember());
         page.add(bool("quality.weather", "Weather", config.weather).presetMember());
+        page.add(tuningRow(bool("quality.light_weather", "Lighter rain and snow", config.lightWeather)));
+        page.add(tuningRow(Setting.choice("quality.leaves", Setting.Kind.SEGMENTED, "Leaves",
+                        config.leaves.getComment(), LEAVES,
+                        () -> config.leaves.get().ordinal(),
+                        v -> config.leaves.set(AetheriumConfig.LeavesMode.values()[Math.max(0, Math.min(2, v))]))
+                .withDefault(config.leaves.getDefault().ordinal())));
+        page.add(tuningRow(bool("quality.leaf_culling", "Leaf culling", config.leafCulling)));
+        page.add(tuningRow(bool("quality.enchant_glint", "Enchantment glint", config.enchantGlint)));
+        page.add(tuningRow(bool("quality.end_crystal_beams", "End crystal beams", config.endCrystalBeams)));
         page.add(bool("quality.vignette", "Vignette", config.vignette).presetMember()
                 .availableWhen(() -> Capabilities.VIGNETTE_TOGGLE, NOT_ON_THIS_VERSION));
         addScenery(page);
@@ -284,7 +295,35 @@ public final class AetheriumPages {
                 .availableWhen(() -> Capabilities.FAST_MODELS, NOT_ON_THIS_VERSION));
         page.add(intSlider("perf.worker_threads", "Worker threads", config.workerThreads, 1,
                 v -> v == 0 ? "Auto" + autoThreadsSuffix() : v + (v == 1 ? " thread" : " threads")));
+        addTuning(page);
         return page;
+    }
+
+    /** 1.10.0 tuning options (Minecraft 1.16.5 first). */
+    private void addTuning(final Page page) {
+        page.add(tuningRow(bool("perf.low_end_mode", "Low-end mode", config.lowEndMode)));
+        page.add(tuningRow(bool("perf.dynamic_fps", "Dynamic FPS", config.dynamicFps)));
+        page.add(tuningRow(intSlider("perf.menu_fps", "Menu frame rate", config.menuFps, 5,
+                v -> v >= Tuning.MENU_FPS_OFF ? "Off (full speed)" : v + " FPS")));
+        page.add(tuningRow(bool("perf.hitch_guard", "Hitch guard", config.hitchGuard)));
+        page.add(tuningRow(bool("perf.loading_screen_gc", "Memory cleanup on loading screens", config.loadGc)));
+        page.add(tuningRow(intSlider("perf.entity_detail_distance", "Entity detail distance",
+                config.entityDetailDistance, 4,
+                v -> v >= Tuning.VANILLA_DETAIL ? "Vanilla (all details)" : v + " blocks")));
+        page.add(tuningRow(bool("perf.crowd_culling", "Crowd culling", config.crowdCulling)));
+        page.add(tuningRow(intSlider("perf.explosion_particles", "Explosion clouds per tick",
+                config.explosionParticles, 1,
+                v -> v >= Tuning.EXPLOSIONS_UNLIMITED ? "Unlimited" : v == 0 ? "Small puffs only" : String.valueOf(v))));
+        page.add(tuningRow(bool("perf.light_updates", "Merge light updates", config.lightUpdates)));
+        page.add(tuningRow(bool("perf.map_updates", "Throttle map updates", config.mapUpdates)));
+        page.add(tuningRow(bool("perf.async_skulls", "Background player-head skins", config.asyncSkulls)));
+        page.add(tuningRow(bool("perf.dimension_culling", "Nether roof culling", config.dimensionCulling)));
+        page.add(tuningRow(bool("perf.smooth_autosave", "Smooth autosave", config.smoothAutosave)));
+        page.add(tuningRow(bool("perf.flight_preload", "Elytra chunk preloading", config.flightPreload)));
+    }
+
+    private static Setting tuningRow(final Setting setting) {
+        return setting.availableWhen(() -> Capabilities.TUNING, NOT_ON_THIS_VERSION);
     }
 
     // ------------------------------------------------------------------ Backend

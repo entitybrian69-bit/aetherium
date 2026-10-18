@@ -26,9 +26,9 @@ public abstract class TuningExplosionMixin {
     private void aetherium$cloud(final Level level, final ParticleOptions particle, final double x, final double y,
                                  final double z, final double dx, final double dy, final double dz) {
         ParticleOptions shown = particle;
-        if (particle == ParticleTypes.EXPLOSION_EMITTER && level.isClientSide()
+        if (particle == (Object) ParticleTypes.EXPLOSION_EMITTER && level.isClientSide()
                 && !ExplosionBudget.allowEmitter(level.getGameTime(), Tuning.explosionEmitters)) {
-            shown = ParticleTypes.EXPLOSION;
+            shown = (ParticleOptions) (Object) ParticleTypes.EXPLOSION;
         }
         level.addParticle(shown, x, y, z, dx, dy, dz);
     }

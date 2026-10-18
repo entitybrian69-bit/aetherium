@@ -113,6 +113,17 @@ tasks.processResources {
     }
 }
 
+// Mod Menu (1.10.0): fabric/src/main/java/com/terraformersmc/** are compile-time stand-ins for Mod
+// Menu's two API interfaces (no extra repository or pin needed). They must never ship: Mod Menu
+// provides the real ones, and the "modmenu" entrypoint is only loaded when Mod Menu is installed.
+// remapJar (or, on 26.x, the jar itself) is built from this jar, so excluding them here is enough.
+tasks.named<Jar>("jar") {
+    exclude("com/terraformersmc/**")
+}
+tasks.named<Jar>("sourcesJar") {
+    exclude("com/terraformersmc/**")
+}
+
 tasks.withType<net.fabricmc.loom.task.RemapJarTask> {
     addNestedDependencies = true
 }

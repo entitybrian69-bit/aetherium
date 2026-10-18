@@ -391,6 +391,17 @@ public final class ClientHooks {
      * Minecraft.setScreen HEAD. Returns the screen to open instead of {@code next},
      * or null to let vanilla proceed unchanged.
      */
+    /**
+     * Aetherium's settings screen for Mod Menu's "Configure" button; the parent itself (nothing
+     * happens) when Aetherium failed to start.
+     */
+    public static Screen settingsScreen(final Screen parent) {
+        if (Aetherium.subsystemsOrNull() == null) {
+            return parent;
+        }
+        return new AetheriumScreen(parent);
+    }
+
     public static Screen replaceScreen(final Minecraft mc, final Screen next) {
         TuningClient.onScreen(mc, next);
         if (!isVideoSettings(next)) {
