@@ -73,6 +73,7 @@ neoforge_version=26.3.0.64-beta
 - `section-vis=render-origin`
 - `simdist=sim`
 - `sky=renderer`
+- `t-client=v262`
 - `vignette=none`
 - `weather=effect`
 - `zoom-cam=align`
@@ -116,6 +117,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
+- `common/src/main/java/com/aetherium/client/TuningClient.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java`

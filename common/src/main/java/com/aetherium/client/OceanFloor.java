@@ -31,6 +31,8 @@ public final class OceanFloor {
     }
 
     // @era:t-ocean-floor-begin none
+    public static void levelChanged() {
+    }
     // @era:t-ocean-floor-else v16
     //~ private static final int NOT_OCEAN = Integer.MIN_VALUE;
     //~ private static final int MARGIN = 8;

@@ -46,10 +46,10 @@ public final class TuningSupport {
     //~ public static final boolean CHUNK_SAVE = true;
     // @era:t-chunk-save-end
 
-    // @era:t-client-begin none
-    public static final boolean CLIENT = false;
-    // @era:t-client-else v16
-    //~ public static final boolean CLIENT = true;
+    // @era:t-client-begin v16|v19|v262
+    public static final boolean CLIENT = true;
+    // @era:t-client-else none
+    //~ public static final boolean CLIENT = false;
     // @era:t-client-end
 
     // @era:t-color-filter-begin none

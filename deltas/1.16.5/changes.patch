@@ -2803,7 +2803,7 @@ index afb236d..ffe04fe 100644
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
 diff --git a/common/src/main/java/com/aetherium/client/OceanFloor.java b/common/src/main/java/com/aetherium/client/OceanFloor.java
-index 93472dd..8fd447e 100644
+index 8638b43..e4a260f 100644
 --- a/common/src/main/java/com/aetherium/client/OceanFloor.java
 +++ b/common/src/main/java/com/aetherium/client/OceanFloor.java
 @@ -1,18 +1,18 @@
@@ -2838,11 +2838,13 @@ index 93472dd..8fd447e 100644
  // @era:t-ocean-floor-end
  
  /**
-@@ -30,80 +30,80 @@ public final class OceanFloor {
+@@ -30,82 +30,82 @@ public final class OceanFloor {
      private OceanFloor() {
      }
  
 -    // @era:t-ocean-floor-begin none
+-    public static void levelChanged() {
+-    }
 -    // @era:t-ocean-floor-else v16
 -    //~ private static final int NOT_OCEAN = Integer.MIN_VALUE;
 -    //~ private static final int MARGIN = 8;
@@ -2976,15 +2978,15 @@ index 93472dd..8fd447e 100644
 +        return floor != NOT_OCEAN && origin.getY() + 16 <= floor - MARGIN;
 +    }
  
--    //~ public static void levelChanged() {
--        //~ FLOOR.clear();
--        //~ active = false;
--    //~ }
 +    public static void levelChanged() {
 +        FLOOR.clear();
 +        active = false;
 +    }
 +    // @era:t-ocean-floor-else none
+     //~ public static void levelChanged() {
+-        //~ FLOOR.clear();
+-        //~ active = false;
+     //~ }
      // @era:t-ocean-floor-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
@@ -3621,379 +3623,6 @@ index 19eaaca..143e8fa 100644
 +    }
 +    // @era:t-skull-lookup-else none
      // @era:t-skull-lookup-end
- }
-diff --git a/common/src/main/java/com/aetherium/client/TuningClient.java b/common/src/main/java/com/aetherium/client/TuningClient.java
-index c817efc..cc98ad7 100644
---- a/common/src/main/java/com/aetherium/client/TuningClient.java
-+++ b/common/src/main/java/com/aetherium/client/TuningClient.java
-@@ -3,25 +3,25 @@ package com.aetherium.client;
- import com.aetherium.perf.Tuning;
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.gui.screens.Screen;
--// @era:t-client-begin none
--// @era:t-client-else v16
--//~ import it.unimi.dsi.fastutil.longs.LongIterator;
--//~ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
--//~ import net.minecraft.client.gui.screens.ChatScreen;
--//~ import net.minecraft.client.gui.screens.ConnectScreen;
--//~ import net.minecraft.client.gui.screens.LevelLoadingScreen;
--//~ import net.minecraft.client.gui.screens.ProgressScreen;
--//~ import net.minecraft.client.gui.screens.ReceivingLevelScreen;
--//~ import net.minecraft.core.BlockPos;
--//~ import net.minecraft.core.Direction;
--//~ import net.minecraft.core.SectionPos;
--//~ import net.minecraft.world.entity.Entity;
--//~ import net.minecraft.world.level.BlockGetter;
--//~ import net.minecraft.world.level.block.Blocks;
--//~ import net.minecraft.world.level.block.LeavesBlock;
--//~ import net.minecraft.world.level.block.PipeBlock;
--//~ import net.minecraft.world.level.block.state.BlockState;
--//~ import org.lwjgl.glfw.GLFW;
-+// @era:t-client-begin v16
-+import it.unimi.dsi.fastutil.longs.LongIterator;
-+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-+import net.minecraft.client.gui.screens.ChatScreen;
-+import net.minecraft.client.gui.screens.ConnectScreen;
-+import net.minecraft.client.gui.screens.LevelLoadingScreen;
-+import net.minecraft.client.gui.screens.ProgressScreen;
-+import net.minecraft.client.gui.screens.ReceivingLevelScreen;
-+import net.minecraft.core.BlockPos;
-+import net.minecraft.core.Direction;
-+import net.minecraft.core.SectionPos;
-+import net.minecraft.world.entity.Entity;
-+import net.minecraft.world.level.BlockGetter;
-+import net.minecraft.world.level.block.Blocks;
-+import net.minecraft.world.level.block.LeavesBlock;
-+import net.minecraft.world.level.block.PipeBlock;
-+import net.minecraft.world.level.block.state.BlockState;
-+import org.lwjgl.glfw.GLFW;
-+// @era:t-client-else none
- // @era:t-client-end
- 
- /**
-@@ -44,179 +44,179 @@ public final class TuningClient {
-     private TuningClient() {
-     }
- 
--    // @era:t-client-begin none
-+    // @era:t-client-begin v16
-+    private static final long GC_SPACING_NANOS = 10_000_000_000L;
-+    private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
-+    private static long lastGc;
-+    private static boolean gcPending;
-+    private static int lightTicks;
-+    private static int lastLeaves = -1;
-+    /** Mesh-affecting switches as bits (leaves excluded): fast grass, End chorus culling. */
-+    private static int lastMesh = -1;
-+
-+    /**
-+     * The frame-rate cap these options want right now (0 = none). Read on the client tick, so it
-+     * follows focus changes and opened menus within 50 ms.
-+     */
-     public static int frameCap(final Minecraft mc) {
-+        if (!Tuning.on || AutoBench.ACTIVE) {
-+            return 0;
-+        }
-+        if (Tuning.dynamicFps) {
-+            final long window = mc.getWindow().getWindow();
-+            if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
-+                return MINIMIZED_FPS;
-+            }
-+            if (!mc.isWindowActive()) {
-+                return BACKGROUND_FPS;
-+            }
-+        }
-+        final Screen screen = mc.screen;
-+        if (Tuning.menuFps > 0 && mc.level != null && screen != null && !(screen instanceof ChatScreen)
-+                && !screen.getClass().getName().startsWith("com.aetherium.")) {
-+            // Aetherium's own screen keeps full speed for its animations.
-+            return Tuning.menuFps;
-+        }
-         return 0;
-     }
- 
-+    /** Minecraft.setScreen: one garbage collection when a loading screen opens. */
-     public static void onScreen(final Minecraft mc, final Screen next) {
-+        if (!Tuning.loadGc || next == null) {
-+            return;
-+        }
-+        if (!loadingScreen(next)) {
-+            return;
-+        }
-+        if (loadingScreen(mc.screen)) {
-+            return; // already behind a loading screen
-+        }
-+        gcPending = true; // collected on the next tick, once the loading screen is on screen
-     }
- 
-+    private static boolean loadingScreen(final Screen screen) {
-+        return screen instanceof ReceivingLevelScreen || screen instanceof LevelLoadingScreen
-+                || screen instanceof ConnectScreen || screen instanceof ProgressScreen;
-+    }
-+
-+    /**
-+     * ClientChunkCache.onLightUpdate: remembers the section instead of rebuilding it now.
-+     *
-+     * @return true when the rebuild was deferred (vanilla must not run)
-+     */
-+    public static boolean deferLight(final SectionPos pos) {
-+        if (!Tuning.lightUpdates) {
-+            return false;
-+        }
-+        DIRTY_LIGHT.add(pos.asLong());
-+        return true;
-+    }
-+
-+    /** Minecraft.tick (also while no world is loaded): pending GC, merged light rebuilds every 2 ticks. */
-     public static void tick(final Minecraft mc) {
-+        if (gcPending) {
-+            gcPending = false;
-+            final long now = System.nanoTime();
-+            if (Tuning.loadGc && loadingScreen(mc.screen) && (lastGc == 0L || now - lastGc >= GC_SPACING_NANOS)) {
-+                lastGc = now;
-+                System.gc();
-+            }
-+        }
-+        if (DIRTY_LIGHT.isEmpty()) {
-+            lightTicks = 0;
-+            return;
-+        }
-+        if (++lightTicks < 2 && Tuning.lightUpdates) {
-+            return;
-+        }
-+        lightTicks = 0;
-+        flushLight(mc);
-+    }
-+
-+    private static void flushLight(final Minecraft mc) {
-+        if (mc.levelRenderer != null && mc.level != null) {
-+            final LongIterator it = DIRTY_LIGHT.iterator();
-+            while (it.hasNext()) {
-+                final long key = it.nextLong();
-+                mc.levelRenderer.setSectionDirty(SectionPos.x(key), SectionPos.y(key), SectionPos.z(key));
-+            }
-+        }
-+        DIRTY_LIGHT.clear();
-     }
- 
-+    /** The world changed (join, leave, dimension change). */
-     public static void levelChanged() {
-+        DIRTY_LIGHT.clear();
-+        lightTicks = 0;
-+        FarTerrain.levelChanged();
-+        WorldCache.levelChanged();
-+        OceanFloor.levelChanged();
-     }
- 
-+    /** After Apply: a leaves mode change needs the chunks rebuilt with the new render type. */
-     public static void configured(final Minecraft mc) {
-+        final int leaves = Tuning.leaves;
-+        final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
-+        final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
-+        if (changed && mc.levelRenderer != null && mc.level != null) {
-+            mc.levelRenderer.allChanged();
-+        }
-+        lastLeaves = leaves;
-+        lastMesh = mesh;
-+    }
-+
-+    /**
-+     * Leaf culling (chunk build threads): the face of a leaf block toward {@code side} is hidden when
-+     * the neighbour there is leaves too. With fancy leaves the block beyond must also be leaves (or
-+     * opaque), so the outer two layers stay visible and trees keep their depth; with fast (solid)
-+     * leaves every leaf-to-leaf face is invisible anyway.
-+     */
-+    public static boolean leafFaceHidden(final BlockGetter level, final BlockPos pos, final Direction side) {
-+        final BlockPos next = pos.relative(side);
-+        if (!(level.getBlockState(next).getBlock() instanceof LeavesBlock)) {
-+            return false;
-+        }
-+        if (!Tuning.leavesFancy) {
-+            return true;
-+        }
-+        final BlockState beyond = level.getBlockState(next.relative(side));
-+        return beyond.getBlock() instanceof LeavesBlock || beyond.canOcclude();
-+    }
-+
-+    /**
-+     * Chorus culling (End optimizations, 1.12.0): whether the {@code side} face of a chorus plant
-+     * stem is the end cap of an arm joined to the next chorus plant's arm, which is buried inside
-+     * the joint. Chunk build threads.
-+     */
-+    public static boolean chorusFaceHidden(final BlockState state, final BlockGetter level, final BlockPos pos,
-+                                           final Direction side) {
-+        if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side))) {
-+            return false;
-+        }
-+        final BlockState next = level.getBlockState(pos.relative(side));
-+        return next.getBlock() == Blocks.CHORUS_PLANT
-+                && next.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side.getOpposite()));
-+    }
-+
-+    /** Squared distance from the camera to an entity (render thread). */
-+    public static double distanceToCamera(final Entity entity) {
-+        return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
-     }
--    // @era:t-client-else v16
--    //~ private static final long GC_SPACING_NANOS = 10_000_000_000L;
--    //~ private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
--    //~ private static long lastGc;
--    //~ private static boolean gcPending;
--    //~ private static int lightTicks;
--    //~ private static int lastLeaves = -1;
--    //~ /** Mesh-affecting switches as bits (leaves excluded): fast grass, End chorus culling. */
--    //~ private static int lastMesh = -1;
--
--    //~ /**
--     //~ * The frame-rate cap these options want right now (0 = none). Read on the client tick, so it
--     //~ * follows focus changes and opened menus within 50 ms.
--     //~ */
-+    // @era:t-client-else none
-     //~ public static int frameCap(final Minecraft mc) {
--        //~ if (!Tuning.on || AutoBench.ACTIVE) {
--            //~ return 0;
--        //~ }
--        //~ if (Tuning.dynamicFps) {
--            //~ final long window = mc.getWindow().getWindow();
--            //~ if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
--                //~ return MINIMIZED_FPS;
--            //~ }
--            //~ if (!mc.isWindowActive()) {
--                //~ return BACKGROUND_FPS;
--            //~ }
--        //~ }
--        //~ final Screen screen = mc.screen;
--        //~ if (Tuning.menuFps > 0 && mc.level != null && screen != null && !(screen instanceof ChatScreen)
--                //~ && !screen.getClass().getName().startsWith("com.aetherium.")) {
--            //~ // Aetherium's own screen keeps full speed for its animations.
--            //~ return Tuning.menuFps;
--        //~ }
-         //~ return 0;
-     //~ }
- 
--    //~ /** Minecraft.setScreen: one garbage collection when a loading screen opens. */
-     //~ public static void onScreen(final Minecraft mc, final Screen next) {
--        //~ if (!Tuning.loadGc || next == null) {
--            //~ return;
--        //~ }
--        //~ if (!loadingScreen(next)) {
--            //~ return;
--        //~ }
--        //~ if (loadingScreen(mc.screen)) {
--            //~ return; // already behind a loading screen
--        //~ }
--        //~ gcPending = true; // collected on the next tick, once the loading screen is on screen
-     //~ }
- 
--    //~ private static boolean loadingScreen(final Screen screen) {
--        //~ return screen instanceof ReceivingLevelScreen || screen instanceof LevelLoadingScreen
--                //~ || screen instanceof ConnectScreen || screen instanceof ProgressScreen;
--    //~ }
--
--    //~ /**
--     //~ * ClientChunkCache.onLightUpdate: remembers the section instead of rebuilding it now.
--     //~ *
--     //~ * @return true when the rebuild was deferred (vanilla must not run)
--     //~ */
--    //~ public static boolean deferLight(final SectionPos pos) {
--        //~ if (!Tuning.lightUpdates) {
--            //~ return false;
--        //~ }
--        //~ DIRTY_LIGHT.add(pos.asLong());
--        //~ return true;
--    //~ }
--
--    //~ /** Minecraft.tick (also while no world is loaded): pending GC, merged light rebuilds every 2 ticks. */
-     //~ public static void tick(final Minecraft mc) {
--        //~ if (gcPending) {
--            //~ gcPending = false;
--            //~ final long now = System.nanoTime();
--            //~ if (Tuning.loadGc && loadingScreen(mc.screen) && (lastGc == 0L || now - lastGc >= GC_SPACING_NANOS)) {
--                //~ lastGc = now;
--                //~ System.gc();
--            //~ }
--        //~ }
--        //~ if (DIRTY_LIGHT.isEmpty()) {
--            //~ lightTicks = 0;
--            //~ return;
--        //~ }
--        //~ if (++lightTicks < 2 && Tuning.lightUpdates) {
--            //~ return;
--        //~ }
--        //~ lightTicks = 0;
--        //~ flushLight(mc);
--    //~ }
--
--    //~ private static void flushLight(final Minecraft mc) {
--        //~ if (mc.levelRenderer != null && mc.level != null) {
--            //~ final LongIterator it = DIRTY_LIGHT.iterator();
--            //~ while (it.hasNext()) {
--                //~ final long key = it.nextLong();
--                //~ mc.levelRenderer.setSectionDirty(SectionPos.x(key), SectionPos.y(key), SectionPos.z(key));
--            //~ }
--        //~ }
--        //~ DIRTY_LIGHT.clear();
-     //~ }
- 
--    //~ /** The world changed (join, leave, dimension change). */
-     //~ public static void levelChanged() {
--        //~ DIRTY_LIGHT.clear();
--        //~ lightTicks = 0;
--        //~ FarTerrain.levelChanged();
--        //~ WorldCache.levelChanged();
--        //~ OceanFloor.levelChanged();
-     //~ }
- 
--    //~ /** After Apply: a leaves mode change needs the chunks rebuilt with the new render type. */
-     //~ public static void configured(final Minecraft mc) {
--        //~ final int leaves = Tuning.leaves;
--        //~ final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
--        //~ final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
--        //~ if (changed && mc.levelRenderer != null && mc.level != null) {
--            //~ mc.levelRenderer.allChanged();
--        //~ }
--        //~ lastLeaves = leaves;
--        //~ lastMesh = mesh;
--    //~ }
--
--    //~ /**
--     //~ * Leaf culling (chunk build threads): the face of a leaf block toward {@code side} is hidden when
--     //~ * the neighbour there is leaves too. With fancy leaves the block beyond must also be leaves (or
--     //~ * opaque), so the outer two layers stay visible and trees keep their depth; with fast (solid)
--     //~ * leaves every leaf-to-leaf face is invisible anyway.
--     //~ */
--    //~ public static boolean leafFaceHidden(final BlockGetter level, final BlockPos pos, final Direction side) {
--        //~ final BlockPos next = pos.relative(side);
--        //~ if (!(level.getBlockState(next).getBlock() instanceof LeavesBlock)) {
--            //~ return false;
--        //~ }
--        //~ if (!Tuning.leavesFancy) {
--            //~ return true;
--        //~ }
--        //~ final BlockState beyond = level.getBlockState(next.relative(side));
--        //~ return beyond.getBlock() instanceof LeavesBlock || beyond.canOcclude();
--    //~ }
--
--    //~ /**
--     //~ * Chorus culling (End optimizations, 1.12.0): whether the {@code side} face of a chorus plant
--     //~ * stem is the end cap of an arm joined to the next chorus plant's arm, which is buried inside
--     //~ * the joint. Chunk build threads.
--     //~ */
--    //~ public static boolean chorusFaceHidden(final BlockState state, final BlockGetter level, final BlockPos pos,
--                                           //~ final Direction side) {
--        //~ if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side))) {
--            //~ return false;
--        //~ }
--        //~ final BlockState next = level.getBlockState(pos.relative(side));
--        //~ return next.getBlock() == Blocks.CHORUS_PLANT
--                //~ && next.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side.getOpposite()));
--    //~ }
--
--    //~ /** Squared distance from the camera to an entity (render thread). */
--    //~ public static double distanceToCamera(final Entity entity) {
--        //~ return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
-     //~ }
-     // @era:t-client-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/UiSounds.java b/common/src/main/java/com/aetherium/client/UiSounds.java
 index f0c97dc..823ad0d 100644
@@ -4783,7 +4412,7 @@ index a561e63..e5c6f9f 100644
      // @era:options-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/WorldCache.java b/common/src/main/java/com/aetherium/client/WorldCache.java
-index 74ad0d4..a0d3495 100644
+index 39b2bf2..bb71fd5 100644
 --- a/common/src/main/java/com/aetherium/client/WorldCache.java
 +++ b/common/src/main/java/com/aetherium/client/WorldCache.java
 @@ -1,13 +1,13 @@
@@ -4808,18 +4437,12 @@ index 74ad0d4..a0d3495 100644
  // @era:t-world-cache-end
  
  /**
-@@ -27,101 +27,101 @@ public final class WorldCache {
+@@ -27,103 +27,103 @@ public final class WorldCache {
      private WorldCache() {
      }
  
 -    // @era:t-world-cache-begin none
--    // @era:t-world-cache-else v16
--    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
--    //~ private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
--    //~ private static RenderTarget cache;
--    //~ private static boolean valid;
--    //~ private static long lastCapture;
--    //~ private static boolean broken;
+-    public static void levelChanged() {
 +    // @era:t-world-cache-begin v16
 +    private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
 +    private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
@@ -4827,6 +4450,23 @@ index 74ad0d4..a0d3495 100644
 +    private static boolean valid;
 +    private static long lastCapture;
 +    private static boolean broken;
++
++    private static boolean eligible(final Minecraft mc) {
++        if (!Tuning.menuWorldCache || broken || AutoBench.ACTIVE || mc.level == null) {
++            return false;
++        }
++        final Screen screen = mc.screen;
++        return screen != null && !(screen instanceof ChatScreen)
++                && !screen.getClass().getName().startsWith("com.aetherium.")
++                && mc.gameRenderer.currentEffect() == null;
+     }
+-    // @era:t-world-cache-else v16
+-    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
+-    //~ private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
+-    //~ private static RenderTarget cache;
+-    //~ private static boolean valid;
+-    //~ private static long lastCapture;
+-    //~ private static boolean broken;
  
 -    //~ private static boolean eligible(final Minecraft mc) {
 -        //~ if (!Tuning.menuWorldCache || broken || AutoBench.ACTIVE || mc.level == null) {
@@ -4836,50 +4476,6 @@ index 74ad0d4..a0d3495 100644
 -        //~ return screen != null && !(screen instanceof ChatScreen)
 -                //~ && !screen.getClass().getName().startsWith("com.aetherium.")
 -                //~ && mc.gameRenderer.currentEffect() == null;
--    //~ }
-+    private static boolean eligible(final Minecraft mc) {
-+        if (!Tuning.menuWorldCache || broken || AutoBench.ACTIVE || mc.level == null) {
-+            return false;
-+        }
-+        final Screen screen = mc.screen;
-+        return screen != null && !(screen instanceof ChatScreen)
-+                && !screen.getClass().getName().startsWith("com.aetherium.")
-+                && mc.gameRenderer.currentEffect() == null;
-+    }
- 
--    //~ /**
--     //~ * Instead of {@code GameRenderer.renderLevel}: true when the stored picture was drawn and the
--     //~ * world must not be rendered this frame.
--     //~ */
--    //~ public static boolean reuse(final Minecraft mc) {
--        //~ if (!eligible(mc)) {
--            //~ valid = false;
--            //~ if (cache != null && mc.screen == null) {
--                //~ // Back in the game: the screen-sized framebuffer is not kept around.
--                //~ cache.destroyBuffers();
--                //~ cache = null;
--                //~ // destroyBuffers leaves framebuffer 0 bound; the world is drawn into the main target.
--                //~ mc.getMainRenderTarget().bindWrite(true);
--            //~ }
--            //~ return false;
--        //~ }
--        //~ if (!valid || cache == null || System.nanoTime() - lastCapture >= REFRESH_NANOS) {
--            //~ return false;
--        //~ }
--        //~ try {
--            //~ final RenderTarget main = mc.getMainRenderTarget();
--            //~ if (cache.width != main.width || cache.height != main.height) {
--                //~ valid = false;
--                //~ return false;
--            //~ }
--            //~ main.bindWrite(true);
--            //~ cache.blitToScreen(main.width, main.height, true);
--            //~ main.bindWrite(true);
--            //~ return true;
--        //~ } catch (final RuntimeException | LinkageError e) {
--            //~ fail(e);
--            //~ return false;
--        //~ }
 -    //~ }
 +    /**
 +     * Instead of {@code GameRenderer.renderLevel}: true when the stored picture was drawn and the
@@ -4916,26 +4512,38 @@ index 74ad0d4..a0d3495 100644
 +        }
 +    }
  
--    //~ /** After a world frame with a menu open: keep the picture for the next frames. */
--    //~ public static void capture(final Minecraft mc) {
+-    //~ /**
+-     //~ * Instead of {@code GameRenderer.renderLevel}: true when the stored picture was drawn and the
+-     //~ * world must not be rendered this frame.
+-     //~ */
+-    //~ public static boolean reuse(final Minecraft mc) {
 -        //~ if (!eligible(mc)) {
 -            //~ valid = false;
--            //~ return;
+-            //~ if (cache != null && mc.screen == null) {
+-                //~ // Back in the game: the screen-sized framebuffer is not kept around.
+-                //~ cache.destroyBuffers();
+-                //~ cache = null;
+-                //~ // destroyBuffers leaves framebuffer 0 bound; the world is drawn into the main target.
+-                //~ mc.getMainRenderTarget().bindWrite(true);
+-            //~ }
+-            //~ return false;
+-        //~ }
+-        //~ if (!valid || cache == null || System.nanoTime() - lastCapture >= REFRESH_NANOS) {
+-            //~ return false;
 -        //~ }
 -        //~ try {
 -            //~ final RenderTarget main = mc.getMainRenderTarget();
--            //~ if (cache == null) {
--                //~ cache = new RenderTarget(main.width, main.height, false, Minecraft.ON_OSX);
--            //~ } else if (cache.width != main.width || cache.height != main.height) {
--                //~ cache.resize(main.width, main.height, Minecraft.ON_OSX);
+-            //~ if (cache.width != main.width || cache.height != main.height) {
+-                //~ valid = false;
+-                //~ return false;
 -            //~ }
--            //~ cache.bindWrite(true);
--            //~ main.blitToScreen(main.width, main.height, true);
 -            //~ main.bindWrite(true);
--            //~ valid = true;
--            //~ lastCapture = System.nanoTime();
+-            //~ cache.blitToScreen(main.width, main.height, true);
+-            //~ main.bindWrite(true);
+-            //~ return true;
 -        //~ } catch (final RuntimeException | LinkageError e) {
 -            //~ fail(e);
+-            //~ return false;
 -        //~ }
 -    //~ }
 +    /** After a world frame with a menu open: keep the picture for the next frames. */
@@ -4961,29 +4569,34 @@ index 74ad0d4..a0d3495 100644
 +        }
 +    }
  
--    //~ /** The world changed: the stored picture belongs to the old one. */
--    //~ public static void levelChanged() {
--        //~ valid = false;
+-    //~ /** After a world frame with a menu open: keep the picture for the next frames. */
+-    //~ public static void capture(final Minecraft mc) {
+-        //~ if (!eligible(mc)) {
+-            //~ valid = false;
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ final RenderTarget main = mc.getMainRenderTarget();
+-            //~ if (cache == null) {
+-                //~ cache = new RenderTarget(main.width, main.height, false, Minecraft.ON_OSX);
+-            //~ } else if (cache.width != main.width || cache.height != main.height) {
+-                //~ cache.resize(main.width, main.height, Minecraft.ON_OSX);
+-            //~ }
+-            //~ cache.bindWrite(true);
+-            //~ main.blitToScreen(main.width, main.height, true);
+-            //~ main.bindWrite(true);
+-            //~ valid = true;
+-            //~ lastCapture = System.nanoTime();
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ fail(e);
+-        //~ }
 -    //~ }
 +    /** The world changed: the stored picture belongs to the old one. */
 +    public static void levelChanged() {
 +        valid = false;
 +    }
  
--    //~ private static void fail(final Throwable e) {
--        //~ broken = true;
--        //~ valid = false;
--        //~ LOGGER.error("Menu world picture turned off after an error", e);
--        //~ try {
--            //~ Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
--            //~ if (cache != null) {
--                //~ cache.destroyBuffers();
--                //~ cache = null;
--            //~ }
--        //~ } catch (final RuntimeException | LinkageError ignored) {
--            //~ // the framebuffer is freed with the GL context
--        //~ }
--    //~ }
+-    //~ /** The world changed: the stored picture belongs to the old one. */
 +    private static void fail(final Throwable e) {
 +        broken = true;
 +        valid = false;
@@ -4999,6 +4612,24 @@ index 74ad0d4..a0d3495 100644
 +        }
 +    }
 +    // @era:t-world-cache-else none
+     //~ public static void levelChanged() {
+-        //~ valid = false;
+-    //~ }
+-
+-    //~ private static void fail(final Throwable e) {
+-        //~ broken = true;
+-        //~ valid = false;
+-        //~ LOGGER.error("Menu world picture turned off after an error", e);
+-        //~ try {
+-            //~ Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
+-            //~ if (cache != null) {
+-                //~ cache.destroyBuffers();
+-                //~ cache = null;
+-            //~ }
+-        //~ } catch (final RuntimeException | LinkageError ignored) {
+-            //~ // the framebuffer is freed with the GL context
+-        //~ }
+     //~ }
      // @era:t-world-cache-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
@@ -13278,10 +12909,10 @@ index 3ccd445..f069e2d 100644
      // @era:options-end
  
 diff --git a/common/src/main/java/com/aetherium/perf/TuningSupport.java b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-index cdfd742..87fba5e 100644
+index 645977d..30a6569 100644
 --- a/common/src/main/java/com/aetherium/perf/TuningSupport.java
 +++ b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-@@ -10,262 +10,262 @@ public final class TuningSupport {
+@@ -10,40 +10,40 @@ public final class TuningSupport {
      private TuningSupport() {
      }
  
@@ -13345,14 +12976,9 @@ index cdfd742..87fba5e 100644
 +    //~ public static final boolean CHUNK_SAVE = false;
      // @era:t-chunk-save-end
  
--    // @era:t-client-begin none
--    public static final boolean CLIENT = false;
--    // @era:t-client-else v16
--    //~ public static final boolean CLIENT = true;
-+    // @era:t-client-begin v16
-+    public static final boolean CLIENT = true;
-+    // @era:t-client-else none
-+    //~ public static final boolean CLIENT = false;
+     // @era:t-client-begin v16|v19|v262
+@@ -52,220 +52,220 @@ public final class TuningSupport {
+     //~ public static final boolean CLIENT = false;
      // @era:t-client-end
  
 -    // @era:t-color-filter-begin none

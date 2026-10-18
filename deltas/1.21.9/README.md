@@ -61,6 +61,7 @@ neoforge_version=21.9.16-beta
 - `section-vis=render-origin`
 - `simdist=sim`
 - `sky=renderer`
+- `t-client=v19`
 - `vignette=render`
 - `weather=effect`
 - `zoom-fov=float`
@@ -98,6 +99,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.9.t
 - `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
+- `common/src/main/java/com/aetherium/client/TuningClient.java`
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java`

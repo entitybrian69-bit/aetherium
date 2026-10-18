@@ -28,6 +28,8 @@ public final class WorldCache {
     }
 
     // @era:t-world-cache-begin none
+    public static void levelChanged() {
+    }
     // @era:t-world-cache-else v16
     //~ private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
     //~ private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;

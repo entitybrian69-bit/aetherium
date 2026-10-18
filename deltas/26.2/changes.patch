@@ -781,6 +781,237 @@ index 5d253f5..fdcd082 100644
      //~ }
      // @era:fog-else params
      //~ /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
+diff --git a/common/src/main/java/com/aetherium/client/TuningClient.java b/common/src/main/java/com/aetherium/client/TuningClient.java
+index 1329538..ab35499 100644
+--- a/common/src/main/java/com/aetherium/client/TuningClient.java
++++ b/common/src/main/java/com/aetherium/client/TuningClient.java
+@@ -3,14 +3,13 @@ package com.aetherium.client;
+ import com.aetherium.perf.Tuning;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.screens.Screen;
+-// @era:t-client-begin v16
++// @era:t-client-begin v19|v262
+ import it.unimi.dsi.fastutil.longs.LongIterator;
+ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+ import net.minecraft.client.gui.screens.ChatScreen;
+ import net.minecraft.client.gui.screens.ConnectScreen;
+ import net.minecraft.client.gui.screens.LevelLoadingScreen;
+ import net.minecraft.client.gui.screens.ProgressScreen;
+-import net.minecraft.client.gui.screens.ReceivingLevelScreen;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.Direction;
+ import net.minecraft.core.SectionPos;
+@@ -21,14 +20,14 @@ import net.minecraft.world.level.block.LeavesBlock;
+ import net.minecraft.world.level.block.PipeBlock;
+ import net.minecraft.world.level.block.state.BlockState;
+ import org.lwjgl.glfw.GLFW;
+-// @era:t-client-else none
+-// @era:t-client-else v19|v262
++// @era:t-client-else v16
+ //~ import it.unimi.dsi.fastutil.longs.LongIterator;
+ //~ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+ //~ import net.minecraft.client.gui.screens.ChatScreen;
+ //~ import net.minecraft.client.gui.screens.ConnectScreen;
+ //~ import net.minecraft.client.gui.screens.LevelLoadingScreen;
+ //~ import net.minecraft.client.gui.screens.ProgressScreen;
++//~ import net.minecraft.client.gui.screens.ReceivingLevelScreen;
+ //~ import net.minecraft.core.BlockPos;
+ //~ import net.minecraft.core.Direction;
+ //~ import net.minecraft.core.SectionPos;
+@@ -39,6 +38,7 @@ import org.lwjgl.glfw.GLFW;
+ //~ import net.minecraft.world.level.block.PipeBlock;
+ //~ import net.minecraft.world.level.block.state.BlockState;
+ //~ import org.lwjgl.glfw.GLFW;
++// @era:t-client-else none
+ // @era:t-client-end
+ 
+ /**
+@@ -61,7 +61,7 @@ public final class TuningClient {
+     private TuningClient() {
+     }
+ 
+-    // @era:t-client-begin v16
++    // @era:t-client-begin v262
+     private static final long GC_SPACING_NANOS = 10_000_000_000L;
+     private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
+     private static long lastGc;
+@@ -80,7 +80,7 @@ public final class TuningClient {
+             return 0;
+         }
+         if (Tuning.dynamicFps) {
+-            final long window = mc.getWindow().getWindow();
++            final long window = mc.getWindow().handle();
+             if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
+                 return MINIMIZED_FPS;
+             }
+@@ -88,7 +88,7 @@ public final class TuningClient {
+                 return BACKGROUND_FPS;
+             }
+         }
+-        final Screen screen = mc.screen;
++        final Screen screen = ClientHooks.currentScreen(mc);
+         if (Tuning.menuFps > 0 && mc.level != null && screen != null && !(screen instanceof ChatScreen)
+                 && !screen.getClass().getName().startsWith("com.aetherium.")) {
+             // Aetherium's own screen keeps full speed for its animations.
+@@ -105,14 +105,14 @@ public final class TuningClient {
+         if (!loadingScreen(next)) {
+             return;
+         }
+-        if (loadingScreen(mc.screen)) {
++        if (loadingScreen(ClientHooks.currentScreen(mc))) {
+             return; // already behind a loading screen
+         }
+         gcPending = true; // collected on the next tick, once the loading screen is on screen
+     }
+ 
+     private static boolean loadingScreen(final Screen screen) {
+-        return screen instanceof ReceivingLevelScreen || screen instanceof LevelLoadingScreen
++        return screen instanceof LevelLoadingScreen
+                 || screen instanceof ConnectScreen || screen instanceof ProgressScreen;
+     }
+ 
+@@ -134,7 +134,7 @@ public final class TuningClient {
+         if (gcPending) {
+             gcPending = false;
+             final long now = System.nanoTime();
+-            if (Tuning.loadGc && loadingScreen(mc.screen) && (lastGc == 0L || now - lastGc >= GC_SPACING_NANOS)) {
++            if (Tuning.loadGc && loadingScreen(ClientHooks.currentScreen(mc)) && (lastGc == 0L || now - lastGc >= GC_SPACING_NANOS)) {
+                 lastGc = now;
+                 System.gc();
+             }
+@@ -155,7 +155,8 @@ public final class TuningClient {
+             final LongIterator it = DIRTY_LIGHT.iterator();
+             while (it.hasNext()) {
+                 final long key = it.nextLong();
+-                mc.levelRenderer.setSectionDirty(SectionPos.x(key), SectionPos.y(key), SectionPos.z(key));
++                mc.level.setSectionRangeDirty(SectionPos.x(key), SectionPos.y(key), SectionPos.z(key),
++                        SectionPos.x(key), SectionPos.y(key), SectionPos.z(key));
+             }
+         }
+         DIRTY_LIGHT.clear();
+@@ -176,7 +177,7 @@ public final class TuningClient {
+         final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
+         final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
+         if (changed && mc.levelRenderer != null && mc.level != null) {
+-            mc.levelRenderer.allChanged();
++            VanillaOptions.reloadChunks();
+         }
+         lastLeaves = leaves;
+         lastMesh = mesh;
+@@ -219,23 +220,7 @@ public final class TuningClient {
+     public static double distanceToCamera(final Entity entity) {
+         return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
+     }
+-    // @era:t-client-else none
+-    //~ public static int frameCap(final Minecraft mc) {
+-        //~ return 0;
+-    //~ }
+-
+-    //~ public static void onScreen(final Minecraft mc, final Screen next) {
+-    //~ }
+-
+-    //~ public static void tick(final Minecraft mc) {
+-    //~ }
+-
+-    //~ public static void levelChanged() {
+-    //~ }
+-
+-    //~ public static void configured(final Minecraft mc) {
+-    //~ }
+-    // @era:t-client-else v19
++    // @era:t-client-else v16
+     //~ private static final long GC_SPACING_NANOS = 10_000_000_000L;
+     //~ private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
+     //~ private static long lastGc;
+@@ -254,7 +239,7 @@ public final class TuningClient {
+             //~ return 0;
+         //~ }
+         //~ if (Tuning.dynamicFps) {
+-            //~ final long window = mc.getWindow().handle();
++            //~ final long window = mc.getWindow().getWindow();
+             //~ if (window != 0L && GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_ICONIFIED) != 0) {
+                 //~ return MINIMIZED_FPS;
+             //~ }
+@@ -286,7 +271,7 @@ public final class TuningClient {
+     //~ }
+ 
+     //~ private static boolean loadingScreen(final Screen screen) {
+-        //~ return screen instanceof LevelLoadingScreen
++        //~ return screen instanceof ReceivingLevelScreen || screen instanceof LevelLoadingScreen
+                 //~ || screen instanceof ConnectScreen || screen instanceof ProgressScreen;
+     //~ }
+ 
+@@ -393,7 +378,23 @@ public final class TuningClient {
+     //~ public static double distanceToCamera(final Entity entity) {
+         //~ return Minecraft.getInstance().getEntityRenderDispatcher().distanceToSqr(entity);
+     //~ }
+-    // @era:t-client-else v262
++    // @era:t-client-else none
++    //~ public static int frameCap(final Minecraft mc) {
++        //~ return 0;
++    //~ }
++
++    //~ public static void onScreen(final Minecraft mc, final Screen next) {
++    //~ }
++
++    //~ public static void tick(final Minecraft mc) {
++    //~ }
++
++    //~ public static void levelChanged() {
++    //~ }
++
++    //~ public static void configured(final Minecraft mc) {
++    //~ }
++    // @era:t-client-else v19
+     //~ private static final long GC_SPACING_NANOS = 10_000_000_000L;
+     //~ private static final LongOpenHashSet DIRTY_LIGHT = new LongOpenHashSet();
+     //~ private static long lastGc;
+@@ -420,7 +421,7 @@ public final class TuningClient {
+                 //~ return BACKGROUND_FPS;
+             //~ }
+         //~ }
+-        //~ final Screen screen = ClientHooks.currentScreen(mc);
++        //~ final Screen screen = mc.screen;
+         //~ if (Tuning.menuFps > 0 && mc.level != null && screen != null && !(screen instanceof ChatScreen)
+                 //~ && !screen.getClass().getName().startsWith("com.aetherium.")) {
+             //~ // Aetherium's own screen keeps full speed for its animations.
+@@ -437,7 +438,7 @@ public final class TuningClient {
+         //~ if (!loadingScreen(next)) {
+             //~ return;
+         //~ }
+-        //~ if (loadingScreen(ClientHooks.currentScreen(mc))) {
++        //~ if (loadingScreen(mc.screen)) {
+             //~ return; // already behind a loading screen
+         //~ }
+         //~ gcPending = true; // collected on the next tick, once the loading screen is on screen
+@@ -466,7 +467,7 @@ public final class TuningClient {
+         //~ if (gcPending) {
+             //~ gcPending = false;
+             //~ final long now = System.nanoTime();
+-            //~ if (Tuning.loadGc && loadingScreen(ClientHooks.currentScreen(mc)) && (lastGc == 0L || now - lastGc >= GC_SPACING_NANOS)) {
++            //~ if (Tuning.loadGc && loadingScreen(mc.screen) && (lastGc == 0L || now - lastGc >= GC_SPACING_NANOS)) {
+                 //~ lastGc = now;
+                 //~ System.gc();
+             //~ }
+@@ -487,8 +488,7 @@ public final class TuningClient {
+             //~ final LongIterator it = DIRTY_LIGHT.iterator();
+             //~ while (it.hasNext()) {
+                 //~ final long key = it.nextLong();
+-                //~ mc.level.setSectionRangeDirty(SectionPos.x(key), SectionPos.y(key), SectionPos.z(key),
+-                        //~ SectionPos.x(key), SectionPos.y(key), SectionPos.z(key));
++                //~ mc.levelRenderer.setSectionDirty(SectionPos.x(key), SectionPos.y(key), SectionPos.z(key));
+             //~ }
+         //~ }
+         //~ DIRTY_LIGHT.clear();
+@@ -509,7 +509,7 @@ public final class TuningClient {
+         //~ final int mesh = (Tuning.fastGrass ? 1 : 0) | (Tuning.endOptimizations ? 2 : 0);
+         //~ final boolean changed = (lastLeaves != -1 && leaves != lastLeaves) || (lastMesh != -1 && mesh != lastMesh);
+         //~ if (changed && mc.levelRenderer != null && mc.level != null) {
+-            //~ VanillaOptions.reloadChunks();
++            //~ mc.levelRenderer.allChanged();
+         //~ }
+         //~ lastLeaves = leaves;
+         //~ lastMesh = mesh;
 diff --git a/common/src/main/java/com/aetherium/client/VanillaOptions.java b/common/src/main/java/com/aetherium/client/VanillaOptions.java
 index a561e63..e9738c5 100644
 --- a/common/src/main/java/com/aetherium/client/VanillaOptions.java
