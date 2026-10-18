@@ -1,6 +1,7 @@
 package com.aetherium.client;
 
 import com.aetherium.util.AetheriumLog;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -15,7 +16,8 @@ import org.lwjgl.opengl.GL30;
 
 /**
  * Screen-sized copies of the main colour buffer with plain OpenGL 3 calls (Minecraft 1.17+), for
- * the menu world picture ({@link WorldCache}) and the colour filter ({@link ColorFilter}).
+ * the menu world picture ({@link WorldCache}), the colour filter ({@link ColorFilter}) and the
+ * render scale upscale ({@link ScaledRenderTarget}).
  *
  * <p>From 1.17 on, {@code RenderTarget.blitToScreen} binds vanilla's own core-profile shader, so
  * the 1.16.5 way (blit through a program of our own) no longer works. This class owns its
@@ -39,6 +41,7 @@ public final class RawFrame {
     private static final int GL_TEXTURE_MIN_FILTER = 0x2801;
     private static final int GL_TEXTURE_MAG_FILTER = 0x2800;
     private static final int GL_NEAREST = 0x2600;
+    private static final int GL_LINEAR = 0x2601;
     private static final int GL_READ_FRAMEBUFFER = 0x8CA8;
     private static final int GL_DRAW_FRAMEBUFFER = 0x8CA9;
     private static final int GL_READ_FRAMEBUFFER_BINDING = 0x8CAA;
@@ -122,6 +125,83 @@ public final class RawFrame {
         // @era:t-raw-frame-else none
         //~ return -1;
         // @era:t-raw-frame-end
+    }
+
+    /** OpenGL name of a render target's colour texture, or -1 where it cannot be reached. */
+    static int colorTexture(final RenderTarget target) {
+        // @era:t-raw-frame-begin r17|r212
+        return target.getColorTextureId();
+        // @era:t-raw-frame-else r215
+        //~ final GpuTexture texture = target.getColorTexture();
+        //~ return texture instanceof GlTexture ? ((GlTexture) texture).glId() : -1;
+        // @era:t-raw-frame-else none
+        //~ return -1;
+        // @era:t-raw-frame-end
+    }
+
+    /** Framebuffers around the two colour textures of {@link #upscale} (render scale). */
+    private static final int[] UP_FBO = new int[2];
+    private static final int[] UP_KEY = new int[6];
+
+    /**
+     * Render scale: {@code from}'s colour buffer stretched over all of {@code to}'s with one
+     * linear-filtered {@code glBlitFramebuffer} (no shader, no blending, nothing else touched).
+     * False when either texture cannot be reached or a framebuffer is incomplete.
+     */
+    public static boolean upscale(final RenderTarget from, final RenderTarget to) {
+        final int src = colorTexture(from);
+        final int dst = colorTexture(to);
+        if (src <= 0 || dst <= 0) {
+            return false;
+        }
+        if (!attach(0, src, from.width, from.height) || !attach(1, dst, to.width, to.height)) {
+            return false;
+        }
+        final int read = GL11.glGetInteger(GL_READ_FRAMEBUFFER_BINDING);
+        final int draw = GL11.glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
+        final boolean scissor = GL11.glIsEnabled(GL_SCISSOR_TEST);
+        try {
+            if (scissor) {
+                GL11.glDisable(GL_SCISSOR_TEST);
+            }
+            GL30.glBindFramebuffer(GL_READ_FRAMEBUFFER, UP_FBO[0]);
+            GL30.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, UP_FBO[1]);
+            GL30.glBlitFramebuffer(0, 0, from.width, from.height, 0, 0, to.width, to.height,
+                    GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        } finally {
+            GL30.glBindFramebuffer(GL_READ_FRAMEBUFFER, read);
+            GL30.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw);
+            if (scissor) {
+                GL11.glEnable(GL_SCISSOR_TEST);
+            }
+        }
+        return true;
+    }
+
+    /** Points upscale framebuffer {@code slot} at {@code texture}; re-attached when name or size change. */
+    private static boolean attach(final int slot, final int texture, final int w, final int h) {
+        final int k = slot * 3;
+        if (UP_FBO[slot] != 0 && UP_KEY[k] == texture && UP_KEY[k + 1] == w && UP_KEY[k + 2] == h) {
+            return true;
+        }
+        final int read = GL11.glGetInteger(GL_READ_FRAMEBUFFER_BINDING);
+        try {
+            if (UP_FBO[slot] == 0) {
+                UP_FBO[slot] = GL30.glGenFramebuffers();
+            }
+            GL30.glBindFramebuffer(GL_READ_FRAMEBUFFER, UP_FBO[slot]);
+            GL30.glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+            if (GL30.glCheckFramebufferStatus(GL_READ_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                UP_KEY[k] = 0;
+                return false;
+            }
+            UP_KEY[k] = texture;
+            UP_KEY[k + 1] = w;
+            UP_KEY[k + 2] = h;
+            return true;
+        } finally {
+            GL30.glBindFramebuffer(GL_READ_FRAMEBUFFER, read);
+        }
     }
 
     /** Size of the main colour buffer. */

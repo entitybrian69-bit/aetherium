@@ -1,23 +1,122 @@
 package com.aetherium.client;
 
-// @era:render-scale-begin none
-// @era:render-scale-else target
-//~ import com.aetherium.mixin.core.MainTargetAccessor;
-//~ import com.mojang.blaze3d.pipeline.RenderTarget;
-//~ import net.minecraft.client.Minecraft;
+// @era:render-scale-begin target|r17|r212|r215
+import com.aetherium.mixin.core.MainTargetAccessor;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import net.minecraft.client.Minecraft;
+// @era:render-scale-else none
 // @era:render-scale-end
 
 /**
  * The smaller framebuffer the 3D world is drawn into when render scale is below 100%
- * (1.9.0). Around {@code GameRenderer.renderLevel} it temporarily becomes
+ * (1.9.0; every version up to 26.1 since 1.14.0). Around {@code GameRenderer.renderLevel} it temporarily becomes
  * {@code Minecraft.mainRenderTarget}, so every vanilla {@code getMainRenderTarget()} call
  * during the world pass (sky, terrain, entities, hand) draws into it; afterwards the real
  * target is put back and this one is drawn over it, filtered, at window size. The entity
  * outline pass, post effects and the GUI then run at full resolution as usual.
  */
-// @era:render-scale-begin none
-public final class ScaledRenderTarget {
-    private ScaledRenderTarget() {
+// @era:render-scale-begin r17|r212|r215
+public final class ScaledRenderTarget extends RenderTarget {
+    private static ScaledRenderTarget instance;
+    private static RenderTarget swapped;
+
+    private ScaledRenderTarget(final int width, final int height) {
+        // @era:rs-api-begin r17
+        super(true);
+        this.resize(width, height, Minecraft.ON_OSX);
+        // @era:rs-api-else r212
+        //~ super(true);
+        //~ this.resize(width, height);
+        // @era:rs-api-else r215
+        //~ super("Aetherium render scale", true);
+        //~ this.createBuffers(width, height);
+        // @era:rs-api-end
+    }
+
+    // @era:rs-api-begin r17|r212
+    /**
+     * Vanilla rebinds the main target with {@code bindWrite(false)} after its outline pass,
+     * relying on the viewport already matching the window. Always set our own viewport.
+     */
+    @Override
+    public void bindWrite(final boolean setViewport) {
+        super.bindWrite(true);
+    }
+    // @era:rs-api-else r215
+    //~ // (1.21.5+: every render pass sets the viewport from its own colour texture.)
+    // @era:rs-api-end
+
+    private void ensureSize(final int width, final int height) {
+        if (width != this.width || height != this.height) {
+            // @era:rs-api-begin r17
+            this.resize(width, height, Minecraft.ON_OSX);
+            // @era:rs-api-else r212|r215
+            //~ this.resize(width, height);
+            // @era:rs-api-end
+        }
+    }
+
+    /** {@code GameRenderer.renderLevel} HEAD. */
+    public static void begin(final Minecraft minecraft) {
+        if (swapped != null) {
+            // The previous world pass threw before RETURN: put the real target back first.
+            restore(minecraft);
+        }
+        final int percent = RenderScale.beginFrame(Minecraft.useShaderTransparency());
+        if (percent >= 100) {
+            return;
+        }
+        try {
+            final MainTargetAccessor access = (MainTargetAccessor) minecraft;
+            final RenderTarget main = access.aetheriumMainTarget();
+            final int width = RenderScale.scaled(main.width, percent);
+            final int height = RenderScale.scaled(main.height, percent);
+            if (instance == null) {
+                instance = new ScaledRenderTarget(width, height);
+            } else {
+                instance.ensureSize(width, height);
+            }
+            swapped = main;
+            access.aetheriumSetMainTarget(instance);
+            // @era:rs-api-begin r17|r212
+            instance.bindWrite(true);
+            // @era:rs-api-else r215
+            // @era:rs-api-end
+        } catch (final Throwable error) {
+            restore(minecraft);
+            RenderScale.fail(error);
+        }
+    }
+
+    /**
+     * {@code GameRenderer.renderLevel} RETURN: put the real target back and stretch the frame over
+     * it with one linear {@code glBlitFramebuffer} ({@link RawFrame#upscale}).
+     */
+    public static void end(final Minecraft minecraft) {
+        if (swapped == null) {
+            return;
+        }
+        final RenderTarget main = swapped;
+        restore(minecraft);
+        try {
+            if (!RawFrame.upscale(instance, main)) {
+                RenderScale.fail(new IllegalStateException("render targets are not reachable as GL framebuffers"));
+            }
+            // @era:rs-api-begin r17|r212
+            main.bindWrite(true);
+            // @era:rs-api-else r215
+            // @era:rs-api-end
+        } catch (final Throwable error) {
+            RenderScale.fail(error);
+        }
+    }
+
+    private static void restore(final Minecraft minecraft) {
+        final RenderTarget main = swapped;
+        swapped = null;
+        if (main != null) {
+            ((MainTargetAccessor) minecraft).aetheriumSetMainTarget(main);
+        }
     }
 }
 // @era:render-scale-else target
@@ -99,6 +198,11 @@ public final class ScaledRenderTarget {
         //~ if (main != null) {
             //~ ((MainTargetAccessor) minecraft).aetheriumSetMainTarget(main);
         //~ }
+    //~ }
+//~ }
+// @era:render-scale-else none
+//~ public final class ScaledRenderTarget {
+    //~ private ScaledRenderTarget() {
     //~ }
 //~ }
 // @era:render-scale-end
