@@ -364,7 +364,11 @@ public final class FarTerrain {
                 //~ }
                 //~ at.set(((cx + dx) << 4) + 8, Math.max(0, Math.min(255, column.heights[5] - 1)), ((cz + dz) << 4) + 8);
                 //~ final ChunkRenderDispatcher.RenderChunk section = view.aetherium$renderChunkAt(at);
-                //~ if (section == null || section.getCompiledChunk() == ChunkRenderDispatcher.CompiledChunk.UNCOMPILED) {
+                //~ // The view area wraps positions around (modulo), so a section from another chunk can come
+                //~ // back: only a section whose origin is this chunk counts.
+                //~ final BlockPos origin = section == null ? null : section.getOrigin();
+                //~ if (origin == null || origin.getX() >> 4 != cx + dx || origin.getZ() >> 4 != cz + dz
+                        //~ || section.getCompiledChunk() == ChunkRenderDispatcher.CompiledChunk.UNCOMPILED) {
                     //~ out.add(key);
                 //~ }
             //~ }

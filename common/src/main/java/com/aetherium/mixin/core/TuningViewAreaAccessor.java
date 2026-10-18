@@ -9,8 +9,9 @@ import org.spongepowered.asm.mixin.Mixin;
 // @era:qol16-end
 
 /**
- * Far terrain (1.11.0, Minecraft 1.16.5): the chunk section at a position, or null outside the
- * view area ({@code ViewArea.getRenderChunkAt} is protected).
+ * Far terrain (1.11.0, Minecraft 1.16.5): the chunk section at a position
+ * ({@code ViewArea.getRenderChunkAt} is protected). Horizontal positions wrap around the view
+ * area, so callers compare the section's origin; null only above or below the world.
  */
 @Mixin(targets = "net.minecraft.client.renderer.ViewArea")
 public interface TuningViewAreaAccessor {

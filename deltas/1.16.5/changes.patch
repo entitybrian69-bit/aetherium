@@ -1344,7 +1344,7 @@ index dd0200e..e1de07c 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrain.java b/common/src/main/java/com/aetherium/client/FarTerrain.java
-index ad18336..fafe851 100644
+index 417b306..52cfb4f 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrain.java
 +++ b/common/src/main/java/com/aetherium/client/FarTerrain.java
 @@ -1,47 +1,47 @@
@@ -1437,7 +1437,7 @@ index ad18336..fafe851 100644
  // @era:qol16-end
  
  /**
-@@ -67,449 +67,449 @@ public final class FarTerrain {
+@@ -67,453 +67,453 @@ public final class FarTerrain {
      private FarTerrain() {
      }
  
@@ -1990,7 +1990,11 @@ index ad18336..fafe851 100644
 -                //~ }
 -                //~ at.set(((cx + dx) << 4) + 8, Math.max(0, Math.min(255, column.heights[5] - 1)), ((cz + dz) << 4) + 8);
 -                //~ final ChunkRenderDispatcher.RenderChunk section = view.aetherium$renderChunkAt(at);
--                //~ if (section == null || section.getCompiledChunk() == ChunkRenderDispatcher.CompiledChunk.UNCOMPILED) {
+-                //~ // The view area wraps positions around (modulo), so a section from another chunk can come
+-                //~ // back: only a section whose origin is this chunk counts.
+-                //~ final BlockPos origin = section == null ? null : section.getOrigin();
+-                //~ if (origin == null || origin.getX() >> 4 != cx + dx || origin.getZ() >> 4 != cz + dz
+-                        //~ || section.getCompiledChunk() == ChunkRenderDispatcher.CompiledChunk.UNCOMPILED) {
 -                    //~ out.add(key);
 -                //~ }
 -            //~ }
@@ -2022,7 +2026,11 @@ index ad18336..fafe851 100644
 +                }
 +                at.set(((cx + dx) << 4) + 8, Math.max(0, Math.min(255, column.heights[5] - 1)), ((cz + dz) << 4) + 8);
 +                final ChunkRenderDispatcher.RenderChunk section = view.aetherium$renderChunkAt(at);
-+                if (section == null || section.getCompiledChunk() == ChunkRenderDispatcher.CompiledChunk.UNCOMPILED) {
++                // The view area wraps positions around (modulo), so a section from another chunk can come
++                // back: only a section whose origin is this chunk counts.
++                final BlockPos origin = section == null ? null : section.getOrigin();
++                if (origin == null || origin.getX() >> 4 != cx + dx || origin.getZ() >> 4 != cz + dz
++                        || section.getCompiledChunk() == ChunkRenderDispatcher.CompiledChunk.UNCOMPILED) {
 +                    out.add(key);
 +                }
 +            }
@@ -10337,7 +10345,7 @@ index 30270f7..7c799ca 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
-index 0f2fda9..3260e3e 100644
+index 97db8a7..a6fb8ec 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
 @@ -1,11 +1,11 @@
@@ -10357,7 +10365,7 @@ index 0f2fda9..3260e3e 100644
  // @era:qol16-end
  
  /**
-@@ -14,9 +14,9 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.ViewArea")
  public interface TuningViewAreaAccessor {
@@ -11458,7 +11466,7 @@ index 5e7f82d..f488882 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 6402cd2..6ee8e3e 100644
+index c4ea1e7..3f4a948 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
