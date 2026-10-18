@@ -15360,6 +15360,477 @@ public class net.minecraft.world.level.lighting.LevelLightEngine implements net.
 }
 === net.minecraft.client.renderer.LightTexture
 Error: class not found: net.minecraft.client.renderer.LightTexture
+=== # superclasses the stubs need (a dumped class whose parent was not dumped loses its hierarchy)
+Error: class not found: # superclasses the stubs need (a dumped class whose parent was not dumped loses its hierarchy)
+=== net.minecraft.client.player.AbstractClientPlayer
+Compiled from "AbstractClientPlayer.java"
+public abstract class net.minecraft.client.player.AbstractClientPlayer extends net.minecraft.world.entity.player.Player implements net.minecraft.client.entity.ClientAvatarEntity {
+  private net.minecraft.client.multiplayer.PlayerInfo playerInfo;
+  private final boolean showExtraEars;
+  private final net.minecraft.client.entity.ClientAvatarState clientAvatarState;
+  public net.minecraft.client.player.AbstractClientPlayer(net.minecraft.client.multiplayer.ClientLevel, com.mojang.authlib.GameProfile);
+  public net.minecraft.world.level.GameType gameMode();
+  protected net.minecraft.client.multiplayer.PlayerInfo getPlayerInfo();
+  public void tick();
+  protected void addWalkedDistance(float);
+  public net.minecraft.client.entity.ClientAvatarState avatarState();
+  public net.minecraft.world.entity.player.PlayerSkin getSkin();
+  public net.minecraft.world.entity.animal.parrot.Parrot$Variant getParrotVariantOnShoulder(boolean);
+  public void rideTick();
+  public void aiStep();
+  protected void updateBob();
+  public float getFieldOfViewModifier(boolean, float);
+  public boolean showExtraEars();
+}
+=== net.minecraft.world.entity.Avatar
+Compiled from "Avatar.java"
+public abstract class net.minecraft.world.entity.Avatar extends net.minecraft.world.entity.LivingEntity {
+  public static final net.minecraft.world.entity.HumanoidArm DEFAULT_MAIN_HAND;
+  public static final int DEFAULT_MODEL_CUSTOMIZATION;
+  public static final float DEFAULT_EYE_HEIGHT;
+  public static final net.minecraft.world.phys.Vec3 DEFAULT_VEHICLE_ATTACHMENT;
+  private static final float CROUCH_BB_HEIGHT;
+  private static final float SWIMMING_BB_WIDTH;
+  public static final float SWIMMING_BB_HEIGHT;
+  protected static final net.minecraft.world.entity.EntityDimensions STANDING_DIMENSIONS;
+  protected static final java.util.Map<net.minecraft.world.entity.Pose, net.minecraft.world.entity.EntityDimensions> POSES;
+  protected static final net.minecraft.network.syncher.EntityDataAccessor<net.minecraft.world.entity.HumanoidArm> DATA_PLAYER_MAIN_HAND;
+  protected static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Byte> DATA_PLAYER_MODE_CUSTOMISATION;
+  protected net.minecraft.world.entity.Avatar(net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.LivingEntity>, net.minecraft.world.level.Level);
+  protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData$Builder);
+  public net.minecraft.world.entity.HumanoidArm getMainArm();
+  public void setMainArm(net.minecraft.world.entity.HumanoidArm);
+  public boolean isModelPartShown(net.minecraft.world.entity.player.PlayerModelPart);
+  public net.minecraft.world.entity.EntityDimensions getDefaultDimensions(net.minecraft.world.entity.Pose);
+  public abstract net.minecraft.world.item.component.ResolvableProfile getProfile();
+  static {};
+}
+=== net.minecraft.world.entity.monster.Monster
+Compiled from "Monster.java"
+public abstract class net.minecraft.world.entity.monster.Monster extends net.minecraft.world.entity.PathfinderMob implements net.minecraft.world.entity.monster.Enemy {
+  protected net.minecraft.world.entity.monster.Monster(net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.monster.Monster>, net.minecraft.world.level.Level);
+  public net.minecraft.sounds.SoundSource getSoundSource();
+  public void aiStep();
+  protected void updateNoActionTime();
+  protected net.minecraft.sounds.SoundEvent getSwimSound();
+  protected net.minecraft.sounds.SoundEvent getSwimSplashSound();
+  protected net.minecraft.sounds.SoundEvent getHurtSound(net.minecraft.world.damagesource.DamageSource);
+  protected net.minecraft.sounds.SoundEvent getDeathSound();
+  public net.minecraft.world.entity.LivingEntity$Fallsounds getFallSounds();
+  public float getWalkTargetValue(net.minecraft.core.BlockPos, net.minecraft.world.level.LevelReader);
+  public static boolean isDarkEnoughToSpawn(net.minecraft.world.level.ServerLevelAccessor, net.minecraft.core.BlockPos, net.minecraft.util.RandomSource);
+  public static boolean checkMonsterSpawnRules(net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob>, net.minecraft.world.level.ServerLevelAccessor, net.minecraft.world.entity.EntitySpawnReason, net.minecraft.core.BlockPos, net.minecraft.util.RandomSource);
+  public static boolean checkAnyLightMonsterSpawnRules(net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.monster.Monster>, net.minecraft.world.level.LevelAccessor, net.minecraft.world.entity.EntitySpawnReason, net.minecraft.core.BlockPos, net.minecraft.util.RandomSource);
+  public static boolean checkSurfaceMonstersSpawnRules(net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob>, net.minecraft.world.level.ServerLevelAccessor, net.minecraft.world.entity.EntitySpawnReason, net.minecraft.core.BlockPos, net.minecraft.util.RandomSource);
+  public static net.minecraft.world.entity.ai.attributes.AttributeSupplier$Builder createMonsterAttributes();
+  public boolean shouldDropExperience();
+  protected boolean shouldDropLoot(net.minecraft.server.level.ServerLevel);
+  public boolean isPreventingPlayerRest(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.player.Player);
+  public net.minecraft.world.item.ItemStack getProjectile(net.minecraft.world.item.ItemStack);
+}
+=== net.minecraft.world.level.block.state.BlockBehaviour
+Compiled from "BlockBehaviour.java"
+public abstract class net.minecraft.world.level.block.state.BlockBehaviour implements net.minecraft.world.flag.FeatureElement {
+  protected static final net.minecraft.core.Direction[] UPDATE_SHAPE_ORDER;
+  protected final boolean hasCollision;
+  protected final float explosionResistance;
+  protected final boolean isRandomlyTicking;
+  protected final net.minecraft.world.level.block.SoundType soundType;
+  protected final float friction;
+  protected final float speedFactor;
+  protected final float jumpFactor;
+  protected final float bounceRestitution;
+  protected final float fallDistanceReduction;
+  protected final boolean dynamicShape;
+  protected final net.minecraft.world.flag.FeatureFlagSet requiredFeatures;
+  protected final net.minecraft.world.level.block.state.BlockBehaviour$Properties properties;
+  protected final java.util.Optional<net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable>> drops;
+  protected final java.lang.String descriptionId;
+  public net.minecraft.world.level.block.state.BlockBehaviour(net.minecraft.world.level.block.state.BlockBehaviour$Properties);
+  public net.minecraft.world.level.block.state.BlockBehaviour$Properties properties();
+  protected void updateIndirectNeighbourShapes(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.LevelAccessor, net.minecraft.core.BlockPos, int, int);
+  protected boolean isPathfindable(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.pathfinder.PathComputationType);
+  protected net.minecraft.world.level.block.state.BlockState updateShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.LevelReader, net.minecraft.world.level.ScheduledTickAccess, net.minecraft.core.BlockPos, net.minecraft.core.Direction, net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.util.RandomSource);
+  protected boolean skipRendering(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.Direction);
+  protected void neighborChanged(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.level.block.Block, net.minecraft.world.level.redstone.Orientation, boolean);
+  protected void onPlace(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, boolean);
+  protected void affectNeighborsAfterRemoval(net.minecraft.world.level.block.state.BlockState, net.minecraft.server.level.ServerLevel, net.minecraft.core.BlockPos, boolean);
+  protected void onExplosionHit(net.minecraft.world.level.block.state.BlockState, net.minecraft.server.level.ServerLevel, net.minecraft.core.BlockPos, net.minecraft.world.level.Explosion, java.util.function.BiConsumer<net.minecraft.world.item.ItemStack, net.minecraft.core.BlockPos>);
+  protected net.minecraft.world.InteractionResult useWithoutItem(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.entity.player.Player, net.minecraft.world.phys.BlockHitResult);
+  protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.entity.player.Player, net.minecraft.world.InteractionHand, net.minecraft.world.phys.BlockHitResult);
+  protected boolean showAsInteractableInSpectatorMode(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.phys.BlockHitResult);
+  protected boolean triggerEvent(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, int, int);
+  protected net.minecraft.world.level.block.RenderShape getRenderShape(net.minecraft.world.level.block.state.BlockState);
+  protected boolean useShapeForLightOcclusion(net.minecraft.world.level.block.state.BlockState);
+  protected net.minecraft.world.level.material.FluidState getFluidState(net.minecraft.world.level.block.state.BlockState);
+  protected boolean hasAnalogOutputSignal(net.minecraft.world.level.block.state.BlockState);
+  protected float getMaxHorizontalOffset();
+  protected float getMaxVerticalOffset();
+  public net.minecraft.world.flag.FeatureFlagSet requiredFeatures();
+  protected boolean shouldChangedStateKeepBlockEntity(net.minecraft.world.level.block.state.BlockState);
+  protected net.minecraft.world.level.block.state.BlockState rotate(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.Rotation);
+  protected net.minecraft.world.level.block.state.BlockState mirror(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.Mirror);
+  protected boolean canBeReplaced(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.item.context.BlockPlaceContext);
+  protected boolean canBeReplaced(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.material.Fluid);
+  protected java.util.List<net.minecraft.world.item.ItemStack> getDrops(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.storage.loot.LootParams$Builder);
+  protected long getSeed(net.minecraft.world.level.block.state.BlockState, net.minecraft.core.BlockPos);
+  protected net.minecraft.world.phys.shapes.VoxelShape getOcclusionShape(net.minecraft.world.level.block.state.BlockState);
+  protected net.minecraft.world.phys.shapes.VoxelShape getBlockSupportShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  protected net.minecraft.world.phys.shapes.VoxelShape getInteractionShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  protected int getLightDampening(net.minecraft.world.level.block.state.BlockState);
+  protected net.minecraft.world.MenuProvider getMenuProvider(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos);
+  protected boolean canSurvive(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.LevelReader, net.minecraft.core.BlockPos);
+  protected float getShadeBrightness(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  protected int getAnalogOutputSignal(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.core.Direction);
+  protected net.minecraft.world.phys.shapes.VoxelShape getShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.world.phys.shapes.CollisionContext);
+  protected net.minecraft.world.phys.shapes.VoxelShape getCollisionShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.world.phys.shapes.CollisionContext);
+  protected net.minecraft.world.phys.shapes.VoxelShape getEntityInsideCollisionShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.world.entity.Entity);
+  protected boolean isCollisionShapeFullBlock(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  protected net.minecraft.world.phys.shapes.VoxelShape getVisualShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.world.phys.shapes.CollisionContext);
+  protected void randomTick(net.minecraft.world.level.block.state.BlockState, net.minecraft.server.level.ServerLevel, net.minecraft.core.BlockPos, net.minecraft.util.RandomSource);
+  protected void tick(net.minecraft.world.level.block.state.BlockState, net.minecraft.server.level.ServerLevel, net.minecraft.core.BlockPos, net.minecraft.util.RandomSource);
+  protected float getDestroyProgress(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.entity.player.Player, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  protected void spawnAfterBreak(net.minecraft.world.level.block.state.BlockState, net.minecraft.server.level.ServerLevel, net.minecraft.core.BlockPos, net.minecraft.world.item.ItemStack, boolean);
+  protected void attack(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.entity.player.Player);
+  protected boolean isSignalSource(net.minecraft.world.level.block.state.BlockState);
+  protected boolean shouldRedstoneWireConnectTo(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.core.Direction);
+  protected int getSignal(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.core.Direction);
+  protected int ownSignal(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+  protected void entityInside(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.entity.Entity, net.minecraft.world.entity.InsideBlockEffectApplier, boolean);
+  protected int getDirectSignal(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.core.Direction);
+  public final java.util.Optional<net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable>> getLootTable();
+  public final java.lang.String getDescriptionId();
+  protected void onProjectileHit(net.minecraft.world.level.Level, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.phys.BlockHitResult, net.minecraft.world.entity.projectile.Projectile);
+  protected boolean propagatesSkylightDown(net.minecraft.world.level.block.state.BlockState);
+  protected boolean isRandomlyTicking(net.minecraft.world.level.block.state.BlockState);
+  protected net.minecraft.world.level.block.SoundType getSoundType(net.minecraft.world.level.block.state.BlockState);
+  protected net.minecraft.world.item.ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader, net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, boolean);
+  public abstract net.minecraft.world.item.Item asItem();
+  protected abstract net.minecraft.world.level.block.Block asBlock();
+  public net.minecraft.world.level.material.MapColor defaultMapColor();
+  public float defaultDestroyTime();
+  private static void lambda$onExplosionHit$0(java.util.function.BiConsumer, net.minecraft.core.BlockPos, net.minecraft.world.item.ItemStack);
+  static {};
+}
+=== net.minecraft.world.level.chunk.ChunkSource
+Compiled from "ChunkSource.java"
+public abstract class net.minecraft.world.level.chunk.ChunkSource implements java.lang.AutoCloseable,net.minecraft.world.level.chunk.LightChunkGetter {
+  public net.minecraft.world.level.chunk.ChunkSource();
+  public net.minecraft.world.level.chunk.LevelChunk getChunk(int, int, boolean);
+  public net.minecraft.world.level.chunk.LevelChunk getChunkNow(int, int);
+  public net.minecraft.world.level.chunk.LightChunk getChunkForLighting(int, int);
+  public boolean hasChunk(int, int);
+  public abstract net.minecraft.world.level.chunk.ChunkAccess getChunk(int, int, net.minecraft.world.level.chunk.status.ChunkStatus, boolean);
+  public abstract void tick(java.util.function.BooleanSupplier, boolean);
+  public void onSectionEmptinessChanged(int, int, int, boolean);
+  public abstract java.lang.String gatherStats();
+  public abstract int getLoadedChunksCount();
+  public void close() throws java.io.IOException;
+  public abstract net.minecraft.world.level.lighting.LevelLightEngine getLightEngine();
+  public void setSpawnSettings(boolean);
+  public boolean updateChunkForced(net.minecraft.world.level.ChunkPos, boolean);
+  public it.unimi.dsi.fastutil.longs.LongSet getForceLoadedChunks();
+}
+=== net.minecraft.world.level.chunk.ProtoChunk
+Compiled from "ProtoChunk.java"
+public class net.minecraft.world.level.chunk.ProtoChunk extends net.minecraft.world.level.chunk.ChunkAccess {
+  private static final org.slf4j.Logger LOGGER;
+  private volatile net.minecraft.world.level.lighting.LevelLightEngine lightEngine;
+  private volatile net.minecraft.world.level.chunk.status.ChunkStatus status;
+  private final java.util.List<net.minecraft.nbt.CompoundTag> entities;
+  private net.minecraft.world.level.levelgen.BelowZeroRetrogen belowZeroRetrogen;
+  private final net.minecraft.world.ticks.ProtoChunkTicks<net.minecraft.world.level.block.Block> blockTicks;
+  private final net.minecraft.world.ticks.ProtoChunkTicks<net.minecraft.world.level.material.Fluid> fluidTicks;
+  public net.minecraft.world.level.chunk.ProtoChunk(net.minecraft.world.level.ChunkPos, net.minecraft.world.level.chunk.UpgradeData, net.minecraft.world.level.LevelHeightAccessor, net.minecraft.world.level.chunk.PalettedContainerFactory, net.minecraft.world.level.levelgen.blending.BlendingData);
+  public net.minecraft.world.level.chunk.ProtoChunk(net.minecraft.world.level.ChunkPos, net.minecraft.world.level.chunk.UpgradeData, net.minecraft.world.level.chunk.LevelChunkSection[], net.minecraft.world.ticks.ProtoChunkTicks<net.minecraft.world.level.block.Block>, net.minecraft.world.ticks.ProtoChunkTicks<net.minecraft.world.level.material.Fluid>, net.minecraft.world.level.LevelHeightAccessor, net.minecraft.world.level.chunk.PalettedContainerFactory, net.minecraft.world.level.levelgen.blending.BlendingData);
+  public net.minecraft.world.ticks.TickContainerAccess<net.minecraft.world.level.block.Block> getBlockTicks();
+  public net.minecraft.world.ticks.TickContainerAccess<net.minecraft.world.level.material.Fluid> getFluidTicks();
+  public net.minecraft.world.level.chunk.ChunkAccess$PackedTicks getTicksForSerialization(long);
+  public net.minecraft.world.level.block.state.BlockState getBlockState(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.material.FluidState getFluidState(net.minecraft.core.BlockPos);
+  public net.minecraft.world.level.block.state.BlockState setBlockState(net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, int);
+  public void setBlockEntity(net.minecraft.world.level.block.entity.BlockEntity);
+  public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(net.minecraft.core.BlockPos);
+  public java.util.Map<net.minecraft.core.BlockPos, net.minecraft.world.level.block.entity.BlockEntity> getBlockEntities();
+  public void addEntity(net.minecraft.nbt.CompoundTag);
+  public void addEntity(net.minecraft.world.entity.Entity);
+  public void setStartForStructure(net.minecraft.world.level.levelgen.structure.Structure, net.minecraft.world.level.levelgen.structure.StructureStart);
+  public java.util.List<net.minecraft.nbt.CompoundTag> getEntities();
+  public net.minecraft.world.level.chunk.status.ChunkStatus getPersistedStatus();
+  public void setPersistedStatus(net.minecraft.world.level.chunk.status.ChunkStatus);
+  public net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> getNoiseBiome(int, int, int);
+  public static short packOffsetCoordinates(net.minecraft.core.BlockPos);
+  public static net.minecraft.core.BlockPos unpackOffsetCoordinates(short, int, net.minecraft.world.level.ChunkPos);
+  public void markPosForPostProcessing(net.minecraft.core.BlockPos);
+  public void addPackedPostProcess(it.unimi.dsi.fastutil.shorts.ShortList, int);
+  public java.util.Map<net.minecraft.core.BlockPos, net.minecraft.nbt.CompoundTag> getBlockEntityNbts();
+  public net.minecraft.nbt.CompoundTag getBlockEntityNbtForSaving(net.minecraft.core.BlockPos, net.minecraft.core.HolderLookup$Provider);
+  public void removeBlockEntity(net.minecraft.core.BlockPos);
+  public void setLightEngine(net.minecraft.world.level.lighting.LevelLightEngine);
+  public void setBelowZeroRetrogen(net.minecraft.world.level.levelgen.BelowZeroRetrogen);
+  public net.minecraft.world.level.levelgen.BelowZeroRetrogen getBelowZeroRetrogen();
+  private static <T> net.minecraft.world.ticks.LevelChunkTicks<T> unpackTicks(net.minecraft.world.ticks.ProtoChunkTicks<T>);
+  public net.minecraft.world.ticks.LevelChunkTicks<net.minecraft.world.level.block.Block> unpackBlockTicks();
+  public net.minecraft.world.ticks.LevelChunkTicks<net.minecraft.world.level.material.Fluid> unpackFluidTicks();
+  public net.minecraft.world.level.LevelHeightAccessor getHeightAccessorForGeneration();
+  static {};
+}
+=== net.minecraft.server.level.GenerationChunkHolder
+Compiled from "GenerationChunkHolder.java"
+public abstract class net.minecraft.server.level.GenerationChunkHolder {
+  private static final java.util.List<net.minecraft.world.level.chunk.status.ChunkStatus> CHUNK_STATUSES;
+  private static final net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess> NOT_DONE_YET;
+  public static final net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess> UNLOADED_CHUNK;
+  public static final java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>> UNLOADED_CHUNK_FUTURE;
+  protected final net.minecraft.world.level.ChunkPos pos;
+  private volatile net.minecraft.world.level.chunk.status.ChunkStatus highestAllowedStatus;
+  private final java.util.concurrent.atomic.AtomicReference<net.minecraft.world.level.chunk.status.ChunkStatus> startedWork;
+  private final java.util.concurrent.atomic.AtomicReferenceArray<java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>>> futures;
+  private final java.util.concurrent.atomic.AtomicReference<net.minecraft.server.level.ChunkGenerationTask> task;
+  private final java.util.concurrent.atomic.AtomicInteger generationRefCount;
+  private volatile java.util.concurrent.CompletableFuture<java.lang.Void> generationSaveSyncFuture;
+  public net.minecraft.server.level.GenerationChunkHolder(net.minecraft.world.level.ChunkPos);
+  public java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>> scheduleChunkGenerationTask(net.minecraft.world.level.chunk.status.ChunkStatus, net.minecraft.server.level.ChunkMap);
+  java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>> applyStep(net.minecraft.world.level.chunk.status.ChunkStep, net.minecraft.server.level.GeneratingChunkMap, net.minecraft.util.StaticCache2D<net.minecraft.server.level.GenerationChunkHolder>);
+  protected void updateHighestAllowedStatus(net.minecraft.server.level.ChunkMap);
+  public void replaceProtoChunk(net.minecraft.world.level.chunk.ImposterProtoChunk);
+  void removeTask(net.minecraft.server.level.ChunkGenerationTask);
+  private void rescheduleChunkTask(net.minecraft.server.level.ChunkMap, net.minecraft.world.level.chunk.status.ChunkStatus);
+  private java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>> getOrCreateFuture(net.minecraft.world.level.chunk.status.ChunkStatus);
+  private void failAndClearPendingFuturesBetween(net.minecraft.world.level.chunk.status.ChunkStatus, net.minecraft.world.level.chunk.status.ChunkStatus);
+  private void failAndClearPendingFuture(int, java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>>);
+  private void completeFuture(net.minecraft.world.level.chunk.status.ChunkStatus, net.minecraft.world.level.chunk.ChunkAccess);
+  private net.minecraft.world.level.chunk.status.ChunkStatus findHighestStatusWithPendingFuture(net.minecraft.world.level.chunk.status.ChunkStatus);
+  private boolean acquireStatusBump(net.minecraft.world.level.chunk.status.ChunkStatus);
+  private boolean isStatusDisallowed(net.minecraft.world.level.chunk.status.ChunkStatus);
+  protected abstract void addSaveDependency(java.util.concurrent.CompletableFuture<?>);
+  public void increaseGenerationRefCount();
+  public void decreaseGenerationRefCount();
+  public net.minecraft.world.level.chunk.ChunkAccess getChunkIfPresentUnchecked(net.minecraft.world.level.chunk.status.ChunkStatus);
+  public net.minecraft.world.level.chunk.ChunkAccess getChunkIfPresent(net.minecraft.world.level.chunk.status.ChunkStatus);
+  public net.minecraft.world.level.chunk.ChunkAccess getLatestChunk();
+  public net.minecraft.world.level.chunk.status.ChunkStatus getPersistedStatus();
+  public net.minecraft.world.level.ChunkPos getPos();
+  public net.minecraft.server.level.FullChunkStatus getFullStatus();
+  public abstract int getTicketLevel();
+  public abstract int getQueueLevel();
+  public java.util.List<com.mojang.datafixers.util.Pair<net.minecraft.world.level.chunk.status.ChunkStatus, java.util.concurrent.CompletableFuture<net.minecraft.server.level.ChunkResult<net.minecraft.world.level.chunk.ChunkAccess>>>> getAllFutures();
+  public net.minecraft.world.level.chunk.status.ChunkStatus getLatestStatus();
+  private net.minecraft.server.level.ChunkResult lambda$applyStep$0(net.minecraft.world.level.chunk.status.ChunkStep, net.minecraft.world.level.chunk.ChunkAccess, java.lang.Throwable);
+  static {};
+}
+=== net.minecraft.world.level.lighting.LightEngine
+Compiled from "LightEngine.java"
+public abstract class net.minecraft.world.level.lighting.LightEngine<M extends net.minecraft.world.level.lighting.DataLayerStorageMap<M>, S extends net.minecraft.world.level.lighting.LayerLightSectionStorage<M>> implements net.minecraft.world.level.lighting.LayerLightEventListener {
+  public static final int MAX_LEVEL;
+  protected static final int MIN_OPACITY;
+  protected static final long PULL_LIGHT_IN_ENTRY;
+  private static final int MIN_QUEUE_SIZE;
+  protected static final net.minecraft.core.Direction[] PROPAGATION_DIRECTIONS;
+  protected final net.minecraft.world.level.chunk.LightChunkGetter chunkSource;
+  protected final S storage;
+  private final it.unimi.dsi.fastutil.longs.LongOpenHashSet blockNodesToCheck;
+  private final it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue decreaseQueue;
+  private final it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue increaseQueue;
+  private static final int CACHE_SIZE;
+  private final long[] lastChunkPos;
+  private final net.minecraft.world.level.chunk.LightChunk[] lastChunk;
+  protected net.minecraft.world.level.lighting.LightEngine(net.minecraft.world.level.chunk.LightChunkGetter, S);
+  public static boolean hasDifferentLightProperties(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState);
+  public static int getLightDampeningInto(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.Direction, int);
+  public static net.minecraft.world.phys.shapes.VoxelShape getOcclusionShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.core.Direction);
+  protected static boolean isEmptyShape(net.minecraft.world.level.block.state.BlockState);
+  protected net.minecraft.world.level.block.state.BlockState getState(net.minecraft.core.BlockPos);
+  protected int getOpacity(net.minecraft.world.level.block.state.BlockState);
+  protected boolean shapeOccludes(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.Direction);
+  protected net.minecraft.world.level.chunk.LightChunk getChunk(int, int);
+  private void clearChunkCache();
+  public void checkBlock(net.minecraft.core.BlockPos);
+  public void queueSectionData(long, net.minecraft.world.level.chunk.DataLayer);
+  public void retainData(net.minecraft.world.level.ChunkPos, boolean);
+  public void updateSectionStatus(net.minecraft.core.SectionPos, boolean);
+  public void setLightEnabled(net.minecraft.world.level.ChunkPos, boolean);
+  public int runLightUpdates();
+  private int propagateIncreases();
+  private int propagateDecreases();
+  protected void enqueueDecrease(long, long);
+  protected void enqueueIncrease(long, long);
+  public boolean hasLightWork();
+  public net.minecraft.world.level.chunk.DataLayer getDataLayerData(net.minecraft.core.SectionPos);
+  public int getLightValue(net.minecraft.core.BlockPos);
+  public java.lang.String getDebugData(long);
+  public net.minecraft.world.level.lighting.LayerLightSectionStorage$SectionType getDebugSectionType(long);
+  protected abstract void checkNode(long);
+  protected abstract void propagateIncrease(long, long, int);
+  protected abstract void propagateDecrease(long, long);
+  static {};
+}
+=== net.minecraft.world.level.lighting.LayerLightEngine
+Error: class not found: net.minecraft.world.level.lighting.LayerLightEngine
+=== net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl
+Compiled from "ClientCommonPacketListenerImpl.java"
+public abstract class net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl implements net.minecraft.network.protocol.common.ClientCommonPacketListener {
+  private static final net.minecraft.network.chat.Component GENERIC_DISCONNECT_MESSAGE;
+  private static final org.slf4j.Logger LOGGER;
+  protected final net.minecraft.client.Minecraft minecraft;
+  protected final net.minecraft.network.Connection connection;
+  protected final net.minecraft.client.multiplayer.ServerData serverData;
+  protected java.lang.String serverBrand;
+  protected final net.minecraft.client.telemetry.WorldSessionTelemetryManager telemetryManager;
+  protected final net.minecraft.client.gui.screens.Screen postDisconnectScreen;
+  protected boolean isTransferring;
+  private final java.util.List<net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl$DeferredPacket> deferredPackets;
+  protected final java.util.Map<net.minecraft.resources.Identifier, byte[]> serverCookies;
+  protected java.util.Map<java.lang.String, java.lang.String> customReportDetails;
+  private net.minecraft.server.ServerLinks serverLinks;
+  protected final java.util.Map<java.util.UUID, net.minecraft.client.multiplayer.PlayerInfo> seenPlayers;
+  protected boolean seenInsecureChatWarning;
+  protected net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl(net.minecraft.client.Minecraft, net.minecraft.network.Connection, net.minecraft.client.multiplayer.CommonListenerCookie);
+  public net.minecraft.server.ServerLinks serverLinks();
+  public void onPacketError(net.minecraft.network.protocol.Packet, java.lang.Exception);
+  public net.minecraft.network.DisconnectionDetails createDisconnectionInfo(net.minecraft.network.chat.Component, java.lang.Throwable);
+  private java.util.Optional<java.nio.file.Path> storeDisconnectionReport(net.minecraft.network.protocol.Packet, java.lang.Throwable);
+  public boolean shouldHandleMessage(net.minecraft.network.protocol.Packet<?>);
+  public void handleKeepAlive(net.minecraft.network.protocol.common.ClientboundKeepAlivePacket);
+  public void handlePing(net.minecraft.network.protocol.common.ClientboundPingPacket);
+  public void handleCustomPayload(net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket);
+  protected abstract void handleCustomPayload(net.minecraft.network.protocol.common.custom.CustomPacketPayload);
+  public void handleResourcePackPush(net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket);
+  public void handleResourcePackPop(net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket);
+  public void handlePostEffects(net.minecraft.network.protocol.common.ClientboundPostEffectsPacket);
+  private static net.minecraft.network.chat.Component preparePackPrompt(net.minecraft.network.chat.Component, net.minecraft.network.chat.Component);
+  private static java.net.URL parseResourcePackUrl(java.lang.String);
+  public void handleRequestCookie(net.minecraft.network.protocol.cookie.ClientboundCookieRequestPacket);
+  public void handleStoreCookie(net.minecraft.network.protocol.common.ClientboundStoreCookiePacket);
+  public void handleCustomReportDetails(net.minecraft.network.protocol.common.ClientboundCustomReportDetailsPacket);
+  public void handleServerLinks(net.minecraft.network.protocol.common.ClientboundServerLinksPacket);
+  public void handleShowDialog(net.minecraft.network.protocol.common.ClientboundShowDialogPacket);
+  protected abstract net.minecraft.client.gui.screens.dialog.DialogConnectionAccess createDialogAccess();
+  public void showDialog(net.minecraft.core.Holder<net.minecraft.server.dialog.Dialog>, net.minecraft.client.gui.screens.Screen);
+  protected void showDialog(net.minecraft.core.Holder<net.minecraft.server.dialog.Dialog>, net.minecraft.client.gui.screens.dialog.DialogConnectionAccess, net.minecraft.client.gui.screens.Screen);
+  public void handleClearDialog(net.minecraft.network.protocol.common.ClientboundClearDialogPacket);
+  public void clearDialog();
+  public void handleTransfer(net.minecraft.network.protocol.common.ClientboundTransferPacket);
+  public void handleDisconnect(net.minecraft.network.protocol.common.ClientboundDisconnectPacket);
+  protected void sendDeferredPackets();
+  public void send(net.minecraft.network.protocol.Packet<?>);
+  public void onDisconnect(net.minecraft.network.DisconnectionDetails);
+  public void fillListenerSpecificCrashDetails(net.minecraft.CrashReport, net.minecraft.CrashReportCategory);
+  protected net.minecraft.client.gui.screens.Screen createDisconnectScreen(net.minecraft.network.DisconnectionDetails);
+  public java.lang.String serverBrand();
+  private void sendWhen(net.minecraft.network.protocol.Packet<? extends net.minecraft.network.ServerboundPacketListener>, java.util.function.BooleanSupplier, java.time.Duration);
+  private net.minecraft.client.gui.screens.Screen addOrUpdatePackPrompt(java.util.UUID, java.net.URL, java.lang.String, boolean, net.minecraft.network.chat.Component);
+  private net.minecraft.client.gui.screens.Screen lambda$createDisconnectScreen$0();
+  private java.lang.String lambda$fillListenerSpecificCrashDetails$2() throws java.lang.Exception;
+  private java.lang.String lambda$fillListenerSpecificCrashDetails$1() throws java.lang.Exception;
+  private java.lang.String lambda$fillListenerSpecificCrashDetails$0() throws java.lang.Exception;
+  private void lambda$handleResourcePackPop$1();
+  private void lambda$handleResourcePackPop$0(java.util.UUID);
+  private static boolean lambda$handleKeepAlive$0();
+  private static java.util.List lambda$storeDisconnectionReport$0(net.minecraft.server.ServerLinks$Entry);
+  static {};
+}
+=== net.minecraft.client.renderer.entity.AbstractBoatRenderer
+Compiled from "AbstractBoatRenderer.java"
+public abstract class net.minecraft.client.renderer.entity.AbstractBoatRenderer extends net.minecraft.client.renderer.entity.EntityRenderer<net.minecraft.world.entity.vehicle.boat.AbstractBoat, net.minecraft.client.renderer.entity.state.BoatRenderState> {
+  protected final net.minecraft.resources.Identifier texture;
+  public net.minecraft.client.renderer.entity.AbstractBoatRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider$Context, net.minecraft.resources.Identifier);
+  public void submit(net.minecraft.client.renderer.entity.state.BoatRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+  protected void submitTypeAdditions(net.minecraft.client.renderer.entity.state.BoatRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, int);
+  protected abstract net.minecraft.client.model.EntityModel<net.minecraft.client.renderer.entity.state.BoatRenderState> model();
+  public net.minecraft.client.renderer.entity.state.BoatRenderState createRenderState();
+  public void extractRenderState(net.minecraft.world.entity.vehicle.boat.AbstractBoat, net.minecraft.client.renderer.entity.state.BoatRenderState, float);
+  public void extractRenderState(net.minecraft.world.entity.Entity, net.minecraft.client.renderer.entity.state.EntityRenderState, float);
+  public net.minecraft.client.renderer.entity.state.EntityRenderState createRenderState();
+  public void submit(net.minecraft.client.renderer.entity.state.EntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+}
+=== net.minecraft.world.entity.vehicle.VehicleEntity
+Compiled from "VehicleEntity.java"
+public abstract class net.minecraft.world.entity.vehicle.VehicleEntity extends net.minecraft.world.entity.Entity {
+  protected static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Integer> DATA_ID_HURT;
+  protected static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Integer> DATA_ID_HURTDIR;
+  protected static final net.minecraft.network.syncher.EntityDataAccessor<java.lang.Float> DATA_ID_DAMAGE;
+  public net.minecraft.world.entity.vehicle.VehicleEntity(net.minecraft.world.entity.EntityType<?>, net.minecraft.world.level.Level);
+  public boolean hurtClient(net.minecraft.world.damagesource.DamageSource);
+  public boolean hurtServer(net.minecraft.server.level.ServerLevel, net.minecraft.world.damagesource.DamageSource, float);
+  protected boolean shouldSourceDestroy(net.minecraft.world.damagesource.DamageSource);
+  public boolean ignoreExplosion(net.minecraft.world.level.Explosion);
+  public void destroy(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.Item);
+  protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData$Builder);
+  public void setHurtTime(int);
+  public void setHurtDir(int);
+  public void setDamage(float);
+  public float getDamage();
+  public int getHurtTime();
+  public int getHurtDir();
+  protected void destroy(net.minecraft.server.level.ServerLevel, net.minecraft.world.damagesource.DamageSource);
+  public int getDimensionChangingDelay();
+  protected abstract net.minecraft.world.item.Item getDropItem();
+  static {};
+}
+=== net.minecraft.world.entity.vehicle.AbstractBoat
+Error: class not found: net.minecraft.world.entity.vehicle.AbstractBoat
+=== net.minecraft.client.renderer.texture.ReloadableTexture
+Compiled from "ReloadableTexture.java"
+public abstract class net.minecraft.client.renderer.texture.ReloadableTexture extends net.minecraft.client.renderer.texture.AbstractTexture {
+  private final net.minecraft.resources.Identifier resourceId;
+  public net.minecraft.client.renderer.texture.ReloadableTexture(net.minecraft.resources.Identifier);
+  public net.minecraft.resources.Identifier resourceId();
+  public void apply(net.minecraft.client.renderer.texture.TextureContents);
+  protected void setSampler(net.minecraft.client.renderer.texture.TextureContents);
+  protected void doLoad(com.mojang.blaze3d.platform.NativeImage);
+  public abstract net.minecraft.client.renderer.texture.TextureContents loadContents(net.minecraft.server.packs.resources.ResourceManager) throws java.io.IOException;
+}
+=== net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$SectionTask
+Compiled from "SectionRenderDispatcher.java"
+public abstract class net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$SectionTask {
+  protected final java.util.concurrent.atomic.AtomicBoolean isCancelled;
+  protected final java.util.concurrent.atomic.AtomicBoolean isCompleted;
+  private final boolean isRecompile;
+  final net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection this$1;
+  public net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$SectionTask(net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection, boolean);
+  public abstract net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection$SectionTask$SectionTaskResult doTask(net.minecraft.client.renderer.SectionBufferBuilderPack);
+  public abstract void cancel();
+  public boolean isRecompile();
+  public net.minecraft.core.BlockPos getRenderOrigin();
+}
+=== net.minecraft.world.level.BlockAndLightGetter
+Compiled from "BlockAndLightGetter.java"
+public interface net.minecraft.world.level.BlockAndLightGetter extends net.minecraft.world.level.BlockGetter {
+  public abstract net.minecraft.world.level.lighting.LevelLightEngine getLightEngine();
+  public default int getBrightness(net.minecraft.world.level.LightLayer, net.minecraft.core.BlockPos);
+  public default int getRawBrightness(net.minecraft.core.BlockPos, int);
+  public default boolean canSeeSky(net.minecraft.core.BlockPos);
+}
+=== net.minecraft.client.renderer.OrderedSubmitNodeCollector
+Compiled from "OrderedSubmitNodeCollector.java"
+public interface net.minecraft.client.renderer.OrderedSubmitNodeCollector {
+  public abstract void submitShadow(com.mojang.blaze3d.vertex.PoseStack, float, java.util.List<net.minecraft.client.renderer.entity.state.EntityRenderState$ShadowPiece>);
+  public abstract void submitNameTag(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.world.phys.Vec3, int, net.minecraft.network.chat.Component, boolean, int, net.minecraft.client.renderer.state.level.CameraRenderState);
+  public abstract void submitText(com.mojang.blaze3d.vertex.PoseStack, float, float, net.minecraft.util.FormattedCharSequence, boolean, net.minecraft.client.gui.Font$DisplayMode, int, int, int, int);
+  public abstract void submitTextBackground(com.mojang.blaze3d.vertex.PoseStack, float, float, float, float, int, net.minecraft.client.gui.Font$DisplayMode, int);
+  public abstract void submitFlame(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.entity.state.EntityRenderState, org.joml.Quaternionf);
+  public abstract void submitLeash(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.entity.state.EntityRenderState$LeashState);
+  public abstract <S> void submitModel(net.minecraft.client.model.Model<? super S>, S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, int, net.minecraft.client.renderer.texture.UvMapping, int);
+  public default <S> void submitModel(net.minecraft.client.model.Model<? super S>, S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, int);
+  public default <S> void submitModel(net.minecraft.client.model.Model<? super S>, S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.resources.Identifier, int, int, int);
+  public default <S> void submitModel(net.minecraft.client.model.Model<S>, S, com.mojang.blaze3d.vertex.PoseStack, int, int, int, net.minecraft.client.resources.model.sprite.SpriteId, net.minecraft.client.resources.model.sprite.SpriteGetter, int);
+  public abstract <S> void submitCrumblingOverlay(net.minecraft.client.model.Model<? super S>, S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, int, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public default void submitCrumblingOverlay(net.minecraft.client.model.geom.ModelPart, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, int, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public default void submitModelPart(net.minecraft.client.model.geom.ModelPart, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, net.minecraft.client.renderer.texture.UvMapping);
+  public default void submitModelPart(net.minecraft.client.model.geom.ModelPart, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, net.minecraft.client.renderer.texture.UvMapping, int);
+  public default void submitModelPart(net.minecraft.client.model.geom.ModelPart, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, net.minecraft.client.renderer.texture.UvMapping, int, int);
+  public abstract void submitMovingBlock(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.block.MovingBlockRenderState, int);
+  public abstract void submitBlockModel(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, java.util.List<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart>, int[], int, int, int);
+  public abstract void submitBreakingBlockModel(com.mojang.blaze3d.vertex.PoseStack, java.util.List<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart>, int, boolean);
+  public abstract void submitShapeOutline(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.world.phys.shapes.VoxelShape, net.minecraft.client.renderer.rendertype.RenderType, int, float, boolean);
+  public abstract void submitItem(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.world.item.ItemDisplayContext, int, int, int, int[], net.minecraft.client.resources.model.geometry.ItemQuads, net.minecraft.client.renderer.item.ItemStackRenderState$FoilType);
+  public abstract void submitCustomGeometry(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, net.minecraft.client.renderer.SubmitNodeCollector$CustomGeometryRenderer);
+  public abstract void submitQuadParticleGroup(net.minecraft.client.renderer.state.level.QuadParticleRenderState);
+  public abstract void submitGizmoPrimitives(net.minecraft.client.renderer.gizmos.DrawableGizmoPrimitives$Group, net.minecraft.client.renderer.state.level.CameraRenderState, boolean);
+  private static net.minecraft.client.renderer.rendertype.RenderType lambda$submitModelPart$0(net.minecraft.client.renderer.rendertype.RenderType, net.minecraft.resources.Identifier);
+  private static net.minecraft.client.renderer.rendertype.RenderType lambda$submitCrumblingOverlay$0(net.minecraft.client.renderer.rendertype.RenderType, net.minecraft.resources.Identifier);
+}
 === code net.minecraft.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
 === code net.minecraft.util.Util :: max\.bg\.threads|availableProcessors|getMaxThreads|makeExecutor|BACKGROUND|backgroundExecutor
   private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads"; :: private static final java.lang.String MAX_THREADS_SYSTEM_PROPERTY = "max.bg.threads";
