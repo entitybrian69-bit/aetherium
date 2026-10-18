@@ -204,4 +204,12 @@ jobs:
           git add tools/probe
           git diff --cached --quiet && exit 0
           git commit -q -m "probe: javap of the porting surface for every row [skip ci]"
-          for i in 1 2 3; do git pull -q --rebase origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && break; sleep 5; done
+          # The freshly generated dumps win any conflict with an older run's commit (during a rebase
+          # "theirs" is the commit being replayed, i.e. this run's), and the step fails if it never pushed.
+          pushed=0
+          for i in 1 2 3 4 5; do
+            git rebase --abort 2>/dev/null || true
+            if git pull -q --rebase -X theirs origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}"; then pushed=1; break; fi
+            sleep 7
+          done
+          test "$pushed" = 1
