@@ -133,6 +133,13 @@ final class FarTerrainBridge {
     //~ }
     // @era:t-far-gl-end
 
+    /** 26.2+ draws with reversed depth (near = 1, depth tests GREATER_THAN_OR_EQUAL). */
+    // @era:t-far-gl-begin id17|gl215|none
+    static final boolean REVERSED_Z = false;
+    // @era:t-far-gl-else gl262|pearl
+    //~ static final boolean REVERSED_Z = true;
+    // @era:t-far-gl-end
+
     // @era:t-far-gl-begin id17|gl215|gl262|pearl
     static int width(final Minecraft mc) {
         return main(mc).width;

@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 3973ef4..121fc56 100644
+index 58ebebd..6762300 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -131,7 +131,7 @@ index 3973ef4..121fc56 100644
      // @era:qol16-end
  
      /**
-@@ -203,29 +203,29 @@ public final class Capabilities {
+@@ -210,10 +210,10 @@ public final class Capabilities {
      // @era:particle-fast-end
  
      /** Per-frame camera frustum from vanilla's own matrices (1.16.5 via StreamingLevelMixin). */
@@ -145,13 +145,17 @@ index 3973ef4..121fc56 100644
 +    //~ public static final boolean FRAME_FRUSTUM = true;
      // @era:frustum-cap-end
  
-     /** Visible sections wholly inside the fog are skipped (1.17..26.1; 1.16.5 culls in STREAMING). */
+     /** 26.2+: the frustum pass moved to LevelExtractor, so the fog cull filters there (FogCullExtractMixin). */
+@@ -224,22 +224,22 @@ public final class Capabilities {
+     // @era:fog-cull-x-end
+ 
+     /** Visible sections wholly inside the fog are skipped (1.17+; 1.16.5 culls in STREAMING). */
 -    // @era:fog-cull-begin bfs|info|section
 -    public static final boolean FOG_CULL = true;
 -    // @era:fog-cull-else none
--    //~ public static final boolean FOG_CULL = false;
+-    //~ public static final boolean FOG_CULL = FOG_CULL_EXTRACT;
 +    // @era:fog-cull-begin none
-+    public static final boolean FOG_CULL = false;
++    public static final boolean FOG_CULL = FOG_CULL_EXTRACT;
 +    // @era:fog-cull-else bfs|info|section
 +    //~ public static final boolean FOG_CULL = true;
      // @era:fog-cull-end
@@ -161,7 +165,7 @@ index 3973ef4..121fc56 100644
 +    // @era:fog-cull-begin none
      public static final boolean FOG_CULL_INFO = false;
 -    public static final boolean FOG_CULL_SECTION = true;
-+    public static final boolean FOG_CULL_SECTION = false;
++    public static final boolean FOG_CULL_SECTION = FOG_CULL_EXTRACT;
 +    // @era:fog-cull-else section
 +    //~ public static final boolean FOG_CULL_INFO = false;
 +    //~ public static final boolean FOG_CULL_SECTION = true;
@@ -170,11 +174,11 @@ index 3973ef4..121fc56 100644
      //~ public static final boolean FOG_CULL_SECTION = false;
 -    // @era:fog-cull-else none
 -    //~ public static final boolean FOG_CULL_INFO = false;
--    //~ public static final boolean FOG_CULL_SECTION = false;
+-    //~ public static final boolean FOG_CULL_SECTION = FOG_CULL_EXTRACT;
      // @era:fog-cull-end
  
      /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */
-@@ -236,33 +236,33 @@ public final class Capabilities {
+@@ -250,33 +250,33 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -1432,7 +1436,7 @@ index a848656..a3c1acd 100644
      // @era:t-color-filter-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrain.java b/common/src/main/java/com/aetherium/client/FarTerrain.java
-index 5897ea5..dce2ad4 100644
+index fec36cf..f9bfe1d 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrain.java
 +++ b/common/src/main/java/com/aetherium/client/FarTerrain.java
 @@ -1,11 +1,20 @@
@@ -1742,7 +1746,7 @@ index 5897ea5..dce2ad4 100644
              }
              if (workerError != null) {
                  final Throwable error = workerError;
-@@ -308,26 +284,11 @@ public final class FarTerrain {
+@@ -308,27 +284,11 @@ public final class FarTerrain {
              if (ready) {
                  upload();
              }
@@ -1764,7 +1768,8 @@ index 5897ea5..dce2ad4 100644
 -            FOG[5] = Math.max(0.18F, Math.min(1.0F, Math.max(fogRed, Math.max(fogGreen, fogBlue)) * 1.25F));
 -            final boolean ok = FarTerrainGl.draw(FarTerrainBridge.colorTexture(mc), FarTerrainBridge.depthTexture(mc),
 -                    FarTerrainBridge.width(mc), FarTerrainBridge.height(mc), MVP,
--                    (float) ((meshX << 4) - camX), (float) (-0.1 - camY), (float) ((meshZ << 4) - camZ), FOG);
+-                    (float) ((meshX << 4) - camX), (float) (-0.1 - camY), (float) ((meshZ << 4) - camZ), FOG,
+-                    FarTerrainBridge.REVERSED_Z);
 -            if (!ok) {
 -                throw new IllegalStateException("far terrain could not draw into the main target");
 -            }
@@ -1772,7 +1777,7 @@ index 5897ea5..dce2ad4 100644
              drawing = true;
              drawnFarBlocks = far * 16;
          } catch (final RuntimeException | LinkageError e) {
-@@ -335,26 +296,21 @@ public final class FarTerrain {
+@@ -336,26 +296,21 @@ public final class FarTerrain {
          }
      }
  
@@ -1808,7 +1813,7 @@ index 5897ea5..dce2ad4 100644
          for (int dz = -rd; dz <= rd; dz++) {
              for (int dx = -rd; dx <= rd; dx++) {
                  // A missing chunk comes back as the client's EmptyLevelChunk (a subclass).
-@@ -366,12 +322,18 @@ public final class FarTerrain {
+@@ -367,12 +322,18 @@ public final class FarTerrain {
          }
      }
  
@@ -1829,7 +1834,7 @@ index 5897ea5..dce2ad4 100644
          final boolean timed = (dirty || builtInside) && now - lastBuild >= REBUILD_NANOS;
          if (!changed && !timed) {
              return;
-@@ -381,12 +343,14 @@ public final class FarTerrain {
+@@ -382,12 +343,14 @@ public final class FarTerrain {
          builtZ = cz;
          builtRd = rd;
          builtFar = far;
@@ -1844,7 +1849,7 @@ index 5897ea5..dce2ad4 100644
          if (worker == null) {
              worker = Executors.newSingleThreadExecutor(r -> {
                  final Thread t = new Thread(r, "Aetherium far terrain");
-@@ -397,9 +361,9 @@ public final class FarTerrain {
+@@ -398,9 +361,9 @@ public final class FarTerrain {
          }
          worker.execute(() -> {
              try {
@@ -1856,7 +1861,7 @@ index 5897ea5..dce2ad4 100644
                  ready = true;
              } catch (final Throwable t) {
                  workerError = t;
-@@ -408,9 +372,21 @@ public final class FarTerrain {
+@@ -409,9 +372,21 @@ public final class FarTerrain {
          });
      }
  
@@ -1879,7 +1884,7 @@ index 5897ea5..dce2ad4 100644
          final BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
          for (int dz = -rd; dz <= rd; dz++) {
              for (int dx = -rd; dx <= rd; dx++) {
-@@ -419,8 +395,13 @@ public final class FarTerrain {
+@@ -420,8 +395,13 @@ public final class FarTerrain {
                  if (column == null) {
                      continue;
                  }
@@ -1895,7 +1900,7 @@ index 5897ea5..dce2ad4 100644
                      out.add(key);
                  }
              }
-@@ -428,22 +409,72 @@ public final class FarTerrain {
+@@ -429,22 +409,72 @@ public final class FarTerrain {
          return out;
      }
  
@@ -1974,7 +1979,7 @@ index 5897ea5..dce2ad4 100644
          }
          if (!keepColumns) {
              COLUMNS.clear();
-@@ -463,96 +494,80 @@ public final class FarTerrain {
+@@ -464,96 +494,80 @@ public final class FarTerrain {
          }
      }
  
@@ -1982,7 +1987,7 @@ index 5897ea5..dce2ad4 100644
 -    public static String selfTest() {
 -        final Minecraft mc = Minecraft.getInstance();
 -        return FarTerrainGl.selfTest(FarTerrainBridge.colorTexture(mc), FarTerrainBridge.depthTexture(mc),
--                FarTerrainBridge.width(mc), FarTerrainBridge.height(mc));
+-                FarTerrainBridge.width(mc), FarTerrainBridge.height(mc), FarTerrainBridge.REVERSED_Z);
 -    }
 -
 -    /** Worker thread: quads into position-colour pages of at most {@link FarTerrainGl#QUADS_PER_PAGE}. */
@@ -2107,7 +2112,7 @@ index 5897ea5..dce2ad4 100644
      //~ private static int meshX;
      //~ private static int meshZ;
      //~ private static int pendingX;
-@@ -561,12 +576,17 @@ public final class FarTerrain {
+@@ -562,12 +576,17 @@ public final class FarTerrain {
      //~ private static int builtZ;
      //~ private static int builtRd = -1;
      //~ private static int builtFar = -1;
@@ -2126,7 +2131,7 @@ index 5897ea5..dce2ad4 100644
  
      //~ private static boolean present(final String name) {
          //~ try {
-@@ -578,17 +598,26 @@ public final class FarTerrain {
+@@ -579,17 +598,26 @@ public final class FarTerrain {
      //~ }
  
      //~ /** Far distance in chunks for this frame, 0 when nothing would be drawn. */
@@ -2155,7 +2160,7 @@ index 5897ea5..dce2ad4 100644
      //~ /** ClientChunkCache.replaceWithPacketData RETURN: sample the chunk the server just sent. */
      //~ public static void capture(final LevelChunk chunk) {
          //~ if (Tuning.farTerrain <= 0 || chunk == null || broken || SHADER_MOD) {
-@@ -609,32 +638,38 @@ public final class FarTerrain {
+@@ -610,32 +638,38 @@ public final class FarTerrain {
          //~ final ChunkPos pos = chunk.getPos();
          //~ final FarTerrainMesh.Column column = new FarTerrainMesh.Column();
          //~ final BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
@@ -2206,7 +2211,7 @@ index 5897ea5..dce2ad4 100644
          //~ dirty = true;
      //~ }
  
-@@ -662,52 +697,63 @@ public final class FarTerrain {
+@@ -663,52 +697,63 @@ public final class FarTerrain {
          //~ builtX = Integer.MIN_VALUE;
      //~ }
  
@@ -2292,7 +2297,7 @@ index 5897ea5..dce2ad4 100644
              //~ }
              //~ if (workerError != null) {
                  //~ final Throwable error = workerError;
-@@ -717,11 +763,26 @@ public final class FarTerrain {
+@@ -718,11 +763,27 @@ public final class FarTerrain {
              //~ if (ready) {
                  //~ upload();
              //~ }
@@ -2315,14 +2320,15 @@ index 5897ea5..dce2ad4 100644
 +            //~ FOG[5] = Math.max(0.18F, Math.min(1.0F, Math.max(fogRed, Math.max(fogGreen, fogBlue)) * 1.25F));
 +            //~ final boolean ok = FarTerrainGl.draw(FarTerrainBridge.colorTexture(mc), FarTerrainBridge.depthTexture(mc),
 +                    //~ FarTerrainBridge.width(mc), FarTerrainBridge.height(mc), MVP,
-+                    //~ (float) ((meshX << 4) - camX), (float) (-0.1 - camY), (float) ((meshZ << 4) - camZ), FOG);
++                    //~ (float) ((meshX << 4) - camX), (float) (-0.1 - camY), (float) ((meshZ << 4) - camZ), FOG,
++                    //~ FarTerrainBridge.REVERSED_Z);
 +            //~ if (!ok) {
 +                //~ throw new IllegalStateException("far terrain could not draw into the main target");
 +            //~ }
              //~ drawing = true;
              //~ drawnFarBlocks = far * 16;
          //~ } catch (final RuntimeException | LinkageError e) {
-@@ -729,21 +790,26 @@ public final class FarTerrain {
+@@ -730,21 +791,26 @@ public final class FarTerrain {
          //~ }
      //~ }
  
@@ -2358,7 +2364,7 @@ index 5897ea5..dce2ad4 100644
          //~ for (int dz = -rd; dz <= rd; dz++) {
              //~ for (int dx = -rd; dx <= rd; dx++) {
                  //~ // A missing chunk comes back as the client's EmptyLevelChunk (a subclass).
-@@ -755,18 +821,12 @@ public final class FarTerrain {
+@@ -756,18 +822,12 @@ public final class FarTerrain {
          //~ }
      //~ }
  
@@ -2379,7 +2385,7 @@ index 5897ea5..dce2ad4 100644
          //~ final boolean timed = (dirty || builtInside) && now - lastBuild >= REBUILD_NANOS;
          //~ if (!changed && !timed) {
              //~ return;
-@@ -776,14 +836,12 @@ public final class FarTerrain {
+@@ -777,14 +837,12 @@ public final class FarTerrain {
          //~ builtZ = cz;
          //~ builtRd = rd;
          //~ builtFar = far;
@@ -2394,7 +2400,7 @@ index 5897ea5..dce2ad4 100644
          //~ if (worker == null) {
              //~ worker = Executors.newSingleThreadExecutor(r -> {
                  //~ final Thread t = new Thread(r, "Aetherium far terrain");
-@@ -794,9 +852,9 @@ public final class FarTerrain {
+@@ -795,9 +853,9 @@ public final class FarTerrain {
          //~ }
          //~ worker.execute(() -> {
              //~ try {
@@ -2406,7 +2412,7 @@ index 5897ea5..dce2ad4 100644
                  //~ ready = true;
              //~ } catch (final Throwable t) {
                  //~ workerError = t;
-@@ -805,21 +863,9 @@ public final class FarTerrain {
+@@ -806,21 +864,9 @@ public final class FarTerrain {
          //~ });
      //~ }
  
@@ -2429,7 +2435,7 @@ index 5897ea5..dce2ad4 100644
          //~ final BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
          //~ for (int dz = -rd; dz <= rd; dz++) {
              //~ for (int dx = -rd; dx <= rd; dx++) {
-@@ -828,13 +874,8 @@ public final class FarTerrain {
+@@ -829,13 +875,8 @@ public final class FarTerrain {
                  //~ if (column == null) {
                      //~ continue;
                  //~ }
@@ -2445,7 +2451,7 @@ index 5897ea5..dce2ad4 100644
                      //~ out.add(key);
                  //~ }
              //~ }
-@@ -842,72 +883,22 @@ public final class FarTerrain {
+@@ -843,72 +884,22 @@ public final class FarTerrain {
          //~ return out;
      //~ }
  
@@ -2524,7 +2530,7 @@ index 5897ea5..dce2ad4 100644
          //~ }
          //~ if (!keepColumns) {
              //~ COLUMNS.clear();
-@@ -927,57 +918,66 @@ public final class FarTerrain {
+@@ -928,57 +919,66 @@ public final class FarTerrain {
          //~ }
      //~ }
  
@@ -2533,7 +2539,7 @@ index 5897ea5..dce2ad4 100644
 +    //~ public static String selfTest() {
 +        //~ final Minecraft mc = Minecraft.getInstance();
 +        //~ return FarTerrainGl.selfTest(FarTerrainBridge.colorTexture(mc), FarTerrainBridge.depthTexture(mc),
-+                //~ FarTerrainBridge.width(mc), FarTerrainBridge.height(mc));
++                //~ FarTerrainBridge.width(mc), FarTerrainBridge.height(mc), FarTerrainBridge.REVERSED_Z);
 +    //~ }
 +
 +    //~ /** Worker thread: quads into position-colour pages of at most {@link FarTerrainGl#QUADS_PER_PAGE}. */
@@ -2622,7 +2628,7 @@ index 5897ea5..dce2ad4 100644
          //~ }
      //~ }
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
-index cc6cabe..cea1b0e 100644
+index 270eb0c..bbb9617 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 +++ b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 @@ -5,10 +5,10 @@ import net.minecraft.core.BlockPos;
@@ -2740,7 +2746,7 @@ index cc6cabe..cea1b0e 100644
      // @era:t-far-gl-else gl215|gl262|pearl
      //~ private static int glId(final GpuTexture texture) {
          //~ return texture instanceof GlTexture ? ((GlTexture) texture).glId() : -1;
-@@ -123,31 +131,23 @@ final class FarTerrainBridge {
+@@ -123,14 +131,6 @@ final class FarTerrainBridge {
      //~ static int depthTexture(final Minecraft mc) {
          //~ return glId(main(mc).getDepthTexture());
      //~ }
@@ -2752,6 +2758,11 @@ index cc6cabe..cea1b0e 100644
 -    //~ static int depthTexture(final Minecraft mc) {
 -        //~ return -1;
 -    //~ }
+     // @era:t-far-gl-end
+ 
+     /** 26.2+ draws with reversed depth (near = 1, depth tests GREATER_THAN_OR_EQUAL). */
+@@ -140,21 +140,21 @@ final class FarTerrainBridge {
+     //~ static final boolean REVERSED_Z = true;
      // @era:t-far-gl-end
  
 -    // @era:t-far-gl-begin id17|gl215|gl262|pearl
@@ -6783,10 +6794,10 @@ index d6a731a..25f3e56 100644
              //~ SceneryHooks.adjustFog(camera, farPlane, thick);
          //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-index 5c63127..e2eda92 100644
+index d08c6dd..4190044 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-@@ -3,17 +3,18 @@ package com.aetherium.mixin.core;
+@@ -3,17 +3,24 @@ package com.aetherium.mixin.core;
  import com.aetherium.client.FogCullAccess;
  import java.util.List;
  import org.spongepowered.asm.mixin.Mixin;
@@ -6802,6 +6813,12 @@ index 5c63127..e2eda92 100644
 -import org.spongepowered.asm.mixin.injection.Inject;
 -import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:fog-cull-begin none
++// @era:fog-cull-x-begin none
++// @era:fog-cull-x-else extract
++//~ import net.minecraft.client.renderer.SectionOcclusionGraph;
++//~ import org.spongepowered.asm.mixin.Final;
++//~ import org.spongepowered.asm.mixin.Shadow;
++// @era:fog-cull-x-end
 +// @era:fog-cull-else section
 +//~ import com.aetherium.client.FogCullHooks;
 +//~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -6816,15 +6833,21 @@ index 5c63127..e2eda92 100644
  // @era:fog-cull-else info
  //~ import com.aetherium.client.FogCullHooks;
  //~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-@@ -35,7 +36,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -35,13 +42,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  //~ import org.spongepowered.asm.mixin.injection.At;
  //~ import org.spongepowered.asm.mixin.injection.Inject;
  //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 -// @era:fog-cull-else none
+-//~ // @era:fog-cull-x-begin none
+-//~ // @era:fog-cull-x-else extract
+-//~ //~ import net.minecraft.client.renderer.SectionOcclusionGraph;
+-//~ //~ import org.spongepowered.asm.mixin.Final;
+-//~ //~ import org.spongepowered.asm.mixin.Shadow;
+-//~ // @era:fog-cull-x-end
  // @era:fog-cull-end
  
  /**
-@@ -48,47 +48,51 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -55,47 +55,66 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class FogCullMixin implements FogCullAccess {
  
@@ -6863,6 +6886,7 @@ index 5c63127..e2eda92 100644
 -    }
 -
 +    // @era:fog-cull-begin none
++    // @era:fog-cull-x-begin none
      @Override
      public void aetheriumRefreshFogCull() {
 -        final Object graph = this.sectionOcclusionGraph;
@@ -6870,6 +6894,20 @@ index 5c63127..e2eda92 100644
 -            ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
 -        }
      }
++    // @era:fog-cull-x-else extract
++    //~ @Shadow
++    //~ @Final
++    //~ private SectionOcclusionGraph sectionOcclusionGraph;
++
++    //~ /** 26.2+: the list is filtered by FogCullExtractMixin; the refresh still asks for a frustum pass. */
++    //~ @Override
++    //~ public void aetheriumRefreshFogCull() {
++        //~ final Object graph = this.sectionOcclusionGraph;
++        //~ if (graph instanceof SectionOcclusionGraphAccessor) {
++            //~ ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
++        //~ }
++    //~ }
++    // @era:fog-cull-x-end
 +    // @era:fog-cull-else section
 +    //~ @Shadow
 +    //~ @Final
@@ -6914,14 +6952,29 @@ index 5c63127..e2eda92 100644
      // @era:fog-cull-else info
      //~ @Shadow
      //~ @Final
-@@ -124,10 +128,6 @@ public abstract class FogCullMixin implements FogCullAccess {
+@@ -131,25 +150,6 @@ public abstract class FogCullMixin implements FogCullAccess {
      //~ public void aetheriumRefreshFogCull() {
          //~ this.needsUpdate = true;
      //~ }
 -    // @era:fog-cull-else none
+-    //~ // @era:fog-cull-x-begin none
 -    //~ @Override
 -    //~ public void aetheriumRefreshFogCull() {
 -    //~ }
+-    //~ // @era:fog-cull-x-else extract
+-    //~ //~ @Shadow
+-    //~ //~ @Final
+-    //~ //~ private SectionOcclusionGraph sectionOcclusionGraph;
+-
+-    //~ //~ /** 26.2+: the list is filtered by FogCullExtractMixin; the refresh still asks for a frustum pass. */
+-    //~ //~ @Override
+-    //~ //~ public void aetheriumRefreshFogCull() {
+-        //~ //~ final Object graph = this.sectionOcclusionGraph;
+-        //~ //~ if (graph instanceof SectionOcclusionGraphAccessor) {
+-            //~ //~ ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
+-        //~ //~ }
+-    //~ //~ }
+-    //~ // @era:fog-cull-x-end
      // @era:fog-cull-end
  
      @SuppressWarnings("unchecked")
@@ -8459,35 +8512,57 @@ index 94e9107..a19b0f8 100644
      // @era:section-cull-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
-index 1b68a9e..2db9349 100644
+index e5ef668..106e8c6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
-@@ -1,19 +1,19 @@
+@@ -1,31 +1,31 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:fog-cull-begin section
 -import java.util.concurrent.atomic.AtomicBoolean;
 -import org.spongepowered.asm.mixin.gen.Accessor;
--// @era:fog-cull-else bfs|info|none
-+// @era:fog-cull-begin bfs|info|none
++// @era:fog-cull-begin none
++// @era:fog-cull-x-begin none
++// @era:fog-cull-x-else extract
++//~ import java.util.concurrent.atomic.AtomicBoolean;
++//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:fog-cull-x-end
 +// @era:fog-cull-else section
 +//~ import java.util.concurrent.atomic.AtomicBoolean;
 +//~ import org.spongepowered.asm.mixin.gen.Accessor;
+ // @era:fog-cull-else bfs|info
+-// @era:fog-cull-else none
+-//~ // @era:fog-cull-x-begin none
+-//~ // @era:fog-cull-x-else extract
+-//~ //~ import java.util.concurrent.atomic.AtomicBoolean;
+-//~ //~ import org.spongepowered.asm.mixin.gen.Accessor;
+-//~ // @era:fog-cull-x-end
  // @era:fog-cull-end
  
- /** The frustum-pass request flag of the visibility graph (1.20.2..26.1; FogCullMixin). */
+ /** The frustum-pass request flag of the visibility graph (1.20.2+; FogCullMixin). */
  @Mixin(targets = "net.minecraft.client.renderer.SectionOcclusionGraph")
  public interface SectionOcclusionGraphAccessor {
  
 -    // @era:fog-cull-begin section
 -    @Accessor("needsFrustumUpdate")
 -    AtomicBoolean aetheriumNeedsFrustumUpdate();
--    // @era:fog-cull-else bfs|info|none
-+    // @era:fog-cull-begin bfs|info|none
++    // @era:fog-cull-begin none
++    // @era:fog-cull-x-begin none
++    // @era:fog-cull-x-else extract
++    //~ @Accessor("needsFrustumUpdate")
++    //~ AtomicBoolean aetheriumNeedsFrustumUpdate();
++    // @era:fog-cull-x-end
 +    // @era:fog-cull-else section
 +    //~ @Accessor("needsFrustumUpdate")
 +    //~ AtomicBoolean aetheriumNeedsFrustumUpdate();
+     // @era:fog-cull-else bfs|info
+-    // @era:fog-cull-else none
+-    //~ // @era:fog-cull-x-begin none
+-    //~ // @era:fog-cull-x-else extract
+-    //~ //~ @Accessor("needsFrustumUpdate")
+-    //~ //~ AtomicBoolean aetheriumNeedsFrustumUpdate();
+-    //~ // @era:fog-cull-x-end
      // @era:fog-cull-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
@@ -13261,7 +13336,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index a4b8f82..a6704c4 100644
+index a5ad0d3..76345b8 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

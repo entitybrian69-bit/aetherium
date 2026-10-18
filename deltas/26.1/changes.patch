@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 3973ef4..1ca795c 100644
+index 58ebebd..5491534 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -51,10 +51,10 @@ public final class Capabilities {
@@ -100,8 +100,8 @@ index 3973ef4..1ca795c 100644
 +    //~ public static final boolean MESH_ALLOC = true;
      // @era:mesh-alloc-end
  
-     /** Rebuild coalescing (per-section dirty timestamps); 26.2 dropped the section dirty flag. */
-@@ -196,17 +196,17 @@ public final class Capabilities {
+     /** 26.2+: the dirty flags moved to SectionUpdateTracker (CoalesceDirtyStateMixin / CoalesceExtractMixin). */
+@@ -203,17 +203,17 @@ public final class Capabilities {
      // @era:section-api-end
  
      /** Allocation-free, frustum-culled camera-facing particles (1.16.5..1.21.8). */
@@ -126,8 +126,8 @@ index 3973ef4..1ca795c 100644
 +    //~ public static final boolean FRAME_FRUSTUM = true;
      // @era:frustum-cap-end
  
-     /** Visible sections wholly inside the fog are skipped (1.17..26.1; 1.16.5 culls in STREAMING). */
-@@ -236,16 +236,16 @@ public final class Capabilities {
+     /** 26.2+: the frustum pass moved to LevelExtractor, so the fog cull filters there (FogCullExtractMixin). */
+@@ -250,16 +250,16 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -394,7 +394,7 @@ index ebc448c..d6efe2a 100644
          final double dx = origin.getX() + 8.0 - cam.x;
          final double dy = origin.getY() + 8.0 - cam.y;
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
-index cc6cabe..72e0d8b 100644
+index 270eb0c..792d818 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 +++ b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 @@ -16,12 +16,12 @@ import net.minecraft.world.level.material.MapColor;
@@ -2476,10 +2476,10 @@ index d6a731a..bfa0e44 100644
      // @era:fog-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-index 5c63127..f83a1b4 100644
+index d08c6dd..4d80475 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-@@ -68,10 +68,10 @@ public abstract class FogCullMixin implements FogCullAccess {
+@@ -75,10 +75,10 @@ public abstract class FogCullMixin implements FogCullAccess {
          int kept = 0;
          for (int i = 0; i < n; i++) {
              final Object item = list.get(i);
@@ -8377,7 +8377,7 @@ index 6d8b564..040d178 100644
  
      // @era:t-view-areaacc-begin none
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index a4b8f82..baf90f7 100644
+index a5ad0d3..781f130 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

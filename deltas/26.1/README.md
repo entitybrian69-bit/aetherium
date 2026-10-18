@@ -34,6 +34,7 @@ neoforge_version=26.1.2.115
 - `chunk-upload=none`
 - `clouds=renderer`
 - `cull-new=uber26`
+- `fog-cull-x=none`
 - `fog-cull=section`
 - `fog=data`
 - `freelook=align`
@@ -44,6 +45,7 @@ neoforge_version=26.1.2.115
 - `input=events`
 - `keys=category-id`
 - `layer-sig=none`
+- `level-extract=none`
 - `light-hook=coords`
 - `loom-plugin-id->no-remap`
 - `mappings-line-removed`

@@ -24,7 +24,7 @@ index 18edda9..fa036bf 100644
      // compileOnly ONLY. The sponge-mixin annotation processor must NOT run here: this module
      // compiles against mojmap, and in legacy-AP mode the processor tries to write a
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 3973ef4..964067e 100644
+index 58ebebd..ed6a438 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -16,24 +16,24 @@ package com.aetherium;
@@ -123,7 +123,7 @@ index 3973ef4..964067e 100644
      // @era:cull-new-end
  
      /** Some version of the Aetherium renderer exists for this version. */
-@@ -182,50 +182,50 @@ public final class Capabilities {
+@@ -182,64 +182,64 @@ public final class Capabilities {
      public static final boolean MESH_THREADS = true;
  
      /** Allocation-free block meshing (reused BitSet / AO position); vanilla stopped allocating in 1.21.5. */
@@ -137,13 +137,24 @@ index 3973ef4..964067e 100644
 +    //~ public static final boolean MESH_ALLOC = true;
      // @era:mesh-alloc-end
  
-     /** Rebuild coalescing (per-section dirty timestamps); 26.2 dropped the section dirty flag. */
+     /** 26.2+: the dirty flags moved to SectionUpdateTracker (CoalesceDirtyStateMixin / CoalesceExtractMixin). */
+-    // @era:level-extract-begin none
+-    public static final boolean COALESCE_EXTRACT = false;
+-    // @era:level-extract-else x262
+-    //~ public static final boolean COALESCE_EXTRACT = true;
++    // @era:level-extract-begin x262
++    public static final boolean COALESCE_EXTRACT = true;
++    // @era:level-extract-else none
++    //~ public static final boolean COALESCE_EXTRACT = false;
+     // @era:level-extract-end
+ 
+     /** Rebuild coalescing (per-section dirty timestamps), every version. */
 -    // @era:section-api-begin v16|crd|srd|srd-ro|mesh
 -    public static final boolean COALESCE = true;
 -    // @era:section-api-else none
--    //~ public static final boolean COALESCE = false;
+-    //~ public static final boolean COALESCE = COALESCE_EXTRACT;
 +    // @era:section-api-begin none
-+    public static final boolean COALESCE = false;
++    public static final boolean COALESCE = COALESCE_EXTRACT;
 +    // @era:section-api-else v16|crd|srd|srd-ro|mesh
 +    //~ public static final boolean COALESCE = true;
      // @era:section-api-end
@@ -170,13 +181,24 @@ index 3973ef4..964067e 100644
 +    //~ public static final boolean FRAME_FRUSTUM = true;
      // @era:frustum-cap-end
  
-     /** Visible sections wholly inside the fog are skipped (1.17..26.1; 1.16.5 culls in STREAMING). */
+     /** 26.2+: the frustum pass moved to LevelExtractor, so the fog cull filters there (FogCullExtractMixin). */
+-    // @era:fog-cull-x-begin none
+-    public static final boolean FOG_CULL_EXTRACT = false;
+-    // @era:fog-cull-x-else extract
+-    //~ public static final boolean FOG_CULL_EXTRACT = true;
++    // @era:fog-cull-x-begin extract
++    public static final boolean FOG_CULL_EXTRACT = true;
++    // @era:fog-cull-x-else none
++    //~ public static final boolean FOG_CULL_EXTRACT = false;
+     // @era:fog-cull-x-end
+ 
+     /** Visible sections wholly inside the fog are skipped (1.17+; 1.16.5 culls in STREAMING). */
 -    // @era:fog-cull-begin bfs|info|section
 -    public static final boolean FOG_CULL = true;
 -    // @era:fog-cull-else none
--    //~ public static final boolean FOG_CULL = false;
+-    //~ public static final boolean FOG_CULL = FOG_CULL_EXTRACT;
 +    // @era:fog-cull-begin none
-+    public static final boolean FOG_CULL = false;
++    public static final boolean FOG_CULL = FOG_CULL_EXTRACT;
 +    // @era:fog-cull-else bfs|info|section
 +    //~ public static final boolean FOG_CULL = true;
      // @era:fog-cull-end
@@ -186,7 +208,7 @@ index 3973ef4..964067e 100644
 +    // @era:fog-cull-begin none
      public static final boolean FOG_CULL_INFO = false;
 -    public static final boolean FOG_CULL_SECTION = true;
-+    public static final boolean FOG_CULL_SECTION = false;
++    public static final boolean FOG_CULL_SECTION = FOG_CULL_EXTRACT;
 +    // @era:fog-cull-else section
 +    //~ public static final boolean FOG_CULL_INFO = false;
 +    //~ public static final boolean FOG_CULL_SECTION = true;
@@ -195,11 +217,11 @@ index 3973ef4..964067e 100644
      //~ public static final boolean FOG_CULL_SECTION = false;
 -    // @era:fog-cull-else none
 -    //~ public static final boolean FOG_CULL_INFO = false;
--    //~ public static final boolean FOG_CULL_SECTION = false;
+-    //~ public static final boolean FOG_CULL_SECTION = FOG_CULL_EXTRACT;
      // @era:fog-cull-end
  
      /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */
-@@ -236,16 +236,16 @@ public final class Capabilities {
+@@ -250,16 +250,16 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -611,7 +633,7 @@ index a848656..cbbcafd 100644
      // @era:t-color-filter-else v16
      //~ private static final AetheriumLog LOGGER = AetheriumLog.of(ColorFilter.class);
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
-index cc6cabe..6c4edae 100644
+index 270eb0c..be8366b 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 +++ b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 @@ -16,12 +16,12 @@ import net.minecraft.world.level.material.MapColor;
@@ -710,6 +732,21 @@ index cc6cabe..6c4edae 100644
      //~ }
      // @era:t-far-gl-else none
      //~ static int colorTexture(final Minecraft mc) {
+@@ -134,10 +134,10 @@ final class FarTerrainBridge {
+     // @era:t-far-gl-end
+ 
+     /** 26.2+ draws with reversed depth (near = 1, depth tests GREATER_THAN_OR_EQUAL). */
+-    // @era:t-far-gl-begin id17|gl215|none
+-    static final boolean REVERSED_Z = false;
+-    // @era:t-far-gl-else gl262|pearl
+-    //~ static final boolean REVERSED_Z = true;
++    // @era:t-far-gl-begin gl262|pearl
++    static final boolean REVERSED_Z = true;
++    // @era:t-far-gl-else id17|gl215|none
++    //~ static final boolean REVERSED_Z = false;
+     // @era:t-far-gl-end
+ 
+     // @era:t-far-gl-begin id17|gl215|gl262|pearl
 diff --git a/common/src/main/java/com/aetherium/client/FlightPreload.java b/common/src/main/java/com/aetherium/client/FlightPreload.java
 index 667a1a0..b656d7a 100644
 --- a/common/src/main/java/com/aetherium/client/FlightPreload.java
@@ -2929,6 +2966,189 @@ index 348c80a..397e449 100644
      // @era:clouds-end
      private float aetherium$cloudHeight(final float original) {
          return Scenery.cloudHeight(original);
+diff --git a/common/src/main/java/com/aetherium/mixin/core/CoalesceDirtyStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/CoalesceDirtyStateMixin.java
+index b0599be..19ae691 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/CoalesceDirtyStateMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/CoalesceDirtyStateMixin.java
+@@ -2,13 +2,13 @@ package com.aetherium.mixin.core;
+ 
+ import com.aetherium.client.RenderChunkDirtyAccess;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:level-extract-begin none
+-// @era:level-extract-else x262
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:level-extract-begin x262
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:level-extract-else none
+ // @era:level-extract-end
+ 
+ /**
+@@ -21,59 +21,59 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.SectionUpdateTracker$SectionDirtyState")
+ public abstract class CoalesceDirtyStateMixin implements RenderChunkDirtyAccess {
+-    // @era:level-extract-begin none
+-    @Override
+-    public long aetheriumFirstDirty() {
+-        return 0L;
+-    }
++    // @era:level-extract-begin x262
++    @Shadow
++    private boolean isDirty;
+ 
+-    @Override
+-    public long aetheriumLastDirty() {
+-        return 0L;
+-    }
+-    // @era:level-extract-else x262
+-    //~ @Shadow
+-    //~ private boolean isDirty;
++    @Shadow
++    private long sectionNode;
+ 
+-    //~ @Shadow
+-    //~ private long sectionNode;
++    @Unique
++    private long aetherium$firstDirty;
+ 
+-    //~ @Unique
+-    //~ private long aetherium$firstDirty;
++    @Unique
++    private long aetherium$lastDirty;
+ 
+-    //~ @Unique
+-    //~ private long aetherium$lastDirty;
++    @Inject(method = "setDirty", at = @At("HEAD"), require = 0)
++    private void aetherium$stampDirty(final boolean playerChanged, final CallbackInfo ci) {
++        final long now = System.nanoTime();
++        if (!this.isDirty || this.aetherium$firstDirty == 0L) {
++            this.aetherium$firstDirty = now;
++        }
++        this.aetherium$lastDirty = now;
++    }
+ 
+-    //~ @Inject(method = "setDirty", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$stampDirty(final boolean playerChanged, final CallbackInfo ci) {
+-        //~ final long now = System.nanoTime();
+-        //~ if (!this.isDirty || this.aetherium$firstDirty == 0L) {
+-            //~ this.aetherium$firstDirty = now;
+-        //~ }
+-        //~ this.aetherium$lastDirty = now;
+-    //~ }
++    @Inject(method = "setNotDirty", at = @At("HEAD"), require = 0)
++    private void aetherium$clearDirty(final CallbackInfo ci) {
++        this.aetherium$firstDirty = 0L;
++    }
+ 
+-    //~ @Inject(method = "setNotDirty", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$clearDirty(final CallbackInfo ci) {
+-        //~ this.aetherium$firstDirty = 0L;
+-    //~ }
++    @Inject(method = "setSectionNode", at = @At("HEAD"), require = 0)
++    private void aetherium$newSection(final long node, final CallbackInfo ci) {
++        if (node != this.sectionNode) {
++            this.aetherium$firstDirty = 0L;
++            this.aetherium$lastDirty = 0L;
++        }
++    }
+ 
+-    //~ @Inject(method = "setSectionNode", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$newSection(final long node, final CallbackInfo ci) {
+-        //~ if (node != this.sectionNode) {
+-            //~ this.aetherium$firstDirty = 0L;
+-            //~ this.aetherium$lastDirty = 0L;
+-        //~ }
+-    //~ }
++    @Override
++    public long aetheriumFirstDirty() {
++        return this.aetherium$firstDirty;
++    }
+ 
++    @Override
++    public long aetheriumLastDirty() {
++        return this.aetherium$lastDirty;
++    }
++    // @era:level-extract-else none
+     //~ @Override
+     //~ public long aetheriumFirstDirty() {
+-        //~ return this.aetherium$firstDirty;
++        //~ return 0L;
+     //~ }
+ 
+     //~ @Override
+     //~ public long aetheriumLastDirty() {
+-        //~ return this.aetherium$lastDirty;
++        //~ return 0L;
+     //~ }
+     // @era:level-extract-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/CoalesceExtractMixin.java b/common/src/main/java/com/aetherium/mixin/core/CoalesceExtractMixin.java
+index 65cff21..f7f359d 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/CoalesceExtractMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/CoalesceExtractMixin.java
+@@ -1,16 +1,16 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:level-extract-begin none
+-// @era:level-extract-else x262
+-//~ import com.aetherium.client.CoalesceHooks;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import com.llamalad7.mixinextras.sugar.Local;
+-//~ import net.minecraft.client.SectionUpdateTracker;
+-//~ import net.minecraft.client.renderer.chunk.CompiledSectionMesh;
+-//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+-//~ import org.spongepowered.asm.mixin.injection.At;
++// @era:level-extract-begin x262
++import com.aetherium.client.CoalesceHooks;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import com.llamalad7.mixinextras.sugar.Local;
++import net.minecraft.client.SectionUpdateTracker;
++import net.minecraft.client.renderer.chunk.CompiledSectionMesh;
++import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
++import org.spongepowered.asm.mixin.injection.At;
++// @era:level-extract-else none
+ // @era:level-extract-end
+ 
+ /**
+@@ -23,16 +23,16 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.extract.LevelExtractor")
+ public abstract class CoalesceExtractMixin {
+-    // @era:level-extract-begin none
+-    // @era:level-extract-else x262
+-    //~ @WrapOperation(method = "extract", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/SectionUpdateTracker$SectionDirtyState;isDirty()Z"), require = 0)
+-    //~ private boolean aetherium$coalesce(final SectionUpdateTracker.SectionDirtyState state,
+-                                       //~ final Operation<Boolean> original,
+-                                       //~ @Local final SectionRenderDispatcher.RenderSection section) {
+-        //~ // Direct calls instead of original.call: no argument array per section per frame.
+-        //~ return state.isDirty() && !CoalesceHooks.defer(state, section.getRenderOrigin(), state.isDirtyFromPlayer(),
+-                //~ section.sectionMesh.get() != CompiledSectionMesh.UNCOMPILED);
+-    //~ }
++    // @era:level-extract-begin x262
++    @WrapOperation(method = "extract", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/SectionUpdateTracker$SectionDirtyState;isDirty()Z"), require = 0)
++    private boolean aetherium$coalesce(final SectionUpdateTracker.SectionDirtyState state,
++                                       final Operation<Boolean> original,
++                                       @Local final SectionRenderDispatcher.RenderSection section) {
++        // Direct calls instead of original.call: no argument array per section per frame.
++        return state.isDirty() && !CoalesceHooks.defer(state, section.getRenderOrigin(), state.isDirtyFromPlayer(),
++                section.sectionMesh.get() != CompiledSectionMesh.UNCOMPILED);
++    }
++    // @era:level-extract-else none
+     // @era:level-extract-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java b/common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java
 index 2279e5b..8acf6b3 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java
@@ -3396,26 +3616,130 @@ index d6a731a..bfa0e44 100644
 -    //~ }
      // @era:fog-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/FogCullExtractMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogCullExtractMixin.java
+index 60d7607..ca792f0 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/FogCullExtractMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/FogCullExtractMixin.java
+@@ -1,18 +1,18 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:fog-cull-x-begin none
+-// @era:fog-cull-x-else extract
+-//~ import com.aetherium.client.FogCullHooks;
+-//~ import java.util.List;
+-//~ import net.minecraft.client.renderer.LevelRenderer;
+-//~ import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:fog-cull-x-begin extract
++import com.aetherium.client.FogCullHooks;
++import java.util.List;
++import net.minecraft.client.renderer.LevelRenderer;
++import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
++import net.minecraft.core.BlockPos;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:fog-cull-x-else none
+ // @era:fog-cull-x-end
+ 
+ /**
+@@ -24,36 +24,36 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.extract.LevelExtractor")
+ public abstract class FogCullExtractMixin {
+-    // @era:fog-cull-x-begin none
+-    // @era:fog-cull-x-else extract
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private LevelRenderer levelRenderer;
++    // @era:fog-cull-x-begin extract
++    @Shadow
++    @Final
++    private LevelRenderer levelRenderer;
+ 
+-    //~ @Inject(method = "applyFrustum", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$fogCull(final CallbackInfo ci) {
+-        //~ // ObjectArrayList implements List (get/set are array reads and writes).
+-        //~ final List<SectionRenderDispatcher.RenderSection> list = aetherium$list(this.levelRenderer.visibleSections());
+-        //~ if (!FogCullHooks.begin()) {
+-            //~ return;
+-        //~ }
+-        //~ final int n = list.size();
+-        //~ int kept = 0;
+-        //~ for (int i = 0; i < n; i++) {
+-            //~ final SectionRenderDispatcher.RenderSection section = list.get(i);
+-            //~ final BlockPos origin = section.getRenderOrigin();
+-            //~ if (!FogCullHooks.hidden(origin.getX(), origin.getY(), origin.getZ())) {
+-                //~ list.set(kept++, section);
+-            //~ }
+-        //~ }
+-        //~ if (kept != n) {
+-            //~ list.subList(kept, n).clear();
+-        //~ }
+-    //~ }
++    @Inject(method = "applyFrustum", at = @At("TAIL"), require = 0)
++    private void aetherium$fogCull(final CallbackInfo ci) {
++        // ObjectArrayList implements List (get/set are array reads and writes).
++        final List<SectionRenderDispatcher.RenderSection> list = aetherium$list(this.levelRenderer.visibleSections());
++        if (!FogCullHooks.begin()) {
++            return;
++        }
++        final int n = list.size();
++        int kept = 0;
++        for (int i = 0; i < n; i++) {
++            final SectionRenderDispatcher.RenderSection section = list.get(i);
++            final BlockPos origin = section.getRenderOrigin();
++            if (!FogCullHooks.hidden(origin.getX(), origin.getY(), origin.getZ())) {
++                list.set(kept++, section);
++            }
++        }
++        if (kept != n) {
++            list.subList(kept, n).clear();
++        }
++    }
+ 
+-    //~ @SuppressWarnings("unchecked")
+-    //~ private static List<SectionRenderDispatcher.RenderSection> aetherium$list(final Object vanilla) {
+-        //~ return (List<SectionRenderDispatcher.RenderSection>) vanilla;
+-    //~ }
++    @SuppressWarnings("unchecked")
++    private static List<SectionRenderDispatcher.RenderSection> aetherium$list(final Object vanilla) {
++        return (List<SectionRenderDispatcher.RenderSection>) vanilla;
++    }
++    // @era:fog-cull-x-else none
+     // @era:fog-cull-x-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-index 5c63127..e2eda92 100644
+index d08c6dd..b080c69 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-@@ -3,17 +3,18 @@ package com.aetherium.mixin.core;
+@@ -3,17 +3,24 @@ package com.aetherium.mixin.core;
  import com.aetherium.client.FogCullAccess;
  import java.util.List;
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:fog-cull-begin section
 -import com.aetherium.client.FogCullHooks;
 -import it.unimi.dsi.fastutil.objects.ObjectArrayList;
--import net.minecraft.client.renderer.SectionOcclusionGraph;
++// @era:fog-cull-begin none
++// @era:fog-cull-x-begin extract
+ import net.minecraft.client.renderer.SectionOcclusionGraph;
 -import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 -import net.minecraft.core.BlockPos;
--import org.spongepowered.asm.mixin.Final;
--import org.spongepowered.asm.mixin.Shadow;
+ import org.spongepowered.asm.mixin.Final;
+ import org.spongepowered.asm.mixin.Shadow;
 -import org.spongepowered.asm.mixin.injection.At;
 -import org.spongepowered.asm.mixin.injection.Inject;
 -import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:fog-cull-begin none
++// @era:fog-cull-x-else none
++// @era:fog-cull-x-end
 +// @era:fog-cull-else section
 +//~ import com.aetherium.client.FogCullHooks;
 +//~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -3430,15 +3754,21 @@ index 5c63127..e2eda92 100644
  // @era:fog-cull-else info
  //~ import com.aetherium.client.FogCullHooks;
  //~ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-@@ -35,7 +36,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -35,13 +42,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  //~ import org.spongepowered.asm.mixin.injection.At;
  //~ import org.spongepowered.asm.mixin.injection.Inject;
  //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 -// @era:fog-cull-else none
+-//~ // @era:fog-cull-x-begin none
+-//~ // @era:fog-cull-x-else extract
+-//~ //~ import net.minecraft.client.renderer.SectionOcclusionGraph;
+-//~ //~ import org.spongepowered.asm.mixin.Final;
+-//~ //~ import org.spongepowered.asm.mixin.Shadow;
+-//~ // @era:fog-cull-x-end
  // @era:fog-cull-end
  
  /**
-@@ -48,47 +48,51 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -55,40 +55,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class FogCullMixin implements FogCullAccess {
  
@@ -3447,10 +3777,12 @@ index 5c63127..e2eda92 100644
 -    @Final
 -    private ObjectArrayList<Object> visibleSections;
 -
--    @Shadow
--    @Final
--    private SectionOcclusionGraph sectionOcclusionGraph;
--
++    // @era:fog-cull-begin none
++    // @era:fog-cull-x-begin extract
+     @Shadow
+     @Final
+     private SectionOcclusionGraph sectionOcclusionGraph;
+ 
 -    @Inject(method = "applyFrustum", at = @At("TAIL"), require = 0)
 -    private void aetherium$fogCull(final CallbackInfo ci) {
 -        // ObjectArrayList implements List (get/set are array reads and writes).
@@ -3476,14 +3808,19 @@ index 5c63127..e2eda92 100644
 -        }
 -    }
 -
-+    // @era:fog-cull-begin none
++    /** 26.2+: the list is filtered by FogCullExtractMixin; the refresh still asks for a frustum pass. */
      @Override
      public void aetheriumRefreshFogCull() {
--        final Object graph = this.sectionOcclusionGraph;
--        if (graph instanceof SectionOcclusionGraphAccessor) {
--            ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
--        }
+         final Object graph = this.sectionOcclusionGraph;
+@@ -96,6 +69,52 @@ public abstract class FogCullMixin implements FogCullAccess {
+             ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
+         }
      }
++    // @era:fog-cull-x-else none
++    //~ @Override
++    //~ public void aetheriumRefreshFogCull() {
++    //~ }
++    // @era:fog-cull-x-end
 +    // @era:fog-cull-else section
 +    //~ @Shadow
 +    //~ @Final
@@ -3528,14 +3865,29 @@ index 5c63127..e2eda92 100644
      // @era:fog-cull-else info
      //~ @Shadow
      //~ @Final
-@@ -124,10 +128,6 @@ public abstract class FogCullMixin implements FogCullAccess {
+@@ -131,25 +150,6 @@ public abstract class FogCullMixin implements FogCullAccess {
      //~ public void aetheriumRefreshFogCull() {
          //~ this.needsUpdate = true;
      //~ }
 -    // @era:fog-cull-else none
+-    //~ // @era:fog-cull-x-begin none
 -    //~ @Override
 -    //~ public void aetheriumRefreshFogCull() {
 -    //~ }
+-    //~ // @era:fog-cull-x-else extract
+-    //~ //~ @Shadow
+-    //~ //~ @Final
+-    //~ //~ private SectionOcclusionGraph sectionOcclusionGraph;
+-
+-    //~ //~ /** 26.2+: the list is filtered by FogCullExtractMixin; the refresh still asks for a frustum pass. */
+-    //~ //~ @Override
+-    //~ //~ public void aetheriumRefreshFogCull() {
+-        //~ //~ final Object graph = this.sectionOcclusionGraph;
+-        //~ //~ if (graph instanceof SectionOcclusionGraphAccessor) {
+-            //~ //~ ((SectionOcclusionGraphAccessor) graph).aetheriumNeedsFrustumUpdate().set(true);
+-        //~ //~ }
+-    //~ //~ }
+-    //~ // @era:fog-cull-x-end
      // @era:fog-cull-end
  
      @SuppressWarnings("unchecked")
@@ -5251,35 +5603,53 @@ index 5d6f6af..35270cb 100644
      // @era:cull-new-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
-index 1b68a9e..2db9349 100644
+index e5ef668..e7f5694 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
-@@ -1,19 +1,19 @@
+@@ -1,31 +1,31 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:fog-cull-begin section
--import java.util.concurrent.atomic.AtomicBoolean;
--import org.spongepowered.asm.mixin.gen.Accessor;
--// @era:fog-cull-else bfs|info|none
-+// @era:fog-cull-begin bfs|info|none
++// @era:fog-cull-begin none
++// @era:fog-cull-x-begin extract
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:fog-cull-x-else none
++// @era:fog-cull-x-end
 +// @era:fog-cull-else section
 +//~ import java.util.concurrent.atomic.AtomicBoolean;
 +//~ import org.spongepowered.asm.mixin.gen.Accessor;
+ // @era:fog-cull-else bfs|info
+-// @era:fog-cull-else none
+-//~ // @era:fog-cull-x-begin none
+-//~ // @era:fog-cull-x-else extract
+-//~ //~ import java.util.concurrent.atomic.AtomicBoolean;
+-//~ //~ import org.spongepowered.asm.mixin.gen.Accessor;
+-//~ // @era:fog-cull-x-end
  // @era:fog-cull-end
  
- /** The frustum-pass request flag of the visibility graph (1.20.2..26.1; FogCullMixin). */
+ /** The frustum-pass request flag of the visibility graph (1.20.2+; FogCullMixin). */
  @Mixin(targets = "net.minecraft.client.renderer.SectionOcclusionGraph")
  public interface SectionOcclusionGraphAccessor {
  
 -    // @era:fog-cull-begin section
--    @Accessor("needsFrustumUpdate")
--    AtomicBoolean aetheriumNeedsFrustumUpdate();
--    // @era:fog-cull-else bfs|info|none
-+    // @era:fog-cull-begin bfs|info|none
++    // @era:fog-cull-begin none
++    // @era:fog-cull-x-begin extract
+     @Accessor("needsFrustumUpdate")
+     AtomicBoolean aetheriumNeedsFrustumUpdate();
++    // @era:fog-cull-x-else none
++    // @era:fog-cull-x-end
 +    // @era:fog-cull-else section
 +    //~ @Accessor("needsFrustumUpdate")
 +    //~ AtomicBoolean aetheriumNeedsFrustumUpdate();
+     // @era:fog-cull-else bfs|info
+-    // @era:fog-cull-else none
+-    //~ // @era:fog-cull-x-begin none
+-    //~ // @era:fog-cull-x-else extract
+-    //~ //~ @Accessor("needsFrustumUpdate")
+-    //~ //~ AtomicBoolean aetheriumNeedsFrustumUpdate();
+-    //~ // @era:fog-cull-x-end
      // @era:fog-cull-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
@@ -9560,7 +9930,7 @@ index 6d8b564..845414f 100644
  
      /** Whether the {@code Tuning*} mixin (or tuning accessor) with this simple name applies here. */
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index a4b8f82..baf90f7 100644
+index a5ad0d3..781f130 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

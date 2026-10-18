@@ -61,6 +61,7 @@ public final class FarTerrainGl {
     private static final int GL_DEPTH_FUNC = 0x0B74;
     private static final int GL_DEPTH_WRITEMASK = 0x0B72;
     private static final int GL_LEQUAL = 0x0203;
+    private static final int GL_GEQUAL = 0x0206;
     private static final int GL_CULL_FACE = 0x0B44;
     private static final int GL_SCISSOR_TEST = 0x0C11;
     private static final int GL_STENCIL_TEST = 0x0B90;
@@ -201,11 +202,13 @@ public final class FarTerrainGl {
      * Draws every page into the main colour and depth textures.
      *
      * @param mvp     projection x model-view, column-major
-     * @param fog     start, end (blocks), fog colour r, g, b, daylight factor (0..1)
+     * @param fog       start, end (blocks), fog colour r, g, b, daylight factor (0..1)
+     * @param reversedZ the depth buffer holds 1 near and 0 far (26.2+), so nearer means greater
      * @return false when a texture cannot be reached or the framebuffer is incomplete
      */
     public static boolean draw(final int color, final int depth, final int width, final int height, final float[] mvp,
-                               final float ox, final float oy, final float oz, final float[] fog) {
+                               final float ox, final float oy, final float oz, final float[] fog,
+                               final boolean reversedZ) {
         if (pageCount == 0) {
             return true;
         }
@@ -240,7 +243,7 @@ public final class FarTerrainGl {
             GL11.glDisable(GL_SCISSOR_TEST);
             GL11.glDisable(GL_STENCIL_TEST);
             GL11.glEnable(GL_DEPTH_TEST);
-            GL11.glDepthFunc(GL_LEQUAL);
+            GL11.glDepthFunc(reversedZ ? GL_GEQUAL : GL_LEQUAL);
             GL11.glDepthMask(true);
             GL11.glColorMask(true, true, true, true);
             GL20.glUseProgram(program);
@@ -383,10 +386,11 @@ public final class FarTerrainGl {
     }
 
     /**
-     * CI smoke test: one page with a quad covering the screen (identity matrix, depth 0) drawn into
+     * CI smoke test: one page with a quad covering the screen (identity matrix, on the near plane) drawn into
      * the main target, read back at the centre, then everything freed again.
      */
-    public static String selfTest(final int color, final int depth, final int width, final int height) {
+    public static String selfTest(final int color, final int depth, final int width, final int height,
+                                  final boolean reversedZ) {
         if (color <= 0 || depth <= 0) {
             return "unavailable (main target is not an OpenGL texture)";
         }
@@ -396,7 +400,8 @@ public final class FarTerrainGl {
         final ByteBuffer page = newPageBuffer();
         final float[][] corners = {{-1f, -1f}, {1f, -1f}, {1f, 1f}, {-1f, 1f}};
         for (final float[] c : corners) {
-            page.putFloat(c[0]).putFloat(c[1]).putFloat(0f);
+            // On the near plane in either depth convention, so it is in front of everything drawn.
+            page.putFloat(c[0]).putFloat(c[1]).putFloat(reversedZ ? 0.999f : -0.999f);
             page.put((byte) 255).put((byte) 0).put((byte) 0).put((byte) 255);
         }
         page.flip();
@@ -408,7 +413,7 @@ public final class FarTerrainGl {
         final float[] identity = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
         // Fog starts far beyond the quad and daylight is full: the pixel must come out pure red.
         final float[] fog = {1.0E6f, 2.0E6f, 0f, 0f, 1f, 1f};
-        final boolean drawn = draw(color, depth, width, height, identity, 0f, 0f, 0f, fog);
+        final boolean drawn = draw(color, depth, width, height, identity, 0f, 0f, 0f, fog, reversedZ);
         String result;
         if (!drawn) {
             result = "FAILED: framebuffer around the main target incomplete";

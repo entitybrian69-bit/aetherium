@@ -5,7 +5,7 @@
 # apply:  git apply --whitespace=nowarn deltas/1.21.7/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21.7/changes.patch
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 3973ef4..e607bd2 100644
+index 58ebebd..bc3f327 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -105,20 +105,20 @@ public final class Capabilities {
@@ -66,8 +66,8 @@ index 3973ef4..e607bd2 100644
 +    //~ public static final boolean MESH_ALLOC = true;
      // @era:mesh-alloc-end
  
-     /** Rebuild coalescing (per-section dirty timestamps); 26.2 dropped the section dirty flag. */
-@@ -236,16 +236,16 @@ public final class Capabilities {
+     /** 26.2+: the dirty flags moved to SectionUpdateTracker (CoalesceDirtyStateMixin / CoalesceExtractMixin). */
+@@ -250,16 +250,16 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -160,7 +160,7 @@ index ebc448c..d6efe2a 100644
          final double dx = origin.getX() + 8.0 - cam.x;
          final double dy = origin.getY() + 8.0 - cam.y;
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
-index cc6cabe..5b45b8b 100644
+index 270eb0c..3ac0232 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 +++ b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 @@ -16,12 +16,12 @@ import net.minecraft.world.level.material.MapColor;
@@ -1278,10 +1278,10 @@ index d6a731a..9fa11d5 100644
      //~ @WrapOperation(method = "updateBuffer(Lnet/minecraft/client/renderer/fog/FogData;)V", at = @At(value = "INVOKE",
              //~ target = "Lnet/minecraft/client/renderer/fog/FogRenderer;updateBuffer(Ljava/nio/ByteBuffer;ILorg/joml/Vector4f;FFFFFF)V"),
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-index 5c63127..f83a1b4 100644
+index d08c6dd..4d80475 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-@@ -68,10 +68,10 @@ public abstract class FogCullMixin implements FogCullAccess {
+@@ -75,10 +75,10 @@ public abstract class FogCullMixin implements FogCullAccess {
          int kept = 0;
          for (int i = 0; i < n; i++) {
              final Object item = list.get(i);

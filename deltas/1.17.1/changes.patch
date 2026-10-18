@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 3973ef4..4b93037 100644
+index 58ebebd..dc5a708 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -92,7 +92,7 @@ index 3973ef4..4b93037 100644
      // @era:near-build-end
  
      /**
-@@ -217,22 +217,22 @@ public final class Capabilities {
+@@ -231,22 +231,22 @@ public final class Capabilities {
      // @era:fog-cull-end
  
      /** Which list the fog cull filters: RenderChunkInfo (1.17..1.20.1) or RenderSection (1.20.2..26.1). */
@@ -110,7 +110,7 @@ index 3973ef4..4b93037 100644
 +    //~ public static final boolean FOG_CULL_SECTION = true;
      // @era:fog-cull-else none
      //~ public static final boolean FOG_CULL_INFO = false;
-     //~ public static final boolean FOG_CULL_SECTION = false;
+     //~ public static final boolean FOG_CULL_SECTION = FOG_CULL_EXTRACT;
      // @era:fog-cull-end
  
      /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */
@@ -125,7 +125,7 @@ index 3973ef4..4b93037 100644
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
-@@ -249,20 +249,20 @@ public final class Capabilities {
+@@ -263,20 +263,20 @@ public final class Capabilities {
      // @era:anim-end
  
      /** Fast mob/block-entity models (1.16.5..1.20.6, while BufferBuilder writes a plain ByteBuffer). */
@@ -275,7 +275,7 @@ index 48e959b..6956aed 100644
      }
  }
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
-index cc6cabe..a673bae 100644
+index 270eb0c..c4f6d0a 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 +++ b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 @@ -5,16 +5,16 @@ import net.minecraft.core.BlockPos;
@@ -2274,7 +2274,7 @@ index d6a731a..25f3e56 100644
              //~ SceneryHooks.adjustFog(camera, farPlane, thick);
          //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
-index 5c63127..36d9036 100644
+index d08c6dd..54a3195 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java
 @@ -3,31 +3,31 @@ package com.aetherium.mixin.core;
@@ -2316,7 +2316,7 @@ index 5c63127..36d9036 100644
  //~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
  //~ import net.minecraft.core.BlockPos;
  //~ import org.spongepowered.asm.mixin.Final;
-@@ -48,81 +48,81 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@@ -55,81 +55,81 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class FogCullMixin implements FogCullAccess {
  
@@ -2438,8 +2438,8 @@ index 5c63127..36d9036 100644
 +        //~ this.needsFrustumUpdate.set(true);
      //~ }
      // @era:fog-cull-else none
-     //~ @Override
-@@ -135,30 +135,30 @@ public abstract class FogCullMixin implements FogCullAccess {
+     //~ // @era:fog-cull-x-begin none
+@@ -157,30 +157,30 @@ public abstract class FogCullMixin implements FogCullAccess {
          return (List<Object>) vanilla;
      }
  
@@ -3644,37 +3644,39 @@ index 94e9107..6723e6d 100644
  //~ @Mixin(targets = "net.minecraft.client.renderer.chunk.SectionRenderDispatcher$RenderSection")
  // @era:section-api-end
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
-index 1b68a9e..2db9349 100644
+index e5ef668..4536d57 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java
-@@ -1,19 +1,19 @@
+@@ -1,10 +1,10 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:fog-cull-begin section
 -import java.util.concurrent.atomic.AtomicBoolean;
 -import org.spongepowered.asm.mixin.gen.Accessor;
--// @era:fog-cull-else bfs|info|none
-+// @era:fog-cull-begin bfs|info|none
+-// @era:fog-cull-else bfs|info
++// @era:fog-cull-begin bfs|info
 +// @era:fog-cull-else section
 +//~ import java.util.concurrent.atomic.AtomicBoolean;
 +//~ import org.spongepowered.asm.mixin.gen.Accessor;
- // @era:fog-cull-end
- 
- /** The frustum-pass request flag of the visibility graph (1.20.2..26.1; FogCullMixin). */
+ // @era:fog-cull-else none
+ //~ // @era:fog-cull-x-begin none
+ //~ // @era:fog-cull-x-else extract
+@@ -17,10 +17,10 @@ import org.spongepowered.asm.mixin.gen.Accessor;
  @Mixin(targets = "net.minecraft.client.renderer.SectionOcclusionGraph")
  public interface SectionOcclusionGraphAccessor {
  
 -    // @era:fog-cull-begin section
 -    @Accessor("needsFrustumUpdate")
 -    AtomicBoolean aetheriumNeedsFrustumUpdate();
--    // @era:fog-cull-else bfs|info|none
-+    // @era:fog-cull-begin bfs|info|none
+-    // @era:fog-cull-else bfs|info
++    // @era:fog-cull-begin bfs|info
 +    // @era:fog-cull-else section
 +    //~ @Accessor("needsFrustumUpdate")
 +    //~ AtomicBoolean aetheriumNeedsFrustumUpdate();
-     // @era:fog-cull-end
- }
+     // @era:fog-cull-else none
+     //~ // @era:fog-cull-x-begin none
+     //~ // @era:fog-cull-x-else extract
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java b/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
 index 51b3c6e..93977e3 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java
@@ -5784,7 +5786,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index a4b8f82..4ed8776 100644
+index a5ad0d3..18ffcb0 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

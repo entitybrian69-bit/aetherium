@@ -188,11 +188,18 @@ public final class Capabilities {
     //~ public static final boolean MESH_ALLOC = false;
     // @era:mesh-alloc-end
 
-    /** Rebuild coalescing (per-section dirty timestamps); 26.2 dropped the section dirty flag. */
+    /** 26.2+: the dirty flags moved to SectionUpdateTracker (CoalesceDirtyStateMixin / CoalesceExtractMixin). */
+    // @era:level-extract-begin none
+    public static final boolean COALESCE_EXTRACT = false;
+    // @era:level-extract-else x262
+    //~ public static final boolean COALESCE_EXTRACT = true;
+    // @era:level-extract-end
+
+    /** Rebuild coalescing (per-section dirty timestamps), every version. */
     // @era:section-api-begin v16|crd|srd|srd-ro|mesh
     public static final boolean COALESCE = true;
     // @era:section-api-else none
-    //~ public static final boolean COALESCE = false;
+    //~ public static final boolean COALESCE = COALESCE_EXTRACT;
     // @era:section-api-end
 
     /** Allocation-free, frustum-culled camera-facing particles (1.16.5..1.21.8). */

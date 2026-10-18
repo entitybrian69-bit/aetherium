@@ -143,7 +143,10 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
             return Capabilities.MESH_ALLOC;
         }
         if ("RenderChunkDirtyMixin".equals(simpleName) || "CoalesceMixin".equals(simpleName)) {
-            return Capabilities.COALESCE;
+            return Capabilities.COALESCE && !Capabilities.COALESCE_EXTRACT;
+        }
+        if ("CoalesceDirtyStateMixin".equals(simpleName) || "CoalesceExtractMixin".equals(simpleName)) {
+            return Capabilities.COALESCE_EXTRACT;
         }
         if ("StreamingLevelMixin".equals(simpleName)) {
             return Capabilities.STREAMING;

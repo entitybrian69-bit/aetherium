@@ -324,7 +324,8 @@ public final class FarTerrain {
             FOG[5] = Math.max(0.18F, Math.min(1.0F, Math.max(fogRed, Math.max(fogGreen, fogBlue)) * 1.25F));
             final boolean ok = FarTerrainGl.draw(FarTerrainBridge.colorTexture(mc), FarTerrainBridge.depthTexture(mc),
                     FarTerrainBridge.width(mc), FarTerrainBridge.height(mc), MVP,
-                    (float) ((meshX << 4) - camX), (float) (-0.1 - camY), (float) ((meshZ << 4) - camZ), FOG);
+                    (float) ((meshX << 4) - camX), (float) (-0.1 - camY), (float) ((meshZ << 4) - camZ), FOG,
+                    FarTerrainBridge.REVERSED_Z);
             if (!ok) {
                 throw new IllegalStateException("far terrain could not draw into the main target");
             }
@@ -467,7 +468,7 @@ public final class FarTerrain {
     public static String selfTest() {
         final Minecraft mc = Minecraft.getInstance();
         return FarTerrainGl.selfTest(FarTerrainBridge.colorTexture(mc), FarTerrainBridge.depthTexture(mc),
-                FarTerrainBridge.width(mc), FarTerrainBridge.height(mc));
+                FarTerrainBridge.width(mc), FarTerrainBridge.height(mc), FarTerrainBridge.REVERSED_Z);
     }
 
     /** Worker thread: quads into position-colour pages of at most {@link FarTerrainGl#QUADS_PER_PAGE}. */

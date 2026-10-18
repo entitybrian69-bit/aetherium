@@ -35,6 +35,7 @@ neoforge_version=26.2.0.89
 - `clouds=renderer`
 - `cull-new=uber262`
 - `dirty=sections`
+- `fog-cull-x=extract`
 - `fog-cull=none`
 - `fog=data`
 - `freelook=align`
@@ -45,6 +46,7 @@ neoforge_version=26.2.0.89
 - `input=events`
 - `keys=category-id`
 - `layer-sig=none`
+- `level-extract=x262`
 - `light-hook=none`
 - `loom-plugin-id->no-remap`
 - `mappings-line-removed`
@@ -192,11 +194,14 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/BlockSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CloudHeightMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/CoalesceDirtyStateMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/CoalesceExtractMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CompiledChunkSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/EntityOcclusionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/FogCullExtractMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FogCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FramePacingMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
