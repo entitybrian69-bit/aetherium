@@ -1,7 +1,24 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-gl-state-begin none
+// @era:t-gl-state-begin g17
+import com.aetherium.perf.RenderMods;
+import com.aetherium.perf.Tuning;
+import org.lwjgl.opengl.GL11;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.lwjgl.opengl.GL30;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+// @era:t-gl-state-else g212
+//~ import com.aetherium.perf.RenderMods;
+//~ import com.aetherium.perf.Tuning;
+//~ import org.lwjgl.opengl.GL11;
+//~ import org.spongepowered.asm.mixin.Unique;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Redirect;
+// @era:t-gl-state-else none
 // @era:t-gl-state-else v16
 //~ import com.aetherium.perf.RenderMods;
 //~ import com.aetherium.perf.Tuning;
@@ -39,7 +56,92 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
 public abstract class TuningGlStateMixin {
-    // @era:t-gl-state-begin none
+    // @era:t-gl-state-begin g17
+    @Unique
+    private static boolean aetherium$viewportKnown;
+    @Unique
+    private static int aetherium$vx;
+    @Unique
+    private static int aetherium$vy;
+    @Unique
+    private static int aetherium$vw;
+    @Unique
+    private static int aetherium$vh;
+
+    @Unique
+    private static boolean aetherium$trim() {
+        return Tuning.glStateCache && !RenderMods.PRESENT;
+    }
+
+    /** Vanilla still records the viewport in GlStateManager.Viewport; only the repeated GL call is skipped. */
+    @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
+    private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
+        if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
+                && w == aetherium$vw && h == aetherium$vh) {
+            return;
+        }
+        aetherium$viewportKnown = true;
+        aetherium$vx = x;
+        aetherium$vy = y;
+        aetherium$vw = w;
+        aetherium$vh = h;
+        GL11.glViewport(x, y, w, h);
+    }
+
+    private static final int GL_FRAMEBUFFER = 36160;
+
+    @Unique
+    private static int aetherium$fbo = -1;
+
+    /** 1.17 - 1.21.1 bind every framebuffer through GL30 without a cache (1.21.2 added its own). */
+    @Redirect(method = "_glBindFramebuffer", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL30;glBindFramebuffer(II)V"), require = 0)
+    private static void aetherium$bindCore(final int target, final int id) {
+        if (target != GL_FRAMEBUFFER) {
+            aetherium$fbo = -1; // a read or draw binding: the combined one is no longer known
+        } else if (aetherium$trim() && id == aetherium$fbo) {
+            return;
+        } else {
+            aetherium$fbo = id;
+        }
+        GL30.glBindFramebuffer(target, id);
+    }
+
+    @Inject(method = "_glDeleteFramebuffers", at = @At("HEAD"), require = 0)
+    private static void aetherium$deleteFbo(final int id, final CallbackInfo ci) {
+        aetherium$fbo = -1;
+    }
+    // @era:t-gl-state-else g212
+    //~ @Unique
+    //~ private static boolean aetherium$viewportKnown;
+    //~ @Unique
+    //~ private static int aetherium$vx;
+    //~ @Unique
+    //~ private static int aetherium$vy;
+    //~ @Unique
+    //~ private static int aetherium$vw;
+    //~ @Unique
+    //~ private static int aetherium$vh;
+
+    //~ @Unique
+    //~ private static boolean aetherium$trim() {
+        //~ return Tuning.glStateCache && !RenderMods.PRESENT;
+    //~ }
+
+    //~ /** Vanilla still records the viewport in GlStateManager.Viewport; only the repeated GL call is skipped. */
+    //~ @Redirect(method = "_viewport", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"), require = 0)
+    //~ private static void aetherium$viewport(final int x, final int y, final int w, final int h) {
+        //~ if (aetherium$trim() && aetherium$viewportKnown && x == aetherium$vx && y == aetherium$vy
+                //~ && w == aetherium$vw && h == aetherium$vh) {
+            //~ return;
+        //~ }
+        //~ aetherium$viewportKnown = true;
+        //~ aetherium$vx = x;
+        //~ aetherium$vy = y;
+        //~ aetherium$vw = w;
+        //~ aetherium$vh = h;
+        //~ GL11.glViewport(x, y, w, h);
+    //~ }
+    // @era:t-gl-state-else none
     // @era:t-gl-state-else v16
     //~ private static final int GL_FRAMEBUFFER = 36160;
     //~ private static final int GL_VERTEX_ARRAY = 32884;

@@ -88,10 +88,10 @@ public final class TuningSupport {
     //~ public static final boolean FRAME_ITEM = false;
     // @era:t-frame-item-end
 
-    // @era:t-gl-state-begin none
-    public static final boolean GL_STATE = false;
-    // @era:t-gl-state-else v16
-    //~ public static final boolean GL_STATE = true;
+    // @era:t-gl-state-begin g17|g212|v16
+    public static final boolean GL_STATE = true;
+    // @era:t-gl-state-else none
+    //~ public static final boolean GL_STATE = false;
     // @era:t-gl-state-end
 
     // @era:t-glint-begin g21|g212|g219|v16
@@ -126,7 +126,7 @@ public final class TuningSupport {
 
     // @era:t-lazy-data-fixers-begin none
     public static final boolean LAZY_DATA_FIXERS = false;
-    // @era:t-lazy-data-fixers-else v16
+    // @era:t-lazy-data-fixers-else d19|v16
     //~ public static final boolean LAZY_DATA_FIXERS = true;
     // @era:t-lazy-data-fixers-end
 
