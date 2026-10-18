@@ -460,6 +460,15 @@ public final class ClientHooks {
         // @era:cam-pos-end
     }
 
+    /** The camera's position (Camera.getPosition became position() in 1.21.6). */
+    public static net.minecraft.world.phys.Vec3 cameraPosition(final net.minecraft.client.Camera camera) {
+        // @era:cam-pos-begin getter
+        return camera.getPosition();
+        // @era:cam-pos-else position
+        //~ return camera.position();
+        // @era:cam-pos-end
+    }
+
     /** Squared distance from the camera to a block centre (render thread); 0 before the camera exists. */
     public static double cameraDistanceSq(final net.minecraft.core.BlockPos pos) {
         final net.minecraft.client.Camera camera = mainCamera(Minecraft.getInstance());

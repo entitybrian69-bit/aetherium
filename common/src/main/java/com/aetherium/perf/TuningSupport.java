@@ -94,11 +94,34 @@ public final class TuningSupport {
     //~ public static final boolean EXPLOSION = false;
     // @era:t-explosion-end
 
-    // @era:t-far-terrain-begin none
-    public static final boolean FAR_TERRAIN = false;
-    // @era:t-far-terrain-else v16
-    //~ public static final boolean FAR_TERRAIN = true;
+    // @era:t-far-terrain-begin gl|v16
+    public static final boolean FAR_TERRAIN = true;
     // @era:t-far-terrain-end
+
+    /** Far terrain's draw hook: TuningLevelMixin on 1.16.5, TuningFarDrawMixin (+ group) from 1.17. */
+    // @era:t-far-draw-begin m17|j193|s205|g216|v16
+    public static final boolean FAR_DRAW = true;
+    // @era:t-far-draw-else none
+    //~ public static final boolean FAR_DRAW = false;
+    // @era:t-far-draw-end
+
+    // @era:t-far-draw-begin v16
+    //~ public static final boolean LEVEL_DRAWS_FAR = true;
+    // @era:t-far-draw-else m17|j193|s205|g216|none
+    public static final boolean LEVEL_DRAWS_FAR = false;
+    // @era:t-far-draw-end
+
+    // @era:t-far-group-begin g216
+    public static final boolean FAR_GROUP = true;
+    // @era:t-far-group-else none
+    //~ public static final boolean FAR_GROUP = false;
+    // @era:t-far-group-end
+
+    // @era:t-far-acc-begin v17
+    //~ public static final boolean FAR_ACC = true;
+    // @era:t-far-acc-else none
+    public static final boolean FAR_ACC = false;
+    // @era:t-far-acc-end
 
     // @era:t-flight-preload-begin f20|f215|f216|v16
     public static final boolean FLIGHT_PRELOAD = true;
@@ -383,6 +406,14 @@ public final class TuningSupport {
                 return SKULL;
             case "TuningSkyMixin":
                 return SKY;
+            case "TuningFarDrawMixin":
+                // 1.16.5 draws far terrain from TuningLevelMixin.
+                return FAR_TERRAIN && FAR_DRAW && !LEVEL_DRAWS_FAR;
+            case "TuningFarGroupMixin":
+                return FAR_TERRAIN && FAR_GROUP;
+            case "TuningFarAreaAccessor":
+            case "TuningFarViewAccessor":
+                return FAR_TERRAIN && FAR_ACC;
             case "TuningViewAreaAccessor":
                 return VIEW_AREAACC;
             case "TuningWorldMixin":
@@ -510,7 +541,8 @@ public final class TuningSupport {
             case "perf.async_skins":
                 return SKIN;
             case "quality.far_terrain":
-                return FAR_TERRAIN && LEVEL && LIGHT;
+                return FAR_TERRAIN && FAR_DRAW && LIGHT && (LEVEL || !LEVEL_DRAWS_FAR)
+                        && com.aetherium.client.FarTerrain.available();
             case "quality.shader_preset":
                 return COLOR_FILTER && WORLD;
             case "quality.cloud_distance":

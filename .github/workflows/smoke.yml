@@ -135,6 +135,8 @@ jobs:
             echo "::notice::smoke ${{ matrix.version }}: failed targets $failed, unused injectors $unused"
             scale=$(sed -n 's/^render scale //p' "$out/report.txt")
             case "$scale" in FAILED*) echo "::error::smoke ${{ matrix.version }}: render scale $scale" ;; *) echo "::notice::smoke ${{ matrix.version }}: render scale $scale" ;; esac
+            far=$(sed -n 's/^far terrain //p' "$out/report.txt")
+            case "$far" in FAILED*) echo "::error::smoke ${{ matrix.version }}: far terrain $far" ;; *) echo "::notice::smoke ${{ matrix.version }}: far terrain $far" ;; esac
           else
             echo "::error::smoke ${{ matrix.version }}: no report (see smoke/${{ matrix.version }}/client-tail.txt)"
           fi
@@ -166,7 +168,7 @@ jobs:
             for r in smoke/*/; do
               v=$(basename "$r")
               if [ -f "$r/report.txt" ]; then
-                echo "- $v: $(grep -m1 '^targets' "$r/report.txt"), $(grep -m1 '^unused injectors' "$r/report.txt"), $(grep -m1 '^render scale' "$r/report.txt")"
+                echo "- $v: $(grep -m1 '^targets' "$r/report.txt"), $(grep -m1 '^unused injectors' "$r/report.txt"), $(grep -m1 '^render scale' "$r/report.txt"), $(grep -m1 '^far terrain' "$r/report.txt")"
               else
                 echo "- $v: NO REPORT ($(cat "$r/status.txt" 2>/dev/null))"
               fi

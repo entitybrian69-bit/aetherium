@@ -184,6 +184,13 @@ public final class SmokeTest {
             renderScale = "FAILED: " + error;
         }
         out.append("render scale ").append(renderScale).append('\n');
+        String farTerrain;
+        try {
+            farTerrain = com.aetherium.client.FarTerrain.selfTest();
+        } catch (final Throwable error) {
+            farTerrain = "FAILED: " + error;
+        }
+        out.append("far terrain ").append(farTerrain).append('\n');
         try {
             final File dir = new File(DIR);
             dir.mkdirs();

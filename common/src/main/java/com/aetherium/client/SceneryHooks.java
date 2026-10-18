@@ -82,6 +82,15 @@ public final class SceneryHooks {
         }
         return Scenery.AIR;
     }
+
+    /**
+     * Far terrain (1.17+) is in this frame and the camera is in open air: the terrain fog reaches
+     * the far terrain's edge instead of the render distance (as on 1.16.5).
+     */
+    private static boolean farFog(final Camera camera, final boolean thick) {
+        return FarTerrain.fogEnd() > 0.0F && !thick && Scenery.distanceFog && camera != null
+                && medium(camera) == Scenery.AIR && !blinded(camera.getEntity());
+    }
     // @era:fog-else gl
     //~ /** {@code Tag.Named} extends {@code Tag}; widened here, as {@code FluidState.is} takes a {@code Tag}. */
     //~ @SuppressWarnings("unchecked")
@@ -125,6 +134,12 @@ public final class SceneryHooks {
     /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
     public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
         adjustShaderFog(camera, farPlane, thick);
+        final float[] color = RenderSystem.getShaderFogColor();
+        FarTerrain.recordFogColor(color[0], color[1], color[2]);
+        if (farFog(camera, thick)) {
+            RenderSystem.setShaderFogStart(FarTerrain.fogStart());
+            RenderSystem.setShaderFogEnd(FarTerrain.fogEnd());
+        }
         // What the terrain is drawn with this frame, for the fog cull.
         FogCull.recordFogRange(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(),
                 RenderSystem.getShaderFogColor()[3]);
@@ -148,9 +163,22 @@ public final class SceneryHooks {
      //~ * keep vanilla's. Environmental effects (blindness, the Nether) live in their own range,
      //~ * which the distance settings never touch, so no effect check is needed here.
      //~ */
-    //~ public static float[] adjustFogBuffer(final float envStart, final float envEnd, final float rdStart,
+    //~ public static float[] adjustFogBuffer(final float red, final float green, final float blue,
+                                          //~ final float envStart, final float envEnd, final float rdStart,
                                           //~ final float rdEnd) {
-        //~ final float[] fog = adjustFogRanges(envStart, envEnd, rdStart, rdEnd);
+        //~ FarTerrain.recordFogColor(red, green, blue);
+        //~ float[] fog = adjustFogRanges(envStart, envEnd, rdStart, rdEnd);
+        //~ // Far terrain: the render-distance range reaches its edge (the environmental range,
+        //~ // which carries blindness and boss / thick fog, is kept).
+        //~ if (farFog(ClientHooks.mainCamera(Minecraft.getInstance()), false)) {
+            //~ if (fog == null) {
+                //~ FOG[0] = envStart;
+                //~ FOG[1] = envEnd;
+            //~ }
+            //~ FOG[2] = FarTerrain.fogStart();
+            //~ FOG[3] = FarTerrain.fogEnd();
+            //~ fog = FOG;
+        //~ }
         //~ if (fog == null) {
             //~ FogCull.recordFogRanges(envStart, envEnd, rdStart, rdEnd);
         //~ } else {
@@ -178,7 +206,14 @@ public final class SceneryHooks {
     //~ /** FogRenderer.setupFog RETURN, terrain fog only: the parameters to use instead. */
     //~ public static FogParameters adjustFog(final FogParameters fog, final Camera camera, final float renderDistance,
                                           //~ final boolean thick) {
-        //~ final FogParameters used = adjustFogParameters(fog, camera, renderDistance, thick);
+        //~ FogParameters used = adjustFogParameters(fog, camera, renderDistance, thick);
+        //~ if (used != null && used != FogParameters.NO_FOG) {
+            //~ FarTerrain.recordFogColor(used.red(), used.green(), used.blue());
+            //~ if (farFog(camera, thick)) {
+                //~ used = new FogParameters(FarTerrain.fogStart(), FarTerrain.fogEnd(), used.shape(), used.red(),
+                        //~ used.green(), used.blue(), used.alpha());
+            //~ }
+        //~ }
         //~ if (used != null) {
             //~ FogCull.recordFogRange(used.start(), used.end(), used.alpha());
         //~ }
@@ -199,6 +234,11 @@ public final class SceneryHooks {
     //~ }
     // @era:fog-else gl
     // @era:fog-end
+
+    /** Far terrain is not drawn under water, in lava or powder snow, or while blinded. */
+    public static boolean farTerrainHidden(final Camera camera) {
+        return medium(camera) != Scenery.AIR || blinded(camera.getEntity());
+    }
 
     // ------------------------------------------------------------------ particles
 
