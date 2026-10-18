@@ -445,6 +445,23 @@ public final class ClientHooks {
         // @era:camera-get-end
     }
 
+    /** Squared distance from the camera to a block centre (render thread); 0 before the camera exists. */
+    public static double cameraDistanceSq(final net.minecraft.core.BlockPos pos) {
+        final net.minecraft.client.Camera camera = mainCamera(Minecraft.getInstance());
+        if (camera == null) {
+            return 0.0;
+        }
+        // @era:cam-pos-begin getter
+        final net.minecraft.world.phys.Vec3 cam = camera.getPosition();
+        // @era:cam-pos-else position
+        //~ final net.minecraft.world.phys.Vec3 cam = camera.position();
+        // @era:cam-pos-end
+        final double dx = pos.getX() + 0.5 - cam.x;
+        final double dy = pos.getY() + 0.5 - cam.y;
+        final double dz = pos.getZ() + 0.5 - cam.z;
+        return dx * dx + dy * dy + dz * dz;
+    }
+
     /** The open screen; it moved from {@code Minecraft} to {@code Gui} in 26.2. */
     public static Screen currentScreen(final Minecraft mc) {
         // @era:screen-owner-begin minecraft

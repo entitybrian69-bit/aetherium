@@ -26,6 +26,11 @@ public final class SkullLookup {
     }
 
     // @era:t-skull-lookup-begin none
+    /** True on the client (render) thread. */
+    public static boolean onClientThread() {
+        final net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        return mc != null && mc.isSameThread();
+    }
     // @era:t-skull-lookup-else v16
     //~ private static final AetheriumLog LOG = AetheriumLog.of(SkullLookup.class);
     //~ private static ExecutorService executor;

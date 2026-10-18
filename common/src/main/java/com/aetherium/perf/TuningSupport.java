@@ -28,10 +28,10 @@ public final class TuningSupport {
     //~ public static final boolean BEAM = false;
     // @era:t-beam-end
 
-    // @era:t-block-entity-begin none
-    public static final boolean BLOCK_ENTITY = false;
-    // @era:t-block-entity-else v16
-    //~ public static final boolean BLOCK_ENTITY = true;
+    // @era:t-block-entity-begin b17|b219|v16
+    public static final boolean BLOCK_ENTITY = true;
+    // @era:t-block-entity-else none
+    //~ public static final boolean BLOCK_ENTITY = false;
     // @era:t-block-entity-end
 
     // @era:t-build-order-begin none
@@ -82,10 +82,10 @@ public final class TuningSupport {
     //~ public static final boolean FLIGHT_PRELOAD = false;
     // @era:t-flight-preload-end
 
-    // @era:t-frame-item-begin none
-    public static final boolean FRAME_ITEM = false;
-    // @era:t-frame-item-else v16
-    //~ public static final boolean FRAME_ITEM = true;
+    // @era:t-frame-item-begin f17|f212|v16
+    public static final boolean FRAME_ITEM = true;
+    // @era:t-frame-item-else none
+    //~ public static final boolean FRAME_ITEM = false;
     // @era:t-frame-item-end
 
     // @era:t-gl-state-begin none
@@ -112,16 +112,16 @@ public final class TuningSupport {
     //~ public static final boolean GRASS_QUADS = false;
     // @era:t-grass-quads-end
 
-    // @era:t-http-textureacc-begin none
-    public static final boolean HTTP_TEXTUREACC = false;
-    // @era:t-http-textureacc-else v16
-    //~ public static final boolean HTTP_TEXTUREACC = true;
+    // @era:t-http-textureacc-begin v16
+    public static final boolean HTTP_TEXTUREACC = true;
+    // @era:t-http-textureacc-else none
+    //~ public static final boolean HTTP_TEXTUREACC = false;
     // @era:t-http-textureacc-end
 
-    // @era:t-layers-begin none
-    public static final boolean LAYERS = false;
-    // @era:t-layers-else v16
-    //~ public static final boolean LAYERS = true;
+    // @era:t-layers-begin l212|l219|v16
+    public static final boolean LAYERS = true;
+    // @era:t-layers-else none
+    //~ public static final boolean LAYERS = false;
     // @era:t-layers-end
 
     // @era:t-lazy-data-fixers-begin none
@@ -154,10 +154,10 @@ public final class TuningSupport {
     //~ public static final boolean LEVELACC = true;
     // @era:t-levelacc-end
 
-    // @era:t-light-begin none
-    public static final boolean LIGHT = false;
-    // @era:t-light-else v16
-    //~ public static final boolean LIGHT = true;
+    // @era:t-light-begin v16
+    public static final boolean LIGHT = true;
+    // @era:t-light-else none
+    //~ public static final boolean LIGHT = false;
     // @era:t-light-end
 
     // @era:t-lightmap-begin v16
@@ -178,16 +178,16 @@ public final class TuningSupport {
     //~ public static final boolean MAP = false;
     // @era:t-map-end
 
-    // @era:t-minecart-begin none
-    public static final boolean MINECART = false;
-    // @era:t-minecart-else v16
-    //~ public static final boolean MINECART = true;
+    // @era:t-minecart-begin m212|m219|v16
+    public static final boolean MINECART = true;
+    // @era:t-minecart-else none
+    //~ public static final boolean MINECART = false;
     // @era:t-minecart-end
 
-    // @era:t-name-tag-begin none
-    public static final boolean NAME_TAG = false;
-    // @era:t-name-tag-else v16
-    //~ public static final boolean NAME_TAG = true;
+    // @era:t-name-tag-begin n17|n212|v16
+    public static final boolean NAME_TAG = true;
+    // @era:t-name-tag-else none
+    //~ public static final boolean NAME_TAG = false;
     // @era:t-name-tag-end
 
     // @era:t-ocean-floor-begin none
@@ -214,22 +214,22 @@ public final class TuningSupport {
     //~ public static final boolean SERVER_LIGHT = true;
     // @era:t-server-light-end
 
-    // @era:t-shadow-begin none
-    public static final boolean SHADOW = false;
-    // @era:t-shadow-else v16
-    //~ public static final boolean SHADOW = true;
+    // @era:t-shadow-begin s17|s212|s219|v16
+    public static final boolean SHADOW = true;
+    // @era:t-shadow-else none
+    //~ public static final boolean SHADOW = false;
     // @era:t-shadow-end
 
-    // @era:t-sign-begin none
-    public static final boolean SIGN = false;
-    // @era:t-sign-else v16
-    //~ public static final boolean SIGN = true;
+    // @era:t-sign-begin s193|s20|s214|s219|v16
+    public static final boolean SIGN = true;
+    // @era:t-sign-else none
+    //~ public static final boolean SIGN = false;
     // @era:t-sign-end
 
-    // @era:t-skin-begin none
-    public static final boolean SKIN = false;
-    // @era:t-skin-else v16
-    //~ public static final boolean SKIN = true;
+    // @era:t-skin-begin v16
+    public static final boolean SKIN = true;
+    // @era:t-skin-else none
+    //~ public static final boolean SKIN = false;
     // @era:t-skin-end
 
     // @era:t-skull-begin none
@@ -244,10 +244,10 @@ public final class TuningSupport {
     //~ public static final boolean SKULL_LOOKUP = true;
     // @era:t-skull-lookup-end
 
-    // @era:t-sky-begin none
-    public static final boolean SKY = false;
-    // @era:t-sky-else v16
-    //~ public static final boolean SKY = true;
+    // @era:t-sky-begin e17|e21|v16
+    public static final boolean SKY = true;
+    // @era:t-sky-else none
+    //~ public static final boolean SKY = false;
     // @era:t-sky-end
 
     // @era:t-view-areaacc-begin none

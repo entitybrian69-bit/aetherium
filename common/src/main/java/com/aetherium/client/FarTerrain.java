@@ -1,6 +1,7 @@
 package com.aetherium.client;
 
 // @era:t-far-terrain-begin none
+
 // @era:t-far-terrain-else v16
 //~ import com.aetherium.mixin.core.TuningLevelAccessor;
 //~ import com.aetherium.mixin.core.TuningViewAreaAccessor;
@@ -68,6 +69,17 @@ public final class FarTerrain {
     }
 
     // @era:t-far-terrain-begin none
+    public static void capture(final net.minecraft.world.level.chunk.LevelChunk chunk) {
+    }
+
+    public static boolean drawnThisFrame() {
+        return false;
+    }
+
+    public static boolean extendFog() {
+        return false;
+    }
+
     public static void levelChanged() {
     }
     // @era:t-far-terrain-else v16

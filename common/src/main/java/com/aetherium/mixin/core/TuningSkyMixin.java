@@ -1,7 +1,21 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-sky-begin none
+// @era:t-sky-begin e17|e21
+import com.aetherium.perf.Tuning;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Slice;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+// @era:t-sky-else none
 // @era:t-sky-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -34,7 +48,47 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
 public abstract class TuningSkyMixin {
-    // @era:t-sky-begin none
+    // @era:t-sky-begin e21
+    @Shadow
+    private boolean generateClouds;
+
+    /** Render thread only: faces of the End sky drawn so far this frame, and whether they are batched. */
+    @Unique
+    private static int aetherium$endFace;
+    @Unique
+    private static boolean aetherium$endBatch;
+    @Unique
+    private static int aetherium$cloudCells = 4;
+
+    /** Once per frame: a frame that was interrupted mid-sky can never leave the face count behind. */
+
+    @Inject(method = "renderClouds", at = @At("HEAD"), require = 0)
+    private void aetherium$cloudDistance(final CallbackInfo ci) {
+        final int cells = Math.max(1, Math.min(4, (Tuning.cloudDistance + 12) / 25));
+        if (cells != aetherium$cloudCells) {
+            aetherium$cloudCells = cells;
+            generateClouds = true;
+        }
+    }
+
+    @ModifyConstant(method = "buildClouds",
+            slice = @Slice(
+                    from = @At(value = "FIELD", target = "Lnet/minecraft/client/CloudStatus;FANCY:Lnet/minecraft/client/CloudStatus;"),
+                    to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;addVertex(FFF)Lcom/mojang/blaze3d/vertex/VertexConsumer;", ordinal = 0)),
+            constant = @Constant(intValue = -3), require = 0)
+    private int aetherium$cloudsFrom(final int vanilla) {
+        return 1 - aetherium$cloudCells;
+    }
+
+    @ModifyConstant(method = "buildClouds",
+            slice = @Slice(
+                    from = @At(value = "FIELD", target = "Lnet/minecraft/client/CloudStatus;FANCY:Lnet/minecraft/client/CloudStatus;"),
+                    to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;addVertex(FFF)Lcom/mojang/blaze3d/vertex/VertexConsumer;", ordinal = 0)),
+            constant = @Constant(intValue = 4), require = 0)
+    private int aetherium$cloudsTo(final int vanilla) {
+        return aetherium$cloudCells;
+    }
+    // @era:t-sky-else none
     // @era:t-sky-else v16
     //~ @Shadow
     //~ private boolean generateClouds;
@@ -82,6 +136,77 @@ public abstract class TuningSkyMixin {
     //~ @Inject(method = "renderClouds", at = @At("HEAD"), require = 0)
     //~ private void aetherium$cloudDistance(final PoseStack poseStack, final float partialTicks, final double x,
                                          //~ final double y, final double z, final CallbackInfo ci) {
+        //~ final int cells = Math.max(1, Math.min(4, (Tuning.cloudDistance + 12) / 25));
+        //~ if (cells != aetherium$cloudCells) {
+            //~ aetherium$cloudCells = cells;
+            //~ generateClouds = true;
+        //~ }
+    //~ }
+
+    //~ @ModifyConstant(method = "buildClouds",
+            //~ slice = @Slice(
+                    //~ from = @At(value = "FIELD", target = "Lnet/minecraft/client/CloudStatus;FANCY:Lnet/minecraft/client/CloudStatus;"),
+                    //~ to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;vertex(DDD)Lcom/mojang/blaze3d/vertex/VertexConsumer;", ordinal = 0)),
+            //~ constant = @Constant(intValue = -3), require = 0)
+    //~ private int aetherium$cloudsFrom(final int vanilla) {
+        //~ return 1 - aetherium$cloudCells;
+    //~ }
+
+    //~ @ModifyConstant(method = "buildClouds",
+            //~ slice = @Slice(
+                    //~ from = @At(value = "FIELD", target = "Lnet/minecraft/client/CloudStatus;FANCY:Lnet/minecraft/client/CloudStatus;"),
+                    //~ to = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;vertex(DDD)Lcom/mojang/blaze3d/vertex/VertexConsumer;", ordinal = 0)),
+            //~ constant = @Constant(intValue = 4), require = 0)
+    //~ private int aetherium$cloudsTo(final int vanilla) {
+        //~ return aetherium$cloudCells;
+    //~ }
+    // @era:t-sky-else e17
+    //~ @Shadow
+    //~ private boolean generateClouds;
+
+    //~ /** Render thread only: faces of the End sky drawn so far this frame, and whether they are batched. */
+    //~ @Unique
+    //~ private static int aetherium$endFace;
+    //~ @Unique
+    //~ private static boolean aetherium$endBatch;
+    //~ @Unique
+    //~ private static int aetherium$cloudCells = 4;
+
+    //~ /** Once per frame: a frame that was interrupted mid-sky can never leave the face count behind. */
+    //~ @Inject(method = "renderEndSky", at = @At("HEAD"), require = 0)
+    //~ private void aetherium$endStart(final CallbackInfo ci) {
+        //~ aetherium$endFace = 0;
+    //~ }
+
+    //~ @Redirect(method = "renderEndSky", at = @At(value = "INVOKE",
+            //~ target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;begin(Lcom/mojang/blaze3d/vertex/VertexFormat$Mode;Lcom/mojang/blaze3d/vertex/VertexFormat;)V"),
+            //~ require = 0)
+    //~ private void aetherium$endBegin(final BufferBuilder builder, final VertexFormat.Mode mode,
+                                    //~ final VertexFormat format) {
+        //~ if (aetherium$endFace == 0) {
+            //~ aetherium$endBatch = Tuning.endOptimizations;
+            //~ builder.begin(mode, format);
+        //~ } else if (!aetherium$endBatch) {
+            //~ builder.begin(mode, format);
+        //~ }
+    //~ }
+
+    //~ @Redirect(method = "renderEndSky", at = @At(value = "INVOKE",
+            //~ target = "Lcom/mojang/blaze3d/vertex/Tesselator;end()V"), require = 0)
+    //~ private void aetherium$endEnd(final Tesselator tesselator) {
+        //~ aetherium$endFace++;
+        //~ final boolean last = aetherium$endFace >= 6;
+        //~ if (!aetherium$endBatch || last) {
+            //~ tesselator.end();
+        //~ }
+        //~ if (last) {
+            //~ aetherium$endFace = 0;
+        //~ }
+    //~ }
+
+    //~ /** A cloud distance change rebuilds the cloud buffer, exactly like a cloud mode change does. */
+    //~ @Inject(method = "renderClouds", at = @At("HEAD"), require = 0)
+    //~ private void aetherium$cloudDistance(final CallbackInfo ci) {
         //~ final int cells = Math.max(1, Math.min(4, (Tuning.cloudDistance + 12) / 25));
         //~ if (cells != aetherium$cloudCells) {
             //~ aetherium$cloudCells = cells;

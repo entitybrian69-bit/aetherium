@@ -1,6 +1,7 @@
 package com.aetherium.client;
 
 // @era:t-ocean-floor-begin none
+
 // @era:t-ocean-floor-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
@@ -31,6 +32,17 @@ public final class OceanFloor {
     }
 
     // @era:t-ocean-floor-begin none
+    public static void capture(final net.minecraft.world.level.chunk.LevelChunk chunk) {
+    }
+
+    public static void frame(final net.minecraft.client.multiplayer.ClientLevel level,
+                             final net.minecraft.client.Camera camera) {
+    }
+
+    public static boolean below(final net.minecraft.core.BlockPos origin) {
+        return false;
+    }
+
     public static void levelChanged() {
     }
     // @era:t-ocean-floor-else v16

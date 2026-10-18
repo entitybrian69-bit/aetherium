@@ -1,26 +1,26 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-skin-begin none
-// @era:t-skin-else v16
-//~ import com.aetherium.util.AetheriumLog;
-//~ import com.aetherium.perf.Tuning;
-//~ import com.mojang.blaze3d.platform.NativeImage;
-//~ import java.io.File;
-//~ import java.io.FileInputStream;
-//~ import java.io.IOException;
-//~ import java.io.InputStream;
-//~ import java.util.concurrent.CompletableFuture;
-//~ import net.minecraft.Util;
-//~ import net.minecraft.client.Minecraft;
-//~ import net.minecraft.client.renderer.texture.HttpTexture;
-//~ import net.minecraft.server.packs.resources.ResourceManager;
-//~ import org.spongepowered.asm.mixin.Final;
-//~ import org.spongepowered.asm.mixin.Shadow;
-//~ import org.spongepowered.asm.mixin.Unique;
-//~ import org.spongepowered.asm.mixin.injection.At;
-//~ import org.spongepowered.asm.mixin.injection.Inject;
-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+// @era:t-skin-begin v16
+import com.aetherium.util.AetheriumLog;
+import com.aetherium.perf.Tuning;
+import com.mojang.blaze3d.platform.NativeImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.CompletableFuture;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.HttpTexture;
+import net.minecraft.server.packs.resources.ResourceManager;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+// @era:t-skin-else none
 // @era:t-skin-end
 
 /**
@@ -38,54 +38,54 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.texture.HttpTexture")
 public abstract class TuningSkinMixin {
-    // @era:t-skin-begin none
-    // @era:t-skin-else v16
-    //~ @Unique
-    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(TuningSkinMixin.class);
+    // @era:t-skin-begin v16
+    @Unique
+    private static final AetheriumLog LOGGER = AetheriumLog.of(TuningSkinMixin.class);
 
-    //~ @Shadow
-    //~ @Final
-    //~ private File file;
+    @Shadow
+    @Final
+    private File file;
 
-    //~ @Shadow
-    //~ private CompletableFuture<?> future;
+    @Shadow
+    private CompletableFuture<?> future;
 
-    //~ /** Set when the background read failed: the next load takes vanilla's path. */
-    //~ @Unique
-    //~ private boolean aetherium$vanillaPath;
+    /** Set when the background read failed: the next load takes vanilla's path. */
+    @Unique
+    private boolean aetherium$vanillaPath;
 
-    //~ @Inject(method = "load(Lnet/minecraft/server/packs/resources/ResourceManager;)V",
-            //~ at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"), cancellable = true, require = 0)
-    //~ private void aetherium$background(final ResourceManager resources, final CallbackInfo ci) {
-        //~ final File cached = file;
-        //~ if (!Tuning.asyncSkins || aetherium$vanillaPath || cached == null || !cached.isFile()) {
-            //~ return;
-        //~ }
-        //~ final HttpTexture self = (HttpTexture) (Object) this;
-        //~ final TuningHttpTextureAccessor access = (TuningHttpTextureAccessor) (Object) this;
-        //~ future = CompletableFuture.runAsync(() -> {
-            //~ NativeImage image = null;
-            //~ try (InputStream in = new FileInputStream(cached)) {
-                //~ image = access.aetherium$read(in);
-            //~ } catch (final IOException | RuntimeException e) {
-                //~ LOGGER.warn("Background skin read failed, loading it the vanilla way: " + e);
-            //~ }
-            //~ final NativeImage done = image;
-            //~ Minecraft.getInstance().execute(() -> {
-                //~ if (done != null) {
-                    //~ access.aetherium$loaded(done);
-                    //~ return;
-                //~ }
-                //~ aetherium$vanillaPath = true;
-                //~ future = null;
-                //~ try {
-                    //~ self.load(resources);
-                //~ } catch (final IOException e) {
-                    //~ LOGGER.warn("Skin load failed: " + e);
-                //~ }
-            //~ });
-        //~ }, Util.backgroundExecutor());
-        //~ ci.cancel();
-    //~ }
+    @Inject(method = "load(Lnet/minecraft/server/packs/resources/ResourceManager;)V",
+            at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"), cancellable = true, require = 0)
+    private void aetherium$background(final ResourceManager resources, final CallbackInfo ci) {
+        final File cached = file;
+        if (!Tuning.asyncSkins || aetherium$vanillaPath || cached == null || !cached.isFile()) {
+            return;
+        }
+        final HttpTexture self = (HttpTexture) (Object) this;
+        final TuningHttpTextureAccessor access = (TuningHttpTextureAccessor) (Object) this;
+        future = CompletableFuture.runAsync(() -> {
+            NativeImage image = null;
+            try (InputStream in = new FileInputStream(cached)) {
+                image = access.aetherium$read(in);
+            } catch (final IOException | RuntimeException e) {
+                LOGGER.warn("Background skin read failed, loading it the vanilla way: " + e);
+            }
+            final NativeImage done = image;
+            Minecraft.getInstance().execute(() -> {
+                if (done != null) {
+                    access.aetherium$loaded(done);
+                    return;
+                }
+                aetherium$vanillaPath = true;
+                future = null;
+                try {
+                    self.load(resources);
+                } catch (final IOException e) {
+                    LOGGER.warn("Skin load failed: " + e);
+                }
+            });
+        }, Util.backgroundExecutor());
+        ci.cancel();
+    }
+    // @era:t-skin-else none
     // @era:t-skin-end
 }

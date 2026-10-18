@@ -1,7 +1,17 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-block-entity-begin none
+// @era:t-block-entity-begin b17
+import com.aetherium.perf.Tuning;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+// @era:t-block-entity-else b219
+//~ import com.aetherium.perf.Tuning;
+//~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Inject;
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+// @era:t-block-entity-else none
 // @era:t-block-entity-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import net.minecraft.world.level.block.entity.BlockEntity;
@@ -18,7 +28,23 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher")
 public abstract class TuningBlockEntityMixin {
-    // @era:t-block-entity-begin none
+    // @era:t-block-entity-begin b17
+    /** 1.17 - 1.21.8: setupAndRender only runs for block entities the renderer will draw. */
+    @Inject(method = "setupAndRender", at = @At("HEAD"), cancellable = true, require = 0)
+    private static void aetherium$limit(final CallbackInfo ci) {
+        if (!Tuning.allowBlockEntity()) {
+            ci.cancel();
+        }
+    }
+    // @era:t-block-entity-else b219
+    //~ /** 1.21.9+: a null render state means "not drawn"; only non-null results use up the budget. */
+    //~ @Inject(method = "tryExtractRenderState", at = @At("RETURN"), cancellable = true, require = 0)
+    //~ private void aetherium$limit(final CallbackInfoReturnable<?> cir) {
+        //~ if (cir.getReturnValue() != null && !Tuning.allowBlockEntity()) {
+            //~ cir.setReturnValue(null);
+        //~ }
+    //~ }
+    // @era:t-block-entity-else none
     // @era:t-block-entity-else v16
     //~ @Shadow
     //~ private static void tryRender(final BlockEntity blockEntity, final Runnable action) {
