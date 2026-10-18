@@ -58,11 +58,11 @@ public final class Capabilities {
     // @era:chunk-upload-end
 
     /**
-     * The 3D world can be drawn into a smaller framebuffer and scaled up (1.9.0 on 1.16.5; 1.17 to
-     * 26.1 since 1.14.0): {@code Minecraft.mainRenderTarget} is swapped around
-     * {@code GameRenderer.renderLevel}. Not on 26.2+, which can run on Vulkan (no GL framebuffers).
+     * The 3D world can be drawn into a smaller framebuffer and scaled up (1.9.0 on 1.16.5; every
+     * version since 1.14.0): the main render target is swapped around {@code GameRenderer.renderLevel}.
+     * Upscaled by a linear glBlitFramebuffer up to 26.1 and by a vanilla render pass on 26.2+.
      */
-    // @era:render-scale-begin target|r17|r212|r215
+    // @era:render-scale-begin target|r17|r212|r215|g262|g263
     public static final boolean RENDER_SCALE = true;
     // @era:render-scale-else none
     //~ public static final boolean RENDER_SCALE = false;

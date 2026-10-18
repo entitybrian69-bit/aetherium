@@ -4,13 +4,30 @@ package com.aetherium.client;
 import com.aetherium.mixin.core.MainTargetAccessor;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import net.minecraft.client.Minecraft;
+// @era:render-scale-else g262|g263
+//~ import com.aetherium.mixin.core.MainTargetAccessor;
+//~ import com.mojang.blaze3d.pipeline.RenderTarget;
+//~ import com.mojang.blaze3d.systems.RenderSystem;
+//~ import java.util.Optional;
+//~ import net.minecraft.client.Minecraft;
+//~ import net.minecraft.client.renderer.RenderPipelines;
+//~ // @era:rs-api-begin g262
+//~ import com.mojang.blaze3d.GpuFormat;
+//~ import com.mojang.blaze3d.systems.RenderPass;
+//~ import com.mojang.blaze3d.textures.FilterMode;
+//~ // @era:rs-api-else g263
+//~ import com.mojang.renderpearl.api.GpuFormat;
+//~ import com.mojang.renderpearl.api.commands.RenderPass;
+//~ import com.mojang.renderpearl.api.textures.FilterMode;
+//~ // @era:rs-api-end
 // @era:render-scale-else none
 // @era:render-scale-end
 
 /**
  * The smaller framebuffer the 3D world is drawn into when render scale is below 100%
- * (1.9.0; every version up to 26.1 since 1.14.0). Around {@code GameRenderer.renderLevel} it temporarily becomes
- * {@code Minecraft.mainRenderTarget}, so every vanilla {@code getMainRenderTarget()} call
+ * (1.9.0; every version since 1.14.0). Around {@code GameRenderer.renderLevel} it temporarily
+ * becomes the main render target ({@code Minecraft.mainRenderTarget}; on 26.2+ the
+ * {@code GameRenderer}'s), so every vanilla {@code getMainRenderTarget()} call
  * during the world pass (sky, terrain, entities, hand) draws into it; afterwards the real
  * target is put back and this one is drawn over it, filtered, at window size. The entity
  * outline pass, post effects and the GUI then run at full resolution as usual.
@@ -154,6 +171,124 @@ public final class ScaledRenderTarget extends RenderTarget {
                 : "FAILED: GL error 0x" + Integer.toHexString(error) + " after the upscale blit";
     }
 }
+// @era:render-scale-else g262|g263
+//~ public final class ScaledRenderTarget extends RenderTarget {
+    //~ private static ScaledRenderTarget instance;
+    //~ private static RenderTarget swapped;
+
+    //~ /** Same formats as vanilla's MainTarget (RGBA8 colour, 32-bit float depth), so every world pipeline fits. */
+    //~ private ScaledRenderTarget(final int width, final int height) {
+        //~ // @era:rs-api-begin g262
+        //~ super("Aetherium render scale", true, GpuFormat.RGBA8_UNORM);
+        //~ // @era:rs-api-else g263
+        //~ super("Aetherium render scale", GpuFormat.RGBA8_UNORM, GpuFormat.D32_FLOAT);
+        //~ // @era:rs-api-end
+        //~ this.createBuffers(width, height);
+    //~ }
+
+    //~ private void ensureSize(final int width, final int height) {
+        //~ if (width != this.width || height != this.height) {
+            //~ this.resize(width, height);
+        //~ }
+    //~ }
+
+    //~ /** 26.2+: the main target belongs to the GameRenderer. */
+    //~ private static MainTargetAccessor access(final Minecraft minecraft) {
+        //~ return (MainTargetAccessor) minecraft.gameRenderer;
+    //~ }
+
+    //~ /** {@code GameRenderer.renderLevel} HEAD. */
+    //~ public static void begin(final Minecraft minecraft) {
+        //~ if (swapped != null) {
+            //~ // The previous world pass threw before RETURN: put the real target back first.
+            //~ restore(minecraft);
+        //~ }
+        //~ final int percent = RenderScale.beginFrame(minecraft.options.improvedTransparency().get().booleanValue());
+        //~ if (percent >= 100) {
+            //~ return;
+        //~ }
+        //~ try {
+            //~ final MainTargetAccessor access = access(minecraft);
+            //~ final RenderTarget main = access.aetheriumMainTarget();
+            //~ final int width = RenderScale.scaled(main.width, percent);
+            //~ final int height = RenderScale.scaled(main.height, percent);
+            //~ if (instance == null) {
+                //~ instance = new ScaledRenderTarget(width, height);
+            //~ } else {
+                //~ instance.ensureSize(width, height);
+            //~ }
+            //~ swapped = main;
+            //~ access.aetheriumSetMainTarget(instance);
+        //~ } catch (final Throwable error) {
+            //~ restore(minecraft);
+            //~ RenderScale.fail(error);
+        //~ }
+    //~ }
+
+    //~ /** {@code GameRenderer.renderLevel} RETURN: put the real target back and stretch the frame over it. */
+    //~ public static void end(final Minecraft minecraft) {
+        //~ if (swapped == null) {
+            //~ return;
+        //~ }
+        //~ final RenderTarget main = swapped;
+        //~ restore(minecraft);
+        //~ try {
+            //~ upscale(instance, main);
+        //~ } catch (final Throwable error) {
+            //~ RenderScale.fail(error);
+        //~ }
+    //~ }
+
+    //~ /**
+     //~ * {@code from}'s colour stretched over all of {@code to}'s, through vanilla's GPU API only (26.2+
+     //~ * may run on Vulkan): the same pass vanilla's own frame capture uses to scale the main target,
+     //~ * with the TRACY_BLIT pipeline (no blending) and a linear clamp-to-edge sampler.
+     //~ */
+    //~ private static void upscale(final RenderTarget from, final RenderTarget to) {
+        //~ final RenderPass pass = RenderSystem.getDevice().createCommandEncoder()
+                //~ .createRenderPass(() -> "Aetherium render scale", to.getColorTextureView(), Optional.empty());
+        //~ try {
+            //~ RenderSystem.bindDefaultUniforms(pass);
+            //~ // @era:rs-api-begin g262
+            //~ pass.setPipeline(RenderPipelines.TRACY_BLIT);
+            //~ pass.bindTexture("InSampler", from.getColorTextureView(),
+                    //~ RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+            //~ // @era:rs-api-else g263
+            //~ pass.setPipeline(RenderSystem.getCompiledPipeline(RenderPipelines.TRACY_BLIT));
+            //~ pass.setUniform("InSampler", from.getColorTextureView(),
+                    //~ RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+            //~ // @era:rs-api-end
+            //~ pass.draw(3, 1, 0, 0);
+        //~ } finally {
+            //~ pass.close();
+        //~ }
+    //~ }
+
+    //~ private static void restore(final Minecraft minecraft) {
+        //~ final RenderTarget main = swapped;
+        //~ swapped = null;
+        //~ if (main != null) {
+            //~ access(minecraft).aetheriumSetMainTarget(main);
+        //~ }
+    //~ }
+
+    //~ /** CI smoke test: a half-size target swapped in and back, then upscaled once. */
+    //~ public static String selfTest() {
+        //~ final Minecraft minecraft = Minecraft.getInstance();
+        //~ final MainTargetAccessor access = access(minecraft);
+        //~ final RenderTarget main = access.aetheriumMainTarget();
+        //~ final ScaledRenderTarget test = new ScaledRenderTarget(RenderScale.scaled(main.width, 50),
+                //~ RenderScale.scaled(main.height, 50));
+        //~ access.aetheriumSetMainTarget(test);
+        //~ final boolean swappedIn = minecraft.gameRenderer.mainRenderTarget() == test;
+        //~ access.aetheriumSetMainTarget(main);
+        //~ if (!swappedIn || minecraft.gameRenderer.mainRenderTarget() != main) {
+            //~ return "FAILED: the main render target could not be swapped";
+        //~ }
+        //~ upscale(test, main);
+        //~ return "ok (" + test.width + "x" + test.height + " -> " + main.width + "x" + main.height + ")";
+    //~ }
+//~ }
 // @era:render-scale-else none
 //~ public final class ScaledRenderTarget {
     //~ private ScaledRenderTarget() {

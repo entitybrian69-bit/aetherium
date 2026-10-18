@@ -61,7 +61,8 @@ neoforge_version=26.2.0.89
 - `registry=builtin`
 - `reload=invalidate`
 - `remapJar-block-removed`
-- `render-scale=none`
+- `render-scale=g262`
+- `rs-api=g262`
 - `screen-owner=gui`
 - `screen-pkg=options`
 - `scroll=four`
@@ -192,7 +193,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumArmMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FrustumCaptureMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/GlowSeenMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/GuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ItemSpriteUseMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/KeyMappingAccessor.java`
@@ -201,7 +201,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.2.txt
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
-- `common/src/main/java/com/aetherium/mixin/core/RenderScaleMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullCompiledMixin.java`
