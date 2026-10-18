@@ -1,8 +1,15 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-map-begin none
-// @era:t-map-else v16
+// @era:t-map-begin v16
+import com.aetherium.perf.Tuning;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+// @era:t-map-else none
+// @era:t-map-else m212
 //~ import com.aetherium.perf.Tuning;
 //~ import org.spongepowered.asm.mixin.Shadow;
 //~ import org.spongepowered.asm.mixin.Unique;
@@ -18,51 +25,83 @@ import org.spongepowered.asm.mixin.Mixin;
  * that arrives too early is applied when the map is next drawn, so the map never shows stale data
  * for more than 250 ms.
  */
+// @era:t-map-begin none|v16
 @Mixin(targets = "net.minecraft.client.gui.MapRenderer$MapInstance")
+// @era:t-map-else m212
+//~ @Mixin(targets = "net.minecraft.client.resources.MapTextureManager$MapInstance")
+// @era:t-map-end
 public abstract class TuningMapMixin {
-    // @era:t-map-begin none
-    // @era:t-map-else v16
+    // @era:t-map-begin v16
+    @Unique
+    private static final long AETHERIUM$SPACING_NANOS = 250_000_000L;
+
+    @Unique
+    private long aetherium$lastUpload;
+
+    @Unique
+    private boolean aetherium$pending;
+
+    @Unique
+    private boolean aetherium$forced;
+
+    @Shadow
+    private void updateTexture() {
+        throw new AssertionError();
+    }
+
+    @Inject(method = "updateTexture", at = @At("HEAD"), cancellable = true, require = 0)
+    private void aetherium$throttle(final CallbackInfo ci) {
+        final long now = System.nanoTime();
+        if (!this.aetherium$forced && Tuning.mapThrottle && this.aetherium$lastUpload != 0L
+                && now - this.aetherium$lastUpload < AETHERIUM$SPACING_NANOS) {
+            this.aetherium$pending = true;
+            ci.cancel();
+            return;
+        }
+        this.aetherium$pending = false;
+        this.aetherium$lastUpload = now;
+    }
+
+    @Inject(method = "draw", at = @At("HEAD"), require = 0)
+    private void aetherium$catchUp(final CallbackInfo ci) {
+        if (this.aetherium$pending
+                && System.nanoTime() - this.aetherium$lastUpload >= AETHERIUM$SPACING_NANOS) {
+            this.aetherium$forced = true;
+            try {
+                this.updateTexture();
+            } finally {
+                this.aetherium$forced = false;
+            }
+        }
+    }
+    // @era:t-map-else none
+    // @era:t-map-else m212
     //~ @Unique
     //~ private static final long AETHERIUM$SPACING_NANOS = 250_000_000L;
+
+    //~ @Shadow
+    //~ private boolean requiresUpload;
 
     //~ @Unique
     //~ private long aetherium$lastUpload;
 
-    //~ @Unique
-    //~ private boolean aetherium$pending;
-
-    //~ @Unique
-    //~ private boolean aetherium$forced;
-
-    //~ @Shadow
-    //~ private void updateTexture() {
-        //~ throw new AssertionError();
-    //~ }
-
-    //~ @Inject(method = "updateTexture", at = @At("HEAD"), cancellable = true, require = 0)
+    //~ /**
+     //~ * 1.21.2+: maps upload through {@code updateTextureIfNeeded}, called every frame the map is
+     //~ * drawn. A skipped upload leaves {@code requiresUpload} set, so the next allowed frame catches
+     //~ * up on its own.
+     //~ */
+    //~ @Inject(method = "updateTextureIfNeeded", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$throttle(final CallbackInfo ci) {
+        //~ if (!this.requiresUpload) {
+            //~ return;
+        //~ }
         //~ final long now = System.nanoTime();
-        //~ if (!this.aetherium$forced && Tuning.mapThrottle && this.aetherium$lastUpload != 0L
+        //~ if (Tuning.mapThrottle && this.aetherium$lastUpload != 0L
                 //~ && now - this.aetherium$lastUpload < AETHERIUM$SPACING_NANOS) {
-            //~ this.aetherium$pending = true;
             //~ ci.cancel();
             //~ return;
         //~ }
-        //~ this.aetherium$pending = false;
         //~ this.aetherium$lastUpload = now;
-    //~ }
-
-    //~ @Inject(method = "draw", at = @At("HEAD"), require = 0)
-    //~ private void aetherium$catchUp(final CallbackInfo ci) {
-        //~ if (this.aetherium$pending
-                //~ && System.nanoTime() - this.aetherium$lastUpload >= AETHERIUM$SPACING_NANOS) {
-            //~ this.aetherium$forced = true;
-            //~ try {
-                //~ this.updateTexture();
-            //~ } finally {
-                //~ this.aetherium$forced = false;
-            //~ }
-        //~ }
     //~ }
     // @era:t-map-end
 }

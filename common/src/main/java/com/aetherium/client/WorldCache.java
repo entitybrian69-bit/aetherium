@@ -1,6 +1,13 @@
 package com.aetherium.client;
 
-// @era:t-world-cache-begin none
+// @era:t-world-cache-begin r17
+import com.aetherium.perf.Tuning;
+import com.aetherium.util.AetheriumLog;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
+// @era:t-world-cache-else none
+
 // @era:t-world-cache-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.aetherium.util.AetheriumLog;
@@ -27,9 +34,96 @@ public final class WorldCache {
     private WorldCache() {
     }
 
-    // @era:t-world-cache-begin none
-    public static void levelChanged() {
+    // @era:t-world-cache-begin r17
+    private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
+    private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
+    /** Minecraft 1.17+: the picture lives in a raw GL texture ({@link RawFrame}). */
+    private static final RawFrame.Slot CACHE = new RawFrame.Slot();
+    private static boolean valid;
+    private static long lastCapture;
+    private static boolean broken;
+
+    private static boolean eligible(final Minecraft mc) {
+        if (!Tuning.menuWorldCache || broken || AutoBench.ACTIVE || mc.level == null) {
+            return false;
+        }
+        final Screen screen = ClientHooks.currentScreen(mc);
+        return screen != null && !(screen instanceof ChatScreen)
+                && !screen.getClass().getName().startsWith("com.aetherium.")
+                && !RawFrame.postEffect(mc);
     }
+
+    /**
+     * Instead of {@code GameRenderer.renderLevel}: true when the stored picture was drawn and the
+     * world must not be rendered this frame.
+     */
+    public static boolean reuse(final Minecraft mc) {
+        if (!eligible(mc)) {
+            valid = false;
+            if (CACHE.allocated() && ClientHooks.currentScreen(mc) == null) {
+                // Back in the game: the screen-sized texture is not kept around.
+                free();
+            }
+            return false;
+        }
+        if (!valid || !CACHE.allocated() || System.nanoTime() - lastCapture >= REFRESH_NANOS) {
+            return false;
+        }
+        try {
+            if (!RawFrame.restore(mc, CACHE)) {
+                valid = false;
+                return false;
+            }
+            return true;
+        } catch (final RuntimeException | LinkageError e) {
+            fail(e);
+            return false;
+        }
+    }
+
+    /** After a world frame with a menu open: keep the picture for the next frames. */
+    public static void capture(final Minecraft mc) {
+        if (!eligible(mc)) {
+            valid = false;
+            return;
+        }
+        try {
+            valid = RawFrame.save(mc, CACHE);
+            lastCapture = System.nanoTime();
+        } catch (final RuntimeException | LinkageError e) {
+            fail(e);
+        }
+    }
+
+    /** The world changed: the stored picture belongs to the old one. */
+    public static void levelChanged() {
+        valid = false;
+    }
+
+    private static void free() {
+        try {
+            RawFrame.free(CACHE);
+        } catch (final RuntimeException | LinkageError ignored) {
+            // freed with the GL context
+        }
+    }
+
+    private static void fail(final Throwable e) {
+        broken = true;
+        valid = false;
+        LOGGER.error("Menu world picture turned off after an error", e);
+        free();
+    }
+    // @era:t-world-cache-else none
+    //~ public static boolean reuse(final net.minecraft.client.Minecraft mc) {
+        //~ return false;
+    //~ }
+
+    //~ public static void capture(final net.minecraft.client.Minecraft mc) {
+    //~ }
+
+    //~ public static void levelChanged() {
+    //~ }
     // @era:t-world-cache-else v16
     //~ private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
     //~ private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;

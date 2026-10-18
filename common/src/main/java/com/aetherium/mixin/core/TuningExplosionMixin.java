@@ -1,13 +1,21 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-explosion-begin none
-// @era:t-explosion-else v16
+// @era:t-explosion-begin v16
+import com.aetherium.perf.ExplosionBudget;
+import com.aetherium.perf.Tuning;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.Level;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+// @era:t-explosion-else none
+// @era:t-explosion-else x212
 //~ import com.aetherium.perf.ExplosionBudget;
 //~ import com.aetherium.perf.Tuning;
 //~ import net.minecraft.core.particles.ParticleOptions;
 //~ import net.minecraft.core.particles.ParticleTypes;
-//~ import net.minecraft.world.level.Level;
+//~ import net.minecraft.client.multiplayer.ClientLevel;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
 // @era:t-explosion-end
@@ -17,17 +25,35 @@ import org.spongepowered.asm.mixin.Mixin;
  * the small puff instead of the big cloud ({@link ExplosionBudget}). Client side only; the server's
  * addParticle does nothing anyway.
  */
+// @era:t-explosion-begin none|v16
 @Mixin(targets = "net.minecraft.world.level.Explosion")
+// @era:t-explosion-else x212
+//~ @Mixin(targets = "net.minecraft.client.multiplayer.ClientPacketListener")
+// @era:t-explosion-end
 public abstract class TuningExplosionMixin {
-    // @era:t-explosion-begin none
-    // @era:t-explosion-else v16
-    //~ @Redirect(method = "finalizeExplosion", at = @At(value = "INVOKE",
-            //~ target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"),
+    // @era:t-explosion-begin v16
+    @Redirect(method = "finalizeExplosion", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"),
+            require = 0)
+    private void aetherium$cloud(final Level level, final ParticleOptions particle, final double x, final double y,
+                                 final double z, final double dx, final double dy, final double dz) {
+        ParticleOptions shown = particle;
+        if (particle == (Object) ParticleTypes.EXPLOSION_EMITTER && level.isClientSide()
+                && !ExplosionBudget.allowEmitter(level.getGameTime(), Tuning.explosionEmitters)) {
+            shown = (ParticleOptions) (Object) ParticleTypes.EXPLOSION;
+        }
+        level.addParticle(shown, x, y, z, dx, dy, dz);
+    }
+    // @era:t-explosion-else none
+    // @era:t-explosion-else x212
+    //~ // 1.21.2+: explosions run on the server only; the client spawns the cloud from the packet.
+    //~ @Redirect(method = "handleExplosion", at = @At(value = "INVOKE",
+            //~ target = "Lnet/minecraft/client/multiplayer/ClientLevel;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"),
             //~ require = 0)
-    //~ private void aetherium$cloud(final Level level, final ParticleOptions particle, final double x, final double y,
+    //~ private void aetherium$cloud(final ClientLevel level, final ParticleOptions particle, final double x, final double y,
                                  //~ final double z, final double dx, final double dy, final double dz) {
         //~ ParticleOptions shown = particle;
-        //~ if (particle == (Object) ParticleTypes.EXPLOSION_EMITTER && level.isClientSide()
+        //~ if (particle == (Object) ParticleTypes.EXPLOSION_EMITTER
                 //~ && !ExplosionBudget.allowEmitter(level.getGameTime(), Tuning.explosionEmitters)) {
             //~ shown = (ParticleOptions) (Object) ParticleTypes.EXPLOSION;
         //~ }

@@ -15,4 +15,12 @@ public class GL11 {
     public static void glViewport(int x, int y, int w, int h) { }
     public static void glEnableClientState(int cap) { }
     public static void glDisableClientState(int cap) { }
+    public static int glGenTextures() { return 0; }
+    public static void glDeleteTextures(int texture) { }
+    public static void glBindTexture(int target, int texture) { }
+    public static void glTexParameteri(int target, int pname, int param) { }
+    public static void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, java.nio.ByteBuffer pixels) { }
+    public static void glGetIntegerv(int pname, int[] params) { }
+    public static void glEnable(int cap) { }
+    public static void glDisable(int cap) { }
 }

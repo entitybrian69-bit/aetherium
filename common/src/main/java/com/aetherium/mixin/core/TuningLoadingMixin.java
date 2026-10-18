@@ -1,11 +1,11 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-loading-begin none
-// @era:t-loading-else v16
-//~ import com.aetherium.perf.Tuning;
-//~ import org.spongepowered.asm.mixin.injection.At;
-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+// @era:t-loading-begin v16|d194
+import com.aetherium.perf.Tuning;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+// @era:t-loading-else none
 // @era:t-loading-end
 
 /**
@@ -16,7 +16,12 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.Minecraft")
 public abstract class TuningLoadingMixin {
-    // @era:t-loading-begin none
+    // @era:t-loading-begin d194
+    @Redirect(method = "doWorldLoad", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(J)V"), require = 0)
+    private void aetherium$progressSleep(final long millis) throws InterruptedException {
+        Thread.sleep(Tuning.fastLoading ? Math.max(millis, 50L) : millis);
+    }
+    // @era:t-loading-else none
     // @era:t-loading-else v16
     //~ @Redirect(method = "doLoadLevel", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(J)V"), require = 0)
     //~ private void aetherium$progressSleep(final long millis) throws InterruptedException {

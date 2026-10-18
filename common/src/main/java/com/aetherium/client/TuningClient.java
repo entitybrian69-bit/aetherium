@@ -189,7 +189,11 @@ public final class TuningClient {
      * leaves every leaf-to-leaf face is invisible anyway.
      */
     public static boolean leafFaceHidden(final BlockGetter level, final BlockPos pos, final Direction side) {
-        final BlockPos next = pos.relative(side);
+        return leafNeighbourHidden(level, pos.relative(side), side);
+    }
+
+    /** {@link #leafFaceHidden} given the neighbour position itself (1.21.5+ hands it over). */
+    public static boolean leafNeighbourHidden(final BlockGetter level, final BlockPos next, final Direction side) {
         if (!(level.getBlockState(next).getBlock() instanceof LeavesBlock)) {
             return false;
         }
@@ -207,10 +211,16 @@ public final class TuningClient {
      */
     public static boolean chorusFaceHidden(final BlockState state, final BlockGetter level, final BlockPos pos,
                                            final Direction side) {
+        return chorusNeighbourHidden(state, level, pos.relative(side), side);
+    }
+
+    /** {@link #chorusFaceHidden} given the neighbour position itself. */
+    public static boolean chorusNeighbourHidden(final BlockState state, final BlockGetter level, final BlockPos at,
+                                                final Direction side) {
         if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side))) {
             return false;
         }
-        final BlockState next = level.getBlockState(pos.relative(side));
+        final BlockState next = level.getBlockState(at);
         return next.getBlock() == Blocks.CHORUS_PLANT
                 && next.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side.getOpposite()));
     }
@@ -363,7 +373,11 @@ public final class TuningClient {
      //~ * leaves every leaf-to-leaf face is invisible anyway.
      //~ */
     //~ public static boolean leafFaceHidden(final BlockGetter level, final BlockPos pos, final Direction side) {
-        //~ final BlockPos next = pos.relative(side);
+        //~ return leafNeighbourHidden(level, pos.relative(side), side);
+    //~ }
+
+    //~ /** {@link #leafFaceHidden} given the neighbour position itself (1.21.5+ hands it over). */
+    //~ public static boolean leafNeighbourHidden(final BlockGetter level, final BlockPos next, final Direction side) {
         //~ if (!(level.getBlockState(next).getBlock() instanceof LeavesBlock)) {
             //~ return false;
         //~ }
@@ -381,10 +395,16 @@ public final class TuningClient {
      //~ */
     //~ public static boolean chorusFaceHidden(final BlockState state, final BlockGetter level, final BlockPos pos,
                                            //~ final Direction side) {
+        //~ return chorusNeighbourHidden(state, level, pos.relative(side), side);
+    //~ }
+
+    //~ /** {@link #chorusFaceHidden} given the neighbour position itself. */
+    //~ public static boolean chorusNeighbourHidden(final BlockState state, final BlockGetter level, final BlockPos at,
+                                                //~ final Direction side) {
         //~ if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side))) {
             //~ return false;
         //~ }
-        //~ final BlockState next = level.getBlockState(pos.relative(side));
+        //~ final BlockState next = level.getBlockState(at);
         //~ return next.getBlock() == Blocks.CHORUS_PLANT
                 //~ && next.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side.getOpposite()));
     //~ }
@@ -522,7 +542,11 @@ public final class TuningClient {
      //~ * leaves every leaf-to-leaf face is invisible anyway.
      //~ */
     //~ public static boolean leafFaceHidden(final BlockGetter level, final BlockPos pos, final Direction side) {
-        //~ final BlockPos next = pos.relative(side);
+        //~ return leafNeighbourHidden(level, pos.relative(side), side);
+    //~ }
+
+    //~ /** {@link #leafFaceHidden} given the neighbour position itself (1.21.5+ hands it over). */
+    //~ public static boolean leafNeighbourHidden(final BlockGetter level, final BlockPos next, final Direction side) {
         //~ if (!(level.getBlockState(next).getBlock() instanceof LeavesBlock)) {
             //~ return false;
         //~ }
@@ -540,10 +564,16 @@ public final class TuningClient {
      //~ */
     //~ public static boolean chorusFaceHidden(final BlockState state, final BlockGetter level, final BlockPos pos,
                                            //~ final Direction side) {
+        //~ return chorusNeighbourHidden(state, level, pos.relative(side), side);
+    //~ }
+
+    //~ /** {@link #chorusFaceHidden} given the neighbour position itself. */
+    //~ public static boolean chorusNeighbourHidden(final BlockState state, final BlockGetter level, final BlockPos at,
+                                                //~ final Direction side) {
         //~ if (!state.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side))) {
             //~ return false;
         //~ }
-        //~ final BlockState next = level.getBlockState(pos.relative(side));
+        //~ final BlockState next = level.getBlockState(at);
         //~ return next.getBlock() == Blocks.CHORUS_PLANT
                 //~ && next.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side.getOpposite()));
     //~ }

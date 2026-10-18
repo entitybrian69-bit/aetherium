@@ -1,13 +1,13 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:t-server-idle-begin none
-// @era:t-server-idle-else v16
-//~ import com.aetherium.perf.Tuning;
-//~ import java.util.concurrent.locks.LockSupport;
-//~ import net.minecraft.server.MinecraftServer;
-//~ import org.spongepowered.asm.mixin.injection.At;
-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+// @era:t-server-idle-begin v16
+import com.aetherium.perf.Tuning;
+import java.util.concurrent.locks.LockSupport;
+import net.minecraft.server.MinecraftServer;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+// @era:t-server-idle-else none
 // @era:t-server-idle-end
 
 /**
@@ -20,16 +20,16 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.util.thread.BlockableEventLoop")
 public abstract class TuningServerIdleMixin {
-    // @era:t-server-idle-begin none
-    // @era:t-server-idle-else v16
-    //~ @Redirect(method = "waitForTasks", at = @At(value = "INVOKE",
-            //~ target = "Ljava/util/concurrent/locks/LockSupport;parkNanos(Ljava/lang/Object;J)V"), require = 0)
-    //~ private void aetherium$park(final Object blocker, final long nanos) {
-        //~ if (Tuning.serverIdle && (Object) this instanceof MinecraftServer) {
-            //~ LockSupport.parkNanos(blocker, Math.max(nanos, 1_000_000L));
-        //~ } else {
-            //~ LockSupport.parkNanos(blocker, nanos);
-        //~ }
-    //~ }
+    // @era:t-server-idle-begin v16
+    @Redirect(method = "waitForTasks", at = @At(value = "INVOKE",
+            target = "Ljava/util/concurrent/locks/LockSupport;parkNanos(Ljava/lang/Object;J)V"), require = 0)
+    private void aetherium$park(final Object blocker, final long nanos) {
+        if (Tuning.serverIdle && (Object) this instanceof MinecraftServer) {
+            LockSupport.parkNanos(blocker, Math.max(nanos, 1_000_000L));
+        } else {
+            LockSupport.parkNanos(blocker, nanos);
+        }
+    }
+    // @era:t-server-idle-else none
     // @era:t-server-idle-end
 }

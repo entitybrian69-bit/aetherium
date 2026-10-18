@@ -1,6 +1,10 @@
 package com.aetherium.client;
 
-// @era:t-color-filter-begin none
+// @era:t-color-filter-begin r17
+import com.aetherium.perf.Tuning;
+import com.aetherium.util.AetheriumLog;
+import net.minecraft.client.Minecraft;
+// @era:t-color-filter-else none
 // @era:t-color-filter-else v16
 //~ import com.aetherium.perf.Tuning;
 //~ import com.aetherium.util.AetheriumLog;
@@ -32,7 +36,47 @@ public final class ColorFilter {
         {0.92F, 1.22F, 0.025F, 0.65F, -0.02F}, // cinematic
     };
 
-    // @era:t-color-filter-begin none
+    // @era:t-color-filter-begin r17
+    private static final AetheriumLog LOGGER = AetheriumLog.of(ColorFilter.class);
+    /** Minecraft 1.17+: a copy of the world picture in a raw GL texture ({@link RawFrame}). */
+    private static final RawFrame.Slot COPY = new RawFrame.Slot();
+    private static boolean broken;
+
+    /** After the world is drawn: grades the main colour buffer in place. */
+    public static void apply(final Minecraft mc) {
+        final int preset = Tuning.shaderPreset;
+        if (preset <= 0 || preset >= PRESETS.length || broken) {
+            if (COPY.allocated() && preset <= 0) {
+                release();
+            }
+            return;
+        }
+        try {
+            if (!RawFrame.save(mc, COPY)) {
+                return;
+            }
+            final float[] g = PRESETS[preset];
+            if (!RawFrame.grade(mc, COPY, g, g[4])) {
+                broken = true;
+                release();
+            }
+        } catch (final RuntimeException | LinkageError e) {
+            broken = true;
+            LOGGER.error("Colour filter turned off after an error", e);
+            release();
+        }
+    }
+
+    private static void release() {
+        try {
+            RawFrame.free(COPY);
+        } catch (final RuntimeException | LinkageError ignored) {
+            // freed with the GL context
+        }
+    }
+    // @era:t-color-filter-else none
+    //~ public static void apply(final net.minecraft.client.Minecraft mc) {
+    //~ }
     // @era:t-color-filter-else v16
     //~ private static final AetheriumLog LOGGER = AetheriumLog.of(ColorFilter.class);
     //~ private static final int GL_VERTEX_SHADER = 0x8B31;

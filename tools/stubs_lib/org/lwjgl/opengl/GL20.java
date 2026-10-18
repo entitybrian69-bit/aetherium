@@ -27,4 +27,5 @@ public class GL20 {
     public static void glEnableVertexAttribArray(int index) { }
     public static void glDisableVertexAttribArray(int index) { }
     public static void glVertexAttribPointer(int index, int size, int type, boolean normalized, int stride, long pointer) { }
+    public static void glUniform2f(int location, float v0, float v1) { }
 }

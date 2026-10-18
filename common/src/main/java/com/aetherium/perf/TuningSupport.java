@@ -10,22 +10,22 @@ public final class TuningSupport {
     private TuningSupport() {
     }
 
-    // @era:t-ao-cache-begin none
-    public static final boolean AO_CACHE = false;
-    // @era:t-ao-cache-else v16
-    //~ public static final boolean AO_CACHE = true;
+    // @era:t-ao-cache-begin a215|v16
+    public static final boolean AO_CACHE = true;
+    // @era:t-ao-cache-else none
+    //~ public static final boolean AO_CACHE = false;
     // @era:t-ao-cache-end
 
-    // @era:t-autosave-begin none
-    public static final boolean AUTOSAVE = false;
-    // @era:t-autosave-else v16
-    //~ public static final boolean AUTOSAVE = true;
+    // @era:t-autosave-begin s18|s214|v16
+    public static final boolean AUTOSAVE = true;
+    // @era:t-autosave-else none
+    //~ public static final boolean AUTOSAVE = false;
     // @era:t-autosave-end
 
-    // @era:t-beam-begin none
-    public static final boolean BEAM = false;
-    // @era:t-beam-else v16
-    //~ public static final boolean BEAM = true;
+    // @era:t-beam-begin b2111|v16
+    public static final boolean BEAM = true;
+    // @era:t-beam-else none
+    //~ public static final boolean BEAM = false;
     // @era:t-beam-end
 
     // @era:t-block-entity-begin none
@@ -40,10 +40,10 @@ public final class TuningSupport {
     //~ public static final boolean BUILD_ORDER = true;
     // @era:t-build-order-end
 
-    // @era:t-chunk-save-begin none
-    public static final boolean CHUNK_SAVE = false;
-    // @era:t-chunk-save-else v16
-    //~ public static final boolean CHUNK_SAVE = true;
+    // @era:t-chunk-save-begin c21|c214|v16
+    public static final boolean CHUNK_SAVE = true;
+    // @era:t-chunk-save-else none
+    //~ public static final boolean CHUNK_SAVE = false;
     // @era:t-chunk-save-end
 
     // @era:t-client-begin v16|v19|v262
@@ -52,10 +52,10 @@ public final class TuningSupport {
     //~ public static final boolean CLIENT = false;
     // @era:t-client-end
 
-    // @era:t-color-filter-begin none
-    public static final boolean COLOR_FILTER = false;
-    // @era:t-color-filter-else v16
-    //~ public static final boolean COLOR_FILTER = true;
+    // @era:t-color-filter-begin r17|v16
+    public static final boolean COLOR_FILTER = true;
+    // @era:t-color-filter-else none
+    //~ public static final boolean COLOR_FILTER = false;
     // @era:t-color-filter-end
 
     // @era:t-cull-begin none
@@ -64,10 +64,10 @@ public final class TuningSupport {
     //~ public static final boolean CULL = true;
     // @era:t-cull-end
 
-    // @era:t-explosion-begin none
-    public static final boolean EXPLOSION = false;
-    // @era:t-explosion-else v16
-    //~ public static final boolean EXPLOSION = true;
+    // @era:t-explosion-begin v16|x212
+    public static final boolean EXPLOSION = true;
+    // @era:t-explosion-else none
+    //~ public static final boolean EXPLOSION = false;
     // @era:t-explosion-end
 
     // @era:t-far-terrain-begin none
@@ -76,10 +76,10 @@ public final class TuningSupport {
     //~ public static final boolean FAR_TERRAIN = true;
     // @era:t-far-terrain-end
 
-    // @era:t-flight-preload-begin none
-    public static final boolean FLIGHT_PRELOAD = false;
-    // @era:t-flight-preload-else v16
-    //~ public static final boolean FLIGHT_PRELOAD = true;
+    // @era:t-flight-preload-begin f20|f215|f216|v16
+    public static final boolean FLIGHT_PRELOAD = true;
+    // @era:t-flight-preload-else none
+    //~ public static final boolean FLIGHT_PRELOAD = false;
     // @era:t-flight-preload-end
 
     // @era:t-frame-item-begin none
@@ -94,22 +94,22 @@ public final class TuningSupport {
     //~ public static final boolean GL_STATE = true;
     // @era:t-gl-state-end
 
-    // @era:t-glint-begin none
-    public static final boolean GLINT = false;
-    // @era:t-glint-else v16
-    //~ public static final boolean GLINT = true;
+    // @era:t-glint-begin g21|g212|g219|v16
+    public static final boolean GLINT = true;
+    // @era:t-glint-else none
+    //~ public static final boolean GLINT = false;
     // @era:t-glint-end
 
-    // @era:t-grass-begin none
-    public static final boolean GRASS = false;
-    // @era:t-grass-else v16
-    //~ public static final boolean GRASS = true;
+    // @era:t-grass-begin g19|g215|v16
+    public static final boolean GRASS = true;
+    // @era:t-grass-else none
+    //~ public static final boolean GRASS = false;
     // @era:t-grass-end
 
-    // @era:t-grass-quads-begin none
-    public static final boolean GRASS_QUADS = false;
-    // @era:t-grass-quads-else v16
-    //~ public static final boolean GRASS_QUADS = true;
+    // @era:t-grass-quads-begin v16
+    public static final boolean GRASS_QUADS = true;
+    // @era:t-grass-quads-else none
+    //~ public static final boolean GRASS_QUADS = false;
     // @era:t-grass-quads-end
 
     // @era:t-http-textureacc-begin none
@@ -130,16 +130,16 @@ public final class TuningSupport {
     //~ public static final boolean LAZY_DATA_FIXERS = true;
     // @era:t-lazy-data-fixers-end
 
-    // @era:t-leaf-cull-begin none
-    public static final boolean LEAF_CULL = false;
-    // @era:t-leaf-cull-else v16
-    //~ public static final boolean LEAF_CULL = true;
+    // @era:t-leaf-cull-begin f17|f212|f215|v16
+    public static final boolean LEAF_CULL = true;
+    // @era:t-leaf-cull-else none
+    //~ public static final boolean LEAF_CULL = false;
     // @era:t-leaf-cull-end
 
-    // @era:t-leaves-begin none
-    public static final boolean LEAVES = false;
-    // @era:t-leaves-else v16
-    //~ public static final boolean LEAVES = true;
+    // @era:t-leaves-begin l2111|v16
+    public static final boolean LEAVES = true;
+    // @era:t-leaves-else none
+    //~ public static final boolean LEAVES = false;
     // @era:t-leaves-end
 
     // @era:t-level-begin none
@@ -160,22 +160,22 @@ public final class TuningSupport {
     //~ public static final boolean LIGHT = true;
     // @era:t-light-end
 
-    // @era:t-lightmap-begin none
-    public static final boolean LIGHTMAP = false;
-    // @era:t-lightmap-else v16
-    //~ public static final boolean LIGHTMAP = true;
+    // @era:t-lightmap-begin v16
+    public static final boolean LIGHTMAP = true;
+    // @era:t-lightmap-else none
+    //~ public static final boolean LIGHTMAP = false;
     // @era:t-lightmap-end
 
-    // @era:t-loading-begin none
-    public static final boolean LOADING = false;
-    // @era:t-loading-else v16
-    //~ public static final boolean LOADING = true;
+    // @era:t-loading-begin d194|v16
+    public static final boolean LOADING = true;
+    // @era:t-loading-else none
+    //~ public static final boolean LOADING = false;
     // @era:t-loading-end
 
-    // @era:t-map-begin none
-    public static final boolean MAP = false;
-    // @era:t-map-else v16
-    //~ public static final boolean MAP = true;
+    // @era:t-map-begin m212|v16
+    public static final boolean MAP = true;
+    // @era:t-map-else none
+    //~ public static final boolean MAP = false;
     // @era:t-map-end
 
     // @era:t-minecart-begin none
@@ -196,16 +196,16 @@ public final class TuningSupport {
     //~ public static final boolean OCEAN_FLOOR = true;
     // @era:t-ocean-floor-end
 
-    // @era:t-portal-begin none
-    public static final boolean PORTAL = false;
-    // @era:t-portal-else v16
-    //~ public static final boolean PORTAL = true;
+    // @era:t-portal-begin p21|p215|v16
+    public static final boolean PORTAL = true;
+    // @era:t-portal-else none
+    //~ public static final boolean PORTAL = false;
     // @era:t-portal-end
 
-    // @era:t-server-idle-begin none
-    public static final boolean SERVER_IDLE = false;
-    // @era:t-server-idle-else v16
-    //~ public static final boolean SERVER_IDLE = true;
+    // @era:t-server-idle-begin v16
+    public static final boolean SERVER_IDLE = true;
+    // @era:t-server-idle-else none
+    //~ public static final boolean SERVER_IDLE = false;
     // @era:t-server-idle-end
 
     // @era:t-server-light-begin none
@@ -256,16 +256,16 @@ public final class TuningSupport {
     //~ public static final boolean VIEW_AREAACC = true;
     // @era:t-view-areaacc-end
 
-    // @era:t-world-begin none
-    public static final boolean WORLD = false;
-    // @era:t-world-else v16
-    //~ public static final boolean WORLD = true;
+    // @era:t-world-begin v16|w182|w206|w21
+    public static final boolean WORLD = true;
+    // @era:t-world-else none
+    //~ public static final boolean WORLD = false;
     // @era:t-world-end
 
-    // @era:t-world-cache-begin none
-    public static final boolean WORLD_CACHE = false;
-    // @era:t-world-cache-else v16
-    //~ public static final boolean WORLD_CACHE = true;
+    // @era:t-world-cache-begin r17|v16
+    public static final boolean WORLD_CACHE = true;
+    // @era:t-world-cache-else none
+    //~ public static final boolean WORLD_CACHE = false;
     // @era:t-world-cache-end
 
     /** Whether the {@code Tuning*} mixin (or tuning accessor) with this simple name applies here. */

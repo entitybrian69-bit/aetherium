@@ -42,6 +42,7 @@ public final class SmokeTest {
 
     private static final Set<String> TARGETS = ConcurrentHashMap.newKeySet();
     private static final Set<String> UNUSED = ConcurrentHashMap.newKeySet();
+    private static final List<Object[]> APPLIED_TO = new ArrayList<Object[]>();
     private static int ticks;
     private static boolean done;
 
@@ -54,9 +55,21 @@ public final class SmokeTest {
         }
     }
 
-    /** After a mixin was applied: every merged handler of it must be called from the class. */
+    /**
+     * After a mixin was applied. The class is only scanned when the report is written: MixinExtras
+     * applies some injectors (WrapOperation, ModifyExpressionValue) after this callback, into the
+     * same ClassNode, so scanning now would report their handlers as unused.
+     */
     static void applied(final ClassNode target, final String mixinClassName) {
-        if (!ENABLED || target.methods == null) {
+        if (ENABLED) {
+            synchronized (APPLIED_TO) {
+                APPLIED_TO.add(new Object[] {target, mixinClassName});
+            }
+        }
+    }
+
+    private static void scan(final ClassNode target, final String mixinClassName) {
+        if (target.methods == null) {
             return;
         }
         final List<String> handlers = new ArrayList<String>();
@@ -142,6 +155,11 @@ public final class SmokeTest {
         out.append("targets ").append(targets.size()).append(", failed ").append(failures.size()).append('\n');
         for (final String failure : failures) {
             out.append("FAILED ").append(failure).append('\n');
+        }
+        synchronized (APPLIED_TO) {
+            for (final Object[] entry : APPLIED_TO) {
+                scan((ClassNode) entry[0], (String) entry[1]);
+            }
         }
         final List<String> unused = new ArrayList<String>(UNUSED);
         Collections.sort(unused);
