@@ -1,0 +1,28 @@
+package com.aetherium.mixin.core;
+
+import org.spongepowered.asm.mixin.Mixin;
+// @era:qol16-begin v16
+import com.aetherium.perf.Tuning;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+// @era:qol16-else none
+// @era:qol16-end
+
+/**
+ * Leaves mode (1.10.0, Minecraft 1.16.5): {@code ItemBlockRenderTypes.setFancy} decides whether
+ * leaves use the cutout (see-through) or solid layer; vanilla passes the Graphics setting. The
+ * leaves option overrides that one argument, whoever calls it.
+ */
+@Mixin(targets = "net.minecraft.client.renderer.ItemBlockRenderTypes")
+public abstract class TuningLeavesMixin {
+    // @era:qol16-begin v16
+    @ModifyVariable(method = "setFancy", at = @At("HEAD"), argsOnly = true, require = 0)
+    private static boolean aetherium$leaves(final boolean fancy) {
+        final int mode = Tuning.leaves;
+        final boolean result = mode == 1 ? false : mode == 2 ? true : fancy;
+        Tuning.leavesFancy = result;
+        return result;
+    }
+    // @era:qol16-else none
+    // @era:qol16-end
+}

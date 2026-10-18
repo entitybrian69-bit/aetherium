@@ -43,6 +43,8 @@ public final class Tuning {
     /** 0 = follow Graphics, 1 = fast, 2 = fancy. */
     public static volatile int leaves;
     public static volatile boolean leafCulling;
+    /** Whether leaves are currently meshed see-through (set where vanilla decides it, setFancy). */
+    public static volatile boolean leavesFancy = true;
     public static volatile boolean dimensionCulling;
     public static volatile boolean lightUpdates;
     public static volatile boolean mapThrottle;

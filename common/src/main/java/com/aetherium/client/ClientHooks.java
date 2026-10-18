@@ -222,17 +222,26 @@ public final class ClientHooks {
             onSettingsApplied();
         }
         sub.store.tick();
+        TuningClient.tick(mc);
 
         if (mc.level != lastLevel) {
             lastLevel = mc.level;
             tracker.reset();
             ZoomKeys.reset();
             QolHooks.onLevelChange();
+            TuningClient.levelChanged();
             ADAPTIVE.reset();
         }
 
         final boolean active = Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive();
         if (mc.level == null || mc.player == null) {
+            // Menus without a world: only the background / minimized caps can apply here, and a cap
+            // picked up in a world (an open menu) must not stay behind.
+            if (active) {
+                updateCap(sub.config);
+            } else {
+                LIMITER.setCap(0);
+            }
             return;
         }
         ticks++;
@@ -301,6 +310,11 @@ public final class ClientHooks {
         if (thermalCapped) {
             cap = cap == 0 ? THERMAL_CAP_FPS : Math.min(cap, THERMAL_CAP_FPS);
         }
+        // 1.10.0: background / minimized / open-menu caps (Minecraft 1.16.5; 0 elsewhere).
+        final int tuning = TuningClient.frameCap(Minecraft.getInstance());
+        if (tuning > 0) {
+            cap = cap == 0 ? tuning : Math.min(cap, tuning);
+        }
         LIMITER.setCap(cap);
     }
 
@@ -338,6 +352,7 @@ public final class ClientHooks {
         NearBuild.configure(config);
         QolHooks.configure(config);
         Tuning.configure(config, active && Capabilities.TUNING);
+        TuningClient.configured(Minecraft.getInstance());
 
         if (active && config.fullbright.get().booleanValue()) {
             final double strength = config.fullbrightStrength.get().intValue() / 100.0;
@@ -377,6 +392,7 @@ public final class ClientHooks {
      * or null to let vanilla proceed unchanged.
      */
     public static Screen replaceScreen(final Minecraft mc, final Screen next) {
+        TuningClient.onScreen(mc, next);
         if (!isVideoSettings(next)) {
             return null;
         }
