@@ -332,6 +332,14 @@
               "description": "Chests, signs, banners, heads and other block entities farther than this many blocks are not drawn (64 = vanilla; beacon beams are exempt).",
               "x-java-field": "blockEntityDistance"
             },
+            "performance.block_entity_limit": {
+              "type": "integer",
+              "default": 512,
+              "minimum": 64,
+              "maximum": 1024,
+              "description": "Minecraft 1.16.5: at most this many block entities (chests, signs, banners, heads, beds, shulker boxes) are drawn per frame, nearest chunks first. Storage rooms and builds with thousands of them stop dragging the frame rate down; the farthest ones are simply not drawn that frame. 1024 = unlimited (vanilla).",
+              "x-java-field": "blockEntityLimit"
+            },
             "performance.coalesce_rebuilds": {
               "type": "boolean",
               "default": true,
@@ -375,7 +383,7 @@
               "default": 32,
               "minimum": 8,
               "maximum": 64,
-              "description": "Minecraft 1.16.5: mobs, armor stands and item frames farther than this many blocks are drawn without their small details: shadows, armor, held items, elytra, heads worn on the head, stuck arrows, items in item frames and blocks in minecarts. Players always keep everything. 64 = vanilla.",
+              "description": "Minecraft 1.16.5: mobs, armor stands and item frames farther than this many blocks are drawn without their small details: shadows, armor, held items, elytra, heads worn on the head, stuck arrows, items in item frames and blocks in minecarts. Sign text is not drawn beyond this distance either. Players always keep everything. 64 = vanilla.",
               "x-java-field": "entityDetailDistance"
             },
             "performance.explosion_particles": {
@@ -416,6 +424,12 @@
               "description": "Minecraft 1.16.5: after a frame that took much longer than usual (a garbage collection, a save, a burst of chunks), chunk uploads and light updates slow down for the next 20 frames, so the work waiting behind it does not cause a second hitch right away.",
               "x-java-field": "hitchGuard"
             },
+            "performance.lazy_far_rebuilds": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5, with Merge chunk rebuilds on: chunk sections more than 80 blocks away that are already built keep their old look for up to a second after they change, so light flicker, crops and arriving neighbours far away cost one rebuild per second at most. Your own block changes are always instant.",
+              "x-java-field": "lazyFarRebuilds"
+            },
             "performance.light_updates": {
               "type": "boolean",
               "default": true,
@@ -431,7 +445,7 @@
             "performance.low_end_mode": {
               "type": "boolean",
               "default": false,
-              "description": "Minecraft 1.16.5: one switch for weak phones and PCs. Tightens every limit below at once (entity details beyond 16 blocks, menus at 20 FPS, at most 2 explosion clouds per tick, fast leaves, lighter rain and snow) without changing your own values, so turning it off restores them.",
+              "description": "Minecraft 1.16.5: one switch for weak phones and PCs. Tightens every limit below at once (entity details beyond 16 blocks, menus at 20 FPS, at most 2 explosion clouds per tick, 8 redstone particles per tick, 256 block entities per frame, fast leaves, lighter rain and snow, no far terrain and no colour filter) without changing your own values, so turning it off restores them.",
               "x-java-field": "lowEndMode"
             },
             "performance.map_updates": {
@@ -448,6 +462,18 @@
               "description": "Minecraft 1.16.5: frame rate while an inventory, chest or pause menu is open in a world (the chat is excluded, so typing stays smooth). The world behind the menu barely changes, so drawing it 30 times a second looks the same and costs far less. 120 = no limit.",
               "x-java-field": "menuFps"
             },
+            "performance.menu_world_cache": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: while an inventory, chest, crafting or pause menu is open, the world behind it is drawn 4 times a second and the last picture is reused in between, so only the menu itself is drawn every frame. Menus open and scroll much more smoothly on weak devices. The chat is excluded, so the world stays live while you type.",
+              "x-java-field": "menuWorldCache"
+            },
+            "performance.model_lod": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: beyond the Entity detail distance, the tiny parts of mob models (ears, noses, beaks, whiskers, horns: at most 2 pixels across) are not drawn, and beyond twice that distance parts up to 3 pixels across are skipped too. They are a few screen pixels at that range. Players and armor stands are never changed.",
+              "x-java-field": "modelLod"
+            },
             "performance.occlusion_culling": {
               "type": "boolean",
               "default": true,
@@ -461,6 +487,14 @@
               "maximum": 100,
               "description": "Percentage of spawned particles that are kept.",
               "x-java-field": "particleDensity"
+            },
+            "performance.redstone_particle_limit": {
+              "type": "integer",
+              "default": 16,
+              "minimum": 0,
+              "maximum": 64,
+              "description": "Minecraft 1.16.5: at most this many redstone dust particles (wire, torches, repeaters, redstone ore) appear per game tick. Big contraptions and torch walls then cost a fixed amount instead of thousands of particles. 64 = unlimited (vanilla). Turning Redstone particles off on the Quality tab removes them completely.",
+              "x-java-field": "redstoneParticleLimit"
             },
             "performance.render_scale": {
               "type": "integer",
@@ -500,6 +534,12 @@
               "description": "Rebuild changed chunks near you on the worker threads instead of freezing the frame (vanilla 1.16.5 and 1.17 rebuild everything within 28 blocks on the render thread). Blocks you place or break still update instantly. Also spreads client light updates over frames. The biggest fix for stutter while chunks load and while walking with dynamic lights.",
               "x-java-field": "threadedChunkBuilder"
             },
+            "performance.translucent_sort_throttle": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: water, stained glass and ice are re-sorted after you have moved 2 blocks instead of every block, and at most 8 chunk sections per move instead of 15. Sorting runs on the worker threads, so this frees them for building chunks. Translucent surfaces can look slightly wrong for a moment while you walk.",
+              "x-java-field": "calmSorting"
+            },
             "performance.visible_animations": {
               "type": "boolean",
               "default": true,
@@ -531,6 +571,14 @@
               "default": true,
               "description": "Minecraft 1.16.5: the healing beams of End crystals (to the dragon and on the exit portal pillars).",
               "x-java-field": "endCrystalBeams"
+            },
+            "quality.far_terrain": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 64,
+              "description": "Minecraft 1.16.5, Overworld: shows a cheap low-detail outline of the terrain beyond your render distance, up to this many chunks away, from chunks you have already received this session (a height and colour map, not real blocks). Chunks inside your render distance that are not built yet show the outline too, so the world never looks empty while it loads. The distance fog moves out to the new edge. Costs memory and some GPU time; 0 = off. Limited to 4 times the render distance.",
+              "x-java-field": "farTerrain"
             },
             "quality.fog.clear_lava": {
               "type": "boolean",
@@ -649,6 +697,12 @@
               "default": true,
               "description": "Raindrop splashes on the ground and in water.",
               "x-java-field": "particlesWeather"
+            },
+            "quality.shader_preset": {
+              "type": "string",
+              "default": "OFF",
+              "description": "Minecraft 1.16.5: a light colour filter over the world (not a full shader pack, so it costs one screen copy per frame and works on phones): Vibrant boosts colour and contrast, Warm adds a golden tone, Cinematic adds contrast and dark corners. Turns itself off if the graphics driver rejects it.",
+              "x-java-field": "shaderPreset"
             },
             "quality.sky.cloud_height": {
               "type": "integer",

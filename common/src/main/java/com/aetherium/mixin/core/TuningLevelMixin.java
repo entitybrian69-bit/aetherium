@@ -4,12 +4,17 @@ import org.spongepowered.asm.mixin.Mixin;
 // @era:qol16-begin none
 // @era:qol16-else v16
 //~ import com.aetherium.client.ChunkInfoOrigin;
+//~ import com.aetherium.client.FarTerrain;
 //~ import com.aetherium.perf.CrowdCull;
 //~ import com.aetherium.perf.HitchGuard;
 //~ import com.aetherium.perf.Tuning;
+//~ import com.mojang.blaze3d.vertex.PoseStack;
+//~ import com.mojang.math.Matrix4f;
 //~ import it.unimi.dsi.fastutil.objects.ObjectList;
 //~ import net.minecraft.client.Camera;
 //~ import net.minecraft.client.multiplayer.ClientLevel;
+//~ import net.minecraft.client.renderer.GameRenderer;
+//~ import net.minecraft.client.renderer.LightTexture;
 //~ import net.minecraft.client.renderer.culling.Frustum;
 //~ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 //~ import net.minecraft.world.entity.Entity;
@@ -45,6 +50,36 @@ public abstract class TuningLevelMixin {
     //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
     //~ private void aetherium$frame(final CallbackInfo ci) {
         //~ CrowdCull.newFrame();
+        //~ Tuning.newFrame();
+    //~ }
+
+    //~ /**
+     //~ * Far terrain: drawn right after the sky, before any terrain, so the real chunks cover it
+     //~ * wherever they exist.
+     //~ */
+    //~ @Inject(method = "renderLevel", at = @At(value = "INVOKE",
+            //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;renderSky(Lcom/mojang/blaze3d/vertex/PoseStack;F)V",
+            //~ shift = At.Shift.AFTER), require = 0)
+    //~ private void aetherium$farTerrain(final PoseStack poseStack, final float partialTicks, final long finishNanos,
+                                      //~ final boolean renderBlockOutline, final Camera camera,
+                                      //~ final GameRenderer gameRenderer, final LightTexture lightTexture,
+                                      //~ final Matrix4f projection, final CallbackInfo ci) {
+        //~ FarTerrain.draw(poseStack, camera);
+    //~ }
+
+    //~ /**
+     //~ * Calmer translucent sorting: vanilla re-sorts water and glass whenever the camera has moved
+     //~ * more than 1 block (squared distance 1.0); with the option on, after 2 blocks (4.0).
+     //~ */
+    //~ @ModifyConstant(method = "renderChunkLayer", constant = @Constant(doubleValue = 1.0D), require = 0)
+    //~ private double aetherium$sortDistance(final double original) {
+        //~ return Tuning.calmSorting ? 4.0D : original;
+    //~ }
+
+    //~ /** Calmer translucent sorting: at most 8 sections re-sorted per move instead of 15. */
+    //~ @ModifyConstant(method = "renderChunkLayer", constant = @Constant(intValue = 15), require = 0)
+    //~ private int aetherium$sortCount(final int original) {
+        //~ return Tuning.calmSorting ? 8 : original;
     //~ }
 
     //~ /**

@@ -12,6 +12,7 @@ import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.perf.Tuning;
 import com.aetherium.perf.WorkerThreads;
+import com.aetherium.qol.ParticleFilter;
 import com.aetherium.gui.Setting;
 import com.aetherium.mixin.AetheriumMixinPlugin;
 
@@ -47,6 +48,7 @@ public final class AetheriumPages {
     private static final String[] PRESETS = {"Max FPS", "Balanced", "Quality"};
     private static final String[] LIGHTS = {"Off", "Fast", "Fancy"};
     private static final String[] LEAVES = {"Graphics", "Fast", "Fancy"};
+    private static final String[] SHADERS = {"Off", "Vibrant", "Warm", "Cinematic"};
     private static final String[] CORNERS = {"Top left", "Top right", "Bottom left", "Bottom right"};
     private static final String[] CORNER_KEYS = {"top-left", "top-right", "bottom-left", "bottom-right"};
 
@@ -180,6 +182,13 @@ public final class AetheriumPages {
                 VanillaOptions::getEntityShadows, VanillaOptions::setEntityShadows).presetMember());
         page.add(bool("quality.weather", "Weather", config.weather).presetMember());
         page.add(tuningRow(bool("quality.light_weather", "Lighter rain and snow", config.lightWeather)));
+        page.add(tuningRow(intSlider("quality.far_terrain", "Far terrain", config.farTerrain, 4,
+                v -> v == 0 ? "Off" : v + " chunks")));
+        page.add(tuningRow(Setting.choice("quality.shader_preset", Setting.Kind.DROPDOWN, "Colour filter",
+                        config.shaderPreset.getComment(), SHADERS,
+                        () -> config.shaderPreset.get().ordinal(),
+                        v -> config.shaderPreset.set(AetheriumConfig.ShaderPreset.values()[Math.max(0, Math.min(3, v))]))
+                .withDefault(config.shaderPreset.getDefault().ordinal())));
         page.add(tuningRow(Setting.choice("quality.leaves", Setting.Kind.SEGMENTED, "Leaves",
                         config.leaves.getComment(), LEAVES,
                         () -> config.leaves.get().ordinal(),
@@ -321,6 +330,16 @@ public final class AetheriumPages {
         page.add(tuningRow(bool("perf.dimension_culling", "Nether roof culling", config.dimensionCulling)));
         page.add(tuningRow(bool("perf.smooth_autosave", "Smooth autosave", config.smoothAutosave)));
         page.add(tuningRow(bool("perf.flight_preload", "Elytra chunk preloading", config.flightPreload)));
+        page.add(tuningRow(intSlider("perf.redstone_particle_limit", "Redstone particles per tick",
+                config.redstoneParticleLimit, 4,
+                v -> v >= ParticleFilter.REDSTONE_UNLIMITED ? "Unlimited" : v == 0 ? "None" : String.valueOf(v))));
+        page.add(tuningRow(intSlider("perf.block_entity_limit", "Block entities per frame",
+                config.blockEntityLimit, 64,
+                v -> v >= Tuning.BLOCK_ENTITIES_UNLIMITED ? "Unlimited" : String.valueOf(v))));
+        page.add(tuningRow(bool("perf.translucent_sort_throttle", "Calmer translucent sorting", config.calmSorting)));
+        page.add(tuningRow(bool("perf.lazy_far_rebuilds", "Lazy far chunk rebuilds", config.lazyFarRebuilds)));
+        page.add(tuningRow(bool("perf.model_lod", "Mob model detail levels", config.modelLod)));
+        page.add(tuningRow(bool("perf.menu_world_cache", "Reuse the world behind menus", config.menuWorldCache)));
     }
 
     private static Setting tuningRow(final Setting setting) {

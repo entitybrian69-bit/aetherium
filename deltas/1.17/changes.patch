@@ -241,10 +241,10 @@ index e5e224a..a041b7e 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 742efc9..0158bf5 100644
+index b99e56a..b54fb34 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -420,10 +420,10 @@ public final class ClientHooks {
+@@ -424,10 +424,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -259,7 +259,7 @@ index 742efc9..0158bf5 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -458,10 +458,10 @@ public final class ClientHooks {
+@@ -462,10 +462,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -426,7 +426,7 @@ index afb236d..ffe04fe 100644
      // @era:gui-else extractor
      //~ private GuiGraphicsExtractor graphics;
 diff --git a/common/src/main/java/com/aetherium/client/SceneryHooks.java b/common/src/main/java/com/aetherium/client/SceneryHooks.java
-index b967978..0dbc891 100644
+index 5d253f5..58d8e5b 100644
 --- a/common/src/main/java/com/aetherium/client/SceneryHooks.java
 +++ b/common/src/main/java/com/aetherium/client/SceneryHooks.java
 @@ -27,10 +27,10 @@ import net.minecraft.world.level.material.FogType;
@@ -459,7 +459,7 @@ index b967978..0dbc891 100644
          // @era:fog-end
      }
  
-@@ -202,10 +202,10 @@ public final class SceneryHooks {
+@@ -210,10 +210,10 @@ public final class SceneryHooks {
          final ParticleType<?> type = options.getType();
          Integer category = CATEGORY.get(type);
          if (category == null) {
@@ -1580,7 +1580,7 @@ index fc0bcab..50e0809 100644
      // @era:model-fast-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java b/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
-index e0b4505..d0acdce 100644
+index 8a8f47d..a19853a 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
 @@ -1,7 +1,30 @@
@@ -1614,8 +1614,8 @@ index e0b4505..d0acdce 100644
 +// @era:model-fast-else none
  // @era:model-fast-else v16
  //~ import com.aetherium.perf.ModelCubeData;
- //~ import com.aetherium.perf.ModelVertexWriter;
-@@ -21,29 +44,6 @@ import org.spongepowered.asm.mixin.Mixin;
+ //~ import com.aetherium.perf.ModelLod;
+@@ -22,29 +45,6 @@ import org.spongepowered.asm.mixin.Mixin;
  //~ import org.spongepowered.asm.mixin.injection.At;
  //~ import org.spongepowered.asm.mixin.injection.Inject;
  //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -1645,43 +1645,29 @@ index e0b4505..d0acdce 100644
  // @era:model-fast-end
  
  /**
-@@ -60,125 +60,158 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -61,7 +61,140 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.model.geom.ModelPart")
  public abstract class FastModelMixin {
 -    // @era:model-fast-begin none
--    // @era:model-fast-else v16
--    //~ /** GL_QUADS, the only mode entity buffers use. */
--    //~ @Unique
--    //~ private static final int AETHERIUM$QUADS = 7;
 +    // @era:model-fast-begin mojang|joml|trusted
 +    /** Render thread only. */
 +    @Unique
 +    private static final float[] AETHERIUM$POSE = new float[16];
- 
--    //~ /** Render thread only. */
--    //~ @Unique
--    //~ private static final float[] AETHERIUM$POSE = new float[16];
++
 +    // @era:math-begin mojang
 +    @Unique
 +    private static final FloatBuffer AETHERIUM$POSE_BUFFER = FloatBuffer.wrap(AETHERIUM$POSE);
 +    // @era:math-else joml
 +    // @era:math-end
- 
--    //~ @Unique
--    //~ private static final FloatBuffer AETHERIUM$POSE_BUFFER = FloatBuffer.wrap(AETHERIUM$POSE);
++
 +    @Unique
 +    private static final float[] AETHERIUM$NORMAL = new float[9];
- 
--    //~ @Unique
--    //~ private static final float[] AETHERIUM$NORMAL = new float[9];
++
 +    @Shadow
 +    @Final
 +    private List<ModelPart.Cube> cubes;
- 
--    //~ @Shadow
--    //~ @Final
--    //~ private ObjectList<ModelPart.Cube> cubes;
++
 +    @Inject(method = "compile", at = @At("HEAD"), cancellable = true, require = 0)
 +    private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
 +                                       final int overlay, final float r, final float g, final float b, final float a,
@@ -1698,62 +1684,7 @@ index e0b4505..d0acdce 100644
 +            RenderToggles.breakFastModels(e);
 +        }
 +    }
- 
--    //~ @Inject(method = "compile", at = @At("HEAD"), cancellable = true, require = 0)
--    //~ private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
--                                       //~ final int overlay, final float r, final float g, final float b, final float a,
--                                       //~ final CallbackInfo ci) {
--        //~ if (!RenderToggles.fastModels || consumer == null || consumer.getClass() != BufferBuilder.class
--                //~ || !RenderSystem.isOnRenderThread()) {
--            //~ return;
--        //~ }
--        //~ try {
--            //~ if (this.aetherium$write(pose, consumer, light, overlay, r, g, b, a)) {
--                //~ ci.cancel();
--            //~ }
--        //~ } catch (final RuntimeException | LinkageError e) {
--            //~ RenderToggles.breakFastModels(e);
--        //~ }
--    //~ }
--
--    //~ /** @return true when the part was written (vanilla must not run) */
--    //~ @Unique
--    //~ private boolean aetherium$write(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
--                                    //~ final int overlay, final float r, final float g, final float b, final float a) {
--        //~ final Object target = consumer;
--        //~ if (!(target instanceof BufferBuilderAccessor) || !(target instanceof DefaultedVertexAccessor)) {
--            //~ return false;
--        //~ }
--        //~ final BufferBuilderAccessor builder = (BufferBuilderAccessor) target;
--        //~ if (!builder.aetherium$building() || builder.aetherium$mode() != AETHERIUM$QUADS
--                //~ || builder.aetherium$format() != DefaultVertexFormat.NEW_ENTITY || builder.aetherium$elementIndex() != 0
--                //~ || ((DefaultedVertexAccessor) target).aetherium$defaultColorSet()) {
--            //~ return false;
--        //~ }
--        //~ final Object normalMatrix = pose.normal();
--        //~ if (!(normalMatrix instanceof Matrix3fAccessor)) {
--            //~ return false;
--        //~ }
--        //~ final ObjectList<ModelPart.Cube> list = this.cubes;
--        //~ final int count = list.size();
--        //~ int vertices = 0;
--        //~ for (int i = 0; i < count; i++) {
--            //~ final Object cube = list.get(i);
--            //~ if (!(cube instanceof ModelCubeData)) {
--                //~ return false;
--            //~ }
--            //~ final float[] faces = ((ModelCubeData) cube).aetheriumFaces();
--            //~ if (faces == null) {
--                //~ return false;
--            //~ }
--            //~ vertices += faces.length / ModelCubeData.FACE_FLOATS * 4;
--        //~ }
--        //~ if (vertices == 0) {
--            //~ return false;
--        //~ }
--        //~ builder.aetherium$ensureCapacity(vertices * ModelVertexWriter.STRIDE);
--        //~ final ByteBuffer buffer = builder.aetherium$buffer();
--        //~ if (!ModelVertexWriter.usable(buffer)) {
++
 +    /** @return true when the part was written (vanilla must not run) */
 +    @Unique
 +    private boolean aetherium$write(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
@@ -1830,8 +1761,115 @@ index e0b4505..d0acdce 100644
 +        //~ // 1.20.5+: PoseStack.Pose.transformNormal normalises unless the pose's normals are trusted.
 +        //~ final Object poseObject = pose;
 +        //~ if (!(poseObject instanceof PoseNormalsAccessor)) {
-             //~ return false;
-         //~ }
++            //~ return false;
++        //~ }
++        //~ final boolean normalize = !((PoseNormalsAccessor) poseObject).aetherium$trustedNormals();
++        // @era:pose-normals-end
++        final int color = ModelVertexWriter.packColor(r, g, b, a);
++        final int start = builder.aetherium$nextElementByte();
++        int at = start;
++        for (int i = 0; i < count; i++) {
++            // @era:pose-normals-begin plain
++            at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
++                    ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light);
++            // @era:pose-normals-else trusted
++            //~ at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
++                    //~ ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light, normalize);
++            // @era:pose-normals-end
++        }
++        // Committed only after every byte is written (an exception above leaves the builder as it was).
++        builder.aetherium$setNextElementByte(at);
++        builder.aetherium$setVertices(builder.aetherium$vertices() + vertices);
++        builder.aetherium$ensureVertexCapacity();
++        return true;
++    }
++    // @era:model-fast-else none
+     // @era:model-fast-else v16
+     //~ /** GL_QUADS, the only mode entity buffers use. */
+     //~ @Unique
+@@ -191,138 +324,5 @@ public abstract class FastModelMixin {
+         //~ builder.aetherium$ensureVertexCapacity();
+         //~ return true;
+     //~ }
+-    // @era:model-fast-else mojang|joml|trusted
+-    //~ /** Render thread only. */
+-    //~ @Unique
+-    //~ private static final float[] AETHERIUM$POSE = new float[16];
+-
+-    //~ // @era:math-begin mojang
+-    //~ @Unique
+-    //~ private static final FloatBuffer AETHERIUM$POSE_BUFFER = FloatBuffer.wrap(AETHERIUM$POSE);
+-    //~ // @era:math-else joml
+-    //~ // @era:math-end
+-
+-    //~ @Unique
+-    //~ private static final float[] AETHERIUM$NORMAL = new float[9];
+-
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private List<ModelPart.Cube> cubes;
+-
+-    //~ @Inject(method = "compile", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
+-                                       //~ final int overlay, final float r, final float g, final float b, final float a,
+-                                       //~ final CallbackInfo ci) {
+-        //~ if (!RenderToggles.fastModels || consumer == null || consumer.getClass() != BufferBuilder.class
+-                //~ || !RenderSystem.isOnRenderThread()) {
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ if (this.aetherium$write(pose, consumer, light, overlay, r, g, b, a)) {
+-                //~ ci.cancel();
+-            //~ }
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ RenderToggles.breakFastModels(e);
+-        //~ }
+-    //~ }
+-
+-    //~ /** @return true when the part was written (vanilla must not run) */
+-    //~ @Unique
+-    //~ private boolean aetherium$write(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
+-                                    //~ final int overlay, final float r, final float g, final float b, final float a) {
+-        //~ final Object target = consumer;
+-        //~ if (!(target instanceof BufferBuilderAccessor) || !(target instanceof DefaultedVertexAccessor)) {
+-            //~ return false;
+-        //~ }
+-        //~ final BufferBuilderAccessor builder = (BufferBuilderAccessor) target;
+-        //~ if (!builder.aetherium$building() || builder.aetherium$mode() != VertexFormat.Mode.QUADS
+-                //~ || builder.aetherium$format() != DefaultVertexFormat.NEW_ENTITY || builder.aetherium$elementIndex() != 0
+-                //~ || ((DefaultedVertexAccessor) target).aetherium$defaultColorSet()) {
+-            //~ return false;
+-        //~ }
+-        //~ // @era:math-begin mojang
+-        //~ final Object normalMatrix = pose.normal();
+-        //~ if (!(normalMatrix instanceof Matrix3fAccessor)) {
+-            //~ return false;
+-        //~ }
+-        //~ // @era:math-else joml
+-        //~ // @era:math-end
+-        //~ final List<ModelPart.Cube> list = this.cubes;
+-        //~ final int count = list.size();
+-        //~ int vertices = 0;
+-        //~ for (int i = 0; i < count; i++) {
+-            //~ final Object cube = list.get(i);
+-            //~ if (!(cube instanceof ModelCubeData)) {
+-                //~ return false;
+-            //~ }
+-            //~ final float[] faces = ((ModelCubeData) cube).aetheriumFaces();
+-            //~ if (faces == null) {
+-                //~ return false;
+-            //~ }
+-            //~ vertices += faces.length / ModelCubeData.FACE_FLOATS * 4;
+-        //~ }
+-        //~ if (vertices == 0) {
+-            //~ return false;
+-        //~ }
+-        //~ builder.aetherium$ensureCapacity(vertices * ModelVertexWriter.STRIDE);
+-        //~ final ByteBuffer buffer = builder.aetherium$buffer();
+-        //~ if (!ModelVertexWriter.usable(buffer)) {
+-            //~ return false;
+-        //~ }
+-        //~ // @era:math-begin mojang
 -        //~ pose.pose().store(AETHERIUM$POSE_BUFFER);
 -        //~ final Matrix3fAccessor n = (Matrix3fAccessor) normalMatrix;
 -        //~ final float[] nm = AETHERIUM$NORMAL;
@@ -1844,99 +1882,6 @@ index e0b4505..d0acdce 100644
 -        //~ nm[6] = n.aetherium$m20();
 -        //~ nm[7] = n.aetherium$m21();
 -        //~ nm[8] = n.aetherium$m22();
--        //~ final int color = ModelVertexWriter.packColor(r, g, b, a);
--        //~ final int start = builder.aetherium$nextElementByte();
--        //~ int at = start;
--        //~ for (int i = 0; i < count; i++) {
-+        //~ final boolean normalize = !((PoseNormalsAccessor) poseObject).aetherium$trustedNormals();
-+        // @era:pose-normals-end
-+        final int color = ModelVertexWriter.packColor(r, g, b, a);
-+        final int start = builder.aetherium$nextElementByte();
-+        int at = start;
-+        for (int i = 0; i < count; i++) {
-+            // @era:pose-normals-begin plain
-+            at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
-+                    ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light);
-+            // @era:pose-normals-else trusted
-             //~ at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
--                    //~ ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light);
--        //~ }
--        //~ // Committed only after every byte is written (an exception above leaves the builder as it was).
--        //~ builder.aetherium$setNextElementByte(at);
--        //~ builder.aetherium$setVertices(builder.aetherium$vertices() + vertices);
--        //~ builder.aetherium$ensureVertexCapacity();
--        //~ return true;
--    //~ }
--    // @era:model-fast-else mojang|joml|trusted
-+                    //~ ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light, normalize);
-+            // @era:pose-normals-end
-+        }
-+        // Committed only after every byte is written (an exception above leaves the builder as it was).
-+        builder.aetherium$setNextElementByte(at);
-+        builder.aetherium$setVertices(builder.aetherium$vertices() + vertices);
-+        builder.aetherium$ensureVertexCapacity();
-+        return true;
-+    }
-+    // @era:model-fast-else none
-+    // @era:model-fast-else v16
-+    //~ /** GL_QUADS, the only mode entity buffers use. */
-+    //~ @Unique
-+    //~ private static final int AETHERIUM$QUADS = 7;
-+
-     //~ /** Render thread only. */
-     //~ @Unique
-     //~ private static final float[] AETHERIUM$POSE = new float[16];
- 
--    //~ // @era:math-begin mojang
-     //~ @Unique
-     //~ private static final FloatBuffer AETHERIUM$POSE_BUFFER = FloatBuffer.wrap(AETHERIUM$POSE);
--    //~ // @era:math-else joml
--    //~ // @era:math-end
- 
-     //~ @Unique
-     //~ private static final float[] AETHERIUM$NORMAL = new float[9];
- 
-     //~ @Shadow
-     //~ @Final
--    //~ private List<ModelPart.Cube> cubes;
-+    //~ private ObjectList<ModelPart.Cube> cubes;
- 
-     //~ @Inject(method = "compile", at = @At("HEAD"), cancellable = true, require = 0)
-     //~ private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
-@@ -206,19 +239,16 @@ public abstract class FastModelMixin {
-             //~ return false;
-         //~ }
-         //~ final BufferBuilderAccessor builder = (BufferBuilderAccessor) target;
--        //~ if (!builder.aetherium$building() || builder.aetherium$mode() != VertexFormat.Mode.QUADS
-+        //~ if (!builder.aetherium$building() || builder.aetherium$mode() != AETHERIUM$QUADS
-                 //~ || builder.aetherium$format() != DefaultVertexFormat.NEW_ENTITY || builder.aetherium$elementIndex() != 0
-                 //~ || ((DefaultedVertexAccessor) target).aetherium$defaultColorSet()) {
-             //~ return false;
-         //~ }
--        //~ // @era:math-begin mojang
-         //~ final Object normalMatrix = pose.normal();
-         //~ if (!(normalMatrix instanceof Matrix3fAccessor)) {
-             //~ return false;
-         //~ }
--        //~ // @era:math-else joml
--        //~ // @era:math-end
--        //~ final List<ModelPart.Cube> list = this.cubes;
-+        //~ final ObjectList<ModelPart.Cube> list = this.cubes;
-         //~ final int count = list.size();
-         //~ int vertices = 0;
-         //~ for (int i = 0; i < count; i++) {
-@@ -240,7 +270,6 @@ public abstract class FastModelMixin {
-         //~ if (!ModelVertexWriter.usable(buffer)) {
-             //~ return false;
-         //~ }
--        //~ // @era:math-begin mojang
-         //~ pose.pose().store(AETHERIUM$POSE_BUFFER);
-         //~ final Matrix3fAccessor n = (Matrix3fAccessor) normalMatrix;
-         //~ final float[] nm = AETHERIUM$NORMAL;
-@@ -253,41 +282,12 @@ public abstract class FastModelMixin {
-         //~ nm[6] = n.aetherium$m20();
-         //~ nm[7] = n.aetherium$m21();
-         //~ nm[8] = n.aetherium$m22();
 -        //~ // @era:math-else joml
 -        //~ pose.pose().get(AETHERIUM$POSE);
 -        //~ // joml names entries column first (mCR); the writer takes row-major nm[r * 3 + c].
@@ -1961,20 +1906,26 @@ index e0b4505..d0acdce 100644
 -        //~ final boolean normalize = !((PoseNormalsAccessor) poseObject).aetherium$trustedNormals();
 -        //~ // @era:pose-normals-else plain
 -        //~ // @era:pose-normals-end
-         //~ final int color = ModelVertexWriter.packColor(r, g, b, a);
-         //~ final int start = builder.aetherium$nextElementByte();
-         //~ int at = start;
-         //~ for (int i = 0; i < count; i++) {
+-        //~ final int color = ModelVertexWriter.packColor(r, g, b, a);
+-        //~ final int start = builder.aetherium$nextElementByte();
+-        //~ int at = start;
+-        //~ for (int i = 0; i < count; i++) {
 -            //~ // @era:pose-normals-begin plain
-             //~ at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
-                     //~ ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light);
+-            //~ at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
+-                    //~ ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light);
 -            //~ // @era:pose-normals-else trusted
 -            //~ at += ModelVertexWriter.writeFaces(buffer, at, AETHERIUM$POSE, nm,
 -                    //~ ((ModelCubeData) list.get(i)).aetheriumFaces(), color, overlay, light, normalize);
 -            //~ // @era:pose-normals-end
-         //~ }
-         //~ // Committed only after every byte is written (an exception above leaves the builder as it was).
-         //~ builder.aetherium$setNextElementByte(at);
+-        //~ }
+-        //~ // Committed only after every byte is written (an exception above leaves the builder as it was).
+-        //~ builder.aetherium$setNextElementByte(at);
+-        //~ builder.aetherium$setVertices(builder.aetherium$vertices() + vertices);
+-        //~ builder.aetherium$ensureVertexCapacity();
+-        //~ return true;
+-    //~ }
+     // @era:model-fast-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java b/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
 index ca48c5a..2d0f291 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FastParticleMixin.java
@@ -4299,7 +4250,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index dad7351..e52ceb3 100644
+index 5e7f82d..35d9e7d 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

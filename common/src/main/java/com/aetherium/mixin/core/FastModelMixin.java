@@ -4,6 +4,7 @@ import org.spongepowered.asm.mixin.Mixin;
 // @era:model-fast-begin none
 // @era:model-fast-else v16
 //~ import com.aetherium.perf.ModelCubeData;
+//~ import com.aetherium.perf.ModelLod;
 //~ import com.aetherium.perf.ModelVertexWriter;
 //~ import com.aetherium.perf.RenderToggles;
 //~ import com.mojang.blaze3d.systems.RenderSystem;
@@ -80,10 +81,22 @@ public abstract class FastModelMixin {
     //~ @Final
     //~ private ObjectList<ModelPart.Cube> cubes;
 
+    //~ /** Model detail levels: {@link #aetherium$partSize} is known. */
+    //~ @Unique
+    //~ private boolean aetherium$sized;
+
+    //~ @Unique
+    //~ private float aetherium$partSize;
+
     //~ @Inject(method = "compile", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
                                        //~ final int overlay, final float r, final float g, final float b, final float a,
                                        //~ final CallbackInfo ci) {
+        //~ // Mob model detail levels (1.11.0, Tuning): a tiny part of a far mob is not drawn at all.
+        //~ if (ModelLod.active() && ModelLod.skip(this.aetherium$size())) {
+            //~ ci.cancel();
+            //~ return;
+        //~ }
         //~ if (!RenderToggles.fastModels || consumer == null || consumer.getClass() != BufferBuilder.class
                 //~ || !RenderSystem.isOnRenderThread()) {
             //~ return;
@@ -95,6 +108,22 @@ public abstract class FastModelMixin {
         //~ } catch (final RuntimeException | LinkageError e) {
             //~ RenderToggles.breakFastModels(e);
         //~ }
+    //~ }
+
+    //~ /** Largest box side of this part's own cubes, in pixels (computed once; the cubes never change). */
+    //~ @Unique
+    //~ private float aetherium$size() {
+        //~ if (!this.aetherium$sized) {
+            //~ float size = 0.0F;
+            //~ final ObjectList<ModelPart.Cube> list = this.cubes;
+            //~ for (int i = 0; i < list.size(); i++) {
+                //~ final ModelPart.Cube cube = list.get(i);
+                //~ size = Math.max(size, Math.max(cube.maxX - cube.minX, Math.max(cube.maxY - cube.minY, cube.maxZ - cube.minZ)));
+            //~ }
+            //~ this.aetherium$partSize = size;
+            //~ this.aetherium$sized = true;
+        //~ }
+        //~ return this.aetherium$partSize;
     //~ }
 
     //~ /** @return true when the part was written (vanilla must not run) */

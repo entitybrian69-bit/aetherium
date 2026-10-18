@@ -3,13 +3,16 @@ package com.aetherium.mixin.core;
 import org.spongepowered.asm.mixin.Mixin;
 // @era:qol16-begin none
 // @era:qol16-else v16
+//~ import com.aetherium.client.FarTerrain;
 //~ import com.aetherium.client.SkullLookup;
 //~ import com.aetherium.client.TuningClient;
 //~ import net.minecraft.core.SectionPos;
 //~ import net.minecraft.world.level.LightLayer;
+//~ import net.minecraft.world.level.chunk.LevelChunk;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 // @era:qol16-end
 
 /**
@@ -27,6 +30,12 @@ public abstract class TuningLightMixin {
         //~ if (SkullLookup.onClientThread() && TuningClient.deferLight(pos)) {
             //~ ci.cancel();
         //~ }
+    //~ }
+
+    //~ /** Far terrain (1.11.0): every chunk the server sends is sampled for the far outline. */
+    //~ @Inject(method = "replaceWithPacketData", at = @At("RETURN"), require = 0)
+    //~ private void aetherium$farTerrain(final CallbackInfoReturnable<LevelChunk> cir) {
+        //~ FarTerrain.capture(cir.getReturnValue());
     //~ }
     // @era:qol16-end
 }

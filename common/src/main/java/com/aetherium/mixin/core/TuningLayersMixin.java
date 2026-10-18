@@ -4,6 +4,7 @@ import org.spongepowered.asm.mixin.Mixin;
 // @era:qol16-begin none
 // @era:qol16-else v16
 //~ import com.aetherium.client.TuningClient;
+//~ import com.aetherium.perf.ModelLod;
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
 //~ import net.minecraft.client.renderer.MultiBufferSource;
@@ -14,9 +15,13 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 //~ import net.minecraft.client.renderer.entity.layers.StuckInBodyLayer;
 //~ import net.minecraft.world.entity.Entity;
+//~ import net.minecraft.world.entity.LivingEntity;
+//~ import net.minecraft.world.entity.decoration.ArmorStand;
 //~ import net.minecraft.world.entity.player.Player;
 //~ import org.spongepowered.asm.mixin.injection.At;
+//~ import org.spongepowered.asm.mixin.injection.Inject;
 //~ import org.spongepowered.asm.mixin.injection.Redirect;
+//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // @era:qol16-end
 
 /**
@@ -29,6 +34,25 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class TuningLayersMixin {
     // @era:qol16-begin none
     // @era:qol16-else v16
+    //~ /** Mob model detail levels (1.11.0): the level for this mob's model parts. */
+    //~ @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            //~ at = @At("HEAD"), require = 0)
+    //~ private void aetherium$lodBegin(final LivingEntity entity, final float yaw, final float partialTicks,
+                                    //~ final PoseStack poseStack, final MultiBufferSource buffers, final int light,
+                                    //~ final CallbackInfo ci) {
+        //~ if (!Tuning.modelLod || Tuning.detailDistanceSq == Double.MAX_VALUE) {
+            //~ ModelLod.end();
+            //~ return;
+        //~ }
+        //~ ModelLod.begin(TuningClient.distanceToCamera(entity), entity instanceof Player || entity instanceof ArmorStand);
+    //~ }
+
+    //~ @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            //~ at = @At("RETURN"), require = 0)
+    //~ private void aetherium$lodEnd(final CallbackInfo ci) {
+        //~ ModelLod.end();
+    //~ }
+
     //~ @SuppressWarnings({"rawtypes", "unchecked"})
     //~ @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             //~ at = @At(value = "INVOKE",

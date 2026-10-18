@@ -19,8 +19,14 @@ public final class RebuildCoalescer {
     public static final long MAX_DELAY_NANOS = 600_000_000L;
     public static final double NEAR_BLOCKS = 28.0;
     public static final double NEAR_SQ = NEAR_BLOCKS * NEAR_BLOCKS;
+    /** Lazy far rebuilds (1.11.0): built sections at least this far away wait longer. */
+    public static final double LAZY_FAR_BLOCKS = 80.0;
+    public static final double LAZY_FAR_SQ = LAZY_FAR_BLOCKS * LAZY_FAR_BLOCKS;
+    /** How long a far, already-built section collects changes before it is rebuilt once. */
+    public static final long LAZY_FAR_NANOS = 1_000_000_000L;
 
     private static volatile boolean enabled = true;
+    private static volatile boolean lazyFar;
     private static int deferredThisFrame;
 
     private RebuildCoalescer() {
@@ -32,6 +38,16 @@ public final class RebuildCoalescer {
 
     public static boolean enabled() {
         return enabled;
+    }
+
+    /**
+     * Lazy far rebuilds (Minecraft 1.16.5, 1.11.0): an already-built section at least
+     * {@link #LAZY_FAR_BLOCKS} blocks away keeps its old mesh for up to {@link #LAZY_FAR_NANOS}
+     * after its first change, so light flicker, growing crops and neighbouring chunk arrivals far
+     * away cost one rebuild per second at most. Only with coalescing on; player edits stay instant.
+     */
+    public static void setLazyFar(final boolean on) {
+        lazyFar = on;
     }
 
     /**
@@ -50,6 +66,10 @@ public final class RebuildCoalescer {
         }
         if (compiled && distSq < NEAR_SQ) {
             return false;
+        }
+        if (lazyFar && compiled && distSq >= LAZY_FAR_SQ && now - firstDirty < LAZY_FAR_NANOS) {
+            deferredThisFrame++;
+            return true;
         }
         if (now - firstDirty >= MAX_DELAY_NANOS) {
             return false;

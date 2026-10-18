@@ -109,6 +109,33 @@ final class StreamingTest {
     }
 
     @Test
+    @DisplayName("lazy far rebuilds: far built sections collect changes for a second; near, new and edited ones do not")
+    void lazyFarRebuilds() {
+        RebuildCoalescer.setEnabled(true);
+        RebuildCoalescer.setLazyFar(true);
+        try {
+            final long ms = 1_000_000L;
+            final long t0 = 10_000 * ms;
+            final double veryFar = 96.0 * 96.0;
+            final double mid = 64.0 * 64.0;
+            assertTrue(RebuildCoalescer.defer(t0 + 700 * ms, t0, t0 + 10 * ms, false, true, veryFar),
+                    "far and built: waits past the normal maximum");
+            assertFalse(RebuildCoalescer.defer(t0 + 1001 * ms, t0, t0 + 10 * ms, false, true, veryFar),
+                    "built once a second at most");
+            assertFalse(RebuildCoalescer.defer(t0 + 700 * ms, t0, t0 + 10 * ms, false, true, mid),
+                    "closer than the lazy distance: normal rules");
+            assertFalse(RebuildCoalescer.defer(t0 + 700 * ms, t0, t0 + 10 * ms, false, false, veryFar),
+                    "never built: normal rules");
+            assertFalse(RebuildCoalescer.defer(t0 + 10 * ms, t0, t0 + 5 * ms, true, true, veryFar), "player edit");
+            RebuildCoalescer.setLazyFar(false);
+            assertFalse(RebuildCoalescer.defer(t0 + 700 * ms, t0, t0 + 10 * ms, false, true, veryFar), "option off");
+            RebuildCoalescer.takeDeferred();
+        } finally {
+            RebuildCoalescer.setLazyFar(false);
+        }
+    }
+
+    @Test
     @DisplayName("direct pool: power-of-two buckets, reuse, and foreign buffers are ignored")
     void directPool() {
         assertEquals(48L << 20, DirectPool.idleCap(4096L << 20, "aarch64"), "large 64-bit heap");

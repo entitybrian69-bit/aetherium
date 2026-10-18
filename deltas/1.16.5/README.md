@@ -100,6 +100,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/AetheriumScreen.java`
 - `common/src/main/java/com/aetherium/client/AutoBench.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/client/ColorFilter.java`
+- `common/src/main/java/com/aetherium/client/FarTerrain.java`
 - `common/src/main/java/com/aetherium/client/FlightPreload.java`
 - `common/src/main/java/com/aetherium/client/FreelookHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
@@ -110,6 +112,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/TuningClient.java`
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/client/WorldCache.java`
 - `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java`
@@ -150,6 +153,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/TextureAtlasMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningBeamMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningExplosionMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java`
@@ -157,13 +161,17 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningLeavesMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningMapMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningMinecartMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningNameTagMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningShadowMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java`
+- `common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java`

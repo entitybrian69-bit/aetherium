@@ -97,7 +97,15 @@ public final class SceneryHooks {
 
     //~ /** FogRenderer.setupFog TAIL, terrain fog only. */
     //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
-        //~ if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
+        //~ if (blinded(camera.getEntity())) {
+            //~ return;
+        //~ }
+        //~ // Far terrain drawn this frame: the terrain fog reaches its edge instead of the render distance.
+        //~ if (FarTerrain.drawnThisFrame() && !thick && Scenery.distanceFog && medium(camera) == Scenery.AIR
+                //~ && FarTerrain.extendFog()) {
+            //~ return;
+        //~ }
+        //~ if (Scenery.fogVanilla()) {
             //~ return;
         //~ }
         //~ final int medium = medium(camera);

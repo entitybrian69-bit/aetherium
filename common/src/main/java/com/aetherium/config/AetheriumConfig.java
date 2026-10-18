@@ -75,7 +75,7 @@ public final class AetheriumConfig {
             "performance.worker_threads", 0, 0, 16, false, "Threads for world generation. 0 = automatic (vanilla on desktop; on Android half the cores minus one, between 2 and 4, so the render and server threads are not starved). Chunk meshes are built on Aetherium's own threads. Applies after a restart.");
 
     public final ConfigValue<Boolean> lowEndMode = ConfigValue.bool(
-            "performance.low_end_mode", false, "Minecraft 1.16.5: one switch for weak phones and PCs. Tightens every limit below at once (entity details beyond 16 blocks, menus at 20 FPS, at most 2 explosion clouds per tick, fast leaves, lighter rain and snow) without changing your own values, so turning it off restores them.");
+            "performance.low_end_mode", false, "Minecraft 1.16.5: one switch for weak phones and PCs. Tightens every limit below at once (entity details beyond 16 blocks, menus at 20 FPS, at most 2 explosion clouds per tick, 8 redstone particles per tick, 256 block entities per frame, fast leaves, lighter rain and snow, no far terrain and no colour filter) without changing your own values, so turning it off restores them.");
     public final ConfigValue<Boolean> dynamicFps = ConfigValue.bool(
             "performance.dynamic_fps", true, "Minecraft 1.16.5: while the game window is in the background the frame rate drops to 15 FPS, and to 1 FPS while it is minimized. Saves battery and keeps the phone cool; full speed returns the moment you switch back.");
     public final ConfigValue<Integer> menuFps = ConfigValue.intRange(
@@ -85,7 +85,7 @@ public final class AetheriumConfig {
     public final ConfigValue<Boolean> loadGc = ConfigValue.bool(
             "performance.loading_screen_gc", true, "Minecraft 1.16.5: clean up memory while a loading screen is shown (joining a world or server, changing dimension), when a short pause is invisible, instead of in the middle of gameplay.");
     public final ConfigValue<Integer> entityDetailDistance = ConfigValue.intRange(
-            "performance.entity_detail_distance", 32, 8, 64, false, "Minecraft 1.16.5: mobs, armor stands and item frames farther than this many blocks are drawn without their small details: shadows, armor, held items, elytra, heads worn on the head, stuck arrows, items in item frames and blocks in minecarts. Players always keep everything. 64 = vanilla.");
+            "performance.entity_detail_distance", 32, 8, 64, false, "Minecraft 1.16.5: mobs, armor stands and item frames farther than this many blocks are drawn without their small details: shadows, armor, held items, elytra, heads worn on the head, stuck arrows, items in item frames and blocks in minecarts. Sign text is not drawn beyond this distance either. Players always keep everything. 64 = vanilla.");
     public final ConfigValue<Boolean> crowdCulling = ConfigValue.bool(
             "performance.crowd_culling", true, "Minecraft 1.16.5: in places packed with entities (item piles, mob farms) only the first 4 dropped items and 6 mobs in each block space are drawn; the rest are still there and still work, they just are not drawn on top of each other.");
     public final ConfigValue<Integer> explosionParticles = ConfigValue.intRange(
@@ -102,6 +102,18 @@ public final class AetheriumConfig {
             "performance.smooth_autosave", true, "Minecraft 1.16.5, singleplayer: the automatic save every 5 minutes writes 16 chunks per tick instead of all of them in one tick, which removes the regular freeze. Saving when you pause or quit is unchanged and saves everything at once.");
     public final ConfigValue<Boolean> flightPreload = ConfigValue.bool(
             "performance.flight_preload", true, "Minecraft 1.16.5, singleplayer: while flying with an elytra, the chunks about 2 seconds ahead of you are loaded early, so you fly into a finished world instead of into empty space.");
+    public final ConfigValue<Integer> redstoneParticleLimit = ConfigValue.intRange(
+            "performance.redstone_particle_limit", 16, 0, 64, false, "Minecraft 1.16.5: at most this many redstone dust particles (wire, torches, repeaters, redstone ore) appear per game tick. Big contraptions and torch walls then cost a fixed amount instead of thousands of particles. 64 = unlimited (vanilla). Turning Redstone particles off on the Quality tab removes them completely.");
+    public final ConfigValue<Integer> blockEntityLimit = ConfigValue.intRange(
+            "performance.block_entity_limit", 512, 64, 1024, false, "Minecraft 1.16.5: at most this many block entities (chests, signs, banners, heads, beds, shulker boxes) are drawn per frame, nearest chunks first. Storage rooms and builds with thousands of them stop dragging the frame rate down; the farthest ones are simply not drawn that frame. 1024 = unlimited (vanilla).");
+    public final ConfigValue<Boolean> calmSorting = ConfigValue.bool(
+            "performance.translucent_sort_throttle", true, "Minecraft 1.16.5: water, stained glass and ice are re-sorted after you have moved 2 blocks instead of every block, and at most 8 chunk sections per move instead of 15. Sorting runs on the worker threads, so this frees them for building chunks. Translucent surfaces can look slightly wrong for a moment while you walk.");
+    public final ConfigValue<Boolean> lazyFarRebuilds = ConfigValue.bool(
+            "performance.lazy_far_rebuilds", true, "Minecraft 1.16.5, with Merge chunk rebuilds on: chunk sections more than 80 blocks away that are already built keep their old look for up to a second after they change, so light flicker, crops and arriving neighbours far away cost one rebuild per second at most. Your own block changes are always instant.");
+    public final ConfigValue<Boolean> modelLod = ConfigValue.bool(
+            "performance.model_lod", true, "Minecraft 1.16.5: beyond the Entity detail distance, the tiny parts of mob models (ears, noses, beaks, whiskers, horns: at most 2 pixels across) are not drawn, and beyond twice that distance parts up to 3 pixels across are skipped too. They are a few screen pixels at that range. Players and armor stands are never changed.");
+    public final ConfigValue<Boolean> menuWorldCache = ConfigValue.bool(
+            "performance.menu_world_cache", true, "Minecraft 1.16.5: while an inventory, chest, crafting or pause menu is open, the world behind it is drawn 4 times a second and the last picture is reused in between, so only the menu itself is drawn every frame. Menus open and scroll much more smoothly on weak devices. The chat is excluded, so the world stays live while you type.");
 
     // ---------------------------------------------------------------- quality
     public final ConfigValue<Boolean> weather = ConfigValue.bool("quality.weather", true, "Render rain and snow. Off saves a lot of fill rate on mobile GPUs.");
@@ -152,6 +164,11 @@ public final class AetheriumConfig {
             "Minecraft 1.16.5: draw leaves fast (opaque) or fancy (see-through) independently of the Graphics setting. GRAPHICS follows the Graphics setting like vanilla.");
     public final ConfigValue<Boolean> leafCulling = ConfigValue.bool(
             "quality.leaf_culling", true, "Minecraft 1.16.5: leaf faces buried inside a tree are not drawn. With fancy leaves the outer two layers stay visible so trees keep their depth; with fast leaves every hidden face is skipped. Far fewer faces in forests.");
+    public final ConfigValue<Integer> farTerrain = ConfigValue.intRange(
+            "quality.far_terrain", 0, 0, 64, false, "Minecraft 1.16.5, Overworld: shows a cheap low-detail outline of the terrain beyond your render distance, up to this many chunks away, from chunks you have already received this session (a height and colour map, not real blocks). Chunks inside your render distance that are not built yet show the outline too, so the world never looks empty while it loads. The distance fog moves out to the new edge. Costs memory and some GPU time; 0 = off. Limited to 4 times the render distance.");
+    public final ConfigValue<ShaderPreset> shaderPreset = ConfigValue.enumerated(
+            "quality.shader_preset", ShaderPreset.OFF, ShaderPreset.class, false,
+            "Minecraft 1.16.5: a light colour filter over the world (not a full shader pack, so it costs one screen copy per frame and works on phones): Vibrant boosts colour and contrast, Warm adds a golden tone, Cinematic adds contrast and dark corners. Turns itself off if the graphics driver rejects it.");
     public final ConfigValue<Boolean> lightWeather = ConfigValue.bool(
             "quality.light_weather", false, "Minecraft 1.16.5: rain and snow are drawn in a smaller area around you (about half the radius), a large fill-rate saving on phones.");
     public final ConfigValue<Boolean> enchantGlint = ConfigValue.bool(
@@ -298,6 +315,11 @@ public final class AetheriumConfig {
     /** Leaves drawing mode (1.10.0). */
     public enum LeavesMode {
         GRAPHICS, FAST, FANCY
+    }
+
+    /** Colour filter presets (1.11.0). */
+    public enum ShaderPreset {
+        OFF, VIBRANT, WARM, CINEMATIC
     }
 
     /** Dynamic light update modes. */

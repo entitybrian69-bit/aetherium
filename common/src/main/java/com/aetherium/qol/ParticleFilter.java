@@ -22,10 +22,16 @@ public final class ParticleFilter {
     /** Redstone dust: wire, torches, repeaters, comparators, levers and redstone ore (1.10.0). */
     public static final int REDSTONE = 10;
     public static final int COUNT = 11;
+    /** Redstone particle limit value meaning "no limit" (1.11.0). */
+    public static final int REDSTONE_UNLIMITED = 64;
 
     private static final Map<String, Integer> BY_NAME = new HashMap<String, Integer>();
     private static final boolean[] ENABLED = new boolean[COUNT];
     private static volatile boolean anyDisabled;
+    /** Redstone dust particles allowed per client tick; negative = no limit. */
+    private static volatile int redstoneLimit = -1;
+    /** Render thread only (particles are created there). */
+    private static int redstoneThisTick;
     private static volatile boolean blockBreaking = true;
 
     static {
@@ -76,8 +82,30 @@ public final class ParticleFilter {
             for (final boolean e : ENABLED) {
                 any |= !e;
             }
+            anyDisabled = any || redstoneLimit >= 0;
+        }
+    }
+
+    /**
+     * Redstone particle limiter (1.11.0): at most {@code perTick} redstone dust particles are created
+     * per client tick while the redstone category is on. A wall of redstone torches, a clock or a big
+     * contraption then costs a fixed amount instead of thousands of particles.
+     * {@link #REDSTONE_UNLIMITED} or more = no limit.
+     */
+    public static void setRedstoneLimit(final int perTick) {
+        synchronized (ENABLED) {
+            redstoneLimit = perTick >= REDSTONE_UNLIMITED ? -1 : Math.max(0, perTick);
+            boolean any = redstoneLimit >= 0;
+            for (final boolean e : ENABLED) {
+                any |= !e;
+            }
             anyDisabled = any;
         }
+    }
+
+    /** Client tick: a new redstone particle budget. */
+    public static void newTick() {
+        redstoneThisTick = 0;
     }
 
     /** False while every category is on: the hook then skips the lookup entirely. */
@@ -86,7 +114,22 @@ public final class ParticleFilter {
     }
 
     public static boolean allowed(final int category) {
-        return category < 0 || ENABLED[category];
+        if (category < 0) {
+            return true;
+        }
+        if (!ENABLED[category]) {
+            return false;
+        }
+        if (category == REDSTONE) {
+            final int limit = redstoneLimit;
+            if (limit >= 0) {
+                if (redstoneThisTick >= limit) {
+                    return false;
+                }
+                redstoneThisTick++;
+            }
+        }
+        return true;
     }
 
     public static void setBlockBreaking(final boolean on) {

@@ -1,6 +1,7 @@
 package com.aetherium.perf;
 
 import com.aetherium.config.AetheriumConfig;
+import com.aetherium.qol.ParticleFilter;
 
 /**
  * Live snapshot of the 1.10.0 tuning options, read by the hooks with one volatile load each.
@@ -20,6 +21,8 @@ public final class Tuning {
     public static final int EXPLOSIONS_UNLIMITED = 32;
     /** Menu frame-rate slider value that means "no cap". */
     public static final int MENU_FPS_OFF = 120;
+    /** Block entity limit value meaning "no limit" (1.11.0). */
+    public static final int BLOCK_ENTITIES_UNLIMITED = 1024;
 
     public static volatile boolean on;
     public static volatile boolean lowEnd;
@@ -53,6 +56,17 @@ public final class Tuning {
     // integrated server
     public static volatile boolean smoothAutosave;
     public static volatile boolean flightPreload;
+    /** Block entities drawn per frame (Integer.MAX_VALUE = no limit). */
+    public static volatile int blockEntityLimit = Integer.MAX_VALUE;
+    /** Render thread only: block entities drawn so far this frame. */
+    private static int blockEntitiesThisFrame;
+    public static volatile boolean calmSorting;
+    public static volatile boolean modelLod;
+    public static volatile boolean menuWorldCache;
+    /** Far terrain distance in chunks, 0 = off. */
+    public static volatile int farTerrain;
+    /** Colour filter: ordinal of {@code AetheriumConfig.ShaderPreset}, 0 = off. */
+    public static volatile int shaderPreset;
 
     /** Set by the server thread while vanilla's periodic autosave runs (MinecraftServer.tickServer). */
     public static volatile boolean autosaving;
@@ -97,7 +111,39 @@ public final class Tuning {
         asyncSkulls = active && c.asyncSkulls.get().booleanValue();
         smoothAutosave = active && c.smoothAutosave.get().booleanValue();
         flightPreload = active && c.flightPreload.get().booleanValue();
+        int redstone = c.redstoneParticleLimit.get().intValue();
+        int blockEntities = c.blockEntityLimit.get().intValue();
+        if (low) {
+            redstone = Math.min(redstone, 8);
+            blockEntities = Math.min(blockEntities, 256);
+        }
+        redstoneParticles = active ? redstone : ParticleFilter.REDSTONE_UNLIMITED;
+        ParticleFilter.setRedstoneLimit(redstoneParticles);
+        blockEntityLimit = active && blockEntities < BLOCK_ENTITIES_UNLIMITED ? blockEntities : Integer.MAX_VALUE;
+        calmSorting = active && c.calmSorting.get().booleanValue();
+        RebuildCoalescer.setLazyFar(active && c.lazyFarRebuilds.get().booleanValue());
+        modelLod = active && c.modelLod.get().booleanValue();
+        menuWorldCache = active && c.menuWorldCache.get().booleanValue();
+        farTerrain = active && !low ? c.farTerrain.get().intValue() : 0;
+        shaderPreset = active && !low ? c.shaderPreset.get().ordinal() : 0;
         on = active;
+    }
+
+    /** Redstone particles per tick wanted by these options ({@code ParticleFilter.REDSTONE_UNLIMITED} = none). */
+    public static volatile int redstoneParticles = ParticleFilter.REDSTONE_UNLIMITED;
+
+    /** Start of a frame (LevelRenderer.renderLevel HEAD). */
+    public static void newFrame() {
+        blockEntitiesThisFrame = 0;
+    }
+
+    /** One more block entity this frame; false once the per-frame limit is reached. */
+    public static boolean allowBlockEntity() {
+        if (blockEntitiesThisFrame >= blockEntityLimit) {
+            return false;
+        }
+        blockEntitiesThisFrame++;
+        return true;
     }
 
     /** True when an entity at this squared distance from the camera should lose its details. */

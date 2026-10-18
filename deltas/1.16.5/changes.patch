@@ -1027,10 +1027,10 @@ index 9b13f41..6190731 100644
      // @era:autobench-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 742efc9..0158bf5 100644
+index b99e56a..b54fb34 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
-@@ -420,10 +420,10 @@ public final class ClientHooks {
+@@ -424,10 +424,10 @@ public final class ClientHooks {
      /** Opens vanilla's own video screen on top of ours (escape hatch). */
      public static void openVanillaVideoSettings(final Minecraft mc, final Screen parent) {
          bypassVideoScreen = true;
@@ -1045,7 +1045,7 @@ index 742efc9..0158bf5 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -458,10 +458,10 @@ public final class ClientHooks {
+@@ -462,10 +462,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -1059,6 +1059,1250 @@ index 742efc9..0158bf5 100644
 +        //~ return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
          // @era:screen-pkg-end
      }
+ }
+diff --git a/common/src/main/java/com/aetherium/client/ColorFilter.java b/common/src/main/java/com/aetherium/client/ColorFilter.java
+index dd0200e..e1de07c 100644
+--- a/common/src/main/java/com/aetherium/client/ColorFilter.java
++++ b/common/src/main/java/com/aetherium/client/ColorFilter.java
+@@ -1,12 +1,12 @@
+ package com.aetherium.client;
+ 
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.aetherium.util.AetheriumLog;
+-//~ import com.mojang.blaze3d.pipeline.RenderTarget;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import org.lwjgl.opengl.GL20;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import com.aetherium.util.AetheriumLog;
++import com.mojang.blaze3d.pipeline.RenderTarget;
++import net.minecraft.client.Minecraft;
++import org.lwjgl.opengl.GL20;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -32,135 +32,135 @@ public final class ColorFilter {
+         {0.92F, 1.22F, 0.025F, 0.65F, -0.02F}, // cinematic
+     };
+ 
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(ColorFilter.class);
+-    //~ private static final int GL_VERTEX_SHADER = 0x8B31;
+-    //~ private static final int GL_FRAGMENT_SHADER = 0x8B30;
+-    //~ private static final int GL_COMPILE_STATUS = 0x8B81;
+-    //~ private static final int GL_LINK_STATUS = 0x8B82;
++    // @era:qol16-begin v16
++    private static final AetheriumLog LOGGER = AetheriumLog.of(ColorFilter.class);
++    private static final int GL_VERTEX_SHADER = 0x8B31;
++    private static final int GL_FRAGMENT_SHADER = 0x8B30;
++    private static final int GL_COMPILE_STATUS = 0x8B81;
++    private static final int GL_LINK_STATUS = 0x8B82;
+ 
+-    //~ private static final String VERTEX = "#version 110\n"
+-            //~ + "varying vec2 texCoord;\n"
+-            //~ + "void main() {\n"
+-            //~ + "    texCoord = gl_MultiTexCoord0.xy;\n"
+-            //~ + "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+-            //~ + "}\n";
++    private static final String VERTEX = "#version 110\n"
++            + "varying vec2 texCoord;\n"
++            + "void main() {\n"
++            + "    texCoord = gl_MultiTexCoord0.xy;\n"
++            + "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
++            + "}\n";
+ 
+-    //~ private static final String FRAGMENT = "#version 110\n"
+-            //~ + "uniform sampler2D DiffuseSampler;\n"
+-            //~ + "uniform vec4 Grade;\n"
+-            //~ + "uniform float Brightness;\n"
+-            //~ + "varying vec2 texCoord;\n"
+-            //~ + "void main() {\n"
+-            //~ + "    vec3 c = texture2D(DiffuseSampler, texCoord).rgb;\n"
+-            //~ + "    float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));\n"
+-            //~ + "    c = mix(vec3(luma), c, Grade.x);\n"
+-            //~ + "    c = (c - 0.5) * Grade.y + 0.5 + Brightness;\n"
+-            //~ + "    c += vec3(Grade.z, Grade.z * 0.35, -Grade.z);\n"
+-            //~ + "    vec2 d = texCoord - 0.5;\n"
+-            //~ + "    c *= 1.0 - Grade.w * dot(d, d) * 1.6;\n"
+-            //~ + "    gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);\n"
+-            //~ + "}\n";
++    private static final String FRAGMENT = "#version 110\n"
++            + "uniform sampler2D DiffuseSampler;\n"
++            + "uniform vec4 Grade;\n"
++            + "uniform float Brightness;\n"
++            + "varying vec2 texCoord;\n"
++            + "void main() {\n"
++            + "    vec3 c = texture2D(DiffuseSampler, texCoord).rgb;\n"
++            + "    float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));\n"
++            + "    c = mix(vec3(luma), c, Grade.x);\n"
++            + "    c = (c - 0.5) * Grade.y + 0.5 + Brightness;\n"
++            + "    c += vec3(Grade.z, Grade.z * 0.35, -Grade.z);\n"
++            + "    vec2 d = texCoord - 0.5;\n"
++            + "    c *= 1.0 - Grade.w * dot(d, d) * 1.6;\n"
++            + "    gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);\n"
++            + "}\n";
+ 
+-    //~ private static int program;
+-    //~ private static int gradeLocation;
+-    //~ private static int brightnessLocation;
+-    //~ private static boolean broken;
+-    //~ private static RenderTarget copy;
++    private static int program;
++    private static int gradeLocation;
++    private static int brightnessLocation;
++    private static boolean broken;
++    private static RenderTarget copy;
+ 
+-    //~ /** After the world pass (GameRenderer.render): grade the main framebuffer in place. */
+-    //~ public static void apply(final Minecraft mc) {
+-        //~ final int preset = Tuning.shaderPreset;
+-        //~ if (preset <= 0 || preset >= PRESETS.length || broken) {
+-            //~ if (copy != null && preset <= 0) {
+-                //~ release(mc);
+-            //~ }
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ if (program == 0 && !compile()) {
+-                //~ broken = true;
+-                //~ return;
+-            //~ }
+-            //~ final RenderTarget main = mc.getMainRenderTarget();
+-            //~ if (copy == null) {
+-                //~ copy = new RenderTarget(main.width, main.height, false, Minecraft.ON_OSX);
+-            //~ } else if (copy.width != main.width || copy.height != main.height) {
+-                //~ copy.resize(main.width, main.height, Minecraft.ON_OSX);
+-            //~ }
+-            //~ copy.bindWrite(true);
+-            //~ main.blitToScreen(main.width, main.height, true);
+-            //~ main.bindWrite(true);
+-            //~ final float[] g = PRESETS[preset];
+-            //~ GL20.glUseProgram(program);
+-            //~ GL20.glUniform4f(gradeLocation, g[0], g[1], g[2], g[3]);
+-            //~ GL20.glUniform1f(brightnessLocation, g[4]);
+-            //~ try {
+-                //~ copy.blitToScreen(main.width, main.height, true);
+-            //~ } finally {
+-                //~ GL20.glUseProgram(0);
+-            //~ }
+-            //~ main.bindWrite(true);
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ broken = true;
+-            //~ LOGGER.error("Colour filter turned off after an error", e);
+-            //~ try {
+-                //~ release(mc);
+-            //~ } catch (final RuntimeException | LinkageError ignored) {
+-                //~ // freed with the GL context
+-            //~ }
+-        //~ }
+-    //~ }
++    /** After the world pass (GameRenderer.render): grade the main framebuffer in place. */
++    public static void apply(final Minecraft mc) {
++        final int preset = Tuning.shaderPreset;
++        if (preset <= 0 || preset >= PRESETS.length || broken) {
++            if (copy != null && preset <= 0) {
++                release(mc);
++            }
++            return;
++        }
++        try {
++            if (program == 0 && !compile()) {
++                broken = true;
++                return;
++            }
++            final RenderTarget main = mc.getMainRenderTarget();
++            if (copy == null) {
++                copy = new RenderTarget(main.width, main.height, false, Minecraft.ON_OSX);
++            } else if (copy.width != main.width || copy.height != main.height) {
++                copy.resize(main.width, main.height, Minecraft.ON_OSX);
++            }
++            copy.bindWrite(true);
++            main.blitToScreen(main.width, main.height, true);
++            main.bindWrite(true);
++            final float[] g = PRESETS[preset];
++            GL20.glUseProgram(program);
++            GL20.glUniform4f(gradeLocation, g[0], g[1], g[2], g[3]);
++            GL20.glUniform1f(brightnessLocation, g[4]);
++            try {
++                copy.blitToScreen(main.width, main.height, true);
++            } finally {
++                GL20.glUseProgram(0);
++            }
++            main.bindWrite(true);
++        } catch (final RuntimeException | LinkageError e) {
++            broken = true;
++            LOGGER.error("Colour filter turned off after an error", e);
++            try {
++                release(mc);
++            } catch (final RuntimeException | LinkageError ignored) {
++                // freed with the GL context
++            }
++        }
++    }
+ 
+-    //~ private static boolean compile() {
+-        //~ final int vs = shader(GL_VERTEX_SHADER, VERTEX);
+-        //~ if (vs == 0) {
+-            //~ return false;
+-        //~ }
+-        //~ final int fs = shader(GL_FRAGMENT_SHADER, FRAGMENT);
+-        //~ if (fs == 0) {
+-            //~ GL20.glDeleteShader(vs);
+-            //~ return false;
+-        //~ }
+-        //~ final int p = GL20.glCreateProgram();
+-        //~ GL20.glAttachShader(p, vs);
+-        //~ GL20.glAttachShader(p, fs);
+-        //~ GL20.glLinkProgram(p);
+-        //~ GL20.glDeleteShader(vs);
+-        //~ GL20.glDeleteShader(fs);
+-        //~ if (GL20.glGetProgrami(p, GL_LINK_STATUS) == 0) {
+-            //~ LOGGER.warn("Colour filter: the driver could not link the program: " + GL20.glGetProgramInfoLog(p));
+-            //~ GL20.glDeleteProgram(p);
+-            //~ return false;
+-        //~ }
+-        //~ GL20.glUseProgram(p);
+-        //~ GL20.glUniform1i(GL20.glGetUniformLocation(p, "DiffuseSampler"), 0);
+-        //~ GL20.glUseProgram(0);
+-        //~ gradeLocation = GL20.glGetUniformLocation(p, "Grade");
+-        //~ brightnessLocation = GL20.glGetUniformLocation(p, "Brightness");
+-        //~ program = p;
+-        //~ return true;
+-    //~ }
++    private static boolean compile() {
++        final int vs = shader(GL_VERTEX_SHADER, VERTEX);
++        if (vs == 0) {
++            return false;
++        }
++        final int fs = shader(GL_FRAGMENT_SHADER, FRAGMENT);
++        if (fs == 0) {
++            GL20.glDeleteShader(vs);
++            return false;
++        }
++        final int p = GL20.glCreateProgram();
++        GL20.glAttachShader(p, vs);
++        GL20.glAttachShader(p, fs);
++        GL20.glLinkProgram(p);
++        GL20.glDeleteShader(vs);
++        GL20.glDeleteShader(fs);
++        if (GL20.glGetProgrami(p, GL_LINK_STATUS) == 0) {
++            LOGGER.warn("Colour filter: the driver could not link the program: " + GL20.glGetProgramInfoLog(p));
++            GL20.glDeleteProgram(p);
++            return false;
++        }
++        GL20.glUseProgram(p);
++        GL20.glUniform1i(GL20.glGetUniformLocation(p, "DiffuseSampler"), 0);
++        GL20.glUseProgram(0);
++        gradeLocation = GL20.glGetUniformLocation(p, "Grade");
++        brightnessLocation = GL20.glGetUniformLocation(p, "Brightness");
++        program = p;
++        return true;
++    }
+ 
+-    //~ private static int shader(final int type, final String source) {
+-        //~ final int s = GL20.glCreateShader(type);
+-        //~ GL20.glShaderSource(s, source);
+-        //~ GL20.glCompileShader(s);
+-        //~ if (GL20.glGetShaderi(s, GL_COMPILE_STATUS) == 0) {
+-            //~ LOGGER.warn("Colour filter: the driver rejected a shader: " + GL20.glGetShaderInfoLog(s));
+-            //~ GL20.glDeleteShader(s);
+-            //~ return 0;
+-        //~ }
+-        //~ return s;
+-    //~ }
++    private static int shader(final int type, final String source) {
++        final int s = GL20.glCreateShader(type);
++        GL20.glShaderSource(s, source);
++        GL20.glCompileShader(s);
++        if (GL20.glGetShaderi(s, GL_COMPILE_STATUS) == 0) {
++            LOGGER.warn("Colour filter: the driver rejected a shader: " + GL20.glGetShaderInfoLog(s));
++            GL20.glDeleteShader(s);
++            return 0;
++        }
++        return s;
++    }
+ 
+-    //~ private static void release(final Minecraft mc) {
+-        //~ if (copy != null) {
+-            //~ copy.destroyBuffers();
+-            //~ copy = null;
+-            //~ mc.getMainRenderTarget().bindWrite(true);
+-        //~ }
+-    //~ }
++    private static void release(final Minecraft mc) {
++        if (copy != null) {
++            copy.destroyBuffers();
++            copy = null;
++            mc.getMainRenderTarget().bindWrite(true);
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/client/FarTerrain.java b/common/src/main/java/com/aetherium/client/FarTerrain.java
+index ad18336..fafe851 100644
+--- a/common/src/main/java/com/aetherium/client/FarTerrain.java
++++ b/common/src/main/java/com/aetherium/client/FarTerrain.java
+@@ -1,47 +1,47 @@
+ package com.aetherium.client;
+ 
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.mixin.core.TuningLevelAccessor;
+-//~ import com.aetherium.mixin.core.TuningViewAreaAccessor;
+-//~ import com.aetherium.perf.FarTerrainMesh;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.aetherium.qol.Scenery;
+-//~ import com.aetherium.util.AetheriumLog;
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.VertexBuffer;
+-//~ import com.mojang.blaze3d.vertex.VertexConsumer;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import com.mojang.math.Matrix4f;
+-//~ import java.util.ArrayList;
+-//~ import java.util.HashSet;
+-//~ import java.util.Iterator;
+-//~ import java.util.List;
+-//~ import java.util.Map;
+-//~ import java.util.Set;
+-//~ import java.util.concurrent.ConcurrentHashMap;
+-//~ import java.util.concurrent.ExecutorService;
+-//~ import java.util.concurrent.Executors;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.multiplayer.ClientLevel;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.world.effect.MobEffects;
+-//~ import net.minecraft.world.entity.Entity;
+-//~ import net.minecraft.world.entity.LivingEntity;
+-//~ import net.minecraft.world.level.BlockGetter;
+-//~ import net.minecraft.world.level.ChunkPos;
+-//~ import net.minecraft.world.level.Level;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import net.minecraft.world.level.chunk.LevelChunk;
+-//~ import net.minecraft.world.level.levelgen.Heightmap;
+-//~ import net.minecraft.world.level.material.MaterialColor;
+-//~ import net.minecraft.world.phys.Vec3;
+-//~ import org.lwjgl.opengl.GL11;
++// @era:qol16-begin v16
++import com.aetherium.mixin.core.TuningLevelAccessor;
++import com.aetherium.mixin.core.TuningViewAreaAccessor;
++import com.aetherium.perf.FarTerrainMesh;
++import com.aetherium.perf.Tuning;
++import com.aetherium.qol.Scenery;
++import com.aetherium.util.AetheriumLog;
++import com.mojang.blaze3d.systems.RenderSystem;
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.DefaultVertexFormat;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.VertexBuffer;
++import com.mojang.blaze3d.vertex.VertexConsumer;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import com.mojang.math.Matrix4f;
++import java.util.ArrayList;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.List;
++import java.util.Map;
++import java.util.Set;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++import net.minecraft.client.Camera;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.core.BlockPos;
++import net.minecraft.world.effect.MobEffects;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.LivingEntity;
++import net.minecraft.world.level.BlockGetter;
++import net.minecraft.world.level.ChunkPos;
++import net.minecraft.world.level.Level;
++import net.minecraft.world.level.block.state.BlockState;
++import net.minecraft.world.level.chunk.LevelChunk;
++import net.minecraft.world.level.levelgen.Heightmap;
++import net.minecraft.world.level.material.MaterialColor;
++import net.minecraft.world.phys.Vec3;
++import org.lwjgl.opengl.GL11;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -67,449 +67,449 @@ public final class FarTerrain {
+     private FarTerrain() {
+     }
+ 
+-    // @era:qol16-begin none
+-    public static void levelChanged() {
+-    }
+-    // @era:qol16-else v16
+-    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(FarTerrain.class);
+-    //~ private static final int MAX_CHUNKS = 16384;
+-    //~ /** 32000 vertices: gl4es splits GL_QUADS draws above that. */
+-    //~ private static final int QUADS_PER_BUFFER = 8000;
+-    //~ private static final long REBUILD_NANOS = 1_000_000_000L;
+-    //~ private static final VertexFormat FORMAT = DefaultVertexFormat.POSITION_COLOR;
+-    //~ private static final int GL_QUADS = 7;
+-    //~ private static final int GL_DEPTH_TEST = 0x0B71;
+-    //~ private static final int GL_CULL_FACE = 0x0B44;
+-    //~ private static final int GL_FOG = 0x0B60;
+-    //~ private static final boolean SHADER_MOD = present("net.coderbot.iris.Iris") || present("net.optifine.Config");
++    // @era:qol16-begin v16
++    private static final AetheriumLog LOGGER = AetheriumLog.of(FarTerrain.class);
++    private static final int MAX_CHUNKS = 16384;
++    /** 32000 vertices: gl4es splits GL_QUADS draws above that. */
++    private static final int QUADS_PER_BUFFER = 8000;
++    private static final long REBUILD_NANOS = 1_000_000_000L;
++    private static final VertexFormat FORMAT = DefaultVertexFormat.POSITION_COLOR;
++    private static final int GL_QUADS = 7;
++    private static final int GL_DEPTH_TEST = 0x0B71;
++    private static final int GL_CULL_FACE = 0x0B44;
++    private static final int GL_FOG = 0x0B60;
++    private static final boolean SHADER_MOD = present("net.coderbot.iris.Iris") || present("net.optifine.Config");
+ 
+-    //~ private static final Map<Long, FarTerrainMesh.Column> COLUMNS = new ConcurrentHashMap<Long, FarTerrainMesh.Column>();
+-    //~ /** Filled by the worker while {@link #building}, read by the render thread once {@link #ready}. */
+-    //~ private static final List<BufferBuilder> BUILDERS = new ArrayList<BufferBuilder>();
+-    //~ private static final List<VertexBuffer> BUFFERS = new ArrayList<VertexBuffer>();
+-    //~ private static ExecutorService worker;
++    private static final Map<Long, FarTerrainMesh.Column> COLUMNS = new ConcurrentHashMap<Long, FarTerrainMesh.Column>();
++    /** Filled by the worker while {@link #building}, read by the render thread once {@link #ready}. */
++    private static final List<BufferBuilder> BUILDERS = new ArrayList<BufferBuilder>();
++    private static final List<VertexBuffer> BUFFERS = new ArrayList<VertexBuffer>();
++    private static ExecutorService worker;
+ 
+-    //~ private static volatile boolean building;
+-    //~ private static volatile boolean ready;
+-    //~ private static volatile int readyBuffers;
+-    //~ private static volatile Throwable workerError;
+-    //~ private static volatile boolean broken;
+-    //~ private static volatile boolean dirty;
++    private static volatile boolean building;
++    private static volatile boolean ready;
++    private static volatile int readyBuffers;
++    private static volatile Throwable workerError;
++    private static volatile boolean broken;
++    private static volatile boolean dirty;
+ 
+-    //~ private static int bufferCount;
+-    //~ private static int meshX;
+-    //~ private static int meshZ;
+-    //~ private static int pendingX;
+-    //~ private static int pendingZ;
+-    //~ private static int builtX = Integer.MIN_VALUE;
+-    //~ private static int builtZ;
+-    //~ private static int builtRd = -1;
+-    //~ private static int builtFar = -1;
+-    //~ private static int builtLight = -1;
+-    //~ private static boolean builtInside;
+-    //~ private static long lastBuild;
+-    //~ private static Object seededLevel;
+-    //~ private static boolean drawing;
+-    //~ private static int drawnFarBlocks;
++    private static int bufferCount;
++    private static int meshX;
++    private static int meshZ;
++    private static int pendingX;
++    private static int pendingZ;
++    private static int builtX = Integer.MIN_VALUE;
++    private static int builtZ;
++    private static int builtRd = -1;
++    private static int builtFar = -1;
++    private static int builtLight = -1;
++    private static boolean builtInside;
++    private static long lastBuild;
++    private static Object seededLevel;
++    private static boolean drawing;
++    private static int drawnFarBlocks;
+ 
+-    //~ private static boolean present(final String name) {
+-        //~ try {
+-            //~ Class.forName(name, false, FarTerrain.class.getClassLoader());
+-            //~ return true;
+-        //~ } catch (final ClassNotFoundException | LinkageError e) {
+-            //~ return false;
+-        //~ }
+-    //~ }
++    private static boolean present(final String name) {
++        try {
++            Class.forName(name, false, FarTerrain.class.getClassLoader());
++            return true;
++        } catch (final ClassNotFoundException | LinkageError e) {
++            return false;
++        }
++    }
+ 
+-    //~ /** Far distance in chunks for this frame, 0 when nothing would be drawn. */
+-    //~ private static int effectiveFar(final Minecraft mc) {
+-        //~ final int far = Tuning.farTerrain;
+-        //~ if (far <= 0 || broken || SHADER_MOD) {
+-            //~ return 0;
+-        //~ }
+-        //~ final int rd = mc.options.renderDistance;
+-        //~ // The projection's far plane is 4 x the render distance.
+-        //~ final int limited = Math.min(far, rd * 4 - 1);
+-        //~ return limited > rd ? limited : 0;
+-    //~ }
++    /** Far distance in chunks for this frame, 0 when nothing would be drawn. */
++    private static int effectiveFar(final Minecraft mc) {
++        final int far = Tuning.farTerrain;
++        if (far <= 0 || broken || SHADER_MOD) {
++            return 0;
++        }
++        final int rd = mc.options.renderDistance;
++        // The projection's far plane is 4 x the render distance.
++        final int limited = Math.min(far, rd * 4 - 1);
++        return limited > rd ? limited : 0;
++    }
+ 
+-    //~ /** ClientChunkCache.replaceWithPacketData RETURN: sample the chunk the server just sent. */
+-    //~ public static void capture(final LevelChunk chunk) {
+-        //~ if (Tuning.farTerrain <= 0 || chunk == null || broken || SHADER_MOD) {
+-            //~ return;
+-        //~ }
+-        //~ final ClientLevel level = Minecraft.getInstance().level;
+-        //~ if (level == null || level.dimension() != Level.OVERWORLD) {
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ store(chunk);
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ fail(e);
+-        //~ }
+-    //~ }
++    /** ClientChunkCache.replaceWithPacketData RETURN: sample the chunk the server just sent. */
++    public static void capture(final LevelChunk chunk) {
++        if (Tuning.farTerrain <= 0 || chunk == null || broken || SHADER_MOD) {
++            return;
++        }
++        final ClientLevel level = Minecraft.getInstance().level;
++        if (level == null || level.dimension() != Level.OVERWORLD) {
++            return;
++        }
++        try {
++            store(chunk);
++        } catch (final RuntimeException | LinkageError e) {
++            fail(e);
++        }
++    }
+ 
+-    //~ private static void store(final LevelChunk chunk) {
+-        //~ final ChunkPos pos = chunk.getPos();
+-        //~ final FarTerrainMesh.Column column = new FarTerrainMesh.Column();
+-        //~ final BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+-        //~ final BlockGetter getter = (BlockGetter) (Object) chunk;
+-        //~ final int baseX = pos.x << 4;
+-        //~ final int baseZ = pos.z << 4;
+-        //~ for (int gz = 0; gz < FarTerrainMesh.GRID; gz++) {
+-            //~ for (int gx = 0; gx < FarTerrainMesh.GRID; gx++) {
+-                //~ final int lx = gx * FarTerrainMesh.CELL + FarTerrainMesh.CELL / 2;
+-                //~ final int lz = gz * FarTerrainMesh.CELL + FarTerrainMesh.CELL / 2;
+-                //~ final int height = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, lx, lz);
+-                //~ int rgb = 0x707070;
+-                //~ if (height > 0) {
+-                    //~ at.set(baseX + lx, height - 1, baseZ + lz);
+-                    //~ final BlockState state = chunk.getBlockState(at);
+-                    //~ final MaterialColor color = state.getMapColor(getter, at);
+-                    //~ if (color != null && color.col != 0) {
+-                        //~ rgb = color.col;
+-                    //~ }
+-                //~ }
+-                //~ final int i = gz * FarTerrainMesh.GRID + gx;
+-                //~ column.heights[i] = (short) Math.max(0, height);
+-                //~ column.colors[i] = rgb;
+-            //~ }
+-        //~ }
+-        //~ if (COLUMNS.size() >= MAX_CHUNKS) {
+-            //~ trim(pos.x, pos.z);
+-        //~ }
+-        //~ COLUMNS.put(Long.valueOf(FarTerrainMesh.key(pos.x, pos.z)), column);
+-        //~ dirty = true;
+-    //~ }
++    private static void store(final LevelChunk chunk) {
++        final ChunkPos pos = chunk.getPos();
++        final FarTerrainMesh.Column column = new FarTerrainMesh.Column();
++        final BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
++        final BlockGetter getter = (BlockGetter) (Object) chunk;
++        final int baseX = pos.x << 4;
++        final int baseZ = pos.z << 4;
++        for (int gz = 0; gz < FarTerrainMesh.GRID; gz++) {
++            for (int gx = 0; gx < FarTerrainMesh.GRID; gx++) {
++                final int lx = gx * FarTerrainMesh.CELL + FarTerrainMesh.CELL / 2;
++                final int lz = gz * FarTerrainMesh.CELL + FarTerrainMesh.CELL / 2;
++                final int height = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, lx, lz);
++                int rgb = 0x707070;
++                if (height > 0) {
++                    at.set(baseX + lx, height - 1, baseZ + lz);
++                    final BlockState state = chunk.getBlockState(at);
++                    final MaterialColor color = state.getMapColor(getter, at);
++                    if (color != null && color.col != 0) {
++                        rgb = color.col;
++                    }
++                }
++                final int i = gz * FarTerrainMesh.GRID + gx;
++                column.heights[i] = (short) Math.max(0, height);
++                column.colors[i] = rgb;
++            }
++        }
++        if (COLUMNS.size() >= MAX_CHUNKS) {
++            trim(pos.x, pos.z);
++        }
++        COLUMNS.put(Long.valueOf(FarTerrainMesh.key(pos.x, pos.z)), column);
++        dirty = true;
++    }
+ 
+-    //~ /** Drops the stored chunks farthest from (x, z) until a quarter of the room is free again. */
+-    //~ private static void trim(final int x, final int z) {
+-        //~ int radius = 128;
+-        //~ while (COLUMNS.size() > MAX_CHUNKS * 3 / 4 && radius > 8) {
+-            //~ final Iterator<Long> it = COLUMNS.keySet().iterator();
+-            //~ while (it.hasNext()) {
+-                //~ final long key = it.next().longValue();
+-                //~ final int dx = FarTerrainMesh.keyX(key) - x;
+-                //~ final int dz = FarTerrainMesh.keyZ(key) - z;
+-                //~ if (dx * dx + dz * dz > radius * radius) {
+-                    //~ it.remove();
+-                //~ }
+-            //~ }
+-            //~ radius /= 2;
+-        //~ }
+-    //~ }
++    /** Drops the stored chunks farthest from (x, z) until a quarter of the room is free again. */
++    private static void trim(final int x, final int z) {
++        int radius = 128;
++        while (COLUMNS.size() > MAX_CHUNKS * 3 / 4 && radius > 8) {
++            final Iterator<Long> it = COLUMNS.keySet().iterator();
++            while (it.hasNext()) {
++                final long key = it.next().longValue();
++                final int dx = FarTerrainMesh.keyX(key) - x;
++                final int dz = FarTerrainMesh.keyZ(key) - z;
++                if (dx * dx + dz * dz > radius * radius) {
++                    it.remove();
++                }
++            }
++            radius /= 2;
++        }
++    }
+ 
+-    //~ /** The world changed: forget everything (the render thread frees the buffers on its next frame). */
+-    //~ public static void levelChanged() {
+-        //~ COLUMNS.clear();
+-        //~ dirty = true;
+-        //~ builtX = Integer.MIN_VALUE;
+-    //~ }
++    /** The world changed: forget everything (the render thread frees the buffers on its next frame). */
++    public static void levelChanged() {
++        COLUMNS.clear();
++        dirty = true;
++        builtX = Integer.MIN_VALUE;
++    }
+ 
+-    //~ /** Far terrain was drawn this frame. */
+-    //~ public static boolean drawnThisFrame() {
+-        //~ return drawing;
+-    //~ }
++    /** Far terrain was drawn this frame. */
++    public static boolean drawnThisFrame() {
++        return drawing;
++    }
+ 
+-    //~ /** True while far terrain was drawn this frame (the terrain fog then reaches its edge). */
+-    //~ public static boolean extendFog() {
+-        //~ if (!drawing) {
+-            //~ return false;
+-        //~ }
+-        //~ RenderSystem.fogStart(drawnFarBlocks * fogStartFraction());
+-        //~ RenderSystem.fogEnd(drawnFarBlocks);
+-        //~ return true;
+-    //~ }
++    /** True while far terrain was drawn this frame (the terrain fog then reaches its edge). */
++    public static boolean extendFog() {
++        if (!drawing) {
++            return false;
++        }
++        RenderSystem.fogStart(drawnFarBlocks * fogStartFraction());
++        RenderSystem.fogEnd(drawnFarBlocks);
++        return true;
++    }
+ 
+-    //~ /** LevelRenderer.renderLevel, right after the sky. */
+-    //~ public static void draw(final PoseStack poseStack, final Camera camera) {
+-        //~ drawing = false;
+-        //~ final Minecraft mc = Minecraft.getInstance();
+-        //~ final ClientLevel level = mc.level;
+-        //~ final int far = level == null ? 0 : effectiveFar(mc);
+-        //~ if (far <= 0 || level.dimension() != Level.OVERWORLD) {
+-            //~ // Option off, another dimension or an error: everything goes. Only the render distance
+-            //~ // reaching the far distance: the buffers go, the sampled chunks stay for later.
+-            //~ final boolean keep = level != null && level.dimension() == Level.OVERWORLD && Tuning.farTerrain > 0
+-                    //~ && !broken && !SHADER_MOD;
+-            //~ if (bufferCount > 0 || (!keep && !COLUMNS.isEmpty())) {
+-                //~ release(keep);
+-            //~ }
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ if (level != seededLevel) {
+-                //~ seededLevel = level;
+-                //~ COLUMNS.clear();
+-                //~ seed(level, mc.options.renderDistance, camera);
+-            //~ }
+-            //~ if (workerError != null) {
+-                //~ final Throwable error = workerError;
+-                //~ workerError = null;
+-                //~ throw new IllegalStateException("far terrain mesh failed", error);
+-            //~ }
+-            //~ if (ready) {
+-                //~ upload();
+-            //~ }
+-            //~ schedule(mc, level, camera, far);
+-            //~ if (bufferCount == 0 || !camera.getFluidInCamera().isEmpty() || blinded(camera)) {
+-                //~ return;
+-            //~ }
+-            //~ render(poseStack, camera, far);
+-            //~ drawing = true;
+-            //~ drawnFarBlocks = far * 16;
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ fail(e);
+-        //~ }
+-    //~ }
++    /** LevelRenderer.renderLevel, right after the sky. */
++    public static void draw(final PoseStack poseStack, final Camera camera) {
++        drawing = false;
++        final Minecraft mc = Minecraft.getInstance();
++        final ClientLevel level = mc.level;
++        final int far = level == null ? 0 : effectiveFar(mc);
++        if (far <= 0 || level.dimension() != Level.OVERWORLD) {
++            // Option off, another dimension or an error: everything goes. Only the render distance
++            // reaching the far distance: the buffers go, the sampled chunks stay for later.
++            final boolean keep = level != null && level.dimension() == Level.OVERWORLD && Tuning.farTerrain > 0
++                    && !broken && !SHADER_MOD;
++            if (bufferCount > 0 || (!keep && !COLUMNS.isEmpty())) {
++                release(keep);
++            }
++            return;
++        }
++        try {
++            if (level != seededLevel) {
++                seededLevel = level;
++                COLUMNS.clear();
++                seed(level, mc.options.renderDistance, camera);
++            }
++            if (workerError != null) {
++                final Throwable error = workerError;
++                workerError = null;
++                throw new IllegalStateException("far terrain mesh failed", error);
++            }
++            if (ready) {
++                upload();
++            }
++            schedule(mc, level, camera, far);
++            if (bufferCount == 0 || !camera.getFluidInCamera().isEmpty() || blinded(camera)) {
++                return;
++            }
++            render(poseStack, camera, far);
++            drawing = true;
++            drawnFarBlocks = far * 16;
++        } catch (final RuntimeException | LinkageError e) {
++            fail(e);
++        }
++    }
+ 
+-    //~ /** The Fog start setting (75% = vanilla), capped so some fog always remains at the edge. */
+-    //~ private static float fogStartFraction() {
+-        //~ return Math.min(0.95F, Scenery.fogStartPercent / 100.0F);
+-    //~ }
++    /** The Fog start setting (75% = vanilla), capped so some fog always remains at the edge. */
++    private static float fogStartFraction() {
++        return Math.min(0.95F, Scenery.fogStartPercent / 100.0F);
++    }
+ 
+-    //~ private static boolean blinded(final Camera camera) {
+-        //~ final Entity entity = camera.getEntity();
+-        //~ return entity instanceof LivingEntity && ((LivingEntity) entity).hasEffect(MobEffects.BLINDNESS);
+-    //~ }
++    private static boolean blinded(final Camera camera) {
++        final Entity entity = camera.getEntity();
++        return entity instanceof LivingEntity && ((LivingEntity) entity).hasEffect(MobEffects.BLINDNESS);
++    }
+ 
+-    //~ /** Turning the option on mid-game: the chunks already loaded are sampled at once. */
+-    //~ private static void seed(final ClientLevel level, final int rd, final Camera camera) {
+-        //~ final BlockPos at = camera.getBlockPosition();
+-        //~ final int cx = at.getX() >> 4;
+-        //~ final int cz = at.getZ() >> 4;
+-        //~ for (int dz = -rd; dz <= rd; dz++) {
+-            //~ for (int dx = -rd; dx <= rd; dx++) {
+-                //~ // A missing chunk comes back as the client's EmptyLevelChunk (a subclass).
+-                //~ final LevelChunk chunk = level.getChunk(cx + dx, cz + dz);
+-                //~ if (chunk != null && chunk.getClass() == LevelChunk.class) {
+-                    //~ store(chunk);
+-                //~ }
+-            //~ }
+-        //~ }
+-    //~ }
++    /** Turning the option on mid-game: the chunks already loaded are sampled at once. */
++    private static void seed(final ClientLevel level, final int rd, final Camera camera) {
++        final BlockPos at = camera.getBlockPosition();
++        final int cx = at.getX() >> 4;
++        final int cz = at.getZ() >> 4;
++        for (int dz = -rd; dz <= rd; dz++) {
++            for (int dx = -rd; dx <= rd; dx++) {
++                // A missing chunk comes back as the client's EmptyLevelChunk (a subclass).
++                final LevelChunk chunk = level.getChunk(cx + dx, cz + dz);
++                if (chunk != null && chunk.getClass() == LevelChunk.class) {
++                    store(chunk);
++                }
++            }
++        }
++    }
+ 
+-    //~ private static void schedule(final Minecraft mc, final ClientLevel level, final Camera camera, final int far) {
+-        //~ if (building) {
+-            //~ return;
+-        //~ }
+-        //~ final BlockPos at = camera.getBlockPosition();
+-        //~ final int cx = at.getX() >> 4;
+-        //~ final int cz = at.getZ() >> 4;
+-        //~ final int rd = mc.options.renderDistance;
+-        //~ // Daylight in 16 steps: the outline darkens with the sky (vertex colours, so it needs a rebuild).
+-        //~ final int light = Math.round(level.getSkyDarken(1.0F) * 16.0F);
+-        //~ final long now = System.nanoTime();
+-        //~ final boolean changed = cx != builtX || cz != builtZ || rd != builtRd || far != builtFar || light != builtLight;
+-        //~ final boolean timed = (dirty || builtInside) && now - lastBuild >= REBUILD_NANOS;
+-        //~ if (!changed && !timed) {
+-            //~ return;
+-        //~ }
+-        //~ final Set<Long> inside = unbuilt(mc, cx, cz, rd);
+-        //~ builtX = cx;
+-        //~ builtZ = cz;
+-        //~ builtRd = rd;
+-        //~ builtFar = far;
+-        //~ builtLight = light;
+-        //~ builtInside = !inside.isEmpty();
+-        //~ lastBuild = now;
+-        //~ dirty = false;
+-        //~ pendingX = cx;
+-        //~ pendingZ = cz;
+-        //~ building = true;
+-        //~ final float brightness = Math.max(0.2F, Math.min(1.0F, light / 16.0F));
+-        //~ if (worker == null) {
+-            //~ worker = Executors.newSingleThreadExecutor(r -> {
+-                //~ final Thread t = new Thread(r, "Aetherium far terrain");
+-                //~ t.setDaemon(true);
+-                //~ t.setPriority(Thread.MIN_PRIORITY);
+-                //~ return t;
+-            //~ });
+-        //~ }
+-        //~ worker.execute(() -> {
+-            //~ try {
+-                //~ final Writer writer = new Writer(brightness);
+-                //~ FarTerrainMesh.build(COLUMNS, cx, cz, rd, far, inside, writer);
+-                //~ readyBuffers = writer.finish();
+-                //~ ready = true;
+-            //~ } catch (final Throwable t) {
+-                //~ workerError = t;
+-                //~ building = false;
+-            //~ }
+-        //~ });
+-    //~ }
++    private static void schedule(final Minecraft mc, final ClientLevel level, final Camera camera, final int far) {
++        if (building) {
++            return;
++        }
++        final BlockPos at = camera.getBlockPosition();
++        final int cx = at.getX() >> 4;
++        final int cz = at.getZ() >> 4;
++        final int rd = mc.options.renderDistance;
++        // Daylight in 16 steps: the outline darkens with the sky (vertex colours, so it needs a rebuild).
++        final int light = Math.round(level.getSkyDarken(1.0F) * 16.0F);
++        final long now = System.nanoTime();
++        final boolean changed = cx != builtX || cz != builtZ || rd != builtRd || far != builtFar || light != builtLight;
++        final boolean timed = (dirty || builtInside) && now - lastBuild >= REBUILD_NANOS;
++        if (!changed && !timed) {
++            return;
++        }
++        final Set<Long> inside = unbuilt(mc, cx, cz, rd);
++        builtX = cx;
++        builtZ = cz;
++        builtRd = rd;
++        builtFar = far;
++        builtLight = light;
++        builtInside = !inside.isEmpty();
++        lastBuild = now;
++        dirty = false;
++        pendingX = cx;
++        pendingZ = cz;
++        building = true;
++        final float brightness = Math.max(0.2F, Math.min(1.0F, light / 16.0F));
++        if (worker == null) {
++            worker = Executors.newSingleThreadExecutor(r -> {
++                final Thread t = new Thread(r, "Aetherium far terrain");
++                t.setDaemon(true);
++                t.setPriority(Thread.MIN_PRIORITY);
++                return t;
++            });
++        }
++        worker.execute(() -> {
++            try {
++                final Writer writer = new Writer(brightness);
++                FarTerrainMesh.build(COLUMNS, cx, cz, rd, far, inside, writer);
++                readyBuffers = writer.finish();
++                ready = true;
++            } catch (final Throwable t) {
++                workerError = t;
++                building = false;
++            }
++        });
++    }
+ 
+-    //~ /**
+-     //~ * Stored chunks inside the render distance that vanilla is not drawing yet: the section at their
+-     //~ * surface is missing from the view area or has never been compiled.
+-     //~ */
+-    //~ private static Set<Long> unbuilt(final Minecraft mc, final int cx, final int cz, final int rd) {
+-        //~ final Set<Long> out = new HashSet<Long>();
+-        //~ final Object renderer = mc.levelRenderer;
+-        //~ if (!(renderer instanceof TuningLevelAccessor)) {
+-            //~ return out;
+-        //~ }
+-        //~ final Object area = ((TuningLevelAccessor) renderer).aetherium$viewArea();
+-        //~ if (!(area instanceof TuningViewAreaAccessor)) {
+-            //~ return out;
+-        //~ }
+-        //~ final TuningViewAreaAccessor view = (TuningViewAreaAccessor) area;
+-        //~ final BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+-        //~ for (int dz = -rd; dz <= rd; dz++) {
+-            //~ for (int dx = -rd; dx <= rd; dx++) {
+-                //~ final Long key = Long.valueOf(FarTerrainMesh.key(cx + dx, cz + dz));
+-                //~ final FarTerrainMesh.Column column = COLUMNS.get(key);
+-                //~ if (column == null) {
+-                    //~ continue;
+-                //~ }
+-                //~ at.set(((cx + dx) << 4) + 8, Math.max(0, Math.min(255, column.heights[5] - 1)), ((cz + dz) << 4) + 8);
+-                //~ final ChunkRenderDispatcher.RenderChunk section = view.aetherium$renderChunkAt(at);
+-                //~ if (section == null || section.getCompiledChunk() == ChunkRenderDispatcher.CompiledChunk.UNCOMPILED) {
+-                    //~ out.add(key);
+-                //~ }
+-            //~ }
+-        //~ }
+-        //~ return out;
+-    //~ }
++    /**
++     * Stored chunks inside the render distance that vanilla is not drawing yet: the section at their
++     * surface is missing from the view area or has never been compiled.
++     */
++    private static Set<Long> unbuilt(final Minecraft mc, final int cx, final int cz, final int rd) {
++        final Set<Long> out = new HashSet<Long>();
++        final Object renderer = mc.levelRenderer;
++        if (!(renderer instanceof TuningLevelAccessor)) {
++            return out;
++        }
++        final Object area = ((TuningLevelAccessor) renderer).aetherium$viewArea();
++        if (!(area instanceof TuningViewAreaAccessor)) {
++            return out;
++        }
++        final TuningViewAreaAccessor view = (TuningViewAreaAccessor) area;
++        final BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
++        for (int dz = -rd; dz <= rd; dz++) {
++            for (int dx = -rd; dx <= rd; dx++) {
++                final Long key = Long.valueOf(FarTerrainMesh.key(cx + dx, cz + dz));
++                final FarTerrainMesh.Column column = COLUMNS.get(key);
++                if (column == null) {
++                    continue;
++                }
++                at.set(((cx + dx) << 4) + 8, Math.max(0, Math.min(255, column.heights[5] - 1)), ((cz + dz) << 4) + 8);
++                final ChunkRenderDispatcher.RenderChunk section = view.aetherium$renderChunkAt(at);
++                if (section == null || section.getCompiledChunk() == ChunkRenderDispatcher.CompiledChunk.UNCOMPILED) {
++                    out.add(key);
++                }
++            }
++        }
++        return out;
++    }
+ 
+-    //~ /** Render thread: the worker's buffers become the drawn mesh. */
+-    //~ private static void upload() {
+-        //~ final int count = readyBuffers;
+-        //~ for (int i = 0; i < count; i++) {
+-            //~ if (i >= BUFFERS.size()) {
+-                //~ BUFFERS.add(new VertexBuffer(FORMAT));
+-            //~ }
+-            //~ BUFFERS.get(i).upload(BUILDERS.get(i));
+-        //~ }
+-        //~ while (BUFFERS.size() > count) {
+-            //~ BUFFERS.remove(BUFFERS.size() - 1).close();
+-        //~ }
+-        //~ bufferCount = count;
+-        //~ meshX = pendingX;
+-        //~ meshZ = pendingZ;
+-        //~ ready = false;
+-        //~ building = false;
+-    //~ }
++    /** Render thread: the worker's buffers become the drawn mesh. */
++    private static void upload() {
++        final int count = readyBuffers;
++        for (int i = 0; i < count; i++) {
++            if (i >= BUFFERS.size()) {
++                BUFFERS.add(new VertexBuffer(FORMAT));
++            }
++            BUFFERS.get(i).upload(BUILDERS.get(i));
++        }
++        while (BUFFERS.size() > count) {
++            BUFFERS.remove(BUFFERS.size() - 1).close();
++        }
++        bufferCount = count;
++        meshX = pendingX;
++        meshZ = pendingZ;
++        ready = false;
++        building = false;
++    }
+ 
+-    //~ private static void render(final PoseStack poseStack, final Camera camera, final int far) {
+-        //~ final Vec3 cam = camera.getPosition();
+-        //~ // Restored afterwards to whatever the sky left (vanilla's render states expect their defaults).
+-        //~ final boolean depth = GL11.glIsEnabled(GL_DEPTH_TEST);
+-        //~ final boolean cull = GL11.glIsEnabled(GL_CULL_FACE);
+-        //~ final boolean fog = GL11.glIsEnabled(GL_FOG);
+-        //~ RenderSystem.disableTexture();
+-        //~ RenderSystem.disableCull();
+-        //~ RenderSystem.enableDepthTest();
+-        //~ RenderSystem.depthMask(true);
+-        //~ RenderSystem.enableFog();
+-        //~ RenderSystem.fogStart(far * 16 * fogStartFraction());
+-        //~ RenderSystem.fogEnd(far * 16);
+-        //~ poseStack.pushPose();
+-        //~ // 0.1 below the real surface, so an outline left under a chunk that was just built hides
+-        //~ // beneath its top faces instead of flickering with them.
+-        //~ poseStack.translate((meshX << 4) - cam.x, -0.1 - cam.y, (meshZ << 4) - cam.z);
+-        //~ final Matrix4f pose = poseStack.last().pose();
+-        //~ for (int i = 0; i < bufferCount; i++) {
+-            //~ final VertexBuffer buffer = BUFFERS.get(i);
+-            //~ buffer.bind();
+-            //~ FORMAT.setupBufferState(0L);
+-            //~ buffer.draw(pose, GL_QUADS);
+-        //~ }
+-        //~ VertexBuffer.unbind();
+-        //~ FORMAT.clearBufferState();
+-        //~ poseStack.popPose();
+-        //~ if (!fog) {
+-            //~ RenderSystem.disableFog();
+-        //~ }
+-        //~ if (cull) {
+-            //~ RenderSystem.enableCull();
+-        //~ }
+-        //~ if (!depth) {
+-            //~ RenderSystem.disableDepthTest();
+-        //~ }
+-        //~ RenderSystem.enableTexture();
+-    //~ }
++    private static void render(final PoseStack poseStack, final Camera camera, final int far) {
++        final Vec3 cam = camera.getPosition();
++        // Restored afterwards to whatever the sky left (vanilla's render states expect their defaults).
++        final boolean depth = GL11.glIsEnabled(GL_DEPTH_TEST);
++        final boolean cull = GL11.glIsEnabled(GL_CULL_FACE);
++        final boolean fog = GL11.glIsEnabled(GL_FOG);
++        RenderSystem.disableTexture();
++        RenderSystem.disableCull();
++        RenderSystem.enableDepthTest();
++        RenderSystem.depthMask(true);
++        RenderSystem.enableFog();
++        RenderSystem.fogStart(far * 16 * fogStartFraction());
++        RenderSystem.fogEnd(far * 16);
++        poseStack.pushPose();
++        // 0.1 below the real surface, so an outline left under a chunk that was just built hides
++        // beneath its top faces instead of flickering with them.
++        poseStack.translate((meshX << 4) - cam.x, -0.1 - cam.y, (meshZ << 4) - cam.z);
++        final Matrix4f pose = poseStack.last().pose();
++        for (int i = 0; i < bufferCount; i++) {
++            final VertexBuffer buffer = BUFFERS.get(i);
++            buffer.bind();
++            FORMAT.setupBufferState(0L);
++            buffer.draw(pose, GL_QUADS);
++        }
++        VertexBuffer.unbind();
++        FORMAT.clearBufferState();
++        poseStack.popPose();
++        if (!fog) {
++            RenderSystem.disableFog();
++        }
++        if (cull) {
++            RenderSystem.enableCull();
++        }
++        if (!depth) {
++            RenderSystem.disableDepthTest();
++        }
++        RenderSystem.enableTexture();
++    }
+ 
+-    //~ private static void release(final boolean keepColumns) {
+-        //~ for (final VertexBuffer buffer : BUFFERS) {
+-            //~ buffer.close();
+-        //~ }
+-        //~ BUFFERS.clear();
+-        //~ bufferCount = 0;
+-        //~ if (!building) {
+-            //~ BUILDERS.clear();
+-        //~ }
+-        //~ if (!keepColumns) {
+-            //~ COLUMNS.clear();
+-            //~ seededLevel = null;
+-        //~ }
+-        //~ builtX = Integer.MIN_VALUE;
+-        //~ drawing = false;
+-    //~ }
++    private static void release(final boolean keepColumns) {
++        for (final VertexBuffer buffer : BUFFERS) {
++            buffer.close();
++        }
++        BUFFERS.clear();
++        bufferCount = 0;
++        if (!building) {
++            BUILDERS.clear();
++        }
++        if (!keepColumns) {
++            COLUMNS.clear();
++            seededLevel = null;
++        }
++        builtX = Integer.MIN_VALUE;
++        drawing = false;
++    }
+ 
+-    //~ private static void fail(final Throwable e) {
+-        //~ broken = true;
+-        //~ LOGGER.error("Far terrain turned off after an error", e);
+-        //~ try {
+-            //~ release(false);
+-        //~ } catch (final RuntimeException | LinkageError ignored) {
+-            //~ // already broken; the buffers are freed with the GL context
+-        //~ }
+-    //~ }
++    private static void fail(final Throwable e) {
++        broken = true;
++        LOGGER.error("Far terrain turned off after an error", e);
++        try {
++            release(false);
++        } catch (final RuntimeException | LinkageError ignored) {
++            // already broken; the buffers are freed with the GL context
++        }
++    }
+ 
+-    //~ /** Worker thread: quads into position-colour builders of at most {@link #QUADS_PER_BUFFER}. */
+-    //~ private static final class Writer implements FarTerrainMesh.Sink {
+-        //~ private final float brightness;
+-        //~ private BufferBuilder current;
+-        //~ private int used;
+-        //~ private int quads;
++    /** Worker thread: quads into position-colour builders of at most {@link #QUADS_PER_BUFFER}. */
++    private static final class Writer implements FarTerrainMesh.Sink {
++        private final float brightness;
++        private BufferBuilder current;
++        private int used;
++        private int quads;
+ 
+-        //~ Writer(final float brightness) {
+-            //~ this.brightness = brightness;
+-        //~ }
++        Writer(final float brightness) {
++            this.brightness = brightness;
++        }
+ 
+-        //~ @Override
+-        //~ public void quad(final float x0, final float y0, final float z0, final float x1, final float y1, final float z1,
+-                         //~ final float x2, final float y2, final float z2, final float x3, final float y3, final float z3,
+-                         //~ final int rgb) {
+-            //~ if (this.current == null || this.quads >= QUADS_PER_BUFFER) {
+-                //~ this.next();
+-            //~ }
+-            //~ final int shaded = FarTerrainMesh.shade(rgb, this.brightness);
+-            //~ final int r = (shaded >> 16) & 0xFF;
+-            //~ final int g = (shaded >> 8) & 0xFF;
+-            //~ final int b = shaded & 0xFF;
+-            //~ final VertexConsumer out = (VertexConsumer) (Object) this.current;
+-            //~ out.vertex(x0, y0, z0).color(r, g, b, 255).endVertex();
+-            //~ out.vertex(x1, y1, z1).color(r, g, b, 255).endVertex();
+-            //~ out.vertex(x2, y2, z2).color(r, g, b, 255).endVertex();
+-            //~ out.vertex(x3, y3, z3).color(r, g, b, 255).endVertex();
+-            //~ this.quads++;
+-        //~ }
++        @Override
++        public void quad(final float x0, final float y0, final float z0, final float x1, final float y1, final float z1,
++                         final float x2, final float y2, final float z2, final float x3, final float y3, final float z3,
++                         final int rgb) {
++            if (this.current == null || this.quads >= QUADS_PER_BUFFER) {
++                this.next();
++            }
++            final int shaded = FarTerrainMesh.shade(rgb, this.brightness);
++            final int r = (shaded >> 16) & 0xFF;
++            final int g = (shaded >> 8) & 0xFF;
++            final int b = shaded & 0xFF;
++            final VertexConsumer out = (VertexConsumer) (Object) this.current;
++            out.vertex(x0, y0, z0).color(r, g, b, 255).endVertex();
++            out.vertex(x1, y1, z1).color(r, g, b, 255).endVertex();
++            out.vertex(x2, y2, z2).color(r, g, b, 255).endVertex();
++            out.vertex(x3, y3, z3).color(r, g, b, 255).endVertex();
++            this.quads++;
++        }
+ 
+-        //~ private void next() {
+-            //~ if (this.current != null) {
+-                //~ this.current.end();
+-            //~ }
+-            //~ if (this.used < BUILDERS.size()) {
+-                //~ this.current = BUILDERS.get(this.used);
+-            //~ } else {
+-                //~ // Capacity in ints: one full buffer of position-colour quads (16 bytes per vertex).
+-                //~ this.current = new BufferBuilder(QUADS_PER_BUFFER * 4 * 4);
+-                //~ BUILDERS.add(this.current);
+-            //~ }
+-            //~ this.used++;
+-            //~ this.current.begin(GL_QUADS, FORMAT);
+-            //~ this.quads = 0;
+-        //~ }
++        private void next() {
++            if (this.current != null) {
++                this.current.end();
++            }
++            if (this.used < BUILDERS.size()) {
++                this.current = BUILDERS.get(this.used);
++            } else {
++                // Capacity in ints: one full buffer of position-colour quads (16 bytes per vertex).
++                this.current = new BufferBuilder(QUADS_PER_BUFFER * 4 * 4);
++                BUILDERS.add(this.current);
++            }
++            this.used++;
++            this.current.begin(GL_QUADS, FORMAT);
++            this.quads = 0;
++        }
+ 
+-        //~ /** @return number of filled builders */
+-        //~ int finish() {
+-            //~ if (this.current != null) {
+-                //~ this.current.end();
+-            //~ }
+-            //~ return this.used;
+-        //~ }
++        /** @return number of filled builders */
++        int finish() {
++            if (this.current != null) {
++                this.current.end();
++            }
++            return this.used;
++        }
++    }
++    // @era:qol16-else none
++    //~ public static void levelChanged() {
+     //~ }
+     // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/FlightPreload.java b/common/src/main/java/com/aetherium/client/FlightPreload.java
 index 31caec3..fd274d4 100644
@@ -1606,7 +2850,7 @@ index 10c82b3..da83c24 100644
  //~ }
  // @era:render-scale-end
 diff --git a/common/src/main/java/com/aetherium/client/SceneryHooks.java b/common/src/main/java/com/aetherium/client/SceneryHooks.java
-index b967978..20461bf 100644
+index 5d253f5..297027d 100644
 --- a/common/src/main/java/com/aetherium/client/SceneryHooks.java
 +++ b/common/src/main/java/com/aetherium/client/SceneryHooks.java
 @@ -11,26 +11,26 @@ import net.minecraft.core.particles.ParticleType;
@@ -1648,7 +2892,7 @@ index b967978..20461bf 100644
  // @era:registry-end
  
  /**
-@@ -60,80 +60,81 @@ public final class SceneryHooks {
+@@ -60,88 +60,89 @@ public final class SceneryHooks {
              return false;
          }
          final LivingEntity living = (LivingEntity) entity;
@@ -1683,17 +2927,25 @@ index b967978..20461bf 100644
 +
 +    /** FogRenderer.setupFog TAIL, terrain fog only. */
 +    public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
-+        if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
++        if (blinded(camera.getEntity())) {
 +            return;
          }
 -        if (type == FogType.LAVA) {
 -            return Scenery.LAVA;
-+        final int medium = medium(camera);
-+        if (!Scenery.adjustFog(medium, thick, farPlane, FogTracker.start(), FogTracker.end(), FogTracker.density(), FOG)) {
++        // Far terrain drawn this frame: the terrain fog reaches its edge instead of the render distance.
++        if (FarTerrain.drawnThisFrame() && !thick && Scenery.distanceFog && medium(camera) == Scenery.AIR
++                && FarTerrain.extendFog()) {
 +            return;
          }
 -        if (type == FogType.POWDER_SNOW) {
 -            return -1;
++        if (Scenery.fogVanilla()) {
++            return;
++        }
++        final int medium = medium(camera);
++        if (!Scenery.adjustFog(medium, thick, farPlane, FogTracker.start(), FogTracker.end(), FogTracker.density(), FOG)) {
++            return;
++        }
 +        if (medium == Scenery.WATER) {
 +            RenderSystem.fogDensity(FOG[Scenery.DENSITY]);
 +        } else {
@@ -1734,6 +2986,15 @@ index b967978..20461bf 100644
 +    // @era:fog-else shader17|shader19
 +    //~ /** FogRenderer.setupFog TAIL, terrain fog only (vanilla has just set the shader fog). */
      //~ public static void adjustFog(final Camera camera, final float farPlane, final boolean thick) {
+-        //~ if (blinded(camera.getEntity())) {
+-            //~ return;
+-        //~ }
+-        //~ // Far terrain drawn this frame: the terrain fog reaches its edge instead of the render distance.
+-        //~ if (FarTerrain.drawnThisFrame() && !thick && Scenery.distanceFog && medium(camera) == Scenery.AIR
+-                //~ && FarTerrain.extendFog()) {
+-            //~ return;
+-        //~ }
+-        //~ if (Scenery.fogVanilla()) {
 +        //~ adjustShaderFog(camera, farPlane, thick);
 +        //~ // What the terrain is drawn with this frame, for the fog cull.
 +        //~ FogCull.recordFogRange(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(),
@@ -1741,7 +3002,7 @@ index b967978..20461bf 100644
 +    //~ }
 +
 +    //~ private static void adjustShaderFog(final Camera camera, final float farPlane, final boolean thick) {
-         //~ if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
++        //~ if (Scenery.fogVanilla() || blinded(camera.getEntity())) {
              //~ return;
          //~ }
          //~ final int medium = medium(camera);
@@ -1785,7 +3046,7 @@ index b967978..20461bf 100644
      // @era:fog-else buffer|data
      //~ /**
       //~ * Before FogRenderer writes the fog uniform: the four ranges to write instead, or null to
-@@ -189,7 +190,6 @@ public final class SceneryHooks {
+@@ -197,7 +198,6 @@ public final class SceneryHooks {
          //~ return new FogParameters(FOG[Scenery.START], FOG[Scenery.END], fog.shape(), fog.red(), fog.green(),
                  //~ fog.blue(), fog.alpha());
      //~ }
@@ -1793,7 +3054,7 @@ index b967978..20461bf 100644
      // @era:fog-end
  
      // ------------------------------------------------------------------ particles
-@@ -202,10 +202,10 @@ public final class SceneryHooks {
+@@ -210,10 +210,10 @@ public final class SceneryHooks {
          final ParticleType<?> type = options.getType();
          Integer category = CATEGORY.get(type);
          if (category == null) {
@@ -1942,7 +3203,7 @@ index 1484fb6..e0a2b5b 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/TuningClient.java b/common/src/main/java/com/aetherium/client/TuningClient.java
-index 47e1aa2..6bc5a48 100644
+index 63f0e68..22e4c94 100644
 --- a/common/src/main/java/com/aetherium/client/TuningClient.java
 +++ b/common/src/main/java/com/aetherium/client/TuningClient.java
 @@ -3,23 +3,23 @@ package com.aetherium.client;
@@ -1986,7 +3247,7 @@ index 47e1aa2..6bc5a48 100644
  // @era:qol16-end
  
  /**
-@@ -42,156 +42,156 @@ public final class TuningClient {
+@@ -42,158 +42,158 @@ public final class TuningClient {
      private TuningClient() {
      }
  
@@ -2093,6 +3354,8 @@ index 47e1aa2..6bc5a48 100644
      public static void levelChanged() {
 +        DIRTY_LIGHT.clear();
 +        lightTicks = 0;
++        FarTerrain.levelChanged();
++        WorldCache.levelChanged();
      }
  
 +    /** After Apply: a leaves mode change needs the chunks rebuilt with the new render type. */
@@ -2229,6 +3492,8 @@ index 47e1aa2..6bc5a48 100644
      //~ public static void levelChanged() {
 -        //~ DIRTY_LIGHT.clear();
 -        //~ lightTicks = 0;
+-        //~ FarTerrain.levelChanged();
+-        //~ WorldCache.levelChanged();
      //~ }
  
 -    //~ /** After Apply: a leaves mode change needs the chunks rebuilt with the new render type. */
@@ -3050,6 +4315,225 @@ index a561e63..e5c6f9f 100644
 +        //~ }
 +    //~ }
      // @era:options-end
+ }
+diff --git a/common/src/main/java/com/aetherium/client/WorldCache.java b/common/src/main/java/com/aetherium/client/WorldCache.java
+index 9d903f6..dbf5532 100644
+--- a/common/src/main/java/com/aetherium/client/WorldCache.java
++++ b/common/src/main/java/com/aetherium/client/WorldCache.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.client;
+ 
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.aetherium.util.AetheriumLog;
+-//~ import com.mojang.blaze3d.pipeline.RenderTarget;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.gui.screens.ChatScreen;
+-//~ import net.minecraft.client.gui.screens.Screen;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import com.aetherium.util.AetheriumLog;
++import com.mojang.blaze3d.pipeline.RenderTarget;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.gui.screens.ChatScreen;
++import net.minecraft.client.gui.screens.Screen;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -27,101 +27,101 @@ public final class WorldCache {
+     private WorldCache() {
+     }
+ 
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
+-    //~ private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
+-    //~ private static RenderTarget cache;
+-    //~ private static boolean valid;
+-    //~ private static long lastCapture;
+-    //~ private static boolean broken;
++    // @era:qol16-begin v16
++    private static final AetheriumLog LOGGER = AetheriumLog.of(WorldCache.class);
++    private static final long REFRESH_NANOS = 1_000_000_000L / REFRESH_PER_SECOND;
++    private static RenderTarget cache;
++    private static boolean valid;
++    private static long lastCapture;
++    private static boolean broken;
+ 
+-    //~ private static boolean eligible(final Minecraft mc) {
+-        //~ if (!Tuning.menuWorldCache || broken || AutoBench.ACTIVE || mc.level == null) {
+-            //~ return false;
+-        //~ }
+-        //~ final Screen screen = mc.screen;
+-        //~ return screen != null && !(screen instanceof ChatScreen)
+-                //~ && !screen.getClass().getName().startsWith("com.aetherium.")
+-                //~ && mc.gameRenderer.currentEffect() == null;
+-    //~ }
++    private static boolean eligible(final Minecraft mc) {
++        if (!Tuning.menuWorldCache || broken || AutoBench.ACTIVE || mc.level == null) {
++            return false;
++        }
++        final Screen screen = mc.screen;
++        return screen != null && !(screen instanceof ChatScreen)
++                && !screen.getClass().getName().startsWith("com.aetherium.")
++                && mc.gameRenderer.currentEffect() == null;
++    }
+ 
+-    //~ /**
+-     //~ * Instead of {@code GameRenderer.renderLevel}: true when the stored picture was drawn and the
+-     //~ * world must not be rendered this frame.
+-     //~ */
+-    //~ public static boolean reuse(final Minecraft mc) {
+-        //~ if (!eligible(mc)) {
+-            //~ valid = false;
+-            //~ if (cache != null && mc.screen == null) {
+-                //~ // Back in the game: the screen-sized framebuffer is not kept around.
+-                //~ cache.destroyBuffers();
+-                //~ cache = null;
+-                //~ // destroyBuffers leaves framebuffer 0 bound; the world is drawn into the main target.
+-                //~ mc.getMainRenderTarget().bindWrite(true);
+-            //~ }
+-            //~ return false;
+-        //~ }
+-        //~ if (!valid || cache == null || System.nanoTime() - lastCapture >= REFRESH_NANOS) {
+-            //~ return false;
+-        //~ }
+-        //~ try {
+-            //~ final RenderTarget main = mc.getMainRenderTarget();
+-            //~ if (cache.width != main.width || cache.height != main.height) {
+-                //~ valid = false;
+-                //~ return false;
+-            //~ }
+-            //~ main.bindWrite(true);
+-            //~ cache.blitToScreen(main.width, main.height, true);
+-            //~ main.bindWrite(true);
+-            //~ return true;
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ fail(e);
+-            //~ return false;
+-        //~ }
+-    //~ }
++    /**
++     * Instead of {@code GameRenderer.renderLevel}: true when the stored picture was drawn and the
++     * world must not be rendered this frame.
++     */
++    public static boolean reuse(final Minecraft mc) {
++        if (!eligible(mc)) {
++            valid = false;
++            if (cache != null && mc.screen == null) {
++                // Back in the game: the screen-sized framebuffer is not kept around.
++                cache.destroyBuffers();
++                cache = null;
++                // destroyBuffers leaves framebuffer 0 bound; the world is drawn into the main target.
++                mc.getMainRenderTarget().bindWrite(true);
++            }
++            return false;
++        }
++        if (!valid || cache == null || System.nanoTime() - lastCapture >= REFRESH_NANOS) {
++            return false;
++        }
++        try {
++            final RenderTarget main = mc.getMainRenderTarget();
++            if (cache.width != main.width || cache.height != main.height) {
++                valid = false;
++                return false;
++            }
++            main.bindWrite(true);
++            cache.blitToScreen(main.width, main.height, true);
++            main.bindWrite(true);
++            return true;
++        } catch (final RuntimeException | LinkageError e) {
++            fail(e);
++            return false;
++        }
++    }
+ 
+-    //~ /** After a world frame with a menu open: keep the picture for the next frames. */
+-    //~ public static void capture(final Minecraft mc) {
+-        //~ if (!eligible(mc)) {
+-            //~ valid = false;
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ final RenderTarget main = mc.getMainRenderTarget();
+-            //~ if (cache == null) {
+-                //~ cache = new RenderTarget(main.width, main.height, false, Minecraft.ON_OSX);
+-            //~ } else if (cache.width != main.width || cache.height != main.height) {
+-                //~ cache.resize(main.width, main.height, Minecraft.ON_OSX);
+-            //~ }
+-            //~ cache.bindWrite(true);
+-            //~ main.blitToScreen(main.width, main.height, true);
+-            //~ main.bindWrite(true);
+-            //~ valid = true;
+-            //~ lastCapture = System.nanoTime();
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ fail(e);
+-        //~ }
+-    //~ }
++    /** After a world frame with a menu open: keep the picture for the next frames. */
++    public static void capture(final Minecraft mc) {
++        if (!eligible(mc)) {
++            valid = false;
++            return;
++        }
++        try {
++            final RenderTarget main = mc.getMainRenderTarget();
++            if (cache == null) {
++                cache = new RenderTarget(main.width, main.height, false, Minecraft.ON_OSX);
++            } else if (cache.width != main.width || cache.height != main.height) {
++                cache.resize(main.width, main.height, Minecraft.ON_OSX);
++            }
++            cache.bindWrite(true);
++            main.blitToScreen(main.width, main.height, true);
++            main.bindWrite(true);
++            valid = true;
++            lastCapture = System.nanoTime();
++        } catch (final RuntimeException | LinkageError e) {
++            fail(e);
++        }
++    }
+ 
+-    //~ /** The world changed: the stored picture belongs to the old one. */
+-    //~ public static void levelChanged() {
+-        //~ valid = false;
+-    //~ }
++    /** The world changed: the stored picture belongs to the old one. */
++    public static void levelChanged() {
++        valid = false;
++    }
+ 
+-    //~ private static void fail(final Throwable e) {
+-        //~ broken = true;
+-        //~ valid = false;
+-        //~ LOGGER.error("Menu world picture turned off after an error", e);
+-        //~ try {
+-            //~ Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
+-            //~ if (cache != null) {
+-                //~ cache.destroyBuffers();
+-                //~ cache = null;
+-            //~ }
+-        //~ } catch (final RuntimeException | LinkageError ignored) {
+-            //~ // the framebuffer is freed with the GL context
+-        //~ }
+-    //~ }
++    private static void fail(final Throwable e) {
++        broken = true;
++        valid = false;
++        LOGGER.error("Menu world picture turned off after an error", e);
++        try {
++            Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
++            if (cache != null) {
++                cache.destroyBuffers();
++                cache = null;
++            }
++        } catch (final RuntimeException | LinkageError ignored) {
++            // the framebuffer is freed with the GL context
++        }
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
 index cfdb6bb..bc8b2a4 100644
@@ -3963,16 +5447,17 @@ index fc0bcab..50e0809 100644
      // @era:model-fast-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java b/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
-index e0b4505..369bc43 100644
+index 8a8f47d..ca616a5 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java
-@@ -1,26 +1,26 @@
+@@ -1,27 +1,27 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:model-fast-begin none
 -// @era:model-fast-else v16
 -//~ import com.aetherium.perf.ModelCubeData;
+-//~ import com.aetherium.perf.ModelLod;
 -//~ import com.aetherium.perf.ModelVertexWriter;
 -//~ import com.aetherium.perf.RenderToggles;
 -//~ import com.mojang.blaze3d.systems.RenderSystem;
@@ -3992,6 +5477,7 @@ index e0b4505..369bc43 100644
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:model-fast-begin v16
 +import com.aetherium.perf.ModelCubeData;
++import com.aetherium.perf.ModelLod;
 +import com.aetherium.perf.ModelVertexWriter;
 +import com.aetherium.perf.RenderToggles;
 +import com.mojang.blaze3d.systems.RenderSystem;
@@ -4013,7 +5499,7 @@ index e0b4505..369bc43 100644
  // @era:model-fast-else mojang|joml|trusted
  //~ import com.aetherium.perf.ModelCubeData;
  //~ import com.aetherium.perf.ModelVertexWriter;
-@@ -60,108 +60,108 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -61,136 +61,136 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.model.geom.ModelPart")
  public abstract class FastModelMixin {
@@ -4051,10 +5537,27 @@ index e0b4505..369bc43 100644
 +    @Final
 +    private ObjectList<ModelPart.Cube> cubes;
  
+-    //~ /** Model detail levels: {@link #aetherium$partSize} is known. */
+-    //~ @Unique
+-    //~ private boolean aetherium$sized;
++    /** Model detail levels: {@link #aetherium$partSize} is known. */
++    @Unique
++    private boolean aetherium$sized;
+ 
+-    //~ @Unique
+-    //~ private float aetherium$partSize;
++    @Unique
++    private float aetherium$partSize;
+ 
 -    //~ @Inject(method = "compile", at = @At("HEAD"), cancellable = true, require = 0)
 -    //~ private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
 -                                       //~ final int overlay, final float r, final float g, final float b, final float a,
 -                                       //~ final CallbackInfo ci) {
+-        //~ // Mob model detail levels (1.11.0, Tuning): a tiny part of a far mob is not drawn at all.
+-        //~ if (ModelLod.active() && ModelLod.skip(this.aetherium$size())) {
+-            //~ ci.cancel();
+-            //~ return;
+-        //~ }
 -        //~ if (!RenderToggles.fastModels || consumer == null || consumer.getClass() != BufferBuilder.class
 -                //~ || !RenderSystem.isOnRenderThread()) {
 -            //~ return;
@@ -4071,6 +5574,11 @@ index e0b4505..369bc43 100644
 +    private void aetherium$fastCompile(final PoseStack.Pose pose, final VertexConsumer consumer, final int light,
 +                                       final int overlay, final float r, final float g, final float b, final float a,
 +                                       final CallbackInfo ci) {
++        // Mob model detail levels (1.11.0, Tuning): a tiny part of a far mob is not drawn at all.
++        if (ModelLod.active() && ModelLod.skip(this.aetherium$size())) {
++            ci.cancel();
++            return;
++        }
 +        if (!RenderToggles.fastModels || consumer == null || consumer.getClass() != BufferBuilder.class
 +                || !RenderSystem.isOnRenderThread()) {
 +            return;
@@ -4082,6 +5590,37 @@ index e0b4505..369bc43 100644
 +        } catch (final RuntimeException | LinkageError e) {
 +            RenderToggles.breakFastModels(e);
 +        }
++    }
+ 
+-    //~ /** Largest box side of this part's own cubes, in pixels (computed once; the cubes never change). */
+-    //~ @Unique
+-    //~ private float aetherium$size() {
+-        //~ if (!this.aetherium$sized) {
+-            //~ float size = 0.0F;
+-            //~ final ObjectList<ModelPart.Cube> list = this.cubes;
+-            //~ for (int i = 0; i < list.size(); i++) {
+-                //~ final ModelPart.Cube cube = list.get(i);
+-                //~ size = Math.max(size, Math.max(cube.maxX - cube.minX, Math.max(cube.maxY - cube.minY, cube.maxZ - cube.minZ)));
+-            //~ }
+-            //~ this.aetherium$partSize = size;
+-            //~ this.aetherium$sized = true;
+-        //~ }
+-        //~ return this.aetherium$partSize;
+-    //~ }
++    /** Largest box side of this part's own cubes, in pixels (computed once; the cubes never change). */
++    @Unique
++    private float aetherium$size() {
++        if (!this.aetherium$sized) {
++            float size = 0.0F;
++            final ObjectList<ModelPart.Cube> list = this.cubes;
++            for (int i = 0; i < list.size(); i++) {
++                final ModelPart.Cube cube = list.get(i);
++                size = Math.max(size, Math.max(cube.maxX - cube.minX, Math.max(cube.maxY - cube.minY, cube.maxZ - cube.minZ)));
++            }
++            this.aetherium$partSize = size;
++            this.aetherium$sized = true;
++        }
++        return this.aetherium$partSize;
 +    }
  
 -    //~ /** @return true when the part was written (vanilla must not run) */
@@ -7161,6 +8700,70 @@ index dbced7b..fae8d08 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java
+index 2b32642..1833202 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningBlockEntityMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.world.level.block.entity.BlockEntity;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import net.minecraft.world.level.block.entity.BlockEntity;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -18,22 +18,22 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher")
+ public abstract class TuningBlockEntityMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Shadow
+-    //~ private static void tryRender(final BlockEntity blockEntity, final Runnable action) {
+-        //~ throw new AssertionError();
+-    //~ }
++    // @era:qol16-begin v16
++    @Shadow
++    private static void tryRender(final BlockEntity blockEntity, final Runnable action) {
++        throw new AssertionError();
++    }
+ 
+-    //~ @Redirect(method = "render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V",
+-            //~ at = @At(value = "INVOKE",
+-                    //~ target = "Lnet/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher;tryRender(Lnet/minecraft/world/level/block/entity/BlockEntity;Ljava/lang/Runnable;)V"),
+-            //~ require = 0)
+-    //~ private void aetherium$limit(final BlockEntity blockEntity, final Runnable action) {
+-        //~ if (!Tuning.allowBlockEntity()) {
+-            //~ return;
+-        //~ }
+-        //~ tryRender(blockEntity, action);
+-    //~ }
++    @Redirect(method = "render(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V",
++            at = @At(value = "INVOKE",
++                    target = "Lnet/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher;tryRender(Lnet/minecraft/world/level/block/entity/BlockEntity;Ljava/lang/Runnable;)V"),
++            require = 0)
++    private void aetherium$limit(final BlockEntity blockEntity, final Runnable action) {
++        if (!Tuning.allowBlockEntity()) {
++            return;
++        }
++        tryRender(blockEntity, action);
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
 index 43bfb4b..9412989 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
@@ -7495,16 +9098,17 @@ index 333016c..a93e143 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
-index 4d7a169..fbc8649 100644
+index a3ddc1e..de348b6 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLayersMixin.java
-@@ -1,22 +1,22 @@
+@@ -1,27 +1,27 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:qol16-begin none
 -// @era:qol16-else v16
 -//~ import com.aetherium.client.TuningClient;
+-//~ import com.aetherium.perf.ModelLod;
 -//~ import com.aetherium.perf.Tuning;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
 -//~ import net.minecraft.client.renderer.MultiBufferSource;
@@ -7515,11 +9119,16 @@ index 4d7a169..fbc8649 100644
 -//~ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 -//~ import net.minecraft.client.renderer.entity.layers.StuckInBodyLayer;
 -//~ import net.minecraft.world.entity.Entity;
+-//~ import net.minecraft.world.entity.LivingEntity;
+-//~ import net.minecraft.world.entity.decoration.ArmorStand;
 -//~ import net.minecraft.world.entity.player.Player;
 -//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:qol16-begin v16
 +import com.aetherium.client.TuningClient;
++import com.aetherium.perf.ModelLod;
 +import com.aetherium.perf.Tuning;
 +import com.mojang.blaze3d.vertex.PoseStack;
 +import net.minecraft.client.renderer.MultiBufferSource;
@@ -7530,19 +9139,60 @@ index 4d7a169..fbc8649 100644
 +import net.minecraft.client.renderer.entity.layers.RenderLayer;
 +import net.minecraft.client.renderer.entity.layers.StuckInBodyLayer;
 +import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.LivingEntity;
++import net.minecraft.world.entity.decoration.ArmorStand;
 +import net.minecraft.world.entity.player.Player;
 +import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:qol16-else none
  // @era:qol16-end
  
  /**
-@@ -27,26 +27,26 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -32,45 +32,45 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.entity.LivingEntityRenderer")
  public abstract class TuningLayersMixin {
 -    // @era:qol16-begin none
 -    // @era:qol16-else v16
+-    //~ /** Mob model detail levels (1.11.0): the level for this mob's model parts. */
+-    //~ @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+-            //~ at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$lodBegin(final LivingEntity entity, final float yaw, final float partialTicks,
+-                                    //~ final PoseStack poseStack, final MultiBufferSource buffers, final int light,
+-                                    //~ final CallbackInfo ci) {
+-        //~ if (!Tuning.modelLod || Tuning.detailDistanceSq == Double.MAX_VALUE) {
+-            //~ ModelLod.end();
+-            //~ return;
+-        //~ }
+-        //~ ModelLod.begin(TuningClient.distanceToCamera(entity), entity instanceof Player || entity instanceof ArmorStand);
+-    //~ }
++    // @era:qol16-begin v16
++    /** Mob model detail levels (1.11.0): the level for this mob's model parts. */
++    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
++            at = @At("HEAD"), require = 0)
++    private void aetherium$lodBegin(final LivingEntity entity, final float yaw, final float partialTicks,
++                                    final PoseStack poseStack, final MultiBufferSource buffers, final int light,
++                                    final CallbackInfo ci) {
++        if (!Tuning.modelLod || Tuning.detailDistanceSq == Double.MAX_VALUE) {
++            ModelLod.end();
++            return;
++        }
++        ModelLod.begin(TuningClient.distanceToCamera(entity), entity instanceof Player || entity instanceof ArmorStand);
++    }
+ 
+-    //~ @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+-            //~ at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$lodEnd(final CallbackInfo ci) {
+-        //~ ModelLod.end();
+-    //~ }
++    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
++            at = @At("RETURN"), require = 0)
++    private void aetherium$lodEnd(final CallbackInfo ci) {
++        ModelLod.end();
++    }
+ 
 -    //~ @SuppressWarnings({"rawtypes", "unchecked"})
 -    //~ @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 -            //~ at = @At(value = "INVOKE",
@@ -7562,7 +9212,6 @@ index 4d7a169..fbc8649 100644
 -        //~ layer.render(poseStack, buffers, light, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks,
 -                //~ netHeadYaw, headPitch);
 -    //~ }
-+    // @era:qol16-begin v16
 +    @SuppressWarnings({"rawtypes", "unchecked"})
 +    @Redirect(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 +            at = @At(value = "INVOKE",
@@ -7697,23 +9346,61 @@ index 7fef441..7640a8f 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
+index fb8c39d..3f1fe28 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
+@@ -1,10 +1,10 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import net.minecraft.client.renderer.ViewArea;
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-begin v16
++import net.minecraft.client.renderer.ViewArea;
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public interface TuningLevelAccessor {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Accessor("viewArea")
+-    //~ ViewArea aetherium$viewArea();
++    // @era:qol16-begin v16
++    @Accessor("viewArea")
++    ViewArea aetherium$viewArea();
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
-index c24e6a5..26df1c0 100644
+index 10fbdbf..7c6d698 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLevelMixin.java
-@@ -1,29 +1,29 @@
+@@ -1,34 +1,34 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:qol16-begin none
 -// @era:qol16-else v16
 -//~ import com.aetherium.client.ChunkInfoOrigin;
+-//~ import com.aetherium.client.FarTerrain;
 -//~ import com.aetherium.perf.CrowdCull;
 -//~ import com.aetherium.perf.HitchGuard;
 -//~ import com.aetherium.perf.Tuning;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.math.Matrix4f;
 -//~ import it.unimi.dsi.fastutil.objects.ObjectList;
 -//~ import net.minecraft.client.Camera;
 -//~ import net.minecraft.client.multiplayer.ClientLevel;
+-//~ import net.minecraft.client.renderer.GameRenderer;
+-//~ import net.minecraft.client.renderer.LightTexture;
 -//~ import net.minecraft.client.renderer.culling.Frustum;
 -//~ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 -//~ import net.minecraft.world.entity.Entity;
@@ -7730,12 +9417,17 @@ index c24e6a5..26df1c0 100644
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:qol16-begin v16
 +import com.aetherium.client.ChunkInfoOrigin;
++import com.aetherium.client.FarTerrain;
 +import com.aetherium.perf.CrowdCull;
 +import com.aetherium.perf.HitchGuard;
 +import com.aetherium.perf.Tuning;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.math.Matrix4f;
 +import it.unimi.dsi.fastutil.objects.ObjectList;
 +import net.minecraft.client.Camera;
 +import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.client.renderer.GameRenderer;
++import net.minecraft.client.renderer.LightTexture;
 +import net.minecraft.client.renderer.culling.Frustum;
 +import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 +import net.minecraft.world.entity.Entity;
@@ -7754,7 +9446,7 @@ index c24e6a5..26df1c0 100644
  // @era:qol16-end
  
  /**
-@@ -33,98 +33,98 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -38,128 +38,128 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class TuningLevelMixin {
@@ -7775,11 +9467,68 @@ index c24e6a5..26df1c0 100644
 -    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
 -    //~ private void aetherium$frame(final CallbackInfo ci) {
 -        //~ CrowdCull.newFrame();
+-        //~ Tuning.newFrame();
 -    //~ }
 +    /** Once per frame, before any entity is tested. */
 +    @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
 +    private void aetherium$frame(final CallbackInfo ci) {
 +        CrowdCull.newFrame();
++        Tuning.newFrame();
++    }
+ 
+-    //~ /**
+-     //~ * Far terrain: drawn right after the sky, before any terrain, so the real chunks cover it
+-     //~ * wherever they exist.
+-     //~ */
+-    //~ @Inject(method = "renderLevel", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;renderSky(Lcom/mojang/blaze3d/vertex/PoseStack;F)V",
+-            //~ shift = At.Shift.AFTER), require = 0)
+-    //~ private void aetherium$farTerrain(final PoseStack poseStack, final float partialTicks, final long finishNanos,
+-                                      //~ final boolean renderBlockOutline, final Camera camera,
+-                                      //~ final GameRenderer gameRenderer, final LightTexture lightTexture,
+-                                      //~ final Matrix4f projection, final CallbackInfo ci) {
+-        //~ FarTerrain.draw(poseStack, camera);
+-    //~ }
++    /**
++     * Far terrain: drawn right after the sky, before any terrain, so the real chunks cover it
++     * wherever they exist.
++     */
++    @Inject(method = "renderLevel", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/LevelRenderer;renderSky(Lcom/mojang/blaze3d/vertex/PoseStack;F)V",
++            shift = At.Shift.AFTER), require = 0)
++    private void aetherium$farTerrain(final PoseStack poseStack, final float partialTicks, final long finishNanos,
++                                      final boolean renderBlockOutline, final Camera camera,
++                                      final GameRenderer gameRenderer, final LightTexture lightTexture,
++                                      final Matrix4f projection, final CallbackInfo ci) {
++        FarTerrain.draw(poseStack, camera);
++    }
+ 
+-    //~ /**
+-     //~ * Calmer translucent sorting: vanilla re-sorts water and glass whenever the camera has moved
+-     //~ * more than 1 block (squared distance 1.0); with the option on, after 2 blocks (4.0).
+-     //~ */
+-    //~ @ModifyConstant(method = "renderChunkLayer", constant = @Constant(doubleValue = 1.0D), require = 0)
+-    //~ private double aetherium$sortDistance(final double original) {
+-        //~ return Tuning.calmSorting ? 4.0D : original;
+-    //~ }
++    /**
++     * Calmer translucent sorting: vanilla re-sorts water and glass whenever the camera has moved
++     * more than 1 block (squared distance 1.0); with the option on, after 2 blocks (4.0).
++     */
++    @ModifyConstant(method = "renderChunkLayer", constant = @Constant(doubleValue = 1.0D), require = 0)
++    private double aetherium$sortDistance(final double original) {
++        return Tuning.calmSorting ? 4.0D : original;
++    }
+ 
+-    //~ /** Calmer translucent sorting: at most 8 sections re-sorted per move instead of 15. */
+-    //~ @ModifyConstant(method = "renderChunkLayer", constant = @Constant(intValue = 15), require = 0)
+-    //~ private int aetherium$sortCount(final int original) {
+-        //~ return Tuning.calmSorting ? 8 : original;
+-    //~ }
++    /** Calmer translucent sorting: at most 8 sections re-sorted per move instead of 15. */
++    @ModifyConstant(method = "renderChunkLayer", constant = @Constant(intValue = 15), require = 0)
++    private int aetherium$sortCount(final int original) {
++        return Tuning.calmSorting ? 8 : original;
 +    }
  
 -    //~ /**
@@ -7940,35 +9689,41 @@ index c24e6a5..26df1c0 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
-index 35014d0..08df7c3 100644
+index e5d4d65..013e15e 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningLightMixin.java
-@@ -1,15 +1,15 @@
+@@ -1,18 +1,18 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
 -// @era:qol16-begin none
 -// @era:qol16-else v16
+-//~ import com.aetherium.client.FarTerrain;
 -//~ import com.aetherium.client.SkullLookup;
 -//~ import com.aetherium.client.TuningClient;
 -//~ import net.minecraft.core.SectionPos;
 -//~ import net.minecraft.world.level.LightLayer;
+-//~ import net.minecraft.world.level.chunk.LevelChunk;
 -//~ import org.spongepowered.asm.mixin.injection.At;
 -//~ import org.spongepowered.asm.mixin.injection.Inject;
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 +// @era:qol16-begin v16
++import com.aetherium.client.FarTerrain;
 +import com.aetherium.client.SkullLookup;
 +import com.aetherium.client.TuningClient;
 +import net.minecraft.core.SectionPos;
 +import net.minecraft.world.level.LightLayer;
++import net.minecraft.world.level.chunk.LevelChunk;
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 +// @era:qol16-else none
  // @era:qol16-end
  
  /**
-@@ -20,13 +20,13 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -23,19 +23,19 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.multiplayer.ClientChunkCache")
  public abstract class TuningLightMixin {
@@ -7986,6 +9741,17 @@ index 35014d0..08df7c3 100644
 +        if (SkullLookup.onClientThread() && TuningClient.deferLight(pos)) {
 +            ci.cancel();
 +        }
++    }
+ 
+-    //~ /** Far terrain (1.11.0): every chunk the server sends is sampled for the far outline. */
+-    //~ @Inject(method = "replaceWithPacketData", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$farTerrain(final CallbackInfoReturnable<LevelChunk> cir) {
+-        //~ FarTerrain.capture(cir.getReturnValue());
+-    //~ }
++    /** Far terrain (1.11.0): every chunk the server sends is sampled for the far outline. */
++    @Inject(method = "replaceWithPacketData", at = @At("RETURN"), require = 0)
++    private void aetherium$farTerrain(final CallbackInfoReturnable<LevelChunk> cir) {
++        FarTerrain.capture(cir.getReturnValue());
 +    }
 +    // @era:qol16-else none
      // @era:qol16-end
@@ -8345,6 +10111,127 @@ index 2e317a2..a9023e6 100644
 +    // @era:qol16-else none
      // @era:qol16-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java
+index 92561b7..c299550 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningSignMixin.java
+@@ -1,23 +1,23 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.math.Matrix4f;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.gui.Font;
+-//~ import net.minecraft.client.renderer.MultiBufferSource;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.util.FormattedCharSequence;
+-//~ import net.minecraft.world.level.block.entity.SignBlockEntity;
+-//~ import net.minecraft.world.phys.Vec3;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-begin v16
++import com.aetherium.perf.Tuning;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.math.Matrix4f;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.gui.Font;
++import net.minecraft.client.renderer.MultiBufferSource;
++import net.minecraft.core.BlockPos;
++import net.minecraft.util.FormattedCharSequence;
++import net.minecraft.world.level.block.entity.SignBlockEntity;
++import net.minecraft.world.phys.Vec3;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -27,41 +27,41 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.blockentity.SignRenderer")
+ public abstract class TuningSignMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ /** Render thread only: the sign being drawn is beyond the detail distance. */
+-    //~ @Unique
+-    //~ private static boolean aetherium$far;
++    // @era:qol16-begin v16
++    /** Render thread only: the sign being drawn is beyond the detail distance. */
++    @Unique
++    private static boolean aetherium$far;
+ 
+-    //~ @Inject(method = "render(Lnet/minecraft/world/level/block/entity/SignBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
+-            //~ at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$distance(final SignBlockEntity sign, final float partialTicks, final PoseStack poseStack,
+-                                    //~ final MultiBufferSource buffers, final int light, final int overlay,
+-                                    //~ final CallbackInfo ci) {
+-        //~ if (Tuning.detailDistanceSq == Double.MAX_VALUE) {
+-            //~ aetherium$far = false;
+-            //~ return;
+-        //~ }
+-        //~ final Vec3 cam = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+-        //~ final BlockPos pos = sign.getBlockPos();
+-        //~ final double dx = pos.getX() + 0.5 - cam.x;
+-        //~ final double dy = pos.getY() + 0.5 - cam.y;
+-        //~ final double dz = pos.getZ() + 0.5 - cam.z;
+-        //~ aetherium$far = Tuning.beyondDetail(dx * dx + dy * dy + dz * dz);
+-    //~ }
++    @Inject(method = "render(Lnet/minecraft/world/level/block/entity/SignBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
++            at = @At("HEAD"), require = 0)
++    private void aetherium$distance(final SignBlockEntity sign, final float partialTicks, final PoseStack poseStack,
++                                    final MultiBufferSource buffers, final int light, final int overlay,
++                                    final CallbackInfo ci) {
++        if (Tuning.detailDistanceSq == Double.MAX_VALUE) {
++            aetherium$far = false;
++            return;
++        }
++        final Vec3 cam = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
++        final BlockPos pos = sign.getBlockPos();
++        final double dx = pos.getX() + 0.5 - cam.x;
++        final double dy = pos.getY() + 0.5 - cam.y;
++        final double dz = pos.getZ() + 0.5 - cam.z;
++        aetherium$far = Tuning.beyondDetail(dx * dx + dy * dy + dz * dz);
++    }
+ 
+-    //~ @Redirect(method = "render(Lnet/minecraft/world/level/block/entity/SignBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
+-            //~ at = @At(value = "INVOKE",
+-                    //~ target = "Lnet/minecraft/client/gui/Font;drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I"),
+-            //~ require = 0)
+-    //~ private int aetherium$text(final Font font, final FormattedCharSequence text, final float x, final float y,
+-                               //~ final int color, final boolean shadow, final Matrix4f pose,
+-                               //~ final MultiBufferSource buffers, final boolean seeThrough, final int background,
+-                               //~ final int light) {
+-        //~ if (aetherium$far) {
+-            //~ return 0;
+-        //~ }
+-        //~ return font.drawInBatch(text, x, y, color, shadow, pose, buffers, seeThrough, background, light);
+-    //~ }
++    @Redirect(method = "render(Lnet/minecraft/world/level/block/entity/SignBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
++            at = @At(value = "INVOKE",
++                    target = "Lnet/minecraft/client/gui/Font;drawInBatch(Lnet/minecraft/util/FormattedCharSequence;FFIZLcom/mojang/math/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;ZII)I"),
++            require = 0)
++    private int aetherium$text(final Font font, final FormattedCharSequence text, final float x, final float y,
++                               final int color, final boolean shadow, final Matrix4f pose,
++                               final MultiBufferSource buffers, final boolean seeThrough, final int background,
++                               final int light) {
++        if (aetherium$far) {
++            return 0;
++        }
++        return font.drawInBatch(text, x, y, color, shadow, pose, buffers, seeThrough, background, light);
++    }
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java
 index 30270f7..7c799ca 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningSkullMixin.java
@@ -8447,6 +10334,106 @@ index 30270f7..7c799ca 100644
 -            //~ ((BlockEntity) (Object) this).setChanged();
 -        //~ }
      //~ }
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
+index 0f2fda9..3260e3e 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
+@@ -1,11 +1,11 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:qol16-begin v16
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.core.BlockPos;
++import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -14,9 +14,9 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.ViewArea")
+ public interface TuningViewAreaAccessor {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Invoker("getRenderChunkAt")
+-    //~ ChunkRenderDispatcher.RenderChunk aetherium$renderChunkAt(BlockPos pos);
++    // @era:qol16-begin v16
++    @Invoker("getRenderChunkAt")
++    ChunkRenderDispatcher.RenderChunk aetherium$renderChunkAt(BlockPos pos);
++    // @era:qol16-else none
+     // @era:qol16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
+index 317cd34..4eb3944 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningWorldMixin.java
+@@ -1,15 +1,15 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:qol16-begin none
+-// @era:qol16-else v16
+-//~ import com.aetherium.client.ColorFilter;
+-//~ import com.aetherium.client.WorldCache;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.renderer.GameRenderer;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-begin v16
++import com.aetherium.client.ColorFilter;
++import com.aetherium.client.WorldCache;
++import com.mojang.blaze3d.vertex.PoseStack;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.renderer.GameRenderer;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:qol16-else none
+ // @era:qol16-end
+ 
+ /**
+@@ -19,20 +19,20 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.GameRenderer")
+ public abstract class TuningWorldMixin {
+-    // @era:qol16-begin none
+-    // @era:qol16-else v16
+-    //~ @Redirect(method = "render(FJZ)V", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V"),
+-            //~ require = 0)
+-    //~ private void aetherium$world(final GameRenderer renderer, final float partialTicks, final long finishNanos,
+-                                 //~ final PoseStack poseStack) {
+-        //~ final Minecraft mc = Minecraft.getInstance();
+-        //~ if (WorldCache.reuse(mc)) {
+-            //~ return;
+-        //~ }
+-        //~ renderer.renderLevel(partialTicks, finishNanos, poseStack);
+-        //~ ColorFilter.apply(mc);
+-        //~ WorldCache.capture(mc);
+-    //~ }
++    // @era:qol16-begin v16
++    @Redirect(method = "render(FJZ)V", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V"),
++            require = 0)
++    private void aetherium$world(final GameRenderer renderer, final float partialTicks, final long finishNanos,
++                                 final PoseStack poseStack) {
++        final Minecraft mc = Minecraft.getInstance();
++        if (WorldCache.reuse(mc)) {
++            return;
++        }
++        renderer.renderLevel(partialTicks, finishNanos, poseStack);
++        ColorFilter.apply(mc);
++        WorldCache.capture(mc);
++    }
++    // @era:qol16-else none
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/VertexBufferMixin.java
@@ -9458,7 +11445,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index dad7351..173b32a 100644
+index 5e7f82d..f488882 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

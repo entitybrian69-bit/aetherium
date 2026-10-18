@@ -16,6 +16,7 @@ import com.aetherium.perf.NearBuild;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.perf.SectionVisibility;
 import com.aetherium.perf.Tuning;
+import com.aetherium.qol.ParticleFilter;
 import com.aetherium.util.AetheriumLog;
 
 import net.minecraft.client.Minecraft;
@@ -222,6 +223,7 @@ public final class ClientHooks {
             onSettingsApplied();
         }
         sub.store.tick();
+        ParticleFilter.newTick();
         TuningClient.tick(mc);
 
         if (mc.level != lastLevel) {
@@ -257,7 +259,9 @@ public final class ClientHooks {
             return;
         }
 
-        if (ticks % ADAPTIVE_PERIOD_TICKS == 0 && config.adaptiveDistance.get().booleanValue()) {
+        // Not while a menu is open: its frame-rate cap and the reused world picture behind it say
+        // nothing about how fast the world itself draws.
+        if (ticks % ADAPTIVE_PERIOD_TICKS == 0 && config.adaptiveDistance.get().booleanValue() && currentScreen(mc) == null) {
             final int current = VanillaOptions.getRenderDistance();
             final int next = ADAPTIVE.evaluate(sub.frameStats.getFps(), config.adaptiveTargetFps.get().intValue(),
                     current, userRenderDistance > 0 ? userRenderDistance : current);

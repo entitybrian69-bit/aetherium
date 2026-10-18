@@ -147,6 +147,8 @@ final class QolLogicTest {
         assertEquals(ParticleFilter.NONE, ParticleFilter.categoryOf("othermod:flame"), "other namespaces are left alone");
         assertEquals(ParticleFilter.NONE, ParticleFilter.categoryOf(null));
 
+        // Other tests may leave the redstone limit set (Tuning.configure while active).
+        ParticleFilter.setRedstoneLimit(ParticleFilter.REDSTONE_UNLIMITED);
         for (int c = 0; c < ParticleFilter.COUNT; c++) {
             ParticleFilter.set(c, true);
         }

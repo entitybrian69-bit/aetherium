@@ -160,6 +160,8 @@ public final class TuningClient {
     //~ public static void levelChanged() {
         //~ DIRTY_LIGHT.clear();
         //~ lightTicks = 0;
+        //~ FarTerrain.levelChanged();
+        //~ WorldCache.levelChanged();
     //~ }
 
     //~ /** After Apply: a leaves mode change needs the chunks rebuilt with the new render type. */
