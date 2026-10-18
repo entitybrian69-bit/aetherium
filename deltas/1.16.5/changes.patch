@@ -9438,7 +9438,7 @@ index 3457c55..08e38db 100644
      // @era:t-cull-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
-index d526b63..2a80692 100644
+index efd19a7..69ab8d5 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
 @@ -21,10 +21,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
@@ -9454,7 +9454,7 @@ index d526b63..2a80692 100644
 +                    ordinal = 1),
              require = 0)
      private ItemStack aetherium$frameItem(final ItemFrame frame) {
-         if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera(frame))) {
+         if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera((net.minecraft.world.entity.Entity) (Object) frame))) {
 @@ -32,12 +33,10 @@ public abstract class TuningFrameItemMixin {
          }
          return frame.getItem();
@@ -9469,7 +9469,7 @@ index d526b63..2a80692 100644
 +                    //~ target = "Lnet/minecraft/world/entity/decoration/ItemFrame;getItem()Lnet/minecraft/world/item/ItemStack;"),
              //~ require = 0)
      //~ private ItemStack aetherium$frameItem(final ItemFrame frame) {
-         //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera(frame))) {
+         //~ if (Tuning.detailDistanceSq != Double.MAX_VALUE && Tuning.beyondDetail(TuningClient.distanceToCamera((net.minecraft.world.entity.Entity) (Object) frame))) {
 @@ -45,6 +44,7 @@ public abstract class TuningFrameItemMixin {
          //~ }
          //~ return frame.getItem();
@@ -12594,7 +12594,7 @@ index fe2ac84..0f57948 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 3620d94..c93282f 100644
+index be663e7..01f8484 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
