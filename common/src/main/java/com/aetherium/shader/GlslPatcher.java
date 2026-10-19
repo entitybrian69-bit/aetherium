@@ -26,6 +26,10 @@ public final class GlslPatcher {
     private static final Pattern VERSION = Pattern.compile("^\\s*#\\s*version\\s+(\\d+)\\s*([a-z]*)\\s*$",
             Pattern.MULTILINE);
     private static final Pattern MULTITEX1 = Pattern.compile("\\bgl_MultiTexCoord1\\b");
+    /** Pack vertex attributes, carried in texture coordinate sets 3-5 of the extended terrain format. */
+    private static final Pattern ATTRIBUTE = Pattern.compile(
+            "^\\s*(?:attribute|in)\\s+(?:(?:highp|mediump|lowp)\\s+)?(float|vec[234]|ivec[234])\\s+"
+                    + "(mc_Entity|mc_midTexCoord|at_tangent|at_velocity|at_midBlock)\\s*;.*$", Pattern.MULTILINE);
     private static final Pattern TEXMAT1 = Pattern.compile("\\bgl_TextureMatrix\\s*\\[\\s*1\\s*\\]");
 
     private GlslPatcher() {
@@ -58,6 +62,18 @@ public final class GlslPatcher {
                 body = MULTITEX1.matcher(body).replaceAll("gl_MultiTexCoord2");
             }
         }
+        final StringBuilder attributeDefines = new StringBuilder();
+        if (stage == VERTEX && (body.indexOf("mc_") >= 0 || body.indexOf("at_") >= 0)) {
+            final Matcher am = ATTRIBUTE.matcher(body);
+            final StringBuffer sb = new StringBuffer();
+            while (am.find()) {
+                attributeDefines.append("#define ").append(am.group(2)).append(' ')
+                        .append(attributeSource(am.group(2), am.group(1))).append('\n');
+                am.appendReplacement(sb, ""); // the line stays (empty) so line numbers hold
+            }
+            am.appendTail(sb);
+            body = sb.toString();
+        }
         if (body.indexOf("gl_TextureMatrix") >= 0) {
             body = TEXMAT1.matcher(body).replaceAll("gl_TextureMatrix[2]");
         }
@@ -76,6 +92,7 @@ public final class GlslPatcher {
             }
             out.append('\n');
         }
+        out.append(attributeDefines);
         if (!compat) {
             out.append("#line 1\n");
         }
@@ -83,8 +100,40 @@ public final class GlslPatcher {
         return out.toString();
     }
 
+    /**
+     * The built-in an attribute maps to. 1.16.5 only supports extra vertex elements as texture
+     * coordinate sets (its VertexFormatElement turns other indexed elements into UVs), so the
+     * extended terrain format stores mc_Entity in set 3, mc_midTexCoord in set 4 and at_tangent in
+     * set 5. at_velocity / at_midBlock (Iris, 1.17+) read as zero.
+     */
+    static String attributeSource(final String name, final String type) {
+        final String src;
+        switch (name) {
+            case "mc_Entity": src = "gl_MultiTexCoord3"; break;
+            case "mc_midTexCoord": src = "gl_MultiTexCoord4"; break;
+            case "at_tangent": src = "gl_MultiTexCoord5"; break;
+            default: return type.startsWith("i") ? type + "(0)" : type + "(0.0)";
+        }
+        switch (type) {
+            case "float": return "(" + src + ".x)";
+            case "vec2": return "(" + src + ".xy)";
+            case "vec3": return "(" + src + ".xyz)";
+            case "vec4": return src;
+            case "ivec2": return "ivec2(" + src + ".xy)";
+            case "ivec3": return "ivec3(" + src + ".xyz)";
+            default: return "ivec4(" + src + ")";
+        }
+    }
+
     /** Number of lines {@link #patch} puts before the source's line 1 when {@code #line} is not used. */
-    public static int headerLines(final Map<String, String> macros) {
-        return 1 + macros.size();
+    public static int headerLines(final String patched) {
+        int n = 0;
+        for (final String line : patched.split("\n", 4096)) {
+            if (!line.startsWith("#version") && !line.startsWith("#define ")) {
+                break;
+            }
+            n++;
+        }
+        return n;
     }
 }

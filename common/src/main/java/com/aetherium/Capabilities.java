@@ -94,6 +94,16 @@ public final class Capabilities {
     //~ public static final boolean CHUNK_INFO_LIST = true;
     // @era:section-vis-end
 
+    /**
+     * The OptiFine-format shader pack engine (com.aetherium.shader, Shader*Mixin): it drives the
+     * fixed-function GL 2.1 renderer, which exists until 1.16.5.
+     */
+    // @era:shader-begin none
+    public static final boolean SHADERS = false;
+    // @era:shader-else v16
+    //~ public static final boolean SHADERS = true;
+    // @era:shader-end
+
     /** Aetherium's own terrain renderer exists for this version. */
     // @era:chunk-renderer-begin none
     public static final boolean AETHERIUM_RENDERER = false;

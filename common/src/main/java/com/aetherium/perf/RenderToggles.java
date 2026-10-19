@@ -2,6 +2,7 @@ package com.aetherium.perf;
 
 import com.aetherium.Capabilities;
 import com.aetherium.config.AetheriumConfig;
+import com.aetherium.shader.ShaderBridge;
 import com.aetherium.util.AetheriumLog;
 
 /**
@@ -49,15 +50,18 @@ public final class RenderToggles {
 
     public static void refresh(final AetheriumConfig config, final boolean isActive) {
         active = isActive;
+        // A shader pack replaces the terrain pipeline and render scale (they bypass its programs).
+        ShaderBridge.configure(isActive && Capabilities.SHADERS, config.shaderPack.get(), config.shaderCompat.get());
+        final boolean pack = ShaderBridge.wantsPack();
         entityCulling = isActive && config.entityCulling.get().booleanValue();
         occlusionCulling = isActive && Capabilities.ENTITY_OCCLUSION && !occlusionBroken
                 && config.occlusionCulling.get().booleanValue();
-        aetheriumRenderer = isActive && Capabilities.ANY_RENDERER
+        aetheriumRenderer = isActive && Capabilities.ANY_RENDERER && !(pack && Capabilities.SHADERS)
                 && config.aetheriumRenderer.get().booleanValue();
         regionBatching = config.regionBatching.get().booleanValue();
         final double distance = config.entityCullDistance.get().intValue();
         entityCullDistanceSq = distance * distance;
-        renderScale = isActive && Capabilities.RENDER_SCALE ? config.renderScale.get().intValue() : 100;
+        renderScale = isActive && Capabilities.RENDER_SCALE && !pack ? config.renderScale.get().intValue() : 100;
         particleKeep = isActive ? config.particleDensity.get().intValue() : 100;
         hideWeather = isActive && !config.weather.get().booleanValue();
         hideVignette = isActive && !config.vignette.get().booleanValue();

@@ -97,6 +97,12 @@ public final class ShaderPack {
                 options.set(e.getKey(), e.getValue());
             }
         }
+        // Programs a profile disables are not stored as option values: restore them from the
+        // profile the saved values still match (applying it again leaves the values unchanged).
+        final String current = options.currentProfile(pack.layout.profiles);
+        if (current != null) {
+            options.applyProfile(current, pack.layout.profiles, pack.profileDisabled, 0);
+        }
         pack.loadLang();
         pack.reloadDerived();
         return pack;

@@ -59,6 +59,11 @@ public final class GlCaps {
 
     /** Reads the current context. {@code forceCompat}: treat as a translator (testing on desktop). */
     public static GlCaps read(final boolean forceCompat) {
+        return read(forceCompat, false);
+    }
+
+    /** {@code disableCompat}: treat a detected translator like a desktop driver (compat mode "off"). */
+    public static GlCaps read(final boolean forceCompat, final boolean disableCompat) {
         final String vendor = str(GL11.glGetString(GL11.GL_VENDOR));
         final String renderer = str(GL11.glGetString(GL11.GL_RENDERER));
         final String version = str(GL11.glGetString(GL11.GL_VERSION));
@@ -79,6 +84,9 @@ public final class GlCaps {
             translator = "MobileGlues";
         } else if (all.contains("angle")) {
             translator = "ANGLE";
+        }
+        if (disableCompat) {
+            translator = null;
         }
         if (translator == null && forceCompat) {
             translator = "forced";
