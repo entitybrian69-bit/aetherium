@@ -3,6 +3,13 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.16.3
+**Punchy-style arms (test build for Minecraft 1.16.5 only).**
+
+- New Arms settings in QoL, like Punchy's arm sculpt: Arms sideways, Arms height, Arms distance (farther or closer) and Arms size move both of your hands together, whether they hold something or not. They work on their own, without turning the hand editor on.
+- Show both hands: your off hand is drawn even when it is empty, so you always see both hands, like Punchy's visible hands at all times (vanilla hides an empty off hand).
+- Touching any Arms setting turns on Show both hands and Show hand with items, and every change previews live on your hands while you adjust.
+
 ## 1.16.2
 **Visible hand (test build for Minecraft 1.16.5 only).**
 
