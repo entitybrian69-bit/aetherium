@@ -281,6 +281,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
 - `common/src/main/java/com/aetherium/qol/QolSupport.java`
 - `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
+- `common/src/main/java/com/aetherium/shader/ShaderSmoke.java`
 - `common/src/main/java/com/aetherium/shader/ShaderVertex.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 

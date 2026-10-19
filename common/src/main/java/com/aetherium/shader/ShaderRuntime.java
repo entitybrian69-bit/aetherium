@@ -103,6 +103,9 @@ public final class ShaderRuntime {
         //~ return pipe != null;
     //~ }
 
+    //~ /** World frames finished since start (with or without a pack); read by the CI smoke test. */
+    //~ public static volatile int frames;
+
     //~ // ================================================================== loading
 
     //~ private static String worldFolder(final ClientLevel level) {
@@ -206,6 +209,28 @@ public final class ShaderRuntime {
                     //~ // read fully already
                 //~ }
             //~ }
+        //~ }
+    //~ }
+
+    //~ /** CI smoke test: builds a pack without installing it ({@code compat}: forced, else disabled). */
+    //~ static ShaderPipeline buildForTest(final Minecraft mc, final String name, final boolean compat) throws Exception {
+        //~ final GlCaps caps = GlCaps.read(compat, !compat);
+        //~ final Map<String, String> macros = new TreeMap<>(caps.standardMacros());
+        //~ macros.put("MC_VERSION", "11605");
+        //~ macros.put("MC_RENDER_QUALITY", "1.0");
+        //~ macros.put("MC_SHADOW_QUALITY", "1.0");
+        //~ macros.put("MC_HAND_DEPTH", "0.125");
+        //~ macros.put("AETHERIUM", "1");
+        //~ final PackSource source = ShaderBridge.LITE.equals(name) ? liteSource()
+                //~ : PackSource.open(ShaderBridge.shaderpacksDir().resolve(name));
+        //~ if (source == null) {
+            //~ throw new IllegalStateException("no shaders folder in " + name);
+        //~ }
+        //~ try {
+            //~ final ShaderPack pack = ShaderPack.load(name, source, macros, null, null);
+            //~ return new ShaderPipeline(pack, "world0", caps, ShaderRuntime::loadTexture, caps.translator);
+        //~ } finally {
+            //~ source.close();
         //~ }
     //~ }
 
@@ -504,6 +529,7 @@ public final class ShaderRuntime {
 
     //~ /** GameRenderer.renderLevel RETURN: composite and final into the main framebuffer. */
     //~ public static void frameEnd() {
+        //~ frames++;
         //~ if (!inWorld) {
             //~ return;
         //~ }
