@@ -26,4 +26,16 @@ public interface ScreenHost {
 
     /** Plays an interface sound when UI sounds are enabled; never throws. */
     void playSound(UiSound sound);
+
+    /**
+     * True when the world is drawn behind the screen, so rows marked
+     * {@link Setting#livePreview()} can fade the screen away while they are edited.
+     */
+    default boolean livePreviewAvailable() {
+        return false;
+    }
+
+    /** Called at the start of every frame, before the view draws. */
+    default void beforeFrame() {
+    }
 }

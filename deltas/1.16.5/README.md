@@ -176,6 +176,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/OceanFloor.java`
 - `common/src/main/java/com/aetherium/client/QolClient.java`
+- `common/src/main/java/com/aetherium/client/QolFoodIcons.java`
 - `common/src/main/java/com/aetherium/client/QolHooks.java`
 - `common/src/main/java/com/aetherium/client/QolInventory.java`
 - `common/src/main/java/com/aetherium/client/QolWorldRenderer.java`

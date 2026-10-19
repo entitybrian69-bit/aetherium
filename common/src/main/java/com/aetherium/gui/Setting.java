@@ -43,6 +43,12 @@ public final class Setting {
     int defaultValue = NO_DEFAULT;
     /** Invoked by the view right after the user picks a new value. */
     IntConsumer onPick;
+    /**
+     * Editing this row changes something visible in the world behind the screen (the hand
+     * editor): while it is being edited, the rest of the screen fades away so the result can be
+     * seen, and only this row stays.
+     */
+    boolean livePreview;
 
     int pending;
     int committed;
@@ -138,6 +144,16 @@ public final class Setting {
     public Setting onPick(final IntConsumer listener) {
         this.onPick = listener;
         return this;
+    }
+
+    /** See {@link #livePreview}. */
+    public Setting livePreview() {
+        this.livePreview = true;
+        return this;
+    }
+
+    public boolean isLivePreview() {
+        return this.livePreview;
     }
 
     // ---------------------------------------------------------------- state

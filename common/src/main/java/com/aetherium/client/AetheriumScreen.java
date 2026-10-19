@@ -39,6 +39,7 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
 
     private final Screen parent;
     private AetheriumView view;
+    private AetheriumPages pages;
     /** A child screen (vanilla video settings) may change live values; re-read them on return. */
     private boolean childOpened;
 
@@ -59,6 +60,7 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
             final AetheriumPages pages = new AetheriumPages(sub, this);
             this.view = new AetheriumView(pages.build(), this, lastPage);
             pages.attach(this.view);
+            this.pages = pages;
         } else if (this.childOpened) {
             this.view.reload();
         }
@@ -184,6 +186,22 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
             this.view.onClose();
             lastPage = this.view.selectedPage();
         }
+        if (this.pages != null) {
+            this.pages.endPreview();
+        }
+    }
+
+    @Override
+    public void beforeFrame() {
+        if (this.pages != null) {
+            this.pages.previewFrame();
+        }
+    }
+
+    /** In a world the level is drawn behind this screen, so the hand editor can preview live. */
+    @Override
+    public boolean livePreviewAvailable() {
+        return this.minecraft != null && this.minecraft.level != null;
     }
 
     // ------------------------------------------------------------------ ScreenHost

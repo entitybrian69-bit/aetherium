@@ -5,7 +5,14 @@ import org.spongepowered.asm.mixin.Mixin;
 // @era:q-hud-else v16
 //~ import com.aetherium.client.McCanvas;
 //~ import com.aetherium.gui.GuiCanvas;
+//~ import com.aetherium.client.QolFoodIcons;
+//~ import com.aetherium.qol.FoodOverlay;
 //~ import com.aetherium.qol.Qol;
+//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+//~ import com.mojang.blaze3d.vertex.Tesselator;
+//~ import com.mojang.math.Matrix4f;
+//~ import net.minecraft.client.gui.GuiComponent;
 //~ import com.mojang.blaze3d.systems.RenderSystem;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
 //~ import net.minecraft.client.Minecraft;
@@ -26,7 +33,7 @@ import org.spongepowered.asm.mixin.Mixin;
 
 /**
  * HUD parts of the Quality of life tab (Minecraft 1.16.5): the custom crosshair, and the food
- * bar additions (saturation tint, preview of what the held food restores).
+ * bar overlay (AppleSkin-style saturation outline, flashing preview of what the held food restores).
  */
 @Mixin(targets = "net.minecraft.client.gui.Gui")
 public abstract class QolGuiMixin {
@@ -86,12 +93,21 @@ public abstract class QolGuiMixin {
 
     //~ // ------------------------------------------------------------------ food bar
 
+    //~ private static final int GL_QUADS = 7;
+
+    //~ /**
+     //~ * Hunger bar overlay in the style of AppleSkin, drawn over vanilla's bar: the saturation you
+     //~ * have as a gold outline around the shanks, and while you hold food, the shanks it would fill
+     //~ * and the saturation it would add, flashing. One extra draw for the outline (all pixels in a
+     //~ * single batch), two small sprites per previewed shank; nothing at all while it is off.
+     //~ */
     //~ @Inject(method = "renderPlayerHealth", at = @At("TAIL"), require = 0)
     //~ private void aetherium$foodBar(final PoseStack pose, final CallbackInfo ci) {
         //~ if (!Qol.foodHud) {
             //~ return;
         //~ }
-        //~ final LocalPlayer player = Minecraft.getInstance().player;
+        //~ final Minecraft mc = Minecraft.getInstance();
+        //~ final LocalPlayer player = mc.player;
         //~ if (player == null || player.getVehicle() instanceof LivingEntity) {
             //~ return; // riding a horse: the bar shows the horse's health instead
         //~ }
@@ -100,49 +116,95 @@ public abstract class QolGuiMixin {
         //~ final float saturation = data.getSaturationLevel();
         //~ final int right = this.screenWidth / 2 + 91;
         //~ final int top = this.screenHeight - 39;
-        //~ final GuiCanvas canvas = McCanvas.INSTANCE.begin(pose);
+        //~ final int hearts = (int) Math.ceil((player.getMaxHealth() + (float) Math.ceil(player.getAbsorptionAmount())) / 2.0f);
+        //~ FoodOverlay.shake(QolFoodIcons.SHAKE, this.tickCount, (int) Math.ceil(player.getHealth()), hearts, saturation, food);
 
-        //~ // Saturation: a gold tint over as many shanks as there are saturation points (2 per shank).
-        //~ for (int i = 0; i < 10 && saturation > i * 2f; i++) {
-            //~ final int x = right - i * 8 - 9;
-            //~ final boolean half = saturation - i * 2f < 1.5f;
-            //~ canvas.fill(half ? x + 5 : x + 1, top + 1, x + 8, top + 8, 0x66FFC21A);
-            //~ canvas.fill(half ? x + 5 : x + 1, top + 8, x + 8, top + 9, 0xCCFFC21A);
+        //~ final FoodProperties held = aetherium$heldFood(player);
+        //~ int foodAfter = food;
+        //~ float saturationAfter = saturation;
+        //~ float flash = 0f;
+        //~ if (held != null) {
+            //~ foodAfter = Math.min(20, food + held.getNutrition());
+            //~ saturationAfter = FoodOverlay.saturationAfter(food, saturation, held.getNutrition(), held.getSaturationModifier());
+            //~ flash = FoodOverlay.flash(this.tickCount, 0f);
         //~ }
 
-        //~ // Held food: the shanks it would fill, pulsing.
-        //~ final int nutrition = aetherium$heldNutrition(player);
-        //~ if (nutrition <= 0 || food >= 20) {
-            //~ return;
-        //~ }
-        //~ final int after = Math.min(20, food + nutrition);
-        //~ final float alpha = 0.35f + 0.3f * (float) Math.sin((this.tickCount % 40) / 40.0 * Math.PI * 2.0);
-        //~ RenderSystem.enableBlend();
-        //~ RenderSystem.defaultBlendFunc();
-        //~ RenderSystem.color4f(1f, 1f, 1f, 0.35f + alpha);
-        //~ final Gui gui = (Gui) (Object) this;
-        //~ for (int i = 0; i < 10; i++) {
-            //~ final int full = i * 2 + 2;
-            //~ if (food >= full || after < full - 1) {
-                //~ continue;
+        //~ // Held food: the shanks it would fill, flashing over a faint highlight (under the outline).
+        //~ if (foodAfter > food && flash > 0.01f) {
+            //~ mc.getTextureManager().bind(GuiComponent.GUI_ICONS_LOCATION);
+            //~ RenderSystem.enableBlend();
+            //~ RenderSystem.defaultBlendFunc();
+            //~ final Gui gui = (Gui) (Object) this;
+            //~ for (int i = food / 2; i < (foodAfter + 1) / 2; i++) {
+                //~ final int x = right - i * 8 - 9;
+                //~ final int y = top + QolFoodIcons.SHAKE[i];
+                //~ RenderSystem.color4f(1f, 1f, 1f, flash * 0.25f);
+                //~ gui.blit(pose, x, y, 25, 27, 9, 9);
+                //~ RenderSystem.color4f(1f, 1f, 1f, flash);
+                //~ gui.blit(pose, x, y, i * 2 + 1 == foodAfter ? 61 : 52, 27, 9, 9);
             //~ }
-            //~ final int x = right - i * 8 - 9;
-            //~ gui.blit(pose, x, top, after >= full ? 52 : 61, 27, 9, 9);
+            //~ RenderSystem.color4f(1f, 1f, 1f, 1f);
         //~ }
-        //~ RenderSystem.color4f(1f, 1f, 1f, 1f);
+
+        //~ // Saturation: the gold outline, solid for what you have, flashing for what the food adds.
+        //~ aetherium$saturation(pose, right, top, saturation, Math.max(saturation, saturationAfter), flash);
         //~ RenderSystem.disableBlend();
     //~ }
 
-    //~ private static int aetherium$heldNutrition(final LocalPlayer player) {
+    //~ private static void aetherium$saturation(final PoseStack pose, final int right, final int top, final float saturation,
+                                             //~ final float after, final float flash) {
+        //~ if (after <= 0f) {
+            //~ return;
+        //~ }
+        //~ final int[] outline = QolFoodIcons.outline();
+        //~ final int total = outline.length;
+        //~ if (total == 0) {
+            //~ return;
+        //~ }
+        //~ final int flashAlpha = (int) (flash * 255f);
+        //~ RenderSystem.enableBlend();
+        //~ RenderSystem.defaultBlendFunc();
+        //~ RenderSystem.disableTexture();
+        //~ final Tesselator tesselator = Tesselator.getInstance();
+        //~ final BufferBuilder buffer = tesselator.getBuilder();
+        //~ buffer.begin(GL_QUADS, DefaultVertexFormat.POSITION_COLOR);
+        //~ final Matrix4f m = pose.last().pose();
+        //~ for (int i = 0; i < 10; i++) {
+            //~ final int shown = FoodOverlay.pixelsFor(saturation / 2f - i, total);
+            //~ final int preview = flashAlpha > 2 ? FoodOverlay.pixelsFor(after / 2f - i, total) : 0;
+            //~ final int count = Math.max(shown, preview);
+            //~ final int x0 = right - i * 8 - 9;
+            //~ final int y0 = top + QolFoodIcons.SHAKE[i];
+            //~ for (int k = 0; k < count; k++) {
+                //~ final int px = FoodOverlay.sx(outline[k]);
+                //~ final int py = FoodOverlay.sy(outline[k]);
+                //~ final int rgb = FoodOverlay.gold(px, py);
+                //~ final int a = k < shown ? 255 : flashAlpha;
+                //~ final int r = rgb >> 16 & 0xFF;
+                //~ final int g = rgb >> 8 & 0xFF;
+                //~ final int b = rgb & 0xFF;
+                //~ final float x = x0 + px;
+                //~ final float y = y0 + py;
+                //~ buffer.vertex(m, x, y + 1f, 0f).color(r, g, b, a).endVertex();
+                //~ buffer.vertex(m, x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
+                //~ buffer.vertex(m, x + 1f, y, 0f).color(r, g, b, a).endVertex();
+                //~ buffer.vertex(m, x, y, 0f).color(r, g, b, a).endVertex();
+            //~ }
+        //~ }
+        //~ tesselator.end();
+        //~ RenderSystem.enableTexture();
+    //~ }
+
+    //~ /** The food in the main hand, else the off hand, or null. */
+    //~ private static FoodProperties aetherium$heldFood(final LocalPlayer player) {
         //~ ItemStack stack = player.getMainHandItem();
         //~ if (!stack.getItem().isEdible()) {
             //~ stack = player.getOffhandItem();
             //~ if (!stack.getItem().isEdible()) {
-                //~ return 0;
+                //~ return null;
             //~ }
         //~ }
-        //~ final FoodProperties food = stack.getItem().getFoodProperties();
-        //~ return food == null ? 0 : food.getNutrition();
+        //~ return stack.getItem().getFoodProperties();
     //~ }
     // @era:q-hud-end
 }

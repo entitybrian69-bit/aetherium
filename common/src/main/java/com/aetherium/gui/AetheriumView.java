@@ -36,6 +36,18 @@ public final class AetheriumView {
     private int selected;
 
     private final Anim openAnim = new Anim(0f, 9f);
+    /**
+     * Live preview (hand editor, like Punchy's): rises to 1 while a {@link Setting#livePreview()}
+     * row is being edited. The whole screen fades out so the world (and the hand) behind it can
+     * be seen; only that row stays, on its own small card, where it was.
+     */
+    private final Anim isolateAnim = new Anim(0f, 14f);
+    private static final float PEEK_SECONDS = 1.6f;
+    /** The row shown alone while {@link #isolateAnim} is above 0. */
+    private Setting isolated;
+    /** A live-preview row that was just picked (dropdown, toggle) stays alone for a moment. */
+    private Setting peekRow;
+    private float peekUntil;
     private final Anim tabAnim = new Anim(0f, 16f);
     private final Anim contentAnim = new Anim(0f, 11f);
     private final Anim scrollAnim = new Anim(0f, 18f);
@@ -306,29 +318,87 @@ public final class AetheriumView {
         final float dt = this.lastNanos == 0L ? 0f : Math.min(0.25f, (now - this.lastNanos) / 1.0e9f);
         this.lastNanos = now;
         this.clock += dt;
+        this.host.beforeFrame();
         layout();
         tick(dt, mouseX, mouseY);
         AetheriumTheme.apply(this.themeAnim.get());
 
         canvas.reset();
-        canvas.fill(0, 0, this.width, this.height, BACKGROUND);
         final float open = Anim.easeOut(this.openAnim.get());
-        drawDots(canvas, dt, open);
-
-        canvas.setAlpha(open);
         final int lift = Math.round((1f - open) * 10f);
-        canvas.setOffset(0, lift);
-        drawHeader(canvas);
-        drawSidebar(canvas);
-        drawPanel(canvas, mouseX, mouseY, lift);
-        drawFooter(canvas);
-        drawDropdown(canvas, mouseX, mouseY);
-        drawTooltip(canvas);
+        final float iso = this.isolated == null ? 0f : Anim.easeOut(this.isolateAnim.get());
+        if (iso < 0.995f) {
+            final float rest = 1f - iso;
+            canvas.setAlpha(rest);
+            canvas.fill(0, 0, this.width, this.height, BACKGROUND);
+            drawDots(canvas, dt, open);
+
+            canvas.setAlpha(open * rest);
+            canvas.setOffset(0, lift);
+            drawHeader(canvas);
+            drawSidebar(canvas);
+            drawPanel(canvas, mouseX, mouseY, lift);
+            drawFooter(canvas);
+            drawDropdown(canvas, mouseX, mouseY);
+            if (iso <= 0f) {
+                drawTooltip(canvas);
+            }
+        }
+        if (iso > 0f) {
+            drawIsolated(canvas, mouseX, mouseY, lift, open, iso);
+        }
         canvas.reset();
+    }
+
+    /** True while the screen is (partly) faded away around a live-preview row. */
+    public boolean isIsolating() {
+        return this.isolated != null && this.isolateAnim.get() > 0.01f;
+    }
+
+    /** The live-preview row that should be shown alone right now, or null. */
+    private Setting previewFocus() {
+        if (!this.host.livePreviewAvailable()) {
+            return null;
+        }
+        if (this.dragging != null && this.dragging.livePreview) {
+            return this.dragging;
+        }
+        if (this.peekRow != null && this.clock < this.peekUntil) {
+            return this.peekRow;
+        }
+        this.peekRow = null;
+        return null;
+    }
+
+    /** The isolated row on a card of its own, at the place it has in the list. */
+    private void drawIsolated(final GuiCanvas canvas, final int mouseX, final int mouseY, final int lift,
+                              final float open, final float iso) {
+        final int index = currentRows().indexOf(this.isolated);
+        if (index < 0) {
+            return;
+        }
+        final int top = Math.max(2, Math.min(this.height - this.rowH - 4, rowTop(index)));
+        final int x1 = this.panelX1;
+        final int x2 = this.panelX2;
+        canvas.setOffset(0, lift);
+        canvas.setAlpha(open);
+        canvas.fill(x1 + 2, top + this.rowH + 1, x2 + 1, top + this.rowH + 3, fade(SURFACE_SHADOW, iso));
+        canvas.fill(x1, top - 1, x2, top + this.rowH + 1, fade(SURFACE_BORDER, iso));
+        canvas.fill(x1 + 1, top, x2 - 1, top + this.rowH, fade(SURFACE, iso));
+        drawRow(canvas, this.isolated, top, mouseX, mouseY);
     }
 
     private void tick(final float dt, final int mouseX, final int mouseY) {
         this.openAnim.tick(dt);
+        final Setting focus = previewFocus();
+        if (focus != null) {
+            this.isolated = focus;
+        }
+        this.isolateAnim.setTarget(focus != null ? 1f : 0f);
+        this.isolateAnim.tick(dt);
+        if (focus == null && this.isolateAnim.get() < 0.01f) {
+            this.isolated = null;
+        }
         this.themeAnim.setTarget(this.darkMode ? 1f : 0f);
         this.themeAnim.tick(dt);
         this.themeHover.setTarget(this.themeX1 >= 0 && inside(mouseX, mouseY, this.themeX1, this.themeY1, this.themeX2, this.themeY2) ? 1f : 0f);
@@ -979,6 +1049,11 @@ public final class AetheriumView {
         if (button != 0) {
             return false;
         }
+        if (this.peekRow != null && this.clock < this.peekUntil) {
+            // The screen is faded out around a live preview: a click only brings it back.
+            this.peekRow = null;
+            return true;
+        }
         layout();
         final int x = (int) Math.floor(mouseX);
         final int y = (int) Math.floor(mouseY);
@@ -1291,6 +1366,11 @@ public final class AetheriumView {
     private void edited(final Setting setting) {
         if (setting.onPick != null) {
             setting.onPick.accept(setting.pending);
+        }
+        if (setting.livePreview && setting.kind != Setting.Kind.SLIDER) {
+            // Not dragged, so there is no "while editing": show the result for a moment.
+            this.peekRow = setting;
+            this.peekUntil = this.clock + PEEK_SECONDS;
         }
         if (setting.presetMember && this.preset != null && setting != this.preset) {
             this.preset.stage(-1);

@@ -49,6 +49,10 @@ public final class Qol {
     public static volatile float handYaw;
     public static volatile float handRoll;
     public static volatile float handScale = 1f;
+    /** True while the settings screen shows staged (not yet applied) hand values live. */
+    public static volatile boolean handPreview;
+    /** The hand hook exists and Aetherium is active (last {@link #configure}). */
+    private static volatile boolean handAllowed;
 
     private Qol() {
     }
@@ -83,15 +87,42 @@ public final class Qol {
         crosshairTargetArgb = Crosshair.argb(Crosshair.TARGET_RGB, opacity);
         crosshairTarget = c.crosshairTargetColor.get().booleanValue();
 
-        hand = active && QolSupport.HAND && c.handEditor.get().booleanValue();
-        handMirror = c.handMirror.get().booleanValue();
-        handX = c.handX.get().intValue() / 100f;
-        handY = c.handY.get().intValue() / 100f;
-        handZ = c.handZ.get().intValue() / 100f;
-        handPitch = c.handPitch.get().intValue();
-        handYaw = c.handYaw.get().intValue();
-        handRoll = c.handRoll.get().intValue();
-        handScale = clamp(c.handScale.get().intValue(), 25, 200) / 100f;
+        handAllowed = active && QolSupport.HAND;
+        handPreview = false;
+        setHand(c.handEditor.get().booleanValue(), c.handMirror.get().booleanValue(), c.handX.get().intValue(),
+                c.handY.get().intValue(), c.handZ.get().intValue(), c.handPitch.get().intValue(),
+                c.handYaw.get().intValue(), c.handRoll.get().intValue(), c.handScale.get().intValue());
+    }
+
+    /**
+     * Live preview from the settings screen: shows staged hand values (config units, see
+     * {@link #HAND_PRESETS}) before Apply. {@link #endHandPreview} puts the applied values back.
+     */
+    public static void previewHand(final boolean enabled, final boolean mirror, final int x, final int y, final int z,
+                                   final int pitch, final int yaw, final int roll, final int scale) {
+        handPreview = handAllowed && enabled;
+        setHand(enabled, mirror, x, y, z, pitch, yaw, roll, scale);
+    }
+
+    /** Ends {@link #previewHand}: back to the applied config. */
+    public static void endHandPreview(final AetheriumConfig c) {
+        handPreview = false;
+        setHand(c.handEditor.get().booleanValue(), c.handMirror.get().booleanValue(), c.handX.get().intValue(),
+                c.handY.get().intValue(), c.handZ.get().intValue(), c.handPitch.get().intValue(),
+                c.handYaw.get().intValue(), c.handRoll.get().intValue(), c.handScale.get().intValue());
+    }
+
+    private static void setHand(final boolean enabled, final boolean mirror, final int x, final int y, final int z,
+                                final int pitch, final int yaw, final int roll, final int scale) {
+        handMirror = mirror;
+        handX = clamp(x, -50, 50) / 100f;
+        handY = clamp(y, -50, 50) / 100f;
+        handZ = clamp(z, -50, 50) / 100f;
+        handPitch = clamp(pitch, -90, 90);
+        handYaw = clamp(yaw, -90, 90);
+        handRoll = clamp(roll, -90, 90);
+        handScale = clamp(scale, 25, 200) / 100f;
+        hand = handAllowed && enabled;
     }
 
     // ------------------------------------------------------------------ hand presets
@@ -102,11 +133,10 @@ public final class Qol {
      */
     public static final int[][] HAND_PRESETS = {
         {0, 0, 0, 0, 0, 0, 100},          // Default: vanilla
-        {0, -12, 0, 0, 0, 0, 100},        // Lowered: out of the way of the crosshair
-        {-14, -4, -6, 0, 6, 0, 100},      // Centered: closer to the middle of the screen
-        {4, -4, 0, 0, 0, 0, 70},          // Small
-        {-2, 4, 6, 0, 0, 0, 130},         // Big
-        {-8, -10, 8, -6, 10, -4, 115},    // Punchy: larger, lower and turned in, like an arm reaching forward
+        {0, -22, 0, 0, 0, 0, 100},        // Lowered: well below the crosshair
+        {-30, -4, -8, 0, 0, 0, 100},      // Centered: close to the middle of the screen
+        {6, -6, 0, 0, 0, 0, 65},          // Small
+        {-6, 4, 0, 0, 0, 0, 140},         // Big
     };
 
     // ------------------------------------------------------------------ food

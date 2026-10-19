@@ -90,6 +90,7 @@ public final class AetheriumPages {
     /** The view is created from {@link #build()}, so it is attached afterwards. */
     public void attach(final AetheriumView view) {
         this.view = view;
+        cacheHandRows();
     }
 
     public List<Page> build() {
@@ -497,7 +498,7 @@ public final class AetheriumPages {
 
     private static final String[] CROSSHAIR_STYLES = {"Vanilla", "Cross", "Cross + dot", "Dot", "Circle", "Circle + dot", "T"};
     private static final String[] CROSSHAIR_COLORS = {"White", "Red", "Green", "Cyan", "Yellow", "Magenta", "Black"};
-    private static final String[] HAND_PRESETS = {"Custom", "Default", "Lowered", "Centered", "Small", "Big", "Punchy"};
+    private static final String[] HAND_PRESETS = {"Custom", "Default", "Lowered", "Centered", "Small", "Big"};
     private static final String[] HAND_ROWS = {
         "qol.hand.x", "qol.hand.y", "qol.hand.z", "qol.hand.pitch", "qol.hand.yaw", "qol.hand.roll", "qol.hand.scale",
     };
@@ -562,14 +563,14 @@ public final class AetheriumPages {
         page.add(qolRow(bool("qol.crosshair.outline", "Crosshair outline", config.crosshairOutline), QolSupport.HUD));
         page.add(qolRow(bool("qol.crosshair.target_color", "Red on mobs", config.crosshairTargetColor), QolSupport.HUD));
 
-        page.add(qolRow(bool("qol.hand.enabled", "Hand editor", config.handEditor), QolSupport.HAND));
+        page.add(qolRow(bool("qol.hand.enabled", "Hand editor", config.handEditor), QolSupport.HAND).livePreview());
         page.add(qolRow(Setting.choice("qol.hand.preset", Setting.Kind.DROPDOWN, "Hand preset",
-                        "Stages a ready-made hand position into the values below; adjust them afterwards as you like.",
+                        "Moves your hand to a ready-made position (and turns the hand editor on). In a world the menu fades for a moment so you can see the result; adjust the values below afterwards as you like.",
                         HAND_PRESETS,
                         () -> config.handPreset.get().ordinal(),
                         v -> config.handPreset.set(AetheriumConfig.HandPreset.values()[clamp(v, 0, HAND_PRESETS.length - 1)]))
                 .withDefault(config.handPreset.getDefault().ordinal())
-                .onPick(this::stageHandPreset), QolSupport.HAND));
+                .onPick(this::stageHandPreset), QolSupport.HAND).livePreview());
         page.add(handRow(intSlider("qol.hand.x", "Hand sideways", config.handX, 1, AetheriumPages::hundredths)));
         page.add(handRow(intSlider("qol.hand.y", "Hand height", config.handY, 1, AetheriumPages::hundredths)));
         page.add(handRow(intSlider("qol.hand.z", "Hand depth", config.handZ, 1, AetheriumPages::hundredths)));
@@ -577,7 +578,7 @@ public final class AetheriumPages {
         page.add(handRow(intSlider("qol.hand.yaw", "Hand turn", config.handYaw, 1, v -> v + "\u00b0")));
         page.add(handRow(intSlider("qol.hand.roll", "Hand roll", config.handRoll, 1, v -> v + "\u00b0")));
         page.add(handRow(intSlider("qol.hand.scale", "Hand size", config.handScale, 5, v -> v + "%")));
-        page.add(qolRow(bool("qol.hand.mirror", "Same for off hand", config.handMirror), QolSupport.HAND));
+        page.add(qolRow(bool("qol.hand.mirror", "Same for off hand", config.handMirror), QolSupport.HAND).livePreview());
 
         addZoomAndFreelook(page);
         return page;
@@ -587,14 +588,18 @@ public final class AetheriumPages {
         return setting.availableWhen(() -> supported, NOT_ON_THIS_VERSION);
     }
 
-    /** A hand value: available with the hand editor, and editing it turns the preset back into Custom. */
+    /**
+     * A hand value: available with the hand editor, shown live while dragged (the rest of the
+     * screen fades away), and editing it turns the preset back into Custom and the editor on.
+     */
     private Setting handRow(final Setting setting) {
-        return qolRow(setting, QolSupport.HAND).onPick(v -> {
+        return qolRow(setting, QolSupport.HAND).livePreview().onPick(v -> {
             if (this.view != null) {
                 final Setting preset = this.view.find("qol.hand.preset");
                 if (preset != null) {
                     preset.stage(0);
                 }
+                enableHandEditor();
             }
         });
     }
@@ -609,6 +614,70 @@ public final class AetheriumPages {
             if (row != null && row.isEditable()) {
                 row.stage(values[i]);
             }
+        }
+        enableHandEditor();
+    }
+
+    /** A preset or a hand value only shows with the editor on, so picking one turns it on. */
+    private void enableHandEditor() {
+        final Setting enabled = this.view.find("qol.hand.enabled");
+        if (enabled != null && enabled.isEditable()) {
+            enabled.stage(1);
+        }
+    }
+
+    // ------------------------------------------------------------------ hand live preview
+
+    /** qol.hand.enabled, qol.hand.mirror, then {@link #HAND_ROWS}; null when the page has none. */
+    private Setting[] handRows;
+    private boolean handPreviewing;
+
+    private void cacheHandRows() {
+        final Setting[] rows = new Setting[2 + HAND_ROWS.length];
+        rows[0] = this.view.find("qol.hand.enabled");
+        rows[1] = this.view.find("qol.hand.mirror");
+        for (int i = 0; i < HAND_ROWS.length; i++) {
+            rows[2 + i] = this.view.find(HAND_ROWS[i]);
+        }
+        for (final Setting row : rows) {
+            if (row == null || !row.isEditable()) {
+                this.handRows = null;
+                return;
+            }
+        }
+        this.handRows = rows;
+    }
+
+    /**
+     * Every frame while the screen is open: staged (not yet applied) hand values are shown on the
+     * real hand at once, so a preset or a dragged slider can be judged before Apply.
+     */
+    public void previewFrame() {
+        final Setting[] rows = this.handRows;
+        if (rows == null) {
+            return;
+        }
+        boolean dirty = false;
+        for (final Setting row : rows) {
+            if (row.isDirty()) {
+                dirty = true;
+                break;
+            }
+        }
+        if (dirty) {
+            Qol.previewHand(rows[0].pending() != 0, rows[1].pending() != 0, rows[2].pending(), rows[3].pending(),
+                    rows[4].pending(), rows[5].pending(), rows[6].pending(), rows[7].pending(), rows[8].pending());
+            this.handPreviewing = true;
+        } else if (this.handPreviewing) {
+            endPreview();
+        }
+    }
+
+    /** The screen closed: back to the applied hand values. */
+    public void endPreview() {
+        if (this.handPreviewing) {
+            this.handPreviewing = false;
+            Qol.endHandPreview(this.config);
         }
     }
 

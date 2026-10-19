@@ -191,6 +191,13 @@ public final class SmokeTest {
             farTerrain = "FAILED: " + error;
         }
         out.append("far terrain ").append(farTerrain).append('\n');
+        String foodOutline;
+        try {
+            foodOutline = com.aetherium.client.QolFoodIcons.selfTest();
+        } catch (final Throwable error) {
+            foodOutline = "FAILED: " + error;
+        }
+        out.append("food outline ").append(foodOutline).append('\n');
         try {
             final File dir = new File(DIR);
             dir.mkdirs();

@@ -107,6 +107,7 @@ public final class QolClient {
         PLACEMENT.reset();
         wasDead = false;
         QolInventory.cancel();
+        QolFoodIcons.invalidate();
     }
 
     /** End of every client tick. */

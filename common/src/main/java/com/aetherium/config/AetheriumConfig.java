@@ -437,7 +437,7 @@ public final class AetheriumConfig {
 
     /** Hand position presets (Quality of life, hand editor). */
     public enum HandPreset {
-        CUSTOM, DEFAULT, LOWERED, CENTERED, SMALL, BIG, PUNCHY
+        CUSTOM, DEFAULT, LOWERED, CENTERED, SMALL, BIG
     }
 
     /** Dynamic light update modes. */
