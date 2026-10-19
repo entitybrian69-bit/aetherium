@@ -54,4 +54,12 @@ public final class Capabilities {
 
     private Capabilities() {
     }
+
+    // Flags read by shared main-mod code (Phase 33 sync).
+    public static final boolean COALESCE_EXTRACT = false;
+    public static final boolean FOG_CULL_EXTRACT = false;
+    /** Render scale (1.14.0): the 1.12.2 framebuffer path, see client/RenderScaleHooks. */
+    public static final boolean RENDER_SCALE = false;
+    /** The tuning options (perf.Tuning); which ones exist on 1.12.2 is in perf.TuningSupport. */
+    public static final boolean TUNING = true;
 }
