@@ -3,6 +3,22 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.16.0
+**Quality of life tab (test build for Minecraft 1.16.5 only).** Twelve small features in a new QoL tab. All are off by default, run only on your client, and work on any server, including servers without Aetherium.
+
+- Accurate placement: while you hold Use and move, a block is placed as soon as the crosshair reaches a new spot, so floors and walls come out without gaps or double blocks.
+- Mouse tweaks: scroll over a stack to move one item at a time to the other side; hold Shift and drag over slots to shift-click every stack you pass.
+- Sort button: a small button on chests, barrels, ender chests, shulker boxes, hoppers, dispensers and your own inventory that merges and orders the stacks. An optional Sort key can be bound in Controls.
+- Food info: hunger and saturation in food tooltips; your hidden saturation as a gold tint on the hunger bar, and the hunger held food would restore flashes on it.
+- Death point: a waypoint where you last died, plus the coordinates on the death screen.
+- Waypoints: per world and dimension, with optional beams and Nether/Overworld conversion. B adds one, N opens the manager.
+- Nether and Overworld coordinates on the HUD.
+- Lower fire overlay (flame height slider, 0 hides it) and a lowered shield while blocking.
+- Floating damage numbers (and optional heal numbers) above nearby mobs and players.
+- Custom crosshair: style, colour, size, thickness, gap, opacity, outline, and it turns red while you aim at a mob or player.
+- Hand editor: move, rotate and scale the held item, mirror it, or pick a preset (Lowered, Centered, Small, Big, Punchy).
+- Zoom and freelook options moved to the QoL tab.
+
 ## 1.15.0
 **Far terrain and the chunk streaming tweaks on every version.** Both were Minecraft 1.16.5 only until now; they work on every version from 1.16.5 to 26.3.
 
