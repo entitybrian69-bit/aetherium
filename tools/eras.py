@@ -135,6 +135,8 @@ ERAS = {
                    ("trusted", "1.20.5..1.20.6"), ("none", "1.21..")],
     "pose-normals": [("plain", "..1.20.4"), ("trusted", "1.20.5..")],
     "math": [("mojang", "..1.19.2"), ("joml", "1.19.3..")],
+    # PoseStack.mulPose(Quaternionfc) became rotate(Quaternionfc) in 26.3.
+    "pose-rot": [("mul", "..26.2"), ("rotate", "26.3..")],
     "anim": [("v16", "..1.16.5"), ("on", "1.17..1.21.4"), ("none", "1.21.5..")],
     # Atlas animation steps: 1.16.5 cycles sprites; 1.17 Tickable from getAnimationTicker (reload);
     # 1.19.3 TextureAtlasSprite$Ticker from createTicker (upload), tickAndUpload()V; 1.21.5 takes a

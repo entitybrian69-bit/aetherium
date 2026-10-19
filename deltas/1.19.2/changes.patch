@@ -536,7 +536,7 @@ index ea2a9ed..4751d1e 100644
          return true;
      }
 diff --git a/common/src/main/java/com/aetherium/client/QolHandPose.java b/common/src/main/java/com/aetherium/client/QolHandPose.java
-index ab02e6a..bdfb61f 100644
+index 11ac694..cc10111 100644
 --- a/common/src/main/java/com/aetherium/client/QolHandPose.java
 +++ b/common/src/main/java/com/aetherium/client/QolHandPose.java
 @@ -40,9 +40,9 @@ public final class QolHandPose {
@@ -552,42 +552,63 @@ index ab02e6a..bdfb61f 100644
      // @era:math-end
  
      private QolHandPose() {
-@@ -129,26 +129,26 @@ public final class QolHandPose {
+@@ -128,38 +128,38 @@ public final class QolHandPose {
+         pose.translate(-side * PALM_X, -PALM_Y, -PALM_Z);
      }
+ 
+-    // @era:math-begin joml
+-    private static void rotate(final PoseStack pose, final org.joml.Quaternionf rotation) {
+-        // @era:pose-rot-begin mul
+-        pose.mulPose(rotation);
+-        // @era:pose-rot-else rotate
+-        //~ pose.rotate(rotation);
+-        // @era:pose-rot-end
+-    }
+-    // @era:math-else mojang
++    // @era:math-begin mojang
++    // @era:math-else joml
++    //~ private static void rotate(final PoseStack pose, final org.joml.Quaternionf rotation) {
++        //~ // @era:pose-rot-begin mul
++        //~ pose.mulPose(rotation);
++        //~ // @era:pose-rot-else rotate
++        //~ //~ pose.rotate(rotation);
++        //~ // @era:pose-rot-end
++    //~ }
+     // @era:math-end
  
      private static void rotateX(final PoseStack pose, final float degrees) {
 -        // @era:math-begin joml
--        pose.mulPose(SCRATCH.rotationX((float) Math.toRadians(degrees)));
+-        rotate(pose, SCRATCH.rotationX((float) Math.toRadians(degrees)));
 -        // @era:math-else mojang
 -        //~ pose.mulPose(com.mojang.math.Vector3f.XP.rotationDegrees(degrees));
 +        // @era:math-begin mojang
 +        pose.mulPose(com.mojang.math.Vector3f.XP.rotationDegrees(degrees));
 +        // @era:math-else joml
-+        //~ pose.mulPose(SCRATCH.rotationX((float) Math.toRadians(degrees)));
++        //~ rotate(pose, SCRATCH.rotationX((float) Math.toRadians(degrees)));
          // @era:math-end
      }
  
      private static void rotateY(final PoseStack pose, final float degrees) {
 -        // @era:math-begin joml
--        pose.mulPose(SCRATCH.rotationY((float) Math.toRadians(degrees)));
+-        rotate(pose, SCRATCH.rotationY((float) Math.toRadians(degrees)));
 -        // @era:math-else mojang
 -        //~ pose.mulPose(com.mojang.math.Vector3f.YP.rotationDegrees(degrees));
 +        // @era:math-begin mojang
 +        pose.mulPose(com.mojang.math.Vector3f.YP.rotationDegrees(degrees));
 +        // @era:math-else joml
-+        //~ pose.mulPose(SCRATCH.rotationY((float) Math.toRadians(degrees)));
++        //~ rotate(pose, SCRATCH.rotationY((float) Math.toRadians(degrees)));
          // @era:math-end
      }
  
      private static void rotateZ(final PoseStack pose, final float degrees) {
 -        // @era:math-begin joml
--        pose.mulPose(SCRATCH.rotationZ((float) Math.toRadians(degrees)));
+-        rotate(pose, SCRATCH.rotationZ((float) Math.toRadians(degrees)));
 -        // @era:math-else mojang
 -        //~ pose.mulPose(com.mojang.math.Vector3f.ZP.rotationDegrees(degrees));
 +        // @era:math-begin mojang
 +        pose.mulPose(com.mojang.math.Vector3f.ZP.rotationDegrees(degrees));
 +        // @era:math-else joml
-+        //~ pose.mulPose(SCRATCH.rotationZ((float) Math.toRadians(degrees)));
++        //~ rotate(pose, SCRATCH.rotationZ((float) Math.toRadians(degrees)));
          // @era:math-end
      }
  }

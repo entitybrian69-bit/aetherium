@@ -52,7 +52,9 @@ HINTS = {
         "public com.mojang.blaze3d.vertex.VertexFormat format();",
         "public com.mojang.blaze3d.vertex.VertexFormat$Mode mode();"]),
     # joml is not on the probe classpath (a library jar); public API since joml 1.9.
-    "org.joml.Quaternionf": (None, ["public float x;", "public float y;", "public float z;", "public float w;"]),
+    "org.joml.Quaternionf": (None, ["public org.joml.Quaternionf();", "public float x;", "public float y;", "public float z;", "public float w;",
+                                    "public org.joml.Quaternionf rotationX(float);", "public org.joml.Quaternionf rotationY(float);",
+                                    "public org.joml.Quaternionf rotationZ(float);"]),
     "org.joml.Matrix4f": (None, ["public float[] get(float[]);"]),
     "org.joml.Matrix3f": (None, ["public float m00();", "public float m01();", "public float m02();",
                                  "public float m10();", "public float m11();", "public float m12();",
@@ -73,8 +75,11 @@ HINT_ARITY = {
     "it.unimi.dsi.fastutil.objects.ObjectArrayList": 1,
     "it.unimi.dsi.fastutil.objects.ObjectList": 1,
 }
+# Unprobed library types that are interfaces (stubbed as classes otherwise).
+HINT_INTERFACES = {"org.joml.Quaternionfc", "org.joml.Matrix4fc"}
 HINT_IMPLEMENTS = {
     "net.minecraft.client.resources.sounds.AbstractSoundInstance": ["net.minecraft.client.resources.sounds.SoundInstance"],
+    "org.joml.Quaternionf": ["org.joml.Quaternionfc"],
 }
 
 
@@ -484,7 +489,7 @@ def generate(version):
         tp = ""
         if arity:
             tp = "<" + ", ".join("T%d" % i for i in range(arity)) + ">"
-        c = Cls(name, "interface" if name in iface else "class", ["public"], tp, [], [])
+        c = Cls(name, "interface" if name in iface or name in HINT_INTERFACES else "class", ["public"], tp, [], [])
         c.probed = False
         if name in HINTS:
             sup, members = HINTS[name]

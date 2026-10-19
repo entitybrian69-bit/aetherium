@@ -54,6 +54,7 @@ neoforge_version=26.3.0.64-beta
 - `light-hook=none`
 - `loom-plugin-id->no-remap`
 - `mappings-line-removed`
+- `math=joml`
 - `mesh-alloc=none`
 - `mesh-exec=tracing`
 - `modCompileOnly->compileOnly`
@@ -64,6 +65,7 @@ neoforge_version=26.3.0.64-beta
 - `options=instances`
 - `pacing=limiter`
 - `particle-fast=none`
+- `pose-rot=rotate`
 - `q-fire=f262`
 - `q-hand=none`
 - `q-hud=x263`
@@ -191,6 +193,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/client/GrassQuads.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/QolClient.java`
+- `common/src/main/java/com/aetherium/client/QolHandPose.java`
 - `common/src/main/java/com/aetherium/client/QolHudDraw.java`
 - `common/src/main/java/com/aetherium/client/QolInventory.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
