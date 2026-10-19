@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.aetherium.config.AetheriumConfig;
+import com.aetherium.config.ConfigValue;
 import com.aetherium.gui.GuiCanvas;
 import com.aetherium.gui.UiSound;
 
@@ -489,13 +490,50 @@ final class QolLogicTest {
     // ------------------------------------------------------------------ settings
 
     @Test
+    @DisplayName("Hand editor: ranges go well past half a block and 90 degrees, and the visible arm is its own switch")
+    void handRanges() {
+        final AetheriumConfig config = new AetheriumConfig();
+        assertEquals(-200, config.handX.getMin());
+        assertEquals(200, config.handY.getMax());
+        assertEquals(-200, config.handZ.getMin());
+        assertEquals(-180, config.handPitch.getMin());
+        assertEquals(180, config.handRoll.getMax());
+        assertEquals(10, config.handScale.getMin());
+        assertEquals(300, config.handScale.getMax());
+        assertFalse(config.handVisible.get());
+        Qol.configure(config, true);
+        try {
+            Qol.previewHand(true, true, true, -175, -120, 150, -170, 180, -90, 280);
+            if (QolSupport.HAND) {
+                assertTrue(Qol.hand && Qol.handVisible && Qol.handPreview);
+                assertEquals(-1.75f, Qol.handX, 1e-6f);
+                assertEquals(-1.2f, Qol.handY, 1e-6f);
+                assertEquals(1.5f, Qol.handZ, 1e-6f);
+                assertEquals(-170f, Qol.handPitch, 1e-6f);
+                assertEquals(180f, Qol.handYaw, 1e-6f);
+                assertEquals(2.8f, Qol.handScale, 1e-6f);
+                Qol.previewHand(false, true, true, -999, 999, 0, -999, 999, 0, 999);
+                assertTrue(!Qol.hand && Qol.handVisible && Qol.handPreview, "the arm previews without the editor");
+                assertEquals(-2f, Qol.handX, 1e-6f);
+                assertEquals(2f, Qol.handY, 1e-6f);
+                assertEquals(-180f, Qol.handPitch, 1e-6f);
+                assertEquals(3f, Qol.handScale, 1e-6f);
+            }
+        } finally {
+            Qol.endHandPreview(config);
+        }
+        assertFalse(Qol.hand || Qol.handVisible || Qol.handPreview);
+        Qol.configure(config, false);
+    }
+
+    @Test
     @DisplayName("Quality of life: everything off by default, presets inside the option ranges, food maths")
     void settings() {
         final AetheriumConfig config = new AetheriumConfig();
         Qol.configure(config, true);
         assertFalse(Qol.accuratePlacement || Qol.scrollTransfer || Qol.shiftDrag || Qol.sortButton || Qol.foodTooltip
                 || Qol.foodHud || Qol.waypoints || Qol.deathPoint || Qol.dimensionCoords || Qol.damageNumbers
-                || Qol.crosshair || Qol.hand);
+                || Qol.crosshair || Qol.hand || Qol.handVisible);
         assertEquals(100, Qol.fireOverlay);
         assertEquals(0, Qol.shieldOffset);
         assertEquals(AetheriumConfig.HandPreset.values().length - 1, Qol.HAND_PRESETS.length);
@@ -504,14 +542,12 @@ final class QolLogicTest {
         for (int i = 0; i < Crosshair.Style.values().length; i++) {
             assertEquals(Crosshair.Style.values()[i].name(), AetheriumConfig.CrosshairStyle.values()[i].name());
         }
+        final ConfigValue<?>[] handValues = {config.handX, config.handY, config.handZ, config.handPitch,
+            config.handYaw, config.handRoll, config.handScale};
         for (final int[] preset : Qol.HAND_PRESETS) {
-            for (int i = 0; i < 3; i++) {
-                assertTrue(preset[i] >= -50 && preset[i] <= 50);
+            for (int i = 0; i < handValues.length; i++) {
+                assertTrue(preset[i] >= (Integer) handValues[i].getMin() && preset[i] <= (Integer) handValues[i].getMax());
             }
-            for (int i = 3; i < 6; i++) {
-                assertTrue(preset[i] >= -90 && preset[i] <= 90);
-            }
-            assertTrue(preset[6] >= 25 && preset[6] <= 200);
         }
         assertEquals(7.2f, Qol.saturation(6, 0.6f), 1e-4f);
         assertEquals("7.2", Qol.oneDecimal(Qol.saturation(6, 0.6f)));

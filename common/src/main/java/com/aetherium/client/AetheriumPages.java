@@ -564,6 +564,7 @@ public final class AetheriumPages {
         page.add(qolRow(bool("qol.crosshair.target_color", "Red on mobs", config.crosshairTargetColor), QolSupport.HUD));
 
         page.add(qolRow(bool("qol.hand.enabled", "Hand editor", config.handEditor), QolSupport.HAND).livePreview());
+        page.add(qolRow(bool("qol.hand.visible", "Show hand with items", config.handVisible), QolSupport.HAND).livePreview());
         page.add(qolRow(Setting.choice("qol.hand.preset", Setting.Kind.DROPDOWN, "Hand preset",
                         "Moves your hand to a ready-made position (and turns the hand editor on). In a world the menu fades for a moment so you can see the result; adjust the values below afterwards as you like.",
                         HAND_PRESETS,
@@ -618,26 +619,33 @@ public final class AetheriumPages {
         enableHandEditor();
     }
 
-    /** A preset or a hand value only shows with the editor on, so picking one turns it on. */
+    /**
+     * A preset or a hand value only shows with the editor on, and the hand itself only with
+     * "Show hand with items" (vanilla hides the arm while you hold something), so picking one
+     * turns both on, the way Punchy's hand editor always shows the arm.
+     */
     private void enableHandEditor() {
-        final Setting enabled = this.view.find("qol.hand.enabled");
-        if (enabled != null && enabled.isEditable()) {
-            enabled.stage(1);
+        for (final String id : new String[]{"qol.hand.enabled", "qol.hand.visible"}) {
+            final Setting row = this.view.find(id);
+            if (row != null && row.isEditable()) {
+                row.stage(1);
+            }
         }
     }
 
     // ------------------------------------------------------------------ hand live preview
 
-    /** qol.hand.enabled, qol.hand.mirror, then {@link #HAND_ROWS}; null when the page has none. */
+    /** qol.hand.enabled, .visible, .mirror, then {@link #HAND_ROWS}; null when the page has none. */
     private Setting[] handRows;
     private boolean handPreviewing;
 
     private void cacheHandRows() {
-        final Setting[] rows = new Setting[2 + HAND_ROWS.length];
+        final Setting[] rows = new Setting[3 + HAND_ROWS.length];
         rows[0] = this.view.find("qol.hand.enabled");
-        rows[1] = this.view.find("qol.hand.mirror");
+        rows[1] = this.view.find("qol.hand.visible");
+        rows[2] = this.view.find("qol.hand.mirror");
         for (int i = 0; i < HAND_ROWS.length; i++) {
-            rows[2 + i] = this.view.find(HAND_ROWS[i]);
+            rows[3 + i] = this.view.find(HAND_ROWS[i]);
         }
         for (final Setting row : rows) {
             if (row == null || !row.isEditable()) {
@@ -665,8 +673,9 @@ public final class AetheriumPages {
             }
         }
         if (dirty) {
-            Qol.previewHand(rows[0].pending() != 0, rows[1].pending() != 0, rows[2].pending(), rows[3].pending(),
-                    rows[4].pending(), rows[5].pending(), rows[6].pending(), rows[7].pending(), rows[8].pending());
+            Qol.previewHand(rows[0].pending() != 0, rows[1].pending() != 0, rows[2].pending() != 0, rows[3].pending(),
+                    rows[4].pending(), rows[5].pending(), rows[6].pending(), rows[7].pending(), rows[8].pending(),
+                    rows[9].pending());
             this.handPreviewing = true;
         } else if (this.handPreviewing) {
             endPreview();

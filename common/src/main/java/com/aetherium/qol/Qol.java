@@ -41,6 +41,8 @@ public final class Qol {
     /** True when the hand editor changes the first-person hand. */
     public static volatile boolean hand;
     public static volatile boolean handMirror = true;
+    /** Draw the arm with held items (Punchy-style visible hands). */
+    public static volatile boolean handVisible;
     /** Translation in blocks, rotation in degrees, scale as a factor. */
     public static volatile float handX;
     public static volatile float handY;
@@ -89,40 +91,46 @@ public final class Qol {
 
         handAllowed = active && QolSupport.HAND;
         handPreview = false;
-        setHand(c.handEditor.get().booleanValue(), c.handMirror.get().booleanValue(), c.handX.get().intValue(),
-                c.handY.get().intValue(), c.handZ.get().intValue(), c.handPitch.get().intValue(),
-                c.handYaw.get().intValue(), c.handRoll.get().intValue(), c.handScale.get().intValue());
+        setHand(c);
     }
 
     /**
      * Live preview from the settings screen: shows staged hand values (config units, see
      * {@link #HAND_PRESETS}) before Apply. {@link #endHandPreview} puts the applied values back.
      */
-    public static void previewHand(final boolean enabled, final boolean mirror, final int x, final int y, final int z,
-                                   final int pitch, final int yaw, final int roll, final int scale) {
-        handPreview = handAllowed && enabled;
-        setHand(enabled, mirror, x, y, z, pitch, yaw, roll, scale);
+    public static void previewHand(final boolean enabled, final boolean visible, final boolean mirror, final int x,
+                                   final int y, final int z, final int pitch, final int yaw, final int roll,
+                                   final int scale) {
+        handPreview = handAllowed && (enabled || visible);
+        setHand(enabled, visible, mirror, x, y, z, pitch, yaw, roll, scale);
     }
 
     /** Ends {@link #previewHand}: back to the applied config. */
     public static void endHandPreview(final AetheriumConfig c) {
         handPreview = false;
-        setHand(c.handEditor.get().booleanValue(), c.handMirror.get().booleanValue(), c.handX.get().intValue(),
-                c.handY.get().intValue(), c.handZ.get().intValue(), c.handPitch.get().intValue(),
-                c.handYaw.get().intValue(), c.handRoll.get().intValue(), c.handScale.get().intValue());
+        setHand(c);
     }
 
-    private static void setHand(final boolean enabled, final boolean mirror, final int x, final int y, final int z,
-                                final int pitch, final int yaw, final int roll, final int scale) {
+    private static void setHand(final AetheriumConfig c) {
+        setHand(c.handEditor.get().booleanValue(), c.handVisible.get().booleanValue(), c.handMirror.get().booleanValue(),
+                c.handX.get().intValue(), c.handY.get().intValue(), c.handZ.get().intValue(),
+                c.handPitch.get().intValue(), c.handYaw.get().intValue(), c.handRoll.get().intValue(),
+                c.handScale.get().intValue());
+    }
+
+    private static void setHand(final boolean enabled, final boolean visible, final boolean mirror, final int x,
+                                final int y, final int z, final int pitch, final int yaw, final int roll,
+                                final int scale) {
         handMirror = mirror;
-        handX = clamp(x, -50, 50) / 100f;
-        handY = clamp(y, -50, 50) / 100f;
-        handZ = clamp(z, -50, 50) / 100f;
-        handPitch = clamp(pitch, -90, 90);
-        handYaw = clamp(yaw, -90, 90);
-        handRoll = clamp(roll, -90, 90);
-        handScale = clamp(scale, 25, 200) / 100f;
+        handX = clamp(x, -200, 200) / 100f;
+        handY = clamp(y, -200, 200) / 100f;
+        handZ = clamp(z, -200, 200) / 100f;
+        handPitch = clamp(pitch, -180, 180);
+        handYaw = clamp(yaw, -180, 180);
+        handRoll = clamp(roll, -180, 180);
+        handScale = clamp(scale, 10, 300) / 100f;
         hand = handAllowed && enabled;
+        handVisible = handAllowed && visible;
     }
 
     // ------------------------------------------------------------------ hand presets

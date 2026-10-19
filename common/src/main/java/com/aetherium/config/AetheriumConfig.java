@@ -297,19 +297,21 @@ public final class AetheriumConfig {
     public final ConfigValue<Boolean> handEditor = ConfigValue.bool(
             "qol.hand.enabled", false, "Move, turn and resize your hand and the items you hold in first person with the values below. Only changes your own view.");
     public final ConfigValue<Integer> handX = ConfigValue.intRange(
-            "qol.hand.x", 0, -50, 50, false, "Sideways position: positive moves the hand outwards, negative towards the centre of the screen. 10 = one tenth of a block.");
+            "qol.hand.x", 0, -200, 200, false, "Sideways position: positive moves the hand outwards, negative towards the centre of the screen. 10 = one tenth of a block.");
     public final ConfigValue<Integer> handY = ConfigValue.intRange(
-            "qol.hand.y", 0, -50, 50, false, "Height: positive moves the hand up, negative down. 10 = one tenth of a block.");
+            "qol.hand.y", 0, -200, 200, false, "Height: positive moves the hand up, negative down. 10 = one tenth of a block.");
     public final ConfigValue<Integer> handZ = ConfigValue.intRange(
-            "qol.hand.z", 0, -50, 50, false, "Depth: positive moves the hand towards you, negative away from you. 10 = one tenth of a block.");
+            "qol.hand.z", 0, -200, 200, false, "Depth: positive moves the hand towards you, negative away from you. 10 = one tenth of a block.");
     public final ConfigValue<Integer> handPitch = ConfigValue.intRange(
-            "qol.hand.pitch", 0, -90, 90, false, "Tilt forwards or backwards, in degrees.");
+            "qol.hand.pitch", 0, -180, 180, false, "Tilt forwards or backwards, in degrees.");
     public final ConfigValue<Integer> handYaw = ConfigValue.intRange(
-            "qol.hand.yaw", 0, -90, 90, false, "Turn left or right, in degrees.");
+            "qol.hand.yaw", 0, -180, 180, false, "Turn left or right, in degrees.");
     public final ConfigValue<Integer> handRoll = ConfigValue.intRange(
-            "qol.hand.roll", 0, -90, 90, false, "Roll sideways, in degrees.");
+            "qol.hand.roll", 0, -180, 180, false, "Roll sideways, in degrees.");
     public final ConfigValue<Integer> handScale = ConfigValue.intRange(
-            "qol.hand.scale", 100, 25, 200, false, "Size of the hand and held item, in percent. 100 = vanilla.");
+            "qol.hand.scale", 100, 10, 300, false, "Size of the hand and held item, in percent. 100 = vanilla.");
+    public final ConfigValue<Boolean> handVisible = ConfigValue.bool(
+            "qol.hand.visible", false, "Draws your arm holding whatever you carry in first person, like Punchy and Hold My Items (vanilla only shows the arm when the hand is empty). The arm follows every swing, eat and block animation and moves with the hand editor values.");
     public final ConfigValue<Boolean> handMirror = ConfigValue.bool(
             "qol.hand.mirror", true, "Use the same values for the off hand, mirrored, so both hands match. Off leaves the off hand as in vanilla.");
 
