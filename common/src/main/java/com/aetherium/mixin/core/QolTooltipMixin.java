@@ -1,54 +1,47 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:q-food-begin none
-// @era:q-food-else v16
-//~ import com.aetherium.qol.Qol;
-//~ import java.util.List;
-//~ import net.minecraft.ChatFormatting;
-//~ import net.minecraft.network.chat.Component;
-//~ import net.minecraft.network.chat.TextComponent;
-//~ import net.minecraft.world.entity.player.Player;
-//~ import net.minecraft.world.food.FoodProperties;
-//~ import net.minecraft.world.item.Item;
-//~ import net.minecraft.world.item.ItemStack;
-//~ import net.minecraft.world.item.TooltipFlag;
-//~ import org.spongepowered.asm.mixin.injection.At;
-//~ import org.spongepowered.asm.mixin.injection.Inject;
-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+// @era:q-food-begin on
+import com.aetherium.client.ClientHooks;
+import com.aetherium.client.QolFoodInfo;
+import com.aetherium.qol.Qol;
+import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+// @era:q-food-else none
 // @era:q-food-end
 
 /**
- * Food info (Quality of life, Minecraft 1.16.5): food tooltips get a line with the hunger and
- * saturation the food restores, read from the item's own food properties (so modded foods work).
+ * Food tooltip (Quality of life, every version): edible items get one gold line with the hunger
+ * and saturation they restore, right under the name. Reads the item's food values the way the
+ * version stores them ({@link com.aetherium.client.QolFoodInfo}); the hook takes no arguments of
+ * getTooltipLines, whose parameters changed in 1.20.5, so one handler serves every version.
  */
 @Mixin(targets = "net.minecraft.world.item.ItemStack")
 public abstract class QolTooltipMixin {
-    // @era:q-food-begin none
-    // @era:q-food-else v16
-    //~ @Inject(method = "getTooltipLines", at = @At("RETURN"), require = 0)
-    //~ private void aetherium$foodLine(final Player player, final TooltipFlag flag,
-                                    //~ final CallbackInfoReturnable<List<Component>> cir) {
-        //~ if (!Qol.foodTooltip) {
-            //~ return;
-        //~ }
-        //~ final Item item = ((ItemStack) (Object) this).getItem();
-        //~ if (!item.isEdible()) {
-            //~ return;
-        //~ }
-        //~ final FoodProperties food = item.getFoodProperties();
-        //~ final List<Component> lines = cir.getReturnValue();
-        //~ if (food == null || lines == null) {
-            //~ return;
-        //~ }
-        //~ final int nutrition = food.getNutrition();
-        //~ final String text = "Hunger +" + nutrition + " (" + Qol.oneDecimal(nutrition / 2f) + " shanks)  \u00b7  Saturation +"
-                //~ + Qol.oneDecimal(Qol.saturation(nutrition, food.getSaturationModifier()));
-        //~ try {
-            //~ lines.add(Math.min(1, lines.size()), new TextComponent(text).withStyle(ChatFormatting.GOLD));
-        //~ } catch (final UnsupportedOperationException immutable) {
-            //~ // A mod returned a fixed list; leave it alone.
-        //~ }
-    //~ }
+    // @era:q-food-begin on
+    @Inject(method = "getTooltipLines", at = @At("RETURN"), require = 0)
+    private void aetherium$foodLine(final CallbackInfoReturnable<List<Component>> cir) {
+        if (!Qol.foodTooltip || !QolFoodInfo.read((ItemStack) (Object) this)) {
+            return;
+        }
+        final List<Component> lines = cir.getReturnValue();
+        if (lines == null) {
+            return;
+        }
+        final int nutrition = QolFoodInfo.nutrition;
+        final String text = "Hunger +" + nutrition + " (" + Qol.oneDecimal(nutrition / 2f) + " shanks)  \u00b7  Saturation +"
+                + Qol.oneDecimal(Qol.saturation(nutrition, QolFoodInfo.modifier));
+        try {
+            lines.add(Math.min(1, lines.size()), ClientHooks.literal(text).withStyle(ChatFormatting.GOLD));
+        } catch (final UnsupportedOperationException immutable) {
+            // A mod returned a fixed list; leave it alone.
+        }
+    }
+    // @era:q-food-else none
     // @era:q-food-end
 }

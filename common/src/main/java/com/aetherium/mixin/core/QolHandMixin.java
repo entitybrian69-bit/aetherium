@@ -35,7 +35,7 @@ public abstract class QolHandMixin {
     // @era:q-hand-else s219|s262
     //~ @Shadow
     //~ private void renderPlayerArm(final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers, final int light,
-    //~                              final float equip, final float swing, final HumanoidArm arm) {
+                                 //~ final float equip, final float swing, final HumanoidArm arm) {
     //~ }
     // @era:q-hand-else none
     // @era:q-hand-end
@@ -71,119 +71,119 @@ public abstract class QolHandMixin {
     }
     // @era:q-hand-else v16|t17
     //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
-    //~         target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
-    //~         require = 0)
+            //~ target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
+            //~ require = 0)
     //~ private void aetherium$handTransform(final AbstractClientPlayer player, final float partialTick, final float pitch,
-    //~                                      final InteractionHand hand, final float swing, final ItemStack stack,
-    //~                                      final float equip, final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers,
-    //~                                      final int light, final CallbackInfo ci) {
-    //~     if (QolHandPose.apply(player, hand, stack, pose)) {
-    //~         // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
-    //~         this.renderPlayerArm(pose, buffers, light, equip, swing, QolHandPose.arm(player, hand));
-    //~     }
+                                         //~ final InteractionHand hand, final float swing, final ItemStack stack,
+                                         //~ final float equip, final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers,
+                                         //~ final int light, final CallbackInfo ci) {
+        //~ if (QolHandPose.apply(player, hand, stack, pose)) {
+            //~ // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
+            //~ this.renderPlayerArm(pose, buffers, light, equip, swing, QolHandPose.arm(player, hand));
+        //~ }
     //~ }
 
     //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
-    //~         target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
-    //~         require = 0)
+            //~ target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
+            //~ require = 0)
     //~ private void aetherium$armWithItem(final AbstractClientPlayer player, final float partialTick, final float pitch,
-    //~                                    final InteractionHand hand, final float swing, final ItemStack stack,
-    //~                                    final float equip, final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers,
-    //~                                    final int light, final CallbackInfo ci) {
-    //~     if (QolHandPose.showArm(player, stack)) {
-    //~         final HumanoidArm arm = QolHandPose.arm(player, hand);
-    //~         pose.pushPose();
-    //~         QolHandPose.toGrip(pose, arm);
-    //~         this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
-    //~         pose.popPose();
-    //~     }
+                                       //~ final InteractionHand hand, final float swing, final ItemStack stack,
+                                       //~ final float equip, final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers,
+                                       //~ final int light, final CallbackInfo ci) {
+        //~ if (QolHandPose.showArm(player, stack)) {
+            //~ final HumanoidArm arm = QolHandPose.arm(player, hand);
+            //~ pose.pushPose();
+            //~ QolHandPose.toGrip(pose, arm);
+            //~ this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
+            //~ pose.popPose();
+        //~ }
     //~ }
     // @era:q-hand-else d215
     //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
-    //~         target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
-    //~         require = 0)
+            //~ target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
+            //~ require = 0)
     //~ private void aetherium$handTransform(final AbstractClientPlayer player, final float partialTick, final float pitch,
-    //~                                      final InteractionHand hand, final float swing, final ItemStack stack,
-    //~                                      final float equip, final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers,
-    //~                                      final int light, final CallbackInfo ci) {
-    //~     if (QolHandPose.apply(player, hand, stack, pose)) {
-    //~         // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
-    //~         this.renderPlayerArm(pose, buffers, light, equip, swing, QolHandPose.arm(player, hand));
-    //~     }
+                                         //~ final InteractionHand hand, final float swing, final ItemStack stack,
+                                         //~ final float equip, final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers,
+                                         //~ final int light, final CallbackInfo ci) {
+        //~ if (QolHandPose.apply(player, hand, stack, pose)) {
+            //~ // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
+            //~ this.renderPlayerArm(pose, buffers, light, equip, swing, QolHandPose.arm(player, hand));
+        //~ }
     //~ }
 
     //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
-    //~         target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
-    //~         require = 0)
+            //~ target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
+            //~ require = 0)
     //~ private void aetherium$armWithItem(final AbstractClientPlayer player, final float partialTick, final float pitch,
-    //~                                    final InteractionHand hand, final float swing, final ItemStack stack,
-    //~                                    final float equip, final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers,
-    //~                                    final int light, final CallbackInfo ci) {
-    //~     if (QolHandPose.showArm(player, stack)) {
-    //~         final HumanoidArm arm = QolHandPose.arm(player, hand);
-    //~         pose.pushPose();
-    //~         QolHandPose.toGrip(pose, arm);
-    //~         this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
-    //~         pose.popPose();
-    //~     }
+                                       //~ final InteractionHand hand, final float swing, final ItemStack stack,
+                                       //~ final float equip, final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers,
+                                       //~ final int light, final CallbackInfo ci) {
+        //~ if (QolHandPose.showArm(player, stack)) {
+            //~ final HumanoidArm arm = QolHandPose.arm(player, hand);
+            //~ pose.pushPose();
+            //~ QolHandPose.toGrip(pose, arm);
+            //~ this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
+            //~ pose.popPose();
+        //~ }
     //~ }
     // @era:q-hand-else s219
     //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
-    //~         target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
-    //~         require = 0)
+            //~ target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
+            //~ require = 0)
     //~ private void aetherium$handTransform(final AbstractClientPlayer player, final float partialTick, final float pitch,
-    //~                                      final InteractionHand hand, final float swing, final ItemStack stack,
-    //~                                      final float equip, final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers,
-    //~                                      final int light, final CallbackInfo ci) {
-    //~     if (QolHandPose.apply(player, hand, stack, pose)) {
-    //~         // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
-    //~         this.renderPlayerArm(pose, buffers, light, equip, swing, QolHandPose.arm(player, hand));
-    //~     }
+                                         //~ final InteractionHand hand, final float swing, final ItemStack stack,
+                                         //~ final float equip, final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers,
+                                         //~ final int light, final CallbackInfo ci) {
+        //~ if (QolHandPose.apply(player, hand, stack, pose)) {
+            //~ // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
+            //~ this.renderPlayerArm(pose, buffers, light, equip, swing, QolHandPose.arm(player, hand));
+        //~ }
     //~ }
 
     //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
-    //~         target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"),
-    //~         require = 0)
+            //~ target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"),
+            //~ require = 0)
     //~ private void aetherium$armWithItem(final AbstractClientPlayer player, final float partialTick, final float pitch,
-    //~                                    final InteractionHand hand, final float swing, final ItemStack stack,
-    //~                                    final float equip, final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers,
-    //~                                    final int light, final CallbackInfo ci) {
-    //~     if (QolHandPose.showArm(player, stack)) {
-    //~         final HumanoidArm arm = QolHandPose.arm(player, hand);
-    //~         pose.pushPose();
-    //~         QolHandPose.toGrip(pose, arm);
-    //~         this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
-    //~         pose.popPose();
-    //~     }
+                                       //~ final InteractionHand hand, final float swing, final ItemStack stack,
+                                       //~ final float equip, final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers,
+                                       //~ final int light, final CallbackInfo ci) {
+        //~ if (QolHandPose.showArm(player, stack)) {
+            //~ final HumanoidArm arm = QolHandPose.arm(player, hand);
+            //~ pose.pushPose();
+            //~ QolHandPose.toGrip(pose, arm);
+            //~ this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
+            //~ pose.popPose();
+        //~ }
     //~ }
     // @era:q-hand-else s262
     //~ @Inject(method = "submitArmWithItem", at = @At(value = "INVOKE",
-    //~         target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
-    //~         require = 0)
+            //~ target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
+            //~ require = 0)
     //~ private void aetherium$handTransform(final AbstractClientPlayer player, final float partialTick, final float pitch,
-    //~                                      final InteractionHand hand, final float swing, final ItemStack stack,
-    //~                                      final float equip, final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers,
-    //~                                      final int light, final CallbackInfo ci) {
-    //~     if (QolHandPose.apply(player, hand, stack, pose)) {
-    //~         // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
-    //~         this.renderPlayerArm(pose, buffers, light, equip, swing, QolHandPose.arm(player, hand));
-    //~     }
+                                         //~ final InteractionHand hand, final float swing, final ItemStack stack,
+                                         //~ final float equip, final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers,
+                                         //~ final int light, final CallbackInfo ci) {
+        //~ if (QolHandPose.apply(player, hand, stack, pose)) {
+            //~ // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
+            //~ this.renderPlayerArm(pose, buffers, light, equip, swing, QolHandPose.arm(player, hand));
+        //~ }
     //~ }
 
     //~ @Inject(method = "submitArmWithItem", at = @At(value = "INVOKE",
-    //~         target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"),
-    //~         require = 0)
+            //~ target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"),
+            //~ require = 0)
     //~ private void aetherium$armWithItem(final AbstractClientPlayer player, final float partialTick, final float pitch,
-    //~                                    final InteractionHand hand, final float swing, final ItemStack stack,
-    //~                                    final float equip, final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers,
-    //~                                    final int light, final CallbackInfo ci) {
-    //~     if (QolHandPose.showArm(player, stack)) {
-    //~         final HumanoidArm arm = QolHandPose.arm(player, hand);
-    //~         pose.pushPose();
-    //~         QolHandPose.toGrip(pose, arm);
-    //~         this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
-    //~         pose.popPose();
-    //~     }
+                                       //~ final InteractionHand hand, final float swing, final ItemStack stack,
+                                       //~ final float equip, final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector buffers,
+                                       //~ final int light, final CallbackInfo ci) {
+        //~ if (QolHandPose.showArm(player, stack)) {
+            //~ final HumanoidArm arm = QolHandPose.arm(player, hand);
+            //~ pose.pushPose();
+            //~ QolHandPose.toGrip(pose, arm);
+            //~ this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
+            //~ pose.popPose();
+        //~ }
     //~ }
     // @era:q-hand-else none
     // @era:q-hand-end

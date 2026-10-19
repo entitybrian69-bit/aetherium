@@ -1,7 +1,7 @@
 package com.aetherium.client;
 
 import com.aetherium.qol.FoodOverlay;
-// @era:q-hud-begin none
+// @era:q-hud-begin s17|s194|g20|g202|g21|g212|g216|g2111|x261|x262|x263|none
 // @era:q-hud-else v16
 //~ import com.mojang.blaze3d.platform.NativeImage;
 //~ import net.minecraft.client.Minecraft;
@@ -50,8 +50,8 @@ public final class QolFoodIcons {
     }
 
     private static boolean[] silhouette() {
-        // @era:q-hud-begin none
-        source = "fallback (no hunger bar hook on this version)";
+        // @era:q-hud-begin s17|s194|g20|g202|g21|g212|g216|g2111|x261|x262|x263|none
+        source = "fallback (vanilla shank)";
         return FoodOverlay.fallbackSilhouette();
         // @era:q-hud-else v16
         //~ try (Resource resource = Minecraft.getInstance().getResourceManager()

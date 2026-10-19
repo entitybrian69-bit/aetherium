@@ -60,32 +60,32 @@ public abstract class QolFireMixin {
     // @era:q-fire-else f214
     //~ @Inject(method = "renderFire", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private static void aetherium$fireStart(final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers, final CallbackInfo ci) {
-    //~     aetherium$start(pose, ci);
+        //~ aetherium$start(pose, ci);
     //~ }
 
     //~ @Inject(method = "renderFire", at = @At("RETURN"), require = 0)
     //~ private static void aetherium$fireEnd(final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers, final CallbackInfo ci) {
-    //~     aetherium$end(pose);
+        //~ aetherium$end(pose);
     //~ }
     // @era:q-fire-else f219
     //~ @Inject(method = "renderFire", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private static void aetherium$fireStart(final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers, final net.minecraft.client.renderer.texture.TextureAtlasSprite sprite, final CallbackInfo ci) {
-    //~     aetherium$start(pose, ci);
+        //~ aetherium$start(pose, ci);
     //~ }
 
     //~ @Inject(method = "renderFire", at = @At("RETURN"), require = 0)
     //~ private static void aetherium$fireEnd(final PoseStack pose, final net.minecraft.client.renderer.MultiBufferSource buffers, final net.minecraft.client.renderer.texture.TextureAtlasSprite sprite, final CallbackInfo ci) {
-    //~     aetherium$end(pose);
+        //~ aetherium$end(pose);
     //~ }
     // @era:q-fire-else f262
     //~ @Inject(method = "submitFire", at = @At("HEAD"), cancellable = true, require = 0)
     //~ private static void aetherium$fireStart(final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector collector, final net.minecraft.client.renderer.texture.TextureAtlasSprite sprite, final CallbackInfo ci) {
-    //~     aetherium$start(pose, ci);
+        //~ aetherium$start(pose, ci);
     //~ }
 
     //~ @Inject(method = "submitFire", at = @At("RETURN"), require = 0)
     //~ private static void aetherium$fireEnd(final PoseStack pose, final net.minecraft.client.renderer.SubmitNodeCollector collector, final net.minecraft.client.renderer.texture.TextureAtlasSprite sprite, final CallbackInfo ci) {
-    //~     aetherium$end(pose);
+        //~ aetherium$end(pose);
     //~ }
     // @era:q-fire-else none
     // @era:q-fire-end

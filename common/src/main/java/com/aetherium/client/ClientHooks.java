@@ -540,4 +540,13 @@ public final class ClientHooks {
         //~ return screen instanceof net.minecraft.client.gui.screens.VideoSettingsScreen;
         // @era:screen-pkg-end
     }
+
+    /** A plain chat/tooltip text component (TextComponent before 1.19, Component.literal after). */
+    public static net.minecraft.network.chat.MutableComponent literal(final String text) {
+        // @era:chat-begin literal
+        return net.minecraft.network.chat.Component.literal(text);
+        // @era:chat-else text
+        //~ return new net.minecraft.network.chat.TextComponent(text);
+        // @era:chat-end
+    }
 }

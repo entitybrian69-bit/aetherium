@@ -28,6 +28,11 @@ public final class McCanvas extends GuiCanvas {
     // @era:gui-begin graphics
     private GuiGraphics graphics;
 
+    /** This frame's draw context (for the few vanilla draws the canvas has no primitive for). */
+    public GuiGraphics graphics() {
+        return this.graphics;
+    }
+
     /** Points the canvas at this frame's draw context. */
     public McCanvas begin(final GuiGraphics graphics) {
         this.graphics = graphics;
@@ -66,6 +71,11 @@ public final class McCanvas extends GuiCanvas {
     }
     // @era:gui-else stack
     //~ private PoseStack pose;
+
+    //~ /** This frame's pose stack (for the few vanilla draws the canvas has no primitive for). */
+    //~ public PoseStack pose() {
+        //~ return this.pose;
+    //~ }
 
     //~ /** Points the canvas at this frame's pose stack. */
     //~ public McCanvas begin(final PoseStack pose) {
@@ -111,6 +121,11 @@ public final class McCanvas extends GuiCanvas {
     //~ }
     // @era:gui-else extractor
     //~ private GuiGraphicsExtractor graphics;
+
+    //~ /** This frame's draw context (for the few vanilla draws the canvas has no primitive for). */
+    //~ public GuiGraphicsExtractor graphics() {
+        //~ return this.graphics;
+    //~ }
 
     //~ /** Points the canvas at this frame's draw context. */
     //~ public McCanvas begin(final GuiGraphicsExtractor graphics) {
