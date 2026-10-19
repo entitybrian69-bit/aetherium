@@ -43,6 +43,8 @@ public final class ShaderPack {
     }
 
     /** Full-screen pass families, in run order inside the frame. */
+    private static final java.util.regex.Pattern INCLUDE =
+            java.util.regex.Pattern.compile("^\\s*#\\s*include\\s+\"([^\"]+)\"", java.util.regex.Pattern.MULTILINE);
     public static final String[] PASS_FAMILIES = {"shadowcomp", "prepare", "deferred", "composite"};
 
     public final String name;
@@ -83,6 +85,28 @@ public final class ShaderPack {
                 final String t = source.text(f);
                 if (t != null) {
                     texts.put(f, t);
+                }
+            }
+        }
+        // options also live in included files of any extension (Sildur's "shaders.settings")
+        final java.util.ArrayDeque<String> queue = new java.util.ArrayDeque<>(texts.keySet());
+        while (!queue.isEmpty() && texts.size() < 4096) {
+            final String from = queue.poll();
+            final String t = texts.get(from);
+            if (t == null || t.indexOf("#include") < 0) {
+                continue;
+            }
+            final java.util.regex.Matcher m = INCLUDE.matcher(t);
+            while (m.find()) {
+                final String target = m.group(1).startsWith("/") ? m.group(1).substring(1)
+                        : (from.lastIndexOf('/') < 0 ? "" : from.substring(0, from.lastIndexOf('/') + 1)) + m.group(1);
+                final String path = java.nio.file.Paths.get(target).normalize().toString().replace('\\', '/');
+                if (!texts.containsKey(path)) {
+                    final String inc = source.text(path);
+                    if (inc != null) {
+                        texts.put(path, inc);
+                        queue.add(path);
+                    }
                 }
             }
         }
