@@ -2,8 +2,7 @@ package com.aetherium.qol;
 
 /**
  * Which Quality of life hooks exist on this build. Each flag follows the era of the file that
- * implements it (first written for Minecraft 1.16.5; the other versions report the feature as
- * missing until it is ported): its mixin is not applied ({@link #mixin}) and its settings rows say
+ * implements it (a version without a hook for a feature reports it as missing): its mixin is not applied ({@link #mixin}) and its settings rows say
  * "not on this version". The Quality of life tab itself is only shown when {@link #ANY} is true.
  */
 public final class QolSupport {
@@ -40,16 +39,26 @@ public final class QolSupport {
     //~ public static final boolean WORLD = true;
     // @era:q-world-end
 
-    // @era:q-hand-begin none
-    public static final boolean HAND = false;
-    // @era:q-hand-else v16
-    //~ public static final boolean HAND = true;
+    /**
+     * Waypoints and damage numbers are drawn inside the world renderer (1.16.5); elsewhere they
+     * are projected onto the HUD ({@code QolOverlay}).
+     */
+    // @era:q-world-begin none
+    public static final boolean WORLD_IN_LEVEL = false;
+    // @era:q-world-else v16
+    //~ public static final boolean WORLD_IN_LEVEL = true;
+    // @era:q-world-end
+
+    // @era:q-hand-begin v16|t17|d194|d215|s219|s262
+    public static final boolean HAND = true;
+    // @era:q-hand-else none
+    //~ public static final boolean HAND = false;
     // @era:q-hand-end
 
-    // @era:q-fire-begin none
-    public static final boolean FIRE = false;
-    // @era:q-fire-else v16
-    //~ public static final boolean FIRE = true;
+    // @era:q-fire-begin v16|f17|f214|f219|f262
+    public static final boolean FIRE = true;
+    // @era:q-fire-else none
+    //~ public static final boolean FIRE = false;
     // @era:q-fire-end
 
     /** True when at least one Quality of life feature exists, so the tab is worth showing. */
@@ -69,6 +78,7 @@ public final class QolSupport {
             case "QolGuiMixin":
                 return HUD;
             case "QolLevelRenderMixin":
+                return WORLD_IN_LEVEL;
             case "QolDeathScreenMixin":
                 return WORLD;
             case "QolHandMixin":

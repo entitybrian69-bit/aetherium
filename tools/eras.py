@@ -164,8 +164,15 @@ ERAS = {
     "q-food": [("v16", "..1.16.5"), ("none", "1.17..")],
     "q-hud": [("v16", "..1.16.5"), ("none", "1.17..")],
     "q-world": [("v16", "..1.16.5"), ("none", "1.17..")],
-    "q-hand": [("v16", "..1.16.5"), ("none", "1.17..")],
-    "q-fire": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # ItemInHandRenderer.renderArmWithItem: TransformType -> ItemDisplayContext (1.19.4), its
+    # left-hand flag dropped (1.21.5), buffers -> SubmitNodeCollector (1.21.9), renamed submit* (26.2).
+    "q-hand": [("v16", "..1.16.5"), ("t17", "1.17..1.19.3"), ("d194", "1.19.4..1.21.4"),
+               ("d215", "1.21.5..1.21.8"), ("s219", "1.21.9..26.1"), ("s262", "26.2"),
+               ("none", "26.3..")],  # 26.3: FirstPersonHandsAndItemsRenderer (follow-up probe)
+    # ScreenEffectRenderer.renderFire: (Minecraft, PoseStack) -> (PoseStack, MultiBufferSource) 1.21.4,
+    # + TextureAtlasSprite 1.21.9, submitFire(PoseStack, SubmitNodeCollector, sprite) 26.2.
+    "q-fire": [("v16", "..1.16.5"), ("f17", "1.17..1.21.3"), ("f214", "1.21.4..1.21.8"),
+               ("f219", "1.21.9..26.1"), ("f262", "26.2..")],
     # 1.13.0: the 1.16.5 tuning features, one era per file (ported version by version).
     "t-ao-cache": [("v16", "..1.21.4"), ("a215", "1.21.5..1.21.11"), ("none", "26.1..")],
     "t-autosave": [("v16", "..1.17.1"), ("s18", "1.18..1.21.1"), ("s214", "1.21.2..")],

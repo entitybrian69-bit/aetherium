@@ -30,8 +30,9 @@ public final class FrameHud {
     private FrameHud() {
     }
 
-    /** Gui.render: the frame box, then the Quality of life HUD lines (which stack below it). */
+    /** Gui.render: waypoint and damage overlays, the frame box, then the Quality of life HUD lines. */
     public static void render(final GuiCanvas canvas) {
+        QolOverlay.render(canvas); // world-anchored labels first, under the HUD boxes
         renderFrame(canvas);
         QolClient.renderHud(canvas);
     }

@@ -67,8 +67,16 @@ public final class ZoomKeys {
     // ------------------------------------------------------------------ hooks (mixins)
 
     public static double fov(final double original) {
-        return CONTROLLER.fov(original, nowMs());
+        final double fov = CONTROLLER.fov(original, nowMs());
+        lastWorldFov = fov;
+        return fov;
     }
+
+    /**
+     * The world field of view of the last frame (vanilla's, with sprint, effects and zoom), for
+     * the Quality of life overlays that project world points onto the HUD.
+     */
+    public static volatile double lastWorldFov = 70.0;
 
     public static double cameraDistance(final double original) {
         return CONTROLLER.cameraDistance(original, nowMs());

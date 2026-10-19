@@ -472,6 +472,24 @@ public final class ClientHooks {
         // @era:camera-entity-end
     }
 
+    /** The camera's yaw in degrees (Camera.getYRot became yRot() in 1.21.11). */
+    public static float cameraYaw(final net.minecraft.client.Camera camera) {
+        // @era:camera-entity-begin getter
+        return camera.getYRot();
+        // @era:camera-entity-else record
+        //~ return camera.yRot();
+        // @era:camera-entity-end
+    }
+
+    /** The camera's pitch in degrees, positive looking down (getXRot became xRot() in 1.21.11). */
+    public static float cameraPitch(final net.minecraft.client.Camera camera) {
+        // @era:camera-entity-begin getter
+        return camera.getXRot();
+        // @era:camera-entity-else record
+        //~ return camera.xRot();
+        // @era:camera-entity-end
+    }
+
     /** The camera's position (Camera.getPosition became position() in 1.21.6). */
     public static net.minecraft.world.phys.Vec3 cameraPosition(final net.minecraft.client.Camera camera) {
         // @era:cam-pos-begin getter
