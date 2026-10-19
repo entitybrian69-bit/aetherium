@@ -161,10 +161,21 @@ ERAS = {
     # --- Quality of life tab (1.16.x first; one era per hook file so each can be ported alone) --
     # Text components: new TextComponent(...) before 1.19, Component.literal(...) after.
     "chat": [("text", "..1.18.2"), ("literal", "1.19..")],
+    # AbstractContainerScreen's slot lookup: findSlot before 1.21.2, getHoveredSlot after.
+    "slot-find": [("find", "..1.21.1"), ("hovered", "1.21.2..")],
+    # A chat line only the player sees: displayClientMessage before 26.1, sendSystemMessage after.
+    "chat-send": [("display", "..1.21.11"), ("system", "26.1..")],
+    # ResourceKey id: location() before 1.21.11, identifier() after.
+    "res-key": [("location", "..1.21.10"), ("identifier", "1.21.11..")],
+    # Debug screen shown: Options.renderDebug before 1.20.2, DebugScreenOverlay.showDebugScreen() after.
+    "debug-screen": [("field", "..1.20.1"), ("overlay", "1.20.2..")],
     # Food values: Item.getFoodProperties() before 1.20.5, the FOOD data component after.
     "food-api": [("item", "..1.20.4"), ("component", "1.20.5..")],
-    "q-place": [("v16", "..1.16.5"), ("none", "1.17..")],
-    "q-inv": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # Replaceable block test: Material.isReplaceable() before 1.19.3, BlockState.canBeReplaced() after.
+    "q-place": [("material", "..1.19.2"), ("replace", "1.19.3..")],
+    # Inventory helpers: carried stack on the inventory (1.16.5) or the menu; stacks compared by tag
+    # (..1.20.4) or components (1.20.5..); clicks via ClickType or, from 26.1, ContainerInput.
+    "q-inv": [("v16", "..1.16.5"), ("t17", "1.17..1.20.4"), ("c205", "1.20.5..1.21.11"), ("c261", "26.1..")],
     "q-food": [("on", "..")],
     # Crosshair sprite and hunger bar: GuiComponent.blit (instance ..1.19.3, static 1.19.4),
     # GuiGraphics.blit(icons) 1.20, blitSprite 1.20.2 (ResourceLocation.withDefaultNamespace 1.21),
@@ -174,7 +185,9 @@ ERAS = {
               ("g202", "1.20.2..1.20.6"), ("g21", "1.21..1.21.1"), ("g212", "1.21.2..1.21.5"),
               ("g216", "1.21.6..1.21.10"), ("g2111", "1.21.11"), ("x261", "26.1"), ("x262", "26.2"),
               ("x263", "26.3..")],  # 26.3: RenderPipeline moved to com.mojang.renderpearl
-    "q-world": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # Waypoints and damage numbers: drawn in the level renderer on 1.16.5, projected onto the HUD
+    # (QolOverlay) from 1.17.
+    "q-world": [("v16", "..1.16.5"), ("hud", "1.17..")],
     # ItemInHandRenderer.renderArmWithItem: TransformType -> ItemDisplayContext (1.19.4), its
     # left-hand flag dropped (1.21.5), buffers -> SubmitNodeCollector (1.21.9), renamed submit* (26.2).
     "q-hand": [("v16", "..1.16.5"), ("t17", "1.17..1.19.3"), ("d194", "1.19.4..1.21.4"),

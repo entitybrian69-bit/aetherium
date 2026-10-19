@@ -9,17 +9,9 @@ public final class QolSupport {
     private QolSupport() {
     }
 
-    // @era:q-place-begin none
-    public static final boolean PLACEMENT = false;
-    // @era:q-place-else v16
-    //~ public static final boolean PLACEMENT = true;
-    // @era:q-place-end
+    public static final boolean PLACEMENT = true;
 
-    // @era:q-inv-begin none
-    public static final boolean INVENTORY = false;
-    // @era:q-inv-else v16
-    //~ public static final boolean INVENTORY = true;
-    // @era:q-inv-end
+    public static final boolean INVENTORY = true;
 
     public static final boolean FOOD = true;
 
@@ -32,17 +24,13 @@ public final class QolSupport {
     //~ public static final boolean HUD_CLASS = true;
     // @era:q-hud-end
 
-    // @era:q-world-begin none
-    public static final boolean WORLD = false;
-    // @era:q-world-else v16
-    //~ public static final boolean WORLD = true;
-    // @era:q-world-end
+    public static final boolean WORLD = true;
 
     /**
      * Waypoints and damage numbers are drawn inside the world renderer (1.16.5); elsewhere they
      * are projected onto the HUD ({@code QolOverlay}).
      */
-    // @era:q-world-begin none
+    // @era:q-world-begin hud
     public static final boolean WORLD_IN_LEVEL = false;
     // @era:q-world-else v16
     //~ public static final boolean WORLD_IN_LEVEL = true;

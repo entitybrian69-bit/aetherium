@@ -1,6 +1,6 @@
 package com.aetherium.client;
 
-// @era:q-world-begin none
+// @era:q-world-begin hud
 // @era:q-world-else v16
 //~ import com.aetherium.qol.DamageNumbers;
 //~ import com.aetherium.qol.Qol;
@@ -29,7 +29,7 @@ public final class QolWorldRenderer {
     private QolWorldRenderer() {
     }
 
-    // @era:q-world-begin none
+    // @era:q-world-begin hud
     // @era:q-world-else v16
     //~ private static final int FULL_BRIGHT = 0xF000F0;
     //~ private static final float BEAM_HALF_WIDTH = 0.12f;

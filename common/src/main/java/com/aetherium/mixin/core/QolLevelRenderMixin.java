@@ -1,7 +1,7 @@
 package com.aetherium.mixin.core;
 
 import org.spongepowered.asm.mixin.Mixin;
-// @era:q-world-begin none
+// @era:q-world-begin hud
 // @era:q-world-else v16
 //~ import com.aetherium.client.QolWorldRenderer;
 //~ import com.mojang.blaze3d.vertex.PoseStack;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
 public abstract class QolLevelRenderMixin {
-    // @era:q-world-begin none
+    // @era:q-world-begin hud
     // @era:q-world-else v16
     //~ @Inject(method = "renderLevel", at = @At("TAIL"), require = 0)
     //~ private void aetherium$qolWorld(final PoseStack pose, final float partialTick, final long finishNanos,

@@ -39,3 +39,5 @@ Modrinth project t1gApRrh still unpublished: tell the user to submit it).
 
 ## Follow-up probe (26.3 renames found so far)
 - net.minecraft.client.renderer.FirstPersonHandsAndItemsRenderer (replaces ItemInHandRenderer in 26.3)
+- net.minecraft.client.input.CharacterEvent (WaypointScreen.charTyped on 1.21.9+)
+- org.joml.Quaternionf (no-arg constructor, rotationX/Y/Z: stub gap only)
