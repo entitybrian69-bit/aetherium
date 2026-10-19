@@ -579,7 +579,7 @@
             "performance.smart_chunk_culling": {
               "type": "boolean",
               "default": true,
-              "description": "Chunk sections that lie completely inside the distance fog are not drawn or rebuilt (Minecraft 1.16.5 to 26.1). On 1.16.5 the visible-chunk search also stops at them, and while terrain streams in that search runs at most 20 times a second instead of every frame (turning the camera still updates it at once). Steps aside when the fog is removed.",
+              "description": "Chunk sections that lie completely inside the distance fog are not drawn or rebuilt (every version). On 1.16.5 the visible-chunk search also stops at them, and while terrain streams in that search runs at most 20 times a second instead of every frame (turning the camera still updates it at once). Steps aside when the fog is removed.",
               "x-java-field": "smartChunkCulling"
             },
             "performance.smooth_autosave": {
@@ -634,6 +634,242 @@
             }
           }
         },
+        "qol": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "qol.accurate_placement": {
+              "type": "boolean",
+              "default": false,
+              "description": "While you hold Use and move, a block is placed as soon as the crosshair reaches a new spot instead of on vanilla's fixed timer, so held-down floors and walls come out without gaps or double blocks. Building onto the block you just placed keeps vanilla's speed, and blocks are never placed faster than 10 per second. Uses normal placement, so it works on any server.",
+              "x-java-field": "accuratePlacement"
+            },
+            "qol.crosshair.color": {
+              "type": "string",
+              "default": "WHITE",
+              "description": "Colour of a custom crosshair.",
+              "x-java-field": "crosshairColor"
+            },
+            "qol.crosshair.gap": {
+              "type": "integer",
+              "default": 2,
+              "minimum": 0,
+              "maximum": 8,
+              "description": "Empty space between the centre and the arms of a custom crosshair, in GUI pixels.",
+              "x-java-field": "crosshairGap"
+            },
+            "qol.crosshair.opacity": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 10,
+              "maximum": 100,
+              "description": "Opacity of a custom crosshair, in percent.",
+              "x-java-field": "crosshairOpacity"
+            },
+            "qol.crosshair.outline": {
+              "type": "boolean",
+              "default": true,
+              "description": "A thin black outline around a custom crosshair, so it stays visible on bright and dark backgrounds.",
+              "x-java-field": "crosshairOutline"
+            },
+            "qol.crosshair.size": {
+              "type": "integer",
+              "default": 4,
+              "minimum": 1,
+              "maximum": 15,
+              "description": "Length of the crosshair arms, or the radius of the circle, in GUI pixels.",
+              "x-java-field": "crosshairSize"
+            },
+            "qol.crosshair.style": {
+              "type": "string",
+              "default": "VANILLA",
+              "description": "Shape of the crosshair. VANILLA keeps Minecraft's own; the others are drawn by Aetherium in the colour below.",
+              "x-java-field": "crosshairStyle"
+            },
+            "qol.crosshair.target_color": {
+              "type": "boolean",
+              "default": false,
+              "description": "A custom crosshair turns red while you aim at a mob or player within reach.",
+              "x-java-field": "crosshairTargetColor"
+            },
+            "qol.crosshair.thickness": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1,
+              "maximum": 4,
+              "description": "Line width of a custom crosshair, in GUI pixels.",
+              "x-java-field": "crosshairThickness"
+            },
+            "qol.damage_numbers": {
+              "type": "boolean",
+              "default": false,
+              "description": "Floating numbers show how much health a mob or player near you lost. Uses the health the server already sends to every client.",
+              "x-java-field": "damageNumbers"
+            },
+            "qol.damage_numbers.heals": {
+              "type": "boolean",
+              "default": false,
+              "description": "Also show green numbers when a mob or player near you heals.",
+              "x-java-field": "damageNumbersHeals"
+            },
+            "qol.death_point": {
+              "type": "boolean",
+              "default": false,
+              "description": "When you die, the spot is saved as a red Death waypoint (replacing the previous one) and its coordinates are shown on the death screen.",
+              "x-java-field": "deathPoint"
+            },
+            "qol.dimension_coords": {
+              "type": "boolean",
+              "default": false,
+              "description": "Shows where you are in the other dimension: in the Overworld the matching Nether coordinates (x and z divided by 8), in the Nether the Overworld ones (multiplied by 8).",
+              "x-java-field": "dimensionCoords"
+            },
+            "qol.dimension_coords.corner": {
+              "type": "string",
+              "default": "top-left",
+              "description": "Screen corner of the dimension coordinates: top-left, top-right, bottom-left, bottom-right.",
+              "x-java-field": "dimensionCoordsCorner"
+            },
+            "qol.fire_overlay": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Height of the flames on your screen while you are burning, in percent. 100 = vanilla, 0 = hidden. Strict PvP servers may consider a hidden fire overlay unfair.",
+              "x-java-field": "fireOverlay"
+            },
+            "qol.food.hud": {
+              "type": "boolean",
+              "default": false,
+              "description": "Shows your hidden saturation as a gold tint over the hunger bar, and while you hold food, the hunger it would restore flashes on the bar.",
+              "x-java-field": "foodHud"
+            },
+            "qol.food.tooltip": {
+              "type": "boolean",
+              "default": false,
+              "description": "Food tooltips show how much hunger and saturation the food restores.",
+              "x-java-field": "foodTooltip"
+            },
+            "qol.hand.enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Move, turn and resize your hand and the items you hold in first person with the values below. Only changes your own view.",
+              "x-java-field": "handEditor"
+            },
+            "qol.hand.mirror": {
+              "type": "boolean",
+              "default": true,
+              "description": "Use the same values for the off hand, mirrored, so both hands match. Off leaves the off hand as in vanilla.",
+              "x-java-field": "handMirror"
+            },
+            "qol.hand.pitch": {
+              "type": "integer",
+              "default": 0,
+              "minimum": -90,
+              "maximum": 90,
+              "description": "Tilt forwards or backwards, in degrees.",
+              "x-java-field": "handPitch"
+            },
+            "qol.hand.preset": {
+              "type": "string",
+              "default": "CUSTOM",
+              "description": "Last hand position preset; editing any hand value turns it back into CUSTOM.",
+              "x-java-field": "handPreset"
+            },
+            "qol.hand.roll": {
+              "type": "integer",
+              "default": 0,
+              "minimum": -90,
+              "maximum": 90,
+              "description": "Roll sideways, in degrees.",
+              "x-java-field": "handRoll"
+            },
+            "qol.hand.scale": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 25,
+              "maximum": 200,
+              "description": "Size of the hand and held item, in percent. 100 = vanilla.",
+              "x-java-field": "handScale"
+            },
+            "qol.hand.x": {
+              "type": "integer",
+              "default": 0,
+              "minimum": -50,
+              "maximum": 50,
+              "description": "Sideways position: positive moves the hand outwards, negative towards the centre of the screen. 10 = one tenth of a block.",
+              "x-java-field": "handX"
+            },
+            "qol.hand.y": {
+              "type": "integer",
+              "default": 0,
+              "minimum": -50,
+              "maximum": 50,
+              "description": "Height: positive moves the hand up, negative down. 10 = one tenth of a block.",
+              "x-java-field": "handY"
+            },
+            "qol.hand.yaw": {
+              "type": "integer",
+              "default": 0,
+              "minimum": -90,
+              "maximum": 90,
+              "description": "Turn left or right, in degrees.",
+              "x-java-field": "handYaw"
+            },
+            "qol.hand.z": {
+              "type": "integer",
+              "default": 0,
+              "minimum": -50,
+              "maximum": 50,
+              "description": "Depth: positive moves the hand towards you, negative away from you. 10 = one tenth of a block.",
+              "x-java-field": "handZ"
+            },
+            "qol.inventory.scroll_transfer": {
+              "type": "boolean",
+              "default": false,
+              "description": "In inventories and chests, scroll over a stack: scroll down moves one item to the other side (between the chest and your inventory, or your hotbar and the rest of your inventory), scroll up pulls one matching item back. Done with normal inventory clicks, so it works on any server.",
+              "x-java-field": "scrollTransfer"
+            },
+            "qol.inventory.shift_drag": {
+              "type": "boolean",
+              "default": false,
+              "description": "Hold Shift and drag with the left mouse button over slots: every stack you pass over is moved as if you shift-clicked it.",
+              "x-java-field": "shiftDrag"
+            },
+            "qol.inventory.sort_button": {
+              "type": "boolean",
+              "default": false,
+              "description": "A small sort button on chests, barrels, ender chests, shulker boxes, hoppers and dispensers, and one for your own inventory. Stacks of the same item are merged and everything is put in order, one move per tick with normal inventory clicks. The Sort key (unbound by default, Options > Controls) sorts the part of the inventory under the mouse. Strict anti-cheat servers may dislike fast inventory clicks.",
+              "x-java-field": "sortButton"
+            },
+            "qol.shield_offset": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "How far a raised shield is lowered in first person, in percent, so it covers less of the screen while blocking. 0 = vanilla.",
+              "x-java-field": "shieldOffset"
+            },
+            "qol.waypoints": {
+              "type": "boolean",
+              "default": false,
+              "description": "Show your waypoints in the world: a label with the name and distance, visible through blocks. Add one where you stand with the Add waypoint key (B), and manage them with the Waypoints key (N) or the button below. Kept for each world and server.",
+              "x-java-field": "waypoints"
+            },
+            "qol.waypoints.beams": {
+              "type": "boolean",
+              "default": true,
+              "description": "Draw a thin coloured beam of light at each waypoint, so it can be seen from far away.",
+              "x-java-field": "waypointBeams"
+            },
+            "qol.waypoints.cross_dimension": {
+              "type": "boolean",
+              "default": true,
+              "description": "In the Nether, show your Overworld waypoints at the matching Nether spot (divided by 8), and Nether waypoints in the Overworld (multiplied by 8), for building linked portals.",
+              "x-java-field": "waypointsCrossDimension"
+            }
+          }
+        },
         "quality": {
           "type": "object",
           "additionalProperties": true,
@@ -663,7 +899,7 @@
               "default": 0,
               "minimum": 0,
               "maximum": 64,
-              "description": "Minecraft 1.16.5, Overworld: shows a cheap low-detail outline of the terrain beyond your render distance, up to this many chunks away, from chunks you have already received this session (a height and colour map, not real blocks). Chunks inside your render distance that are not built yet show the outline too, so the world never looks empty while it loads. The distance fog moves out to the new edge. Costs memory and some GPU time; 0 = off. Limited to 4 times the render distance.",
+              "description": "Overworld, every version: shows a cheap low-detail outline of the terrain beyond your render distance, up to this many chunks away, from chunks you have already received this session (a height and colour map, not real blocks). Chunks inside your render distance that are not built yet show the outline too, so the world never looks empty while it loads. The distance fog moves out to the new edge. Costs memory and some GPU time; 0 = off. Limited to 4 times the render distance. Not available with shader packs or on the Vulkan backend (26.2+).",
               "x-java-field": "farTerrain"
             },
             "quality.fast_grass": {

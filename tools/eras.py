@@ -158,6 +158,14 @@ ERAS = {
     "freelook": [("v16", "..1.21.1"), ("minecart", "1.21.2..1.21.11"), ("align", "26.1..")],
     # 1.5.0 (1.16.5 first): streaming optimizations, fog/sky/particle controls.
     "qol16": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # --- Quality of life tab (1.16.x first; one era per hook file so each can be ported alone) --
+    "q-place": [("v16", "..1.16.5"), ("none", "1.17..")],
+    "q-inv": [("v16", "..1.16.5"), ("none", "1.17..")],
+    "q-food": [("v16", "..1.16.5"), ("none", "1.17..")],
+    "q-hud": [("v16", "..1.16.5"), ("none", "1.17..")],
+    "q-world": [("v16", "..1.16.5"), ("none", "1.17..")],
+    "q-hand": [("v16", "..1.16.5"), ("none", "1.17..")],
+    "q-fire": [("v16", "..1.16.5"), ("none", "1.17..")],
     # 1.13.0: the 1.16.5 tuning features, one era per file (ported version by version).
     "t-ao-cache": [("v16", "..1.21.4"), ("a215", "1.21.5..1.21.11"), ("none", "26.1..")],
     "t-autosave": [("v16", "..1.17.1"), ("s18", "1.18..1.21.1"), ("s214", "1.21.2..")],

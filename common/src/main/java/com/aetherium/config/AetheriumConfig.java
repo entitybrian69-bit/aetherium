@@ -62,7 +62,7 @@ public final class AetheriumConfig {
     public final ConfigValue<Boolean> coalesceRebuilds = ConfigValue.bool(
             "performance.coalesce_rebuilds", true, "While terrain loads, every chunk section is marked for rebuilding again each time a neighbouring chunk or its light arrives. Wait until a far or new section has been quiet for a moment, then build it once instead of up to ten times. Sections you edit, and built sections within 28 blocks, are never delayed.");
     public final ConfigValue<Boolean> smartChunkCulling = ConfigValue.bool(
-            "performance.smart_chunk_culling", true, "Chunk sections that lie completely inside the distance fog are not drawn or rebuilt (Minecraft 1.16.5 to 26.1). On 1.16.5 the visible-chunk search also stops at them, and while terrain streams in that search runs at most 20 times a second instead of every frame (turning the camera still updates it at once). Steps aside when the fog is removed.");
+            "performance.smart_chunk_culling", true, "Chunk sections that lie completely inside the distance fog are not drawn or rebuilt (every version). On 1.16.5 the visible-chunk search also stops at them, and while terrain streams in that search runs at most 20 times a second instead of every frame (turning the camera still updates it at once). Steps aside when the fog is removed.");
     public final ConfigValue<Boolean> fastParticles = ConfigValue.bool(
             "performance.fast_particles", true, "Minecraft 1.16.5 to 1.21.8: particles behind you or off screen are skipped, and the rest are written to the particle batch without the temporary vectors and quaternion copies vanilla creates for every particle every frame. Looks identical.");
     public final ConfigValue<Boolean> visibleAnimations = ConfigValue.bool(
@@ -191,7 +191,7 @@ public final class AetheriumConfig {
     public final ConfigValue<Boolean> leafCulling = ConfigValue.bool(
             "quality.leaf_culling", true, "Minecraft 1.16.5: leaf faces buried inside a tree are not drawn. With fancy leaves the outer two layers stay visible so trees keep their depth; with fast leaves every hidden face is skipped. Far fewer faces in forests.");
     public final ConfigValue<Integer> farTerrain = ConfigValue.intRange(
-            "quality.far_terrain", 0, 0, 64, false, "Minecraft 1.16.5, Overworld: shows a cheap low-detail outline of the terrain beyond your render distance, up to this many chunks away, from chunks you have already received this session (a height and colour map, not real blocks). Chunks inside your render distance that are not built yet show the outline too, so the world never looks empty while it loads. The distance fog moves out to the new edge. Costs memory and some GPU time; 0 = off. Limited to 4 times the render distance.");
+            "quality.far_terrain", 0, 0, 64, false, "Overworld, every version: shows a cheap low-detail outline of the terrain beyond your render distance, up to this many chunks away, from chunks you have already received this session (a height and colour map, not real blocks). Chunks inside your render distance that are not built yet show the outline too, so the world never looks empty while it loads. The distance fog moves out to the new edge. Costs memory and some GPU time; 0 = off. Limited to 4 times the render distance. Not available with shader packs or on the Vulkan backend (26.2+).");
     public final ConfigValue<ShaderPreset> shaderPreset = ConfigValue.enumerated(
             "quality.shader_preset", ShaderPreset.OFF, ShaderPreset.class, false,
             "Minecraft 1.16.5: a light colour filter over the world (not a full shader pack, so it costs one screen copy per frame and works on phones): Vibrant boosts colour and contrast, Warm adds a golden tone, Cinematic adds contrast and dark corners. Turns itself off if the graphics driver rejects it.");
@@ -239,6 +239,79 @@ public final class AetheriumConfig {
             "effects.freelook.toggle", false, "Press Freelook once to look around and again to stop, instead of holding it.");
     public final ConfigValue<Boolean> freelookThirdPerson = ConfigValue.bool(
             "effects.freelook.third_person", true, "Switch to the third-person camera while freelooking from first person, so you can see around your player. Off keeps the first-person view.");
+
+    // ---------------------------------------------------------- quality of life
+    public final ConfigValue<Boolean> accuratePlacement = ConfigValue.bool(
+            "qol.accurate_placement", false, "While you hold Use and move, a block is placed as soon as the crosshair reaches a new spot instead of on vanilla's fixed timer, so held-down floors and walls come out without gaps or double blocks. Building onto the block you just placed keeps vanilla's speed, and blocks are never placed faster than 10 per second. Uses normal placement, so it works on any server.");
+    public final ConfigValue<Boolean> scrollTransfer = ConfigValue.bool(
+            "qol.inventory.scroll_transfer", false, "In inventories and chests, scroll over a stack: scroll down moves one item to the other side (between the chest and your inventory, or your hotbar and the rest of your inventory), scroll up pulls one matching item back. Done with normal inventory clicks, so it works on any server.");
+    public final ConfigValue<Boolean> shiftDrag = ConfigValue.bool(
+            "qol.inventory.shift_drag", false, "Hold Shift and drag with the left mouse button over slots: every stack you pass over is moved as if you shift-clicked it.");
+    public final ConfigValue<Boolean> sortButton = ConfigValue.bool(
+            "qol.inventory.sort_button", false, "A small sort button on chests, barrels, ender chests, shulker boxes, hoppers and dispensers, and one for your own inventory. Stacks of the same item are merged and everything is put in order, one move per tick with normal inventory clicks. The Sort key (unbound by default, Options > Controls) sorts the part of the inventory under the mouse. Strict anti-cheat servers may dislike fast inventory clicks.");
+    public final ConfigValue<Boolean> foodTooltip = ConfigValue.bool(
+            "qol.food.tooltip", false, "Food tooltips show how much hunger and saturation the food restores.");
+    public final ConfigValue<Boolean> foodHud = ConfigValue.bool(
+            "qol.food.hud", false, "Shows your hidden saturation as a gold tint over the hunger bar, and while you hold food, the hunger it would restore flashes on the bar.");
+    public final ConfigValue<Boolean> waypoints = ConfigValue.bool(
+            "qol.waypoints", false, "Show your waypoints in the world: a label with the name and distance, visible through blocks. Add one where you stand with the Add waypoint key (B), and manage them with the Waypoints key (N) or the button below. Kept for each world and server.");
+    public final ConfigValue<Boolean> waypointBeams = ConfigValue.bool(
+            "qol.waypoints.beams", true, "Draw a thin coloured beam of light at each waypoint, so it can be seen from far away.");
+    public final ConfigValue<Boolean> waypointsCrossDimension = ConfigValue.bool(
+            "qol.waypoints.cross_dimension", true, "In the Nether, show your Overworld waypoints at the matching Nether spot (divided by 8), and Nether waypoints in the Overworld (multiplied by 8), for building linked portals.");
+    public final ConfigValue<Boolean> deathPoint = ConfigValue.bool(
+            "qol.death_point", false, "When you die, the spot is saved as a red Death waypoint (replacing the previous one) and its coordinates are shown on the death screen.");
+    public final ConfigValue<Boolean> dimensionCoords = ConfigValue.bool(
+            "qol.dimension_coords", false, "Shows where you are in the other dimension: in the Overworld the matching Nether coordinates (x and z divided by 8), in the Nether the Overworld ones (multiplied by 8).");
+    public final ConfigValue<String> dimensionCoordsCorner = ConfigValue.string(
+            "qol.dimension_coords.corner", "top-left", "Screen corner of the dimension coordinates: top-left, top-right, bottom-left, bottom-right.");
+    public final ConfigValue<Integer> fireOverlay = ConfigValue.intRange(
+            "qol.fire_overlay", 100, 0, 100, false, "Height of the flames on your screen while you are burning, in percent. 100 = vanilla, 0 = hidden. Strict PvP servers may consider a hidden fire overlay unfair.");
+    public final ConfigValue<Integer> shieldOffset = ConfigValue.intRange(
+            "qol.shield_offset", 0, 0, 100, false, "How far a raised shield is lowered in first person, in percent, so it covers less of the screen while blocking. 0 = vanilla.");
+    public final ConfigValue<Boolean> damageNumbers = ConfigValue.bool(
+            "qol.damage_numbers", false, "Floating numbers show how much health a mob or player near you lost. Uses the health the server already sends to every client.");
+    public final ConfigValue<Boolean> damageNumbersHeals = ConfigValue.bool(
+            "qol.damage_numbers.heals", false, "Also show green numbers when a mob or player near you heals.");
+    public final ConfigValue<CrosshairStyle> crosshairStyle = ConfigValue.enumerated(
+            "qol.crosshair.style", CrosshairStyle.VANILLA, CrosshairStyle.class, false,
+            "Shape of the crosshair. VANILLA keeps Minecraft's own; the others are drawn by Aetherium in the colour below.");
+    public final ConfigValue<CrosshairColor> crosshairColor = ConfigValue.enumerated(
+            "qol.crosshair.color", CrosshairColor.WHITE, CrosshairColor.class, false,
+            "Colour of a custom crosshair.");
+    public final ConfigValue<Integer> crosshairSize = ConfigValue.intRange(
+            "qol.crosshair.size", 4, 1, 15, false, "Length of the crosshair arms, or the radius of the circle, in GUI pixels.");
+    public final ConfigValue<Integer> crosshairThickness = ConfigValue.intRange(
+            "qol.crosshair.thickness", 1, 1, 4, false, "Line width of a custom crosshair, in GUI pixels.");
+    public final ConfigValue<Integer> crosshairGap = ConfigValue.intRange(
+            "qol.crosshair.gap", 2, 0, 8, false, "Empty space between the centre and the arms of a custom crosshair, in GUI pixels.");
+    public final ConfigValue<Integer> crosshairOpacity = ConfigValue.intRange(
+            "qol.crosshair.opacity", 100, 10, 100, false, "Opacity of a custom crosshair, in percent.");
+    public final ConfigValue<Boolean> crosshairOutline = ConfigValue.bool(
+            "qol.crosshair.outline", true, "A thin black outline around a custom crosshair, so it stays visible on bright and dark backgrounds.");
+    public final ConfigValue<Boolean> crosshairTargetColor = ConfigValue.bool(
+            "qol.crosshair.target_color", false, "A custom crosshair turns red while you aim at a mob or player within reach.");
+    public final ConfigValue<HandPreset> handPreset = ConfigValue.enumerated(
+            "qol.hand.preset", HandPreset.CUSTOM, HandPreset.class, false,
+            "Last hand position preset; editing any hand value turns it back into CUSTOM.");
+    public final ConfigValue<Boolean> handEditor = ConfigValue.bool(
+            "qol.hand.enabled", false, "Move, turn and resize your hand and the items you hold in first person with the values below. Only changes your own view.");
+    public final ConfigValue<Integer> handX = ConfigValue.intRange(
+            "qol.hand.x", 0, -50, 50, false, "Sideways position: positive moves the hand outwards, negative towards the centre of the screen. 10 = one tenth of a block.");
+    public final ConfigValue<Integer> handY = ConfigValue.intRange(
+            "qol.hand.y", 0, -50, 50, false, "Height: positive moves the hand up, negative down. 10 = one tenth of a block.");
+    public final ConfigValue<Integer> handZ = ConfigValue.intRange(
+            "qol.hand.z", 0, -50, 50, false, "Depth: positive moves the hand towards you, negative away from you. 10 = one tenth of a block.");
+    public final ConfigValue<Integer> handPitch = ConfigValue.intRange(
+            "qol.hand.pitch", 0, -90, 90, false, "Tilt forwards or backwards, in degrees.");
+    public final ConfigValue<Integer> handYaw = ConfigValue.intRange(
+            "qol.hand.yaw", 0, -90, 90, false, "Turn left or right, in degrees.");
+    public final ConfigValue<Integer> handRoll = ConfigValue.intRange(
+            "qol.hand.roll", 0, -90, 90, false, "Roll sideways, in degrees.");
+    public final ConfigValue<Integer> handScale = ConfigValue.intRange(
+            "qol.hand.scale", 100, 25, 200, false, "Size of the hand and held item, in percent. 100 = vanilla.");
+    public final ConfigValue<Boolean> handMirror = ConfigValue.bool(
+            "qol.hand.mirror", true, "Use the same values for the off hand, mirrored, so both hands match. Off leaves the off hand as in vanilla.");
 
     // ----------------------------------------------------------------- android
     public final ConfigValue<Boolean> androidSupport = ConfigValue.bool("android.enabled", true, "Enable launcher/renderer probing. No-op on desktop.");
@@ -350,6 +423,21 @@ public final class AetheriumConfig {
     /** Colour filter presets (1.11.0). */
     public enum ShaderPreset {
         OFF, VIBRANT, WARM, CINEMATIC
+    }
+
+    /** Custom crosshair shapes (Quality of life); same order as {@code qol.Crosshair.Style}. */
+    public enum CrosshairStyle {
+        VANILLA, CROSS, CROSS_DOT, DOT, CIRCLE, CIRCLE_DOT, T_SHAPE
+    }
+
+    /** Custom crosshair colours (Quality of life); same order as {@code qol.Crosshair.Color}. */
+    public enum CrosshairColor {
+        WHITE, RED, GREEN, CYAN, YELLOW, MAGENTA, BLACK
+    }
+
+    /** Hand position presets (Quality of life, hand editor). */
+    public enum HandPreset {
+        CUSTOM, DEFAULT, LOWERED, CENTERED, SMALL, BIG, PUNCHY
     }
 
     /** Dynamic light update modes. */
