@@ -86,7 +86,7 @@ public final class ShaderPack {
                 }
             }
         }
-        final ShaderOptions options = ShaderOptions.detect(texts);
+        final ShaderOptions options = ShaderOptions.detect(texts, source.text("shaders.properties"));
         final ShaderPack pack = new ShaderPack(name, source, options, standardMacros);
         pack.layout = PackProperties.parse(pack.preprocessProperties("shaders.properties", false));
         if (optionsFile != null) {

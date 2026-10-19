@@ -97,6 +97,7 @@ public final class ShaderOptions {
             "^\\s*const\\s+(int|float|bool)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*([^;\\s]+)\\s*;\\s*(//(.*))?$");
     private static final Pattern TESTED = Pattern.compile(
             "#\\s*(?:ifdef|ifndef)\\s+([A-Za-z_][A-Za-z0-9_]*)|defined\\s*\\(?\\s*([A-Za-z_][A-Za-z0-9_]*)");
+    private static final Pattern IDENT = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
     private static final Pattern ALLOWED = Pattern.compile("\\[([^\\]]*)\\]");
 
     private final Map<String, Option> options = new LinkedHashMap<>();
@@ -111,7 +112,30 @@ public final class ShaderOptions {
 
     /** Scans the pack's shader sources. {@code files} maps path to text. */
     public static ShaderOptions detect(final Map<String, String> files) {
+        return detect(files, null);
+    }
+
+    /**
+     * Scans the pack's shader sources; {@code properties} (shaders.properties, may be null) also
+     * marks switches it names in screens, sliders and program.*.enabled as options: some packs
+     * gate whole programs on a switch that no #ifdef tests.
+     */
+    public static ShaderOptions detect(final Map<String, String> files, final String properties) {
         final Set<String> tested = new HashSet<>();
+        if (properties != null) {
+            for (final String raw : properties.split("\n")) {
+                final String line = raw.trim();
+                final int eq = line.indexOf('=');
+                if (eq < 0 || !(line.startsWith("screen") || line.startsWith("sliders")
+                        || (line.startsWith("program.") && line.substring(0, eq).trim().endsWith(".enabled")))) {
+                    continue;
+                }
+                final Matcher m = IDENT.matcher(line.substring(eq + 1));
+                while (m.find()) {
+                    tested.add(m.group());
+                }
+            }
+        }
         for (final String text : files.values()) {
             if (text.indexOf("if") < 0 && text.indexOf("defined") < 0) {
                 continue;

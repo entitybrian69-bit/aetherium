@@ -880,6 +880,16 @@ public final class ShaderPipeline {
             }
         }
         sb.append("PROGRAM-PROPS ").append(this.pack.properties.programEnabled).append('\n');
+        final java.util.TreeMap<String, String> idents = new java.util.TreeMap<>();
+        final Map<String, String> values = this.pack.options.snapshot();
+        for (final String expr : this.pack.properties.programEnabled.values()) {
+            final Matcher m = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*").matcher(expr);
+            while (m.find()) {
+                final String v = values.get(m.group());
+                idents.put(m.group(), v == null ? "MISSING" : v);
+            }
+        }
+        sb.append("PROGRAM-SWITCHES ").append(idents).append(" of ").append(values.size()).append(" options\n");
         for (final GlProgram p : all) {
             sb.append("PASS ").append(p.name).append(" buffers ").append(java.util.Arrays.toString(this.drawBuffers(p)));
             if (p.source != null && p.source.fragDataSlots != null) {
