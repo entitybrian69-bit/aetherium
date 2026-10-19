@@ -30,6 +30,7 @@ neoforge_version=21.9.16-beta
 - `cam-pos=position`
 - `camera-entity=getter`
 - `camera-get=getter`
+- `chat=literal`
 - `chunk-renderer=none`
 - `chunk-upload=srd`
 - `clouds=renderer`
@@ -54,6 +55,9 @@ neoforge_version=21.9.16-beta
 - `occlusion-box=renderer`
 - `options=instances`
 - `particle-fast=none`
+- `q-fire=f219`
+- `q-hand=s219`
+- `q-hud=g216`
 - `qol16=none`
 - `registry=builtin`
 - `render-scale=r215`
@@ -68,6 +72,7 @@ neoforge_version=21.9.16-beta
 - `section-vis=render-origin`
 - `simdist=sim`
 - `sky=renderer`
+- `slot-find=hovered`
 - `t-ao-cache=a215`
 - `t-autosave=s214`
 - `t-beam=b2111`
@@ -164,10 +169,12 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.9.t
 - `common/src/main/java/com/aetherium/client/FlightPreload.java`
 - `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
+- `common/src/main/java/com/aetherium/client/QolHudDraw.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
 - `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/TuningClient.java`
+- `common/src/main/java/com/aetherium/client/WaypointScreen.java`
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/mixin/core/AoFaceAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/BakedQuadAccessor.java`
@@ -188,6 +195,10 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.9.t
 - `common/src/main/java/com/aetherium/mixin/core/LightLevelMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolFireMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullCompiledMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullDrawMixin.java`

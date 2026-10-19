@@ -44,7 +44,7 @@ index 58ebebd..1b54e72 100644
      // @era:model-fast-else v16|mojang
      //~ public static final boolean FAST_MODELS = true;
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 1e5e5d8..30ff5c5 100644
+index 304df5d..dfd0280 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
 @@ -434,10 +434,10 @@ public final class ClientHooks {
@@ -62,7 +62,7 @@ index 1e5e5d8..30ff5c5 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -516,10 +516,10 @@ public final class ClientHooks {
+@@ -534,10 +534,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -76,7 +76,162 @@ index 1e5e5d8..30ff5c5 100644
 +        //~ return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
          // @era:screen-pkg-end
      }
- }
+ 
+diff --git a/common/src/main/java/com/aetherium/client/QolFoodInfo.java b/common/src/main/java/com/aetherium/client/QolFoodInfo.java
+index ea2a9ed..4751d1e 100644
+--- a/common/src/main/java/com/aetherium/client/QolFoodInfo.java
++++ b/common/src/main/java/com/aetherium/client/QolFoodInfo.java
+@@ -1,8 +1,8 @@
+ package com.aetherium.client;
+ 
+-// @era:food-api-begin component
+-import net.minecraft.core.component.DataComponents;
+-// @era:food-api-else item
++// @era:food-api-begin item
++// @era:food-api-else component
++//~ import net.minecraft.core.component.DataComponents;
+ // @era:food-api-end
+ import net.minecraft.world.food.FoodProperties;
+ import net.minecraft.world.item.ItemStack;
+@@ -26,23 +26,23 @@ public final class QolFoodInfo {
+         if (stack == null || stack.isEmpty()) {
+             return false;
+         }
+-        // @era:food-api-begin component
+-        final FoodProperties food = stack.get(DataComponents.FOOD);
++        // @era:food-api-begin item
++        if (!stack.getItem().isEdible()) {
++            return false;
++        }
++        final FoodProperties food = stack.getItem().getFoodProperties();
+         if (food == null) {
+             return false;
+         }
+-        nutrition = food.nutrition();
+-        modifier = nutrition > 0 ? food.saturation() / (nutrition * 2f) : 0f;
+-        // @era:food-api-else item
+-        //~ if (!stack.getItem().isEdible()) {
+-            //~ return false;
+-        //~ }
+-        //~ final FoodProperties food = stack.getItem().getFoodProperties();
++        nutrition = food.getNutrition();
++        modifier = food.getSaturationModifier();
++        // @era:food-api-else component
++        //~ final FoodProperties food = stack.get(DataComponents.FOOD);
+         //~ if (food == null) {
+             //~ return false;
+         //~ }
+-        //~ nutrition = food.getNutrition();
+-        //~ modifier = food.getSaturationModifier();
++        //~ nutrition = food.nutrition();
++        //~ modifier = nutrition > 0 ? food.saturation() / (nutrition * 2f) : 0f;
+         // @era:food-api-end
+         return true;
+     }
+diff --git a/common/src/main/java/com/aetherium/client/QolHudDraw.java b/common/src/main/java/com/aetherium/client/QolHudDraw.java
+index 23bb322..d7b02fd 100644
+--- a/common/src/main/java/com/aetherium/client/QolHudDraw.java
++++ b/common/src/main/java/com/aetherium/client/QolHudDraw.java
+@@ -24,21 +24,21 @@ public final class QolHudDraw {
+     private static final int GL_ONE_MINUS_SRC_COLOR = 0x0301;
+     private static final int GL_ONE_MINUS_DST_COLOR = 0x0307;
+ 
+-    // @era:q-hud-begin g21|g212|g216
++    // @era:q-hud-begin g202
+     private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_empty"),
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_half"),
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_full")};
++            new net.minecraft.resources.ResourceLocation("hud/food_empty"),
++            new net.minecraft.resources.ResourceLocation("hud/food_half"),
++            new net.minecraft.resources.ResourceLocation("hud/food_full")};
++    // @era:q-hud-else g21|g212|g216
++    //~ private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_empty"),
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_half"),
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_full")};
+     // @era:q-hud-else v16|s17|s194|g20
+     //~ private static final net.minecraft.resources.ResourceLocation ICONS =
+             //~ new net.minecraft.resources.ResourceLocation("textures/gui/icons.png");
+     //~ /** Column of each kind in icons.png's food row (y 27): flashing empty, half, full. */
+     //~ private static final int[] U = {25, 61, 52};
+-    // @era:q-hud-else g202
+-    //~ private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
+-            //~ new net.minecraft.resources.ResourceLocation("hud/food_empty"),
+-            //~ new net.minecraft.resources.ResourceLocation("hud/food_half"),
+-            //~ new net.minecraft.resources.ResourceLocation("hud/food_full")};
+     // @era:q-hud-else g2111|x261|x262|x263
+     //~ private static final net.minecraft.resources.Identifier[] SPRITES = {
+             //~ net.minecraft.resources.Identifier.withDefaultNamespace("hud/food_empty"),
+@@ -124,24 +124,24 @@ public final class QolHudDraw {
+     }
+ 
+     public static void pixel(final int x, final int y, final int argb) {
+-        // @era:q-hud-begin g21
++        // @era:q-hud-begin g202|g20
+         final int r = argb >> 16 & 0xFF;
+         final int g = argb >> 8 & 0xFF;
+         final int b = argb & 0xFF;
+         final int a = argb >>> 24;
+-        consumer.addVertex(pose.pose(), x, y + 1f, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x + 1f, y + 1f, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x + 1f, y, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x, y, 0f).setColor(r, g, b, a);
+-        // @era:q-hud-else g202|g20
++        consumer.vertex(pose.pose(), x, y + 1f, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
++        // @era:q-hud-else g21
+         //~ final int r = argb >> 16 & 0xFF;
+         //~ final int g = argb >> 8 & 0xFF;
+         //~ final int b = argb & 0xFF;
+         //~ final int a = argb >>> 24;
+-        //~ consumer.vertex(pose.pose(), x, y + 1f, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
++        //~ consumer.addVertex(pose.pose(), x, y + 1f, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x + 1f, y + 1f, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x + 1f, y, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x, y, 0f).setColor(r, g, b, a);
+         // @era:q-hud-else v16|s17|s194
+         //~ final int r = argb >> 16 & 0xFF;
+         //~ final int g = argb >> 8 & 0xFF;
+diff --git a/common/src/main/java/com/aetherium/client/QolInventory.java b/common/src/main/java/com/aetherium/client/QolInventory.java
+index db0a696..0807b6c 100644
+--- a/common/src/main/java/com/aetherium/client/QolInventory.java
++++ b/common/src/main/java/com/aetherium/client/QolInventory.java
+@@ -125,10 +125,10 @@ public final class QolInventory {
+     }
+ 
+     private static boolean canMerge(final ItemStack a, final ItemStack b) {
+-    // @era:q-inv-begin c205|c261
+-        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
+-    // @era:q-inv-else t17
+-        //~ return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameTags(a, b);
++    // @era:q-inv-begin t17
++        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameTags(a, b);
++    // @era:q-inv-else c205|c261
++        //~ return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
+     // @era:q-inv-else v16
+         //~ return !a.isEmpty() && !b.isEmpty() && a.getItem() == b.getItem() && ItemStack.tagMatches(a, b);
+     // @era:q-inv-end
+@@ -136,10 +136,10 @@ public final class QolInventory {
+ 
+     /** A stable hash of the stack's extra data (tag or components), the last sort key. */
+     private static int extraHash(final ItemStack stack) {
+-    // @era:q-inv-begin c205|c261
+-        return String.valueOf(stack.getComponentsPatch()).hashCode();
+-    // @era:q-inv-else t17|v16
+-        //~ return String.valueOf(stack.getTag()).hashCode();
++    // @era:q-inv-begin t17|v16
++        return String.valueOf(stack.getTag()).hashCode();
++    // @era:q-inv-else c205|c261
++        //~ return String.valueOf(stack.getComponentsPatch()).hashCode();
+     // @era:q-inv-end
+     }
+ 
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
 index cfdb6bb..8ba3f79 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
@@ -2115,7 +2270,7 @@ index df6c58d..98d2889 100644
      // @era:zoom-cam-else align
      //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 5e39f7e..4c93a98 100644
+index 74345cd..e69882e 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -2128,7 +2283,7 @@ index 5e39f7e..4c93a98 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 712944b..00fc66e 100644
+index dc52e39..eb25d71 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

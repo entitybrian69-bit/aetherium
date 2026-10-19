@@ -30,10 +30,13 @@ neoforge_version=26.3.0.64-beta
 - `cam-pos=position`
 - `camera-entity=record`
 - `camera-get=record`
+- `chat-send=system`
+- `chat=literal`
 - `chunk-renderer=none`
 - `chunk-upload=none`
 - `clouds=renderer`
 - `cull-new=pearl`
+- `debug-screen=overlay`
 - `dirty=sections`
 - `entity-cull=six`
 - `fog-cull-x=extract`
@@ -61,11 +64,17 @@ neoforge_version=26.3.0.64-beta
 - `options=instances`
 - `pacing=limiter`
 - `particle-fast=none`
+- `q-fire=f262`
+- `q-hand=none`
+- `q-hud=x263`
+- `q-inv=c261`
+- `q-world=hud`
 - `qol16=none`
 - `registry=builtin`
 - `reload=invalidate`
 - `remapJar-block-removed`
 - `render-scale=g263`
+- `res-key=identifier`
 - `rs-api=g263`
 - `screen-owner=gui`
 - `screen-pkg=options`
@@ -77,6 +86,7 @@ neoforge_version=26.3.0.64-beta
 - `section-vis=render-origin`
 - `simdist=sim`
 - `sky=renderer`
+- `slot-find=hovered`
 - `t-ao-cache=none`
 - `t-autosave=s214`
 - `t-beam=b2111`
@@ -180,11 +190,15 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/client/FogCullHooks.java`
 - `common/src/main/java/com/aetherium/client/GrassQuads.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
+- `common/src/main/java/com/aetherium/client/QolClient.java`
+- `common/src/main/java/com/aetherium/client/QolHudDraw.java`
+- `common/src/main/java/com/aetherium/client/QolInventory.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
 - `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/TuningClient.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/client/WaypointScreen.java`
 - `common/src/main/java/com/aetherium/client/WorldCache.java`
 - `common/src/main/java/com/aetherium/client/ZoomKeys.java`
 - `common/src/main/java/com/aetherium/lighting/DynamicLightTracker.java`
@@ -216,6 +230,12 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/mixin/core/MainTargetAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshAllocMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolDeathScreenMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolFireMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolHudMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ScreenSwapMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullBufferMixin.java`
@@ -269,6 +289,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
+- `common/src/main/java/com/aetherium/qol/QolSupport.java`
 
 ## Verifying this row before shipping it
 

@@ -26,11 +26,13 @@ neoforge_version=unavailable (module disabled)
 - `cam-pos=getter`
 - `camera-entity=getter`
 - `camera-get=getter`
+- `chat=literal`
 - `chunk-renderer=none`
 - `chunk-upload=srd`
 - `cull-new=old`
 - `fog-cull-x=none`
 - `fog-cull=section`
+- `food-api=item`
 - `frustum-cap=joml`
 - `hud=graphics-float`
 - `layer-sig=joml`
@@ -43,6 +45,8 @@ neoforge_version=unavailable (module disabled)
 - `options=instances`
 - `particle-fast=facing`
 - `pose-normals=plain`
+- `q-hud=g202`
+- `q-inv=t17`
 - `qol16=none`
 - `render-scale=r17`
 - `screen-owner=minecraft`
@@ -95,6 +99,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.3.t
 - `common/src/main/resources/aetherium-common.mixins.json`
 - `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/client/QolFoodInfo.java`
+- `common/src/main/java/com/aetherium/client/QolHudDraw.java`
+- `common/src/main/java/com/aetherium/client/QolInventory.java`
 - `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/DefaultedVertexAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java`

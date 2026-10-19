@@ -125,7 +125,7 @@ index bf639c3..1ca5466 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 1e5e5d8..30ff5c5 100644
+index 304df5d..dfd0280 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
 @@ -434,10 +434,10 @@ public final class ClientHooks {
@@ -143,7 +143,7 @@ index 1e5e5d8..30ff5c5 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -516,10 +516,10 @@ public final class ClientHooks {
+@@ -534,10 +534,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -157,7 +157,7 @@ index 1e5e5d8..30ff5c5 100644
 +        //~ return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
          // @era:screen-pkg-end
      }
- }
+ 
 diff --git a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java b/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
 index 270eb0c..dfa8a78 100644
 --- a/common/src/main/java/com/aetherium/client/FarTerrainBridge.java
@@ -177,6 +177,257 @@ index 270eb0c..dfa8a78 100644
          // @era:t-far-sections-else visible
          //~ return mc.levelRenderer.isSectionCompiledAndVisible(pos);
          // @era:t-far-sections-else visible-t
+diff --git a/common/src/main/java/com/aetherium/client/QolClient.java b/common/src/main/java/com/aetherium/client/QolClient.java
+index 61e3c4c..f9f82f4 100644
+--- a/common/src/main/java/com/aetherium/client/QolClient.java
++++ b/common/src/main/java/com/aetherium/client/QolClient.java
+@@ -282,10 +282,10 @@ public final class QolClient {
+     }
+ 
+     private static boolean debugScreenShown(final Minecraft mc) {
+-        // @era:debug-screen-begin overlay
+-        return mc.getDebugOverlay().showDebugScreen();
+-        // @era:debug-screen-else field
+-        //~ return mc.options.renderDebug;
++        // @era:debug-screen-begin field
++        return mc.options.renderDebug;
++        // @era:debug-screen-else overlay
++        //~ return mc.getDebugOverlay().showDebugScreen();
+         // @era:debug-screen-end
+     }
+ 
+diff --git a/common/src/main/java/com/aetherium/client/QolFoodInfo.java b/common/src/main/java/com/aetherium/client/QolFoodInfo.java
+index ea2a9ed..4751d1e 100644
+--- a/common/src/main/java/com/aetherium/client/QolFoodInfo.java
++++ b/common/src/main/java/com/aetherium/client/QolFoodInfo.java
+@@ -1,8 +1,8 @@
+ package com.aetherium.client;
+ 
+-// @era:food-api-begin component
+-import net.minecraft.core.component.DataComponents;
+-// @era:food-api-else item
++// @era:food-api-begin item
++// @era:food-api-else component
++//~ import net.minecraft.core.component.DataComponents;
+ // @era:food-api-end
+ import net.minecraft.world.food.FoodProperties;
+ import net.minecraft.world.item.ItemStack;
+@@ -26,23 +26,23 @@ public final class QolFoodInfo {
+         if (stack == null || stack.isEmpty()) {
+             return false;
+         }
+-        // @era:food-api-begin component
+-        final FoodProperties food = stack.get(DataComponents.FOOD);
++        // @era:food-api-begin item
++        if (!stack.getItem().isEdible()) {
++            return false;
++        }
++        final FoodProperties food = stack.getItem().getFoodProperties();
+         if (food == null) {
+             return false;
+         }
+-        nutrition = food.nutrition();
+-        modifier = nutrition > 0 ? food.saturation() / (nutrition * 2f) : 0f;
+-        // @era:food-api-else item
+-        //~ if (!stack.getItem().isEdible()) {
+-            //~ return false;
+-        //~ }
+-        //~ final FoodProperties food = stack.getItem().getFoodProperties();
++        nutrition = food.getNutrition();
++        modifier = food.getSaturationModifier();
++        // @era:food-api-else component
++        //~ final FoodProperties food = stack.get(DataComponents.FOOD);
+         //~ if (food == null) {
+             //~ return false;
+         //~ }
+-        //~ nutrition = food.getNutrition();
+-        //~ modifier = food.getSaturationModifier();
++        //~ nutrition = food.nutrition();
++        //~ modifier = nutrition > 0 ? food.saturation() / (nutrition * 2f) : 0f;
+         // @era:food-api-end
+         return true;
+     }
+diff --git a/common/src/main/java/com/aetherium/client/QolHudDraw.java b/common/src/main/java/com/aetherium/client/QolHudDraw.java
+index 23bb322..c36bfbe 100644
+--- a/common/src/main/java/com/aetherium/client/QolHudDraw.java
++++ b/common/src/main/java/com/aetherium/client/QolHudDraw.java
+@@ -24,16 +24,16 @@ public final class QolHudDraw {
+     private static final int GL_ONE_MINUS_SRC_COLOR = 0x0301;
+     private static final int GL_ONE_MINUS_DST_COLOR = 0x0307;
+ 
+-    // @era:q-hud-begin g21|g212|g216
+-    private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_empty"),
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_half"),
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_full")};
+-    // @era:q-hud-else v16|s17|s194|g20
+-    //~ private static final net.minecraft.resources.ResourceLocation ICONS =
+-            //~ new net.minecraft.resources.ResourceLocation("textures/gui/icons.png");
+-    //~ /** Column of each kind in icons.png's food row (y 27): flashing empty, half, full. */
+-    //~ private static final int[] U = {25, 61, 52};
++    // @era:q-hud-begin v16|s17|s194|g20
++    private static final net.minecraft.resources.ResourceLocation ICONS =
++            new net.minecraft.resources.ResourceLocation("textures/gui/icons.png");
++    /** Column of each kind in icons.png's food row (y 27): flashing empty, half, full. */
++    private static final int[] U = {25, 61, 52};
++    // @era:q-hud-else g21|g212|g216
++    //~ private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_empty"),
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_half"),
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_full")};
+     // @era:q-hud-else g202
+     //~ private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
+             //~ new net.minecraft.resources.ResourceLocation("hud/food_empty"),
+@@ -62,12 +62,18 @@ public final class QolHudDraw {
+ 
+     /** A hunger shank (vanilla's sprite or the resource pack's) at x, y with this opacity. */
+     public static void foodSprite(final McCanvas canvas, final int kind, final int x, final int y, final float alpha) {
+-        // @era:q-hud-begin g21|g202
++        // @era:q-hud-begin g20
+         final net.minecraft.client.gui.GuiGraphics g = canvas.graphics();
+         RenderSystem.enableBlend();
+         g.setColor(1f, 1f, 1f, alpha);
+-        g.blitSprite(SPRITES[kind], x, y, 9, 9);
++        g.blit(ICONS, x, y, U[kind], 27, 9, 9);
+         g.setColor(1f, 1f, 1f, 1f);
++        // @era:q-hud-else g21|g202
++        //~ final net.minecraft.client.gui.GuiGraphics g = canvas.graphics();
++        //~ RenderSystem.enableBlend();
++        //~ g.setColor(1f, 1f, 1f, alpha);
++        //~ g.blitSprite(SPRITES[kind], x, y, 9, 9);
++        //~ g.setColor(1f, 1f, 1f, 1f);
+         // @era:q-hud-else v16
+         //~ net.minecraft.client.Minecraft.getInstance().getTextureManager().bind(ICONS);
+         //~ RenderSystem.enableBlend();
+@@ -82,12 +88,6 @@ public final class QolHudDraw {
+         //~ RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
+         //~ net.minecraft.client.gui.GuiComponent.blit(canvas.pose(), x, y, 0, (float) U[kind], 27f, 9, 9, 256, 256);
+         //~ RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+-        // @era:q-hud-else g20
+-        //~ final net.minecraft.client.gui.GuiGraphics g = canvas.graphics();
+-        //~ RenderSystem.enableBlend();
+-        //~ g.setColor(1f, 1f, 1f, alpha);
+-        //~ g.blit(ICONS, x, y, U[kind], 27, 9, 9);
+-        //~ g.setColor(1f, 1f, 1f, 1f);
+         // @era:q-hud-else g212
+         //~ canvas.graphics().blitSprite(net.minecraft.client.renderer.RenderType::guiTextured, SPRITES[kind], x, y, 9, 9,
+                 //~ white(alpha));
+@@ -124,24 +124,24 @@ public final class QolHudDraw {
+     }
+ 
+     public static void pixel(final int x, final int y, final int argb) {
+-        // @era:q-hud-begin g21
++        // @era:q-hud-begin g202|g20
+         final int r = argb >> 16 & 0xFF;
+         final int g = argb >> 8 & 0xFF;
+         final int b = argb & 0xFF;
+         final int a = argb >>> 24;
+-        consumer.addVertex(pose.pose(), x, y + 1f, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x + 1f, y + 1f, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x + 1f, y, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x, y, 0f).setColor(r, g, b, a);
+-        // @era:q-hud-else g202|g20
++        consumer.vertex(pose.pose(), x, y + 1f, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
++        // @era:q-hud-else g21
+         //~ final int r = argb >> 16 & 0xFF;
+         //~ final int g = argb >> 8 & 0xFF;
+         //~ final int b = argb & 0xFF;
+         //~ final int a = argb >>> 24;
+-        //~ consumer.vertex(pose.pose(), x, y + 1f, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
++        //~ consumer.addVertex(pose.pose(), x, y + 1f, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x + 1f, y + 1f, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x + 1f, y, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x, y, 0f).setColor(r, g, b, a);
+         // @era:q-hud-else v16|s17|s194
+         //~ final int r = argb >> 16 & 0xFF;
+         //~ final int g = argb >> 8 & 0xFF;
+diff --git a/common/src/main/java/com/aetherium/client/QolInventory.java b/common/src/main/java/com/aetherium/client/QolInventory.java
+index db0a696..0807b6c 100644
+--- a/common/src/main/java/com/aetherium/client/QolInventory.java
++++ b/common/src/main/java/com/aetherium/client/QolInventory.java
+@@ -125,10 +125,10 @@ public final class QolInventory {
+     }
+ 
+     private static boolean canMerge(final ItemStack a, final ItemStack b) {
+-    // @era:q-inv-begin c205|c261
+-        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
+-    // @era:q-inv-else t17
+-        //~ return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameTags(a, b);
++    // @era:q-inv-begin t17
++        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameTags(a, b);
++    // @era:q-inv-else c205|c261
++        //~ return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
+     // @era:q-inv-else v16
+         //~ return !a.isEmpty() && !b.isEmpty() && a.getItem() == b.getItem() && ItemStack.tagMatches(a, b);
+     // @era:q-inv-end
+@@ -136,10 +136,10 @@ public final class QolInventory {
+ 
+     /** A stable hash of the stack's extra data (tag or components), the last sort key. */
+     private static int extraHash(final ItemStack stack) {
+-    // @era:q-inv-begin c205|c261
+-        return String.valueOf(stack.getComponentsPatch()).hashCode();
+-    // @era:q-inv-else t17|v16
+-        //~ return String.valueOf(stack.getTag()).hashCode();
++    // @era:q-inv-begin t17|v16
++        return String.valueOf(stack.getTag()).hashCode();
++    // @era:q-inv-else c205|c261
++        //~ return String.valueOf(stack.getComponentsPatch()).hashCode();
+     // @era:q-inv-end
+     }
+ 
+diff --git a/common/src/main/java/com/aetherium/client/WaypointScreen.java b/common/src/main/java/com/aetherium/client/WaypointScreen.java
+index 0c34169..c047a6d 100644
+--- a/common/src/main/java/com/aetherium/client/WaypointScreen.java
++++ b/common/src/main/java/com/aetherium/client/WaypointScreen.java
+@@ -69,11 +69,11 @@ public final class WaypointScreen extends Screen implements WaypointView.Host {
+     // @era:gui-end
+ 
+     // The view paints an opaque background, so vanilla's (a blur pass on 1.21+) is skipped.
+-    // @era:background-begin render
+-    @Override
+-    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
+-    }
+-    // @era:background-else none
++    // @era:background-begin none
++    // @era:background-else render
++    //~ @Override
++    //~ public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
++    //~ }
+     // @era:background-else extract
+     //~ @Override
+     //~ public void extractBackground(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
+@@ -119,17 +119,17 @@ public final class WaypointScreen extends Screen implements WaypointView.Host {
+     //~ }
+     // @era:input-end
+ 
+-    // @era:scroll-begin four
++    // @era:scroll-begin three
+     @Override
+-    public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
+-        return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
+-                || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
++    public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
++        return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
++                || super.mouseScrolled(mouseX, mouseY, amount);
+     }
+-    // @era:scroll-else three
++    // @era:scroll-else four
+     //~ @Override
+-    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
+-        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
+-                //~ || super.mouseScrolled(mouseX, mouseY, amount);
++    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
++        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
++                //~ || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+     //~ }
+     // @era:scroll-end
+ 
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
 index cfdb6bb..8ba3f79 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
@@ -1544,6 +1795,100 @@ index 1bc2890..154fbd9 100644
      //~ }
      // @era:model-fast-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java
+index a66b702..773601c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java
+@@ -27,14 +27,14 @@ public abstract class QolGuiMixin {
+ 
+     // @era:q-hud-else x262|x263|none
+     // @era:q-hud-end
+-    // @era:q-hud-begin g202|g21
++    // @era:q-hud-begin g20
+     /** The crosshair sprite itself (the first sprite drawn; the attack indicator after it stays vanilla). */
+     @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V", ordinal = 0),
++            target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIII)V", ordinal = 0),
+             require = 0)
+-    private void aetherium$crosshair(final net.minecraft.client.gui.GuiGraphics graphics, final net.minecraft.resources.ResourceLocation sprite, final int x, final int y, final int w, final int h) {
++    private void aetherium$crosshair(final net.minecraft.client.gui.GuiGraphics graphics, final net.minecraft.resources.ResourceLocation texture, final int x, final int y, final int u, final int v, final int w, final int h) {
+         if (!QolHud.crosshair()) {
+-            graphics.blitSprite(sprite, x, y, w, h);
++            graphics.blit(texture, x, y, u, v, w, h);
+             return;
+         }
+         QolHud.crosshair(McCanvas.INSTANCE.begin(graphics), x, y);
+@@ -45,32 +45,32 @@ public abstract class QolGuiMixin {
+     private void aetherium$foodBar(final net.minecraft.client.gui.GuiGraphics context, final CallbackInfo ci) {
+         QolHud.food(McCanvas.INSTANCE.begin(context), this.tickCount);
+     }
+-    // @era:q-hud-else v16|s17
++    // @era:q-hud-else g202|g21
+     //~ /** The crosshair sprite itself (the first sprite drawn; the attack indicator after it stays vanilla). */
+     //~ @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/gui/Gui;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIII)V", ordinal = 0),
++            //~ target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V", ordinal = 0),
+             //~ require = 0)
+-    //~ private void aetherium$crosshair(final net.minecraft.client.gui.Gui gui, final com.mojang.blaze3d.vertex.PoseStack pose, final int x, final int y, final int u, final int v, final int w, final int h) {
++    //~ private void aetherium$crosshair(final net.minecraft.client.gui.GuiGraphics graphics, final net.minecraft.resources.ResourceLocation sprite, final int x, final int y, final int w, final int h) {
+         //~ if (!QolHud.crosshair()) {
+-            //~ gui.blit(pose, x, y, u, v, w, h);
++            //~ graphics.blitSprite(sprite, x, y, w, h);
+             //~ return;
+         //~ }
+-        //~ QolHud.crosshair(McCanvas.INSTANCE.begin(pose), x, y);
++        //~ QolHud.crosshair(McCanvas.INSTANCE.begin(graphics), x, y);
+     //~ }
+ 
+     //~ /** Right after vanilla's health and hunger bars: the AppleSkin-style overlay. */
+     //~ @Inject(method = "renderPlayerHealth", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$foodBar(final com.mojang.blaze3d.vertex.PoseStack context, final CallbackInfo ci) {
++    //~ private void aetherium$foodBar(final net.minecraft.client.gui.GuiGraphics context, final CallbackInfo ci) {
+         //~ QolHud.food(McCanvas.INSTANCE.begin(context), this.tickCount);
+     //~ }
+-    // @era:q-hud-else s194
++    // @era:q-hud-else v16|s17
+     //~ /** The crosshair sprite itself (the first sprite drawn; the attack indicator after it stays vanilla). */
+     //~ @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE",
+             //~ target = "Lnet/minecraft/client/gui/Gui;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIII)V", ordinal = 0),
+             //~ require = 0)
+-    //~ private void aetherium$crosshair(final com.mojang.blaze3d.vertex.PoseStack pose, final int x, final int y, final int u, final int v, final int w, final int h) {
++    //~ private void aetherium$crosshair(final net.minecraft.client.gui.Gui gui, final com.mojang.blaze3d.vertex.PoseStack pose, final int x, final int y, final int u, final int v, final int w, final int h) {
+         //~ if (!QolHud.crosshair()) {
+-            //~ net.minecraft.client.gui.GuiComponent.blit(pose, x, y, u, v, w, h);
++            //~ gui.blit(pose, x, y, u, v, w, h);
+             //~ return;
+         //~ }
+         //~ QolHud.crosshair(McCanvas.INSTANCE.begin(pose), x, y);
+@@ -81,22 +81,22 @@ public abstract class QolGuiMixin {
+     //~ private void aetherium$foodBar(final com.mojang.blaze3d.vertex.PoseStack context, final CallbackInfo ci) {
+         //~ QolHud.food(McCanvas.INSTANCE.begin(context), this.tickCount);
+     //~ }
+-    // @era:q-hud-else g20
++    // @era:q-hud-else s194
+     //~ /** The crosshair sprite itself (the first sprite drawn; the attack indicator after it stays vanilla). */
+     //~ @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIII)V", ordinal = 0),
++            //~ target = "Lnet/minecraft/client/gui/Gui;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIII)V", ordinal = 0),
+             //~ require = 0)
+-    //~ private void aetherium$crosshair(final net.minecraft.client.gui.GuiGraphics graphics, final net.minecraft.resources.ResourceLocation texture, final int x, final int y, final int u, final int v, final int w, final int h) {
++    //~ private void aetherium$crosshair(final com.mojang.blaze3d.vertex.PoseStack pose, final int x, final int y, final int u, final int v, final int w, final int h) {
+         //~ if (!QolHud.crosshair()) {
+-            //~ graphics.blit(texture, x, y, u, v, w, h);
++            //~ net.minecraft.client.gui.GuiComponent.blit(pose, x, y, u, v, w, h);
+             //~ return;
+         //~ }
+-        //~ QolHud.crosshair(McCanvas.INSTANCE.begin(graphics), x, y);
++        //~ QolHud.crosshair(McCanvas.INSTANCE.begin(pose), x, y);
+     //~ }
+ 
+     //~ /** Right after vanilla's health and hunger bars: the AppleSkin-style overlay. */
+     //~ @Inject(method = "renderPlayerHealth", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$foodBar(final net.minecraft.client.gui.GuiGraphics context, final CallbackInfo ci) {
++    //~ private void aetherium$foodBar(final com.mojang.blaze3d.vertex.PoseStack context, final CallbackInfo ci) {
+         //~ QolHud.food(McCanvas.INSTANCE.begin(context), this.tickCount);
+     //~ }
+     // @era:q-hud-else g212
 diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java
 index 7849c9d..ff41036 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java
@@ -3236,7 +3581,7 @@ index df6c58d..98d2889 100644
      // @era:zoom-cam-else align
      //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 5e39f7e..4c93a98 100644
+index 74345cd..e69882e 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -3249,7 +3594,7 @@ index 5e39f7e..4c93a98 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 712944b..fbee42f 100644
+index dc52e39..978a523 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

@@ -51,7 +51,7 @@ index 58ebebd..739933b 100644
  
      /** Fog controls, sky toggles and per-type particle toggles (every version since 1.8.0). */
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 1e5e5d8..30ff5c5 100644
+index 304df5d..dfd0280 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
 @@ -434,10 +434,10 @@ public final class ClientHooks {
@@ -69,7 +69,7 @@ index 1e5e5d8..30ff5c5 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -516,10 +516,10 @@ public final class ClientHooks {
+@@ -534,10 +534,10 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -83,7 +83,77 @@ index 1e5e5d8..30ff5c5 100644
 +        //~ return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
          // @era:screen-pkg-end
      }
- }
+ 
+diff --git a/common/src/main/java/com/aetherium/client/QolHudDraw.java b/common/src/main/java/com/aetherium/client/QolHudDraw.java
+index 23bb322..d7b02fd 100644
+--- a/common/src/main/java/com/aetherium/client/QolHudDraw.java
++++ b/common/src/main/java/com/aetherium/client/QolHudDraw.java
+@@ -24,21 +24,21 @@ public final class QolHudDraw {
+     private static final int GL_ONE_MINUS_SRC_COLOR = 0x0301;
+     private static final int GL_ONE_MINUS_DST_COLOR = 0x0307;
+ 
+-    // @era:q-hud-begin g21|g212|g216
++    // @era:q-hud-begin g202
+     private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_empty"),
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_half"),
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_full")};
++            new net.minecraft.resources.ResourceLocation("hud/food_empty"),
++            new net.minecraft.resources.ResourceLocation("hud/food_half"),
++            new net.minecraft.resources.ResourceLocation("hud/food_full")};
++    // @era:q-hud-else g21|g212|g216
++    //~ private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_empty"),
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_half"),
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_full")};
+     // @era:q-hud-else v16|s17|s194|g20
+     //~ private static final net.minecraft.resources.ResourceLocation ICONS =
+             //~ new net.minecraft.resources.ResourceLocation("textures/gui/icons.png");
+     //~ /** Column of each kind in icons.png's food row (y 27): flashing empty, half, full. */
+     //~ private static final int[] U = {25, 61, 52};
+-    // @era:q-hud-else g202
+-    //~ private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
+-            //~ new net.minecraft.resources.ResourceLocation("hud/food_empty"),
+-            //~ new net.minecraft.resources.ResourceLocation("hud/food_half"),
+-            //~ new net.minecraft.resources.ResourceLocation("hud/food_full")};
+     // @era:q-hud-else g2111|x261|x262|x263
+     //~ private static final net.minecraft.resources.Identifier[] SPRITES = {
+             //~ net.minecraft.resources.Identifier.withDefaultNamespace("hud/food_empty"),
+@@ -124,24 +124,24 @@ public final class QolHudDraw {
+     }
+ 
+     public static void pixel(final int x, final int y, final int argb) {
+-        // @era:q-hud-begin g21
++        // @era:q-hud-begin g202|g20
+         final int r = argb >> 16 & 0xFF;
+         final int g = argb >> 8 & 0xFF;
+         final int b = argb & 0xFF;
+         final int a = argb >>> 24;
+-        consumer.addVertex(pose.pose(), x, y + 1f, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x + 1f, y + 1f, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x + 1f, y, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x, y, 0f).setColor(r, g, b, a);
+-        // @era:q-hud-else g202|g20
++        consumer.vertex(pose.pose(), x, y + 1f, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
++        consumer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
++        // @era:q-hud-else g21
+         //~ final int r = argb >> 16 & 0xFF;
+         //~ final int g = argb >> 8 & 0xFF;
+         //~ final int b = argb & 0xFF;
+         //~ final int a = argb >>> 24;
+-        //~ consumer.vertex(pose.pose(), x, y + 1f, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
+-        //~ consumer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
++        //~ consumer.addVertex(pose.pose(), x, y + 1f, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x + 1f, y + 1f, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x + 1f, y, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x, y, 0f).setColor(r, g, b, a);
+         // @era:q-hud-else v16|s17|s194
+         //~ final int r = argb >> 16 & 0xFF;
+         //~ final int g = argb >> 8 & 0xFF;
 diff --git a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java b/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
 index cfdb6bb..8ba3f79 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java
@@ -1995,7 +2065,7 @@ index df6c58d..98d2889 100644
      // @era:zoom-cam-else align
      //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
 diff --git a/gradle.properties b/gradle.properties
-index 712944b..0760a79 100644
+index dc52e39..10dc140 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@ org.gradle.daemon=true

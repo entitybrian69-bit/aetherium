@@ -24,12 +24,16 @@ neoforge_version=21.2.1-beta
 - `clouds=renderer`
 - `fog=params`
 - `freelook=minecart`
+- `gui=graphics`
+- `input=doubles`
 - `mesh-exec=tracing`
 - `occlusion-box=renderer`
+- `q-hud=g212`
 - `registry=builtin`
 - `render-scale=r212`
 - `rs-api=r212`
 - `sky=renderer`
+- `slot-find=hovered`
 - `t-ao-cache=v16`
 - `t-autosave=s214`
 - `t-beam=v16`
@@ -113,6 +117,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.2.t
 ## Files the generated patch touches
 
 - `gradle.properties`
+- `common/src/main/java/com/aetherium/client/QolHudDraw.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
 - `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
@@ -121,6 +126,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.2.t
 - `common/src/main/java/com/aetherium/mixin/core/FogControlMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/FreelookCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningAutosaveMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/TuningBuildOrderMixin.java`

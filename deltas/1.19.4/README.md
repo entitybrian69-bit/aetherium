@@ -27,11 +27,15 @@ neoforge_version=unavailable (module disabled)
 - `cam-pos=getter`
 - `camera-entity=getter`
 - `camera-get=getter`
+- `chat-send=display`
+- `chat=literal`
 - `chunk-renderer=none`
 - `chunk-upload=crd`
 - `cull-new=old`
+- `debug-screen=field`
 - `fog-cull-x=none`
 - `fog-cull=info`
+- `food-api=item`
 - `frustum-cap=joml`
 - `gui=stack`
 - `hud=stack`
@@ -47,8 +51,11 @@ neoforge_version=unavailable (module disabled)
 - `options=instances`
 - `particle-fast=joml`
 - `pose-normals=plain`
+- `q-hud=s194`
+- `q-inv=t17`
 - `qol16=none`
 - `render-scale=r17`
+- `res-key=location`
 - `screen-owner=minecraft`
 - `screen-pkg=flat`
 - `scroll=three`
@@ -59,6 +66,7 @@ neoforge_version=unavailable (module disabled)
 - `section-vis=list18`
 - `simdist=sim`
 - `sky=rb193`
+- `slot-find=find`
 - `sprite-u=d`
 - `t-ao-cache=v16`
 - `t-autosave=s18`
@@ -155,6 +163,11 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.19.4.t
 - `common/src/main/java/com/aetherium/client/FarTerrainBridge.java`
 - `common/src/main/java/com/aetherium/client/FlightPreload.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
+- `common/src/main/java/com/aetherium/client/QolClient.java`
+- `common/src/main/java/com/aetherium/client/QolFoodInfo.java`
+- `common/src/main/java/com/aetherium/client/QolHudDraw.java`
+- `common/src/main/java/com/aetherium/client/QolInventory.java`
+- `common/src/main/java/com/aetherium/client/WaypointScreen.java`
 - `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkUploadMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/CoalesceMixin.java`
@@ -168,6 +181,9 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.19.4.t
 - `common/src/main/java/com/aetherium/mixin/core/ModelCubeMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ModelPolygonMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolDeathScreenMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`

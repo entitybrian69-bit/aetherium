@@ -26,6 +26,7 @@ neoforge_version=20.6.141
 - `cam-pos=getter`
 - `camera-entity=getter`
 - `camera-get=getter`
+- `chat=literal`
 - `chunk-renderer=none`
 - `chunk-upload=srd`
 - `cull-new=old`
@@ -42,6 +43,7 @@ neoforge_version=20.6.141
 - `options=instances`
 - `particle-fast=facing`
 - `pose-normals=trusted`
+- `q-hud=g202`
 - `qol16=none`
 - `render-scale=r17`
 - `screen-owner=minecraft`
@@ -90,6 +92,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.6.t
 - `gradle.properties`
 - `common/src/main/java/com/aetherium/Capabilities.java`
 - `common/src/main/java/com/aetherium/client/ClientHooks.java`
+- `common/src/main/java/com/aetherium/client/QolHudDraw.java`
 - `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/DefaultedVertexAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/FastModelMixin.java`

@@ -1076,7 +1076,7 @@ index b52e5ad..dcc73b2 100644
      // @era:autobench-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
-index 1e5e5d8..30ff5c5 100644
+index 304df5d..f6799ec 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
 +++ b/common/src/main/java/com/aetherium/client/ClientHooks.java
 @@ -434,10 +434,10 @@ public final class ClientHooks {
@@ -1094,7 +1094,7 @@ index 1e5e5d8..30ff5c5 100644
          // @era:screen-pkg-end
          bypassVideoScreen = false;
      }
-@@ -516,10 +516,10 @@ public final class ClientHooks {
+@@ -534,19 +534,19 @@ public final class ClientHooks {
      }
  
      private static boolean isVideoSettings(final Screen screen) {
@@ -1107,6 +1107,19 @@ index 1e5e5d8..30ff5c5 100644
 +        // @era:screen-pkg-else options
 +        //~ return screen instanceof net.minecraft.client.gui.screens.options.VideoSettingsScreen;
          // @era:screen-pkg-end
+     }
+ 
+     /** A plain chat/tooltip text component (TextComponent before 1.19, Component.literal after). */
+     public static net.minecraft.network.chat.MutableComponent literal(final String text) {
+-        // @era:chat-begin literal
+-        return net.minecraft.network.chat.Component.literal(text);
+-        // @era:chat-else text
+-        //~ return new net.minecraft.network.chat.TextComponent(text);
++        // @era:chat-begin text
++        return new net.minecraft.network.chat.TextComponent(text);
++        // @era:chat-else literal
++        //~ return net.minecraft.network.chat.Component.literal(text);
+         // @era:chat-end
      }
  }
 diff --git a/common/src/main/java/com/aetherium/client/ColorFilter.java b/common/src/main/java/com/aetherium/client/ColorFilter.java
@@ -2854,7 +2867,7 @@ index 33b0e53..0e6e7db 100644
              restoreCamera = null;
              forcedCamera = null;
 diff --git a/common/src/main/java/com/aetherium/client/McCanvas.java b/common/src/main/java/com/aetherium/client/McCanvas.java
-index afb236d..ffe04fe 100644
+index a08bad1..f33c568 100644
 --- a/common/src/main/java/com/aetherium/client/McCanvas.java
 +++ b/common/src/main/java/com/aetherium/client/McCanvas.java
 @@ -4,12 +4,12 @@ import com.aetherium.gui.GuiCanvas;
@@ -2876,7 +2889,7 @@ index afb236d..ffe04fe 100644
  // @era:gui-else extractor
  //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
  // @era:gui-end
-@@ -25,12 +25,12 @@ public final class McCanvas extends GuiCanvas {
+@@ -25,17 +25,17 @@ public final class McCanvas extends GuiCanvas {
      public static final McCanvas INSTANCE = new McCanvas();
  
      private Font font;
@@ -2884,6 +2897,14 @@ index afb236d..ffe04fe 100644
 -    private GuiGraphics graphics;
 +    // @era:gui-begin stack
 +    private PoseStack pose;
+ 
+-    /** This frame's draw context (for the few vanilla draws the canvas has no primitive for). */
+-    public GuiGraphics graphics() {
+-        return this.graphics;
++    /** This frame's pose stack (for the few vanilla draws the canvas has no primitive for). */
++    public PoseStack pose() {
++        return this.pose;
+     }
  
 -    /** Points the canvas at this frame's draw context. */
 -    public McCanvas begin(final GuiGraphics graphics) {
@@ -2894,7 +2915,7 @@ index afb236d..ffe04fe 100644
          this.font = Minecraft.getInstance().font;
          beginFrame();
          return this;
-@@ -38,38 +38,44 @@ public final class McCanvas extends GuiCanvas {
+@@ -43,43 +43,49 @@ public final class McCanvas extends GuiCanvas {
  
      @Override
      protected void rawFill(final int x1, final int y1, final int x2, final int y2, final int argb) {
@@ -2946,6 +2967,14 @@ index afb236d..ffe04fe 100644
 +    // @era:gui-else graphics
 +    //~ private GuiGraphics graphics;
  
+-    //~ /** This frame's pose stack (for the few vanilla draws the canvas has no primitive for). */
+-    //~ public PoseStack pose() {
+-        //~ return this.pose;
++    //~ /** This frame's draw context (for the few vanilla draws the canvas has no primitive for). */
++    //~ public GuiGraphics graphics() {
++        //~ return this.graphics;
+     //~ }
+ 
 -    //~ /** Points the canvas at this frame's pose stack. */
 -    //~ public McCanvas begin(final PoseStack pose) {
 -        //~ this.pose = pose;
@@ -2955,7 +2984,7 @@ index afb236d..ffe04fe 100644
          //~ this.font = Minecraft.getInstance().font;
          //~ beginFrame();
          //~ return this;
-@@ -77,37 +83,31 @@ public final class McCanvas extends GuiCanvas {
+@@ -87,37 +93,31 @@ public final class McCanvas extends GuiCanvas {
  
      //~ @Override
      //~ protected void rawFill(final int x1, final int y1, final int x2, final int y2, final int argb) {
@@ -3257,139 +3286,33 @@ index 4aaab32..b13e6f5 100644
      // @era:t-ocean-floor-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/QolClient.java b/common/src/main/java/com/aetherium/client/QolClient.java
-index 6c815e3..1b55c62 100644
+index 61e3c4c..f9f82f4 100644
 --- a/common/src/main/java/com/aetherium/client/QolClient.java
 +++ b/common/src/main/java/com/aetherium/client/QolClient.java
-@@ -240,11 +240,11 @@ public final class QolClient {
- 
-     /** A chat line only this player sees. */
-     private static void message(final Minecraft mc, final String text) {
--        // @era:q-world-begin none
--        // @era:q-world-else v16
--        //~ if (mc.player != null) {
--            //~ mc.player.displayClientMessage(net.minecraft.network.chat.Component.nullToEmpty(text), false);
--        //~ }
-+        // @era:q-world-begin v16
-+        if (mc.player != null) {
-+            mc.player.displayClientMessage(net.minecraft.network.chat.Component.nullToEmpty(text), false);
-+        }
-+        // @era:q-world-else none
-         // @era:q-world-end
-     }
- 
-@@ -252,68 +252,68 @@ public final class QolClient {
-         return (int) Math.floor(value);
-     }
- 
--    // @era:q-world-begin none
-+    // @era:q-world-begin v16
-+    /** Which waypoint list applies: the server address, or the save folder for single player. */
-     static String worldKey(final Minecraft mc) {
--        return "";
-+        final net.minecraft.client.multiplayer.ServerData server = mc.getCurrentServer();
-+        if (server != null && server.ip != null) {
-+            return "server:" + server.ip.trim().toLowerCase(java.util.Locale.ROOT);
-+        }
-+        final net.minecraft.client.server.IntegratedServer local = mc.getSingleplayerServer();
-+        if (local != null) {
-+            final Path root = local.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT)
-+                    .toAbsolutePath().normalize();
-+            final Path name = root.getFileName();
-+            return "local:" + (name == null ? root.toString() : name.toString());
-+        }
-+        return "realms";
-     }
- 
-+    /** Dimension id of the player's level, e.g. "minecraft:the_nether". */
-     static String dimension(final Minecraft mc) {
--        return Waypoints.OVERWORLD;
-+        return mc.level == null ? Waypoints.OVERWORLD : mc.level.dimension().location().toString();
+@@ -282,10 +282,10 @@ public final class QolClient {
      }
  
      private static boolean debugScreenShown(final Minecraft mc) {
--        return true;
-+        return mc.options.renderDebug;
-     }
- 
-+    /** "B / N / Not bound" (Add waypoint, Waypoints, Sort) for the settings screen. */
-     public static String describeKeys() {
--        return "Not available on this version";
-+        if (addWaypointKey == null) {
-+            return "Not registered";
-+        }
-+        return addWaypointKey.getTranslatedKeyMessage().getString() + " / "
-+                + waypointsKey.getTranslatedKeyMessage().getString() + " / "
-+                + sortKey.getTranslatedKeyMessage().getString();
-     }
- 
-+    /** Opens the waypoint list over {@code parent} (null = the game). */
-     public static void openWaypoints(final Minecraft mc, final net.minecraft.client.gui.screens.Screen parent) {
-+        if (mc.player == null) {
-+            return;
-+        }
-+        waypoints().selectWorld(worldKey(mc));
-+        ClientHooks.setScreen(mc, new WaypointScreen(parent));
-     }
--    // @era:q-world-else v16
--    //~ /** Which waypoint list applies: the server address, or the save folder for single player. */
-+    // @era:q-world-else none
-     //~ static String worldKey(final Minecraft mc) {
--        //~ final net.minecraft.client.multiplayer.ServerData server = mc.getCurrentServer();
--        //~ if (server != null && server.ip != null) {
--            //~ return "server:" + server.ip.trim().toLowerCase(java.util.Locale.ROOT);
--        //~ }
--        //~ final net.minecraft.client.server.IntegratedServer local = mc.getSingleplayerServer();
--        //~ if (local != null) {
--            //~ final Path root = local.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT)
--                    //~ .toAbsolutePath().normalize();
--            //~ final Path name = root.getFileName();
--            //~ return "local:" + (name == null ? root.toString() : name.toString());
--        //~ }
--        //~ return "realms";
-+        //~ return "";
-     //~ }
- 
--    //~ /** Dimension id of the player's level, e.g. "minecraft:the_nether". */
-     //~ static String dimension(final Minecraft mc) {
--        //~ return mc.level == null ? Waypoints.OVERWORLD : mc.level.dimension().location().toString();
-+        //~ return Waypoints.OVERWORLD;
-     //~ }
- 
-     //~ private static boolean debugScreenShown(final Minecraft mc) {
+-        // @era:debug-screen-begin overlay
+-        return mc.getDebugOverlay().showDebugScreen();
+-        // @era:debug-screen-else field
 -        //~ return mc.options.renderDebug;
-+        //~ return true;
-     //~ }
++        // @era:debug-screen-begin field
++        return mc.options.renderDebug;
++        // @era:debug-screen-else overlay
++        //~ return mc.getDebugOverlay().showDebugScreen();
+         // @era:debug-screen-end
+     }
  
--    //~ /** "B / N / Not bound" (Add waypoint, Waypoints, Sort) for the settings screen. */
-     //~ public static String describeKeys() {
--        //~ if (addWaypointKey == null) {
--            //~ return "Not registered";
--        //~ }
--        //~ return addWaypointKey.getTranslatedKeyMessage().getString() + " / "
--                //~ + waypointsKey.getTranslatedKeyMessage().getString() + " / "
--                //~ + sortKey.getTranslatedKeyMessage().getString();
-+        //~ return "Not available on this version";
-     //~ }
- 
--    //~ /** Opens the waypoint list over {@code parent} (null = the game). */
-     //~ public static void openWaypoints(final Minecraft mc, final net.minecraft.client.gui.screens.Screen parent) {
--        //~ if (mc.player == null) {
--            //~ return;
--        //~ }
--        //~ waypoints().selectWorld(worldKey(mc));
--        //~ ClientHooks.setScreen(mc, new WaypointScreen(parent));
-     //~ }
-     // @era:q-world-end
- }
 diff --git a/common/src/main/java/com/aetherium/client/QolFoodIcons.java b/common/src/main/java/com/aetherium/client/QolFoodIcons.java
-index 891fb76..3431f15 100644
+index 5c620da..56f2b5c 100644
 --- a/common/src/main/java/com/aetherium/client/QolFoodIcons.java
 +++ b/common/src/main/java/com/aetherium/client/QolFoodIcons.java
 @@ -1,13 +1,13 @@
  package com.aetherium.client;
  
  import com.aetherium.qol.FoodOverlay;
--// @era:q-hud-begin none
+-// @era:q-hud-begin s17|s194|g20|g202|g21|g212|g216|g2111|x261|x262|x263|none
 -// @era:q-hud-else v16
 -//~ import com.mojang.blaze3d.platform.NativeImage;
 -//~ import net.minecraft.client.Minecraft;
@@ -3402,7 +3325,7 @@ index 891fb76..3431f15 100644
 +import net.minecraft.resources.ResourceLocation;
 +import net.minecraft.server.packs.resources.Resource;
 +import java.io.InputStream;
-+// @era:q-hud-else none
++// @era:q-hud-else s17|s194|g20|g202|g21|g212|g216|g2111|x261|x262|x263|none
  // @era:q-hud-end
  
  /**
@@ -3410,8 +3333,8 @@ index 891fb76..3431f15 100644
      }
  
      private static boolean[] silhouette() {
--        // @era:q-hud-begin none
--        source = "fallback (no hunger bar hook on this version)";
+-        // @era:q-hud-begin s17|s194|g20|g202|g21|g212|g216|g2111|x261|x262|x263|none
+-        source = "fallback (vanilla shank)";
 -        return FoodOverlay.fallbackSilhouette();
 -        // @era:q-hud-else v16
 -        //~ try (Resource resource = Minecraft.getInstance().getResourceManager()
@@ -3461,10 +3384,117 @@ index 891fb76..3431f15 100644
 +            source = "fallback (" + error + ")";
 +            return FoodOverlay.fallbackSilhouette();
 +        }
-+        // @era:q-hud-else none
-+        //~ source = "fallback (no hunger bar hook on this version)";
++        // @era:q-hud-else s17|s194|g20|g202|g21|g212|g216|g2111|x261|x262|x263|none
++        //~ source = "fallback (vanilla shank)";
 +        //~ return FoodOverlay.fallbackSilhouette();
          // @era:q-hud-end
+     }
+ }
+diff --git a/common/src/main/java/com/aetherium/client/QolFoodInfo.java b/common/src/main/java/com/aetherium/client/QolFoodInfo.java
+index ea2a9ed..4751d1e 100644
+--- a/common/src/main/java/com/aetherium/client/QolFoodInfo.java
++++ b/common/src/main/java/com/aetherium/client/QolFoodInfo.java
+@@ -1,8 +1,8 @@
+ package com.aetherium.client;
+ 
+-// @era:food-api-begin component
+-import net.minecraft.core.component.DataComponents;
+-// @era:food-api-else item
++// @era:food-api-begin item
++// @era:food-api-else component
++//~ import net.minecraft.core.component.DataComponents;
+ // @era:food-api-end
+ import net.minecraft.world.food.FoodProperties;
+ import net.minecraft.world.item.ItemStack;
+@@ -26,23 +26,23 @@ public final class QolFoodInfo {
+         if (stack == null || stack.isEmpty()) {
+             return false;
+         }
+-        // @era:food-api-begin component
+-        final FoodProperties food = stack.get(DataComponents.FOOD);
++        // @era:food-api-begin item
++        if (!stack.getItem().isEdible()) {
++            return false;
++        }
++        final FoodProperties food = stack.getItem().getFoodProperties();
+         if (food == null) {
+             return false;
+         }
+-        nutrition = food.nutrition();
+-        modifier = nutrition > 0 ? food.saturation() / (nutrition * 2f) : 0f;
+-        // @era:food-api-else item
+-        //~ if (!stack.getItem().isEdible()) {
+-            //~ return false;
+-        //~ }
+-        //~ final FoodProperties food = stack.getItem().getFoodProperties();
++        nutrition = food.getNutrition();
++        modifier = food.getSaturationModifier();
++        // @era:food-api-else component
++        //~ final FoodProperties food = stack.get(DataComponents.FOOD);
+         //~ if (food == null) {
+             //~ return false;
+         //~ }
+-        //~ nutrition = food.getNutrition();
+-        //~ modifier = food.getSaturationModifier();
++        //~ nutrition = food.nutrition();
++        //~ modifier = nutrition > 0 ? food.saturation() / (nutrition * 2f) : 0f;
+         // @era:food-api-end
+         return true;
+     }
+diff --git a/common/src/main/java/com/aetherium/client/QolHandPose.java b/common/src/main/java/com/aetherium/client/QolHandPose.java
+index ab02e6a..bdfb61f 100644
+--- a/common/src/main/java/com/aetherium/client/QolHandPose.java
++++ b/common/src/main/java/com/aetherium/client/QolHandPose.java
+@@ -40,9 +40,9 @@ public final class QolHandPose {
+     /** The arm is drawn a little smaller than vanilla's far-away empty arm, since it sits closer. */
+     private static final float ARM_SCALE = 0.8f;
+ 
+-    // @era:math-begin joml
+-    private static final org.joml.Quaternionf SCRATCH = new org.joml.Quaternionf();
+-    // @era:math-else mojang
++    // @era:math-begin mojang
++    // @era:math-else joml
++    //~ private static final org.joml.Quaternionf SCRATCH = new org.joml.Quaternionf();
+     // @era:math-end
+ 
+     private QolHandPose() {
+@@ -129,26 +129,26 @@ public final class QolHandPose {
+     }
+ 
+     private static void rotateX(final PoseStack pose, final float degrees) {
+-        // @era:math-begin joml
+-        pose.mulPose(SCRATCH.rotationX((float) Math.toRadians(degrees)));
+-        // @era:math-else mojang
+-        //~ pose.mulPose(com.mojang.math.Vector3f.XP.rotationDegrees(degrees));
++        // @era:math-begin mojang
++        pose.mulPose(com.mojang.math.Vector3f.XP.rotationDegrees(degrees));
++        // @era:math-else joml
++        //~ pose.mulPose(SCRATCH.rotationX((float) Math.toRadians(degrees)));
+         // @era:math-end
+     }
+ 
+     private static void rotateY(final PoseStack pose, final float degrees) {
+-        // @era:math-begin joml
+-        pose.mulPose(SCRATCH.rotationY((float) Math.toRadians(degrees)));
+-        // @era:math-else mojang
+-        //~ pose.mulPose(com.mojang.math.Vector3f.YP.rotationDegrees(degrees));
++        // @era:math-begin mojang
++        pose.mulPose(com.mojang.math.Vector3f.YP.rotationDegrees(degrees));
++        // @era:math-else joml
++        //~ pose.mulPose(SCRATCH.rotationY((float) Math.toRadians(degrees)));
+         // @era:math-end
+     }
+ 
+     private static void rotateZ(final PoseStack pose, final float degrees) {
+-        // @era:math-begin joml
+-        pose.mulPose(SCRATCH.rotationZ((float) Math.toRadians(degrees)));
+-        // @era:math-else mojang
+-        //~ pose.mulPose(com.mojang.math.Vector3f.ZP.rotationDegrees(degrees));
++        // @era:math-begin mojang
++        pose.mulPose(com.mojang.math.Vector3f.ZP.rotationDegrees(degrees));
++        // @era:math-else joml
++        //~ pose.mulPose(SCRATCH.rotationZ((float) Math.toRadians(degrees)));
+         // @era:math-end
      }
  }
 diff --git a/common/src/main/java/com/aetherium/client/QolHooks.java b/common/src/main/java/com/aetherium/client/QolHooks.java
@@ -3561,750 +3591,236 @@ index 7f92c9e..626efa3 100644
      // @era:qol16-end
  
      /**
+diff --git a/common/src/main/java/com/aetherium/client/QolHudDraw.java b/common/src/main/java/com/aetherium/client/QolHudDraw.java
+index 23bb322..da65eaf 100644
+--- a/common/src/main/java/com/aetherium/client/QolHudDraw.java
++++ b/common/src/main/java/com/aetherium/client/QolHudDraw.java
+@@ -24,16 +24,16 @@ public final class QolHudDraw {
+     private static final int GL_ONE_MINUS_SRC_COLOR = 0x0301;
+     private static final int GL_ONE_MINUS_DST_COLOR = 0x0307;
+ 
+-    // @era:q-hud-begin g21|g212|g216
+-    private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_empty"),
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_half"),
+-            net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_full")};
+-    // @era:q-hud-else v16|s17|s194|g20
+-    //~ private static final net.minecraft.resources.ResourceLocation ICONS =
+-            //~ new net.minecraft.resources.ResourceLocation("textures/gui/icons.png");
+-    //~ /** Column of each kind in icons.png's food row (y 27): flashing empty, half, full. */
+-    //~ private static final int[] U = {25, 61, 52};
++    // @era:q-hud-begin v16|s17|s194|g20
++    private static final net.minecraft.resources.ResourceLocation ICONS =
++            new net.minecraft.resources.ResourceLocation("textures/gui/icons.png");
++    /** Column of each kind in icons.png's food row (y 27): flashing empty, half, full. */
++    private static final int[] U = {25, 61, 52};
++    // @era:q-hud-else g21|g212|g216
++    //~ private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_empty"),
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_half"),
++            //~ net.minecraft.resources.ResourceLocation.withDefaultNamespace("hud/food_full")};
+     // @era:q-hud-else g202
+     //~ private static final net.minecraft.resources.ResourceLocation[] SPRITES = {
+             //~ new net.minecraft.resources.ResourceLocation("hud/food_empty"),
+@@ -48,11 +48,11 @@ public final class QolHudDraw {
+     // @era:q-hud-end
+ 
+     private static McCanvas canvas;
+-    // @era:q-hud-begin g21|g202|g20
+-    private static com.mojang.blaze3d.vertex.VertexConsumer consumer;
++    // @era:q-hud-begin v16|s17|s194
++    private static com.mojang.blaze3d.vertex.BufferBuilder buffer;
+     private static com.mojang.blaze3d.vertex.PoseStack.Pose pose;
+-    // @era:q-hud-else v16|s17|s194
+-    //~ private static com.mojang.blaze3d.vertex.BufferBuilder buffer;
++    // @era:q-hud-else g21|g202|g20
++    //~ private static com.mojang.blaze3d.vertex.VertexConsumer consumer;
+     //~ private static com.mojang.blaze3d.vertex.PoseStack.Pose pose;
+     // @era:q-hud-else g212|g216|g2111|x261|x262|x263|none
+     // @era:q-hud-end
+@@ -62,19 +62,19 @@ public final class QolHudDraw {
+ 
+     /** A hunger shank (vanilla's sprite or the resource pack's) at x, y with this opacity. */
+     public static void foodSprite(final McCanvas canvas, final int kind, final int x, final int y, final float alpha) {
+-        // @era:q-hud-begin g21|g202
+-        final net.minecraft.client.gui.GuiGraphics g = canvas.graphics();
++        // @era:q-hud-begin v16
++        net.minecraft.client.Minecraft.getInstance().getTextureManager().bind(ICONS);
+         RenderSystem.enableBlend();
+-        g.setColor(1f, 1f, 1f, alpha);
+-        g.blitSprite(SPRITES[kind], x, y, 9, 9);
+-        g.setColor(1f, 1f, 1f, 1f);
+-        // @era:q-hud-else v16
+-        //~ net.minecraft.client.Minecraft.getInstance().getTextureManager().bind(ICONS);
++        RenderSystem.defaultBlendFunc();
++        RenderSystem.color4f(1f, 1f, 1f, alpha);
++        net.minecraft.client.gui.GuiComponent.blit(canvas.pose(), x, y, 0, (float) U[kind], 27f, 9, 9, 256, 256);
++        RenderSystem.color4f(1f, 1f, 1f, 1f);
++        // @era:q-hud-else g21|g202
++        //~ final net.minecraft.client.gui.GuiGraphics g = canvas.graphics();
+         //~ RenderSystem.enableBlend();
+-        //~ RenderSystem.defaultBlendFunc();
+-        //~ RenderSystem.color4f(1f, 1f, 1f, alpha);
+-        //~ net.minecraft.client.gui.GuiComponent.blit(canvas.pose(), x, y, 0, (float) U[kind], 27f, 9, 9, 256, 256);
+-        //~ RenderSystem.color4f(1f, 1f, 1f, 1f);
++        //~ g.setColor(1f, 1f, 1f, alpha);
++        //~ g.blitSprite(SPRITES[kind], x, y, 9, 9);
++        //~ g.setColor(1f, 1f, 1f, 1f);
+         // @era:q-hud-else s17|s194
+         //~ RenderSystem.setShaderTexture(0, ICONS);
+         //~ RenderSystem.enableBlend();
+@@ -101,16 +101,16 @@ public final class QolHudDraw {
+     /** Starts a batch of {@link #pixel} calls (no text or sprites until {@link #endPixels}). */
+     public static void beginPixels(final McCanvas target) {
+         canvas = target;
+-        // @era:q-hud-begin g21|g202|g20
+-        consumer = canvas.graphics().bufferSource().getBuffer(net.minecraft.client.renderer.RenderType.gui());
+-        pose = canvas.graphics().pose().last();
+-        // @era:q-hud-else v16
+-        //~ RenderSystem.enableBlend();
+-        //~ RenderSystem.defaultBlendFunc();
+-        //~ RenderSystem.disableTexture();
+-        //~ buffer = com.mojang.blaze3d.vertex.Tesselator.getInstance().getBuilder();
+-        //~ buffer.begin(GL_QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR);
+-        //~ pose = canvas.pose().last();
++        // @era:q-hud-begin v16
++        RenderSystem.enableBlend();
++        RenderSystem.defaultBlendFunc();
++        RenderSystem.disableTexture();
++        buffer = com.mojang.blaze3d.vertex.Tesselator.getInstance().getBuilder();
++        buffer.begin(GL_QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR);
++        pose = canvas.pose().last();
++        // @era:q-hud-else g21|g202|g20
++        //~ consumer = canvas.graphics().bufferSource().getBuffer(net.minecraft.client.renderer.RenderType.gui());
++        //~ pose = canvas.graphics().pose().last();
+         // @era:q-hud-else s17|s194
+         //~ RenderSystem.enableBlend();
+         //~ RenderSystem.defaultBlendFunc();
+@@ -124,15 +124,24 @@ public final class QolHudDraw {
+     }
+ 
+     public static void pixel(final int x, final int y, final int argb) {
+-        // @era:q-hud-begin g21
++        // @era:q-hud-begin v16|s17|s194
+         final int r = argb >> 16 & 0xFF;
+         final int g = argb >> 8 & 0xFF;
+         final int b = argb & 0xFF;
+         final int a = argb >>> 24;
+-        consumer.addVertex(pose.pose(), x, y + 1f, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x + 1f, y + 1f, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x + 1f, y, 0f).setColor(r, g, b, a);
+-        consumer.addVertex(pose.pose(), x, y, 0f).setColor(r, g, b, a);
++        buffer.vertex(pose.pose(), x, y + 1f, 0f).color(r, g, b, a).endVertex();
++        buffer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
++        buffer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
++        buffer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
++        // @era:q-hud-else g21
++        //~ final int r = argb >> 16 & 0xFF;
++        //~ final int g = argb >> 8 & 0xFF;
++        //~ final int b = argb & 0xFF;
++        //~ final int a = argb >>> 24;
++        //~ consumer.addVertex(pose.pose(), x, y + 1f, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x + 1f, y + 1f, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x + 1f, y, 0f).setColor(r, g, b, a);
++        //~ consumer.addVertex(pose.pose(), x, y, 0f).setColor(r, g, b, a);
+         // @era:q-hud-else g202|g20
+         //~ final int r = argb >> 16 & 0xFF;
+         //~ final int g = argb >> 8 & 0xFF;
+@@ -142,15 +151,6 @@ public final class QolHudDraw {
+         //~ consumer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
+         //~ consumer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
+         //~ consumer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
+-        // @era:q-hud-else v16|s17|s194
+-        //~ final int r = argb >> 16 & 0xFF;
+-        //~ final int g = argb >> 8 & 0xFF;
+-        //~ final int b = argb & 0xFF;
+-        //~ final int a = argb >>> 24;
+-        //~ buffer.vertex(pose.pose(), x, y + 1f, 0f).color(r, g, b, a).endVertex();
+-        //~ buffer.vertex(pose.pose(), x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
+-        //~ buffer.vertex(pose.pose(), x + 1f, y, 0f).color(r, g, b, a).endVertex();
+-        //~ buffer.vertex(pose.pose(), x, y, 0f).color(r, g, b, a).endVertex();
+         // @era:q-hud-else g212|g216|g2111|x261|x262|x263
+         //~ // The GUI batches fills itself on this version: one draw for all of them.
+         //~ canvas.fill(x, y, x + 1, y + 1, argb);
+@@ -159,14 +159,14 @@ public final class QolHudDraw {
+     }
+ 
+     public static void endPixels() {
+-        // @era:q-hud-begin g21|g202|g20
+-        canvas.graphics().flush();
+-        consumer = null;
++        // @era:q-hud-begin v16
++        com.mojang.blaze3d.vertex.Tesselator.getInstance().end();
++        RenderSystem.enableTexture();
++        buffer = null;
+         pose = null;
+-        // @era:q-hud-else v16
+-        //~ com.mojang.blaze3d.vertex.Tesselator.getInstance().end();
+-        //~ RenderSystem.enableTexture();
+-        //~ buffer = null;
++        // @era:q-hud-else g21|g202|g20
++        //~ canvas.graphics().flush();
++        //~ consumer = null;
+         //~ pose = null;
+         // @era:q-hud-else s17|s194
+         //~ com.mojang.blaze3d.vertex.Tesselator.getInstance().end();
 diff --git a/common/src/main/java/com/aetherium/client/QolInventory.java b/common/src/main/java/com/aetherium/client/QolInventory.java
-index 8d0b0b5..2bcf7b1 100644
+index db0a696..38aa5a4 100644
 --- a/common/src/main/java/com/aetherium/client/QolInventory.java
 +++ b/common/src/main/java/com/aetherium/client/QolInventory.java
-@@ -2,30 +2,30 @@ package com.aetherium.client;
- 
- import net.minecraft.client.Minecraft;
- 
--// @era:q-inv-begin none
--// @era:q-inv-else v16
--//~ import com.aetherium.qol.Qol;
--//~ import com.aetherium.qol.SortPlanner;
--
--//~ import java.util.ArrayList;
--//~ import java.util.List;
--
--//~ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
--//~ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
--//~ import net.minecraft.world.Container;
--//~ import net.minecraft.world.entity.player.Inventory;
--//~ import net.minecraft.world.inventory.AbstractContainerMenu;
--//~ import net.minecraft.world.inventory.ChestMenu;
--//~ import net.minecraft.world.inventory.ClickType;
--//~ import net.minecraft.world.inventory.CraftingContainer;
--//~ import net.minecraft.world.inventory.DispenserMenu;
--//~ import net.minecraft.world.inventory.HopperMenu;
--//~ import net.minecraft.world.inventory.InventoryMenu;
--//~ import net.minecraft.world.inventory.ResultSlot;
--//~ import net.minecraft.world.inventory.ShulkerBoxMenu;
--//~ import net.minecraft.world.inventory.Slot;
--//~ import net.minecraft.world.item.Item;
--//~ import net.minecraft.world.item.ItemStack;
-+// @era:q-inv-begin v16
-+import com.aetherium.qol.Qol;
-+import com.aetherium.qol.SortPlanner;
-+
-+import java.util.ArrayList;
-+import java.util.List;
-+
-+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-+import net.minecraft.world.Container;
-+import net.minecraft.world.entity.player.Inventory;
-+import net.minecraft.world.inventory.AbstractContainerMenu;
-+import net.minecraft.world.inventory.ChestMenu;
-+import net.minecraft.world.inventory.ClickType;
-+import net.minecraft.world.inventory.CraftingContainer;
-+import net.minecraft.world.inventory.DispenserMenu;
-+import net.minecraft.world.inventory.HopperMenu;
-+import net.minecraft.world.inventory.InventoryMenu;
-+import net.minecraft.world.inventory.ResultSlot;
-+import net.minecraft.world.inventory.ShulkerBoxMenu;
-+import net.minecraft.world.inventory.Slot;
-+import net.minecraft.world.item.Item;
-+import net.minecraft.world.item.ItemStack;
-+// @era:q-inv-else none
- // @era:q-inv-end
- 
- /**
-@@ -37,354 +37,354 @@ public final class QolInventory {
-     private QolInventory() {
+@@ -101,10 +101,10 @@ public final class QolInventory {
      }
  
--    // @era:q-inv-begin none
-+    // @era:q-inv-begin v16
-+    private static final int EXCLUDED = -1;
-+    private static final int OTHER = 0;
-+    private static final int PLAYER = 1;
-+    private static final int HOTBAR = 1;
-+    private static final int MAIN = 2;
-+    /** A sort stops after this many moves even if the planner is not done (protects against loops). */
-+    private static final int MAX_MOVES = 200;
-+
-+    /** The running sort, or null. */
-+    private static AbstractContainerMenu sortMenu;
-+    private static int[] sortSlots;
-+    private static int sortMoves;
-+    private static int sortStalls;
-+    private static Slot lastDragSlot;
-+    private static double scrollRemainder;
-+
-+    /** Joining or leaving a world: forget the running sort. */
-     public static void cancel() {
-+        sortMenu = null;
-+        sortSlots = null;
-+        lastDragSlot = null;
-     }
- 
--    public static void tick(final Minecraft mc) {
-+    // ------------------------------------------------------------------ sections
-+
-+    /** True for screens the helpers work in (not the creative inventory, which clicks differently). */
-+    public static boolean supported(final AbstractContainerScreen<?> screen) {
-+        return !((Object) screen instanceof CreativeModeInventoryScreen);
-     }
+     private static ItemStack carried(final Minecraft mc) {
+-    // @era:q-inv-begin c205|c261|t17
+-        return mc.player.containerMenu.getCarried();
 -    // @era:q-inv-else v16
--    //~ private static final int EXCLUDED = -1;
--    //~ private static final int OTHER = 0;
--    //~ private static final int PLAYER = 1;
--    //~ private static final int HOTBAR = 1;
--    //~ private static final int MAIN = 2;
--    //~ /** A sort stops after this many moves even if the planner is not done (protects against loops). */
--    //~ private static final int MAX_MOVES = 200;
--
--    //~ /** The running sort, or null. */
--    //~ private static AbstractContainerMenu sortMenu;
--    //~ private static int[] sortSlots;
--    //~ private static int sortMoves;
--    //~ private static int sortStalls;
--    //~ private static Slot lastDragSlot;
--    //~ private static double scrollRemainder;
--
--    //~ /** Joining or leaving a world: forget the running sort. */
--    //~ public static void cancel() {
--        //~ sortMenu = null;
--        //~ sortSlots = null;
--        //~ lastDragSlot = null;
--    //~ }
- 
--    //~ // ------------------------------------------------------------------ sections
-+    private static int section(final AbstractContainerMenu menu, final Slot slot) {
-+        if (slot == null || slot instanceof ResultSlot) {
-+            return EXCLUDED;
-+        }
-+        final Container container = slot.container;
-+        if (container instanceof CraftingContainer) {
-+            return EXCLUDED;
-+        }
-+        if (container instanceof Inventory) {
-+            final int index = containerSlot(slot);
-+            if (index < 0 || index >= 36) {
-+                return EXCLUDED; // armour and off hand
-+            }
-+            if ((Object) menu instanceof InventoryMenu) {
-+                return index < 9 ? HOTBAR : MAIN;
-+            }
-+            return PLAYER;
-+        }
-+        return OTHER;
-+    }
- 
--    //~ /** True for screens the helpers work in (not the creative inventory, which clicks differently). */
--    //~ public static boolean supported(final AbstractContainerScreen<?> screen) {
--        //~ return !((Object) screen instanceof CreativeModeInventoryScreen);
--    //~ }
-+    /** The slot's index inside its own container (Slot keeps it private on this version). */
-+    public static int containerSlot(final Slot slot) {
-+        return (Object) slot instanceof QolSlotAccess ? ((QolSlotAccess) (Object) slot).aetherium$containerSlot() : -1;
-+    }
- 
--    //~ private static int section(final AbstractContainerMenu menu, final Slot slot) {
--        //~ if (slot == null || slot instanceof ResultSlot) {
--            //~ return EXCLUDED;
--        //~ }
--        //~ final Container container = slot.container;
--        //~ if (container instanceof CraftingContainer) {
--            //~ return EXCLUDED;
--        //~ }
--        //~ if (container instanceof Inventory) {
--            //~ final int index = containerSlot(slot);
--            //~ if (index < 0 || index >= 36) {
--                //~ return EXCLUDED; // armour and off hand
--            //~ }
--            //~ if ((Object) menu instanceof InventoryMenu) {
--                //~ return index < 9 ? HOTBAR : MAIN;
--            //~ }
--            //~ return PLAYER;
--        //~ }
--        //~ return OTHER;
--    //~ }
-+    private static ItemStack carried(final Minecraft mc) {
-+        return mc.player.inventory.getCarried();
-+    }
- 
--    //~ /** The slot's index inside its own container (Slot keeps it private on this version). */
--    //~ public static int containerSlot(final Slot slot) {
--        //~ return (Object) slot instanceof QolSlotAccess ? ((QolSlotAccess) (Object) slot).aetherium$containerSlot() : -1;
--    //~ }
-+    private static void click(final Minecraft mc, final AbstractContainerMenu menu, final int slot, final int button) {
-+        mc.gameMode.handleInventoryMouseClick(menu.containerId, slot, button, ClickType.PICKUP, mc.player);
-+    }
- 
--    //~ private static ItemStack carried(final Minecraft mc) {
 -        //~ return mc.player.inventory.getCarried();
--    //~ }
-+    private static boolean canMerge(final ItemStack a, final ItemStack b) {
-+        return !a.isEmpty() && !b.isEmpty() && a.getItem() == b.getItem() && ItemStack.tagMatches(a, b);
-+    }
- 
--    //~ private static void click(final Minecraft mc, final AbstractContainerMenu menu, final int slot, final int button) {
--        //~ mc.gameMode.handleInventoryMouseClick(menu.containerId, slot, button, ClickType.PICKUP, mc.player);
--    //~ }
-+    // ------------------------------------------------------------------ scroll transfer
-+
-+    /**
-+     * Mouse wheel over a slot. Down (amount below 0) moves one item of the hovered stack to the
-+     * other part of the screen; up pulls one matching item from the other part into the hovered
-+     * stack. Returns true when the wheel was used.
-+     */
-+    public static boolean scroll(final Minecraft mc, final AbstractContainerScreen<?> screen, final Slot hovered,
-+                                 final double amount) {
-+        if (!Qol.scrollTransfer || amount == 0.0 || hovered == null || mc.player == null || mc.gameMode == null
-+                || !supported(screen) || !carried(mc).isEmpty() || sortMenu != null) {
-+            return false;
-+        }
-+        final AbstractContainerMenu menu = screen.getMenu();
-+        final int from = section(menu, hovered);
-+        final ItemStack stack = hovered.getItem();
-+        if (from == EXCLUDED || stack.isEmpty()) {
-+            return false;
-+        }
-+        // Touchpads send fractions of a notch: one item per whole notch, in the latest direction.
-+        if (scrollRemainder != 0.0 && Math.signum(scrollRemainder) != Math.signum(amount)) {
-+            scrollRemainder = 0.0;
-+        }
-+        scrollRemainder += amount;
-+        if (Math.abs(scrollRemainder) < 1.0) {
-+            return true;
-+        }
-+        scrollRemainder = 0.0;
-+        if (amount < 0.0) {
-+            final Slot target = findTarget(menu, from, stack);
-+            if (target == null || !hovered.mayPickup(mc.player)) {
-+                return true;
-+            }
-+            moveOne(mc, menu, hovered, target);
-+        } else {
-+            if (stack.getCount() >= Math.min(stack.getMaxStackSize(), hovered.getMaxStackSize(stack))) {
-+                return true;
-+            }
-+            final Slot source = findSource(mc, menu, from, stack);
-+            if (source != null) {
-+                moveOne(mc, menu, source, hovered);
-+            }
-+        }
-+        return true;
-+    }
- 
--    //~ private static boolean canMerge(final ItemStack a, final ItemStack b) {
--        //~ return !a.isEmpty() && !b.isEmpty() && a.getItem() == b.getItem() && ItemStack.tagMatches(a, b);
--    //~ }
-+    /** Pick up the source stack, place one item on the target with a right click, put the rest back. */
-+    private static void moveOne(final Minecraft mc, final AbstractContainerMenu menu, final Slot source, final Slot target) {
-+        click(mc, menu, source.index, 0);
-+        click(mc, menu, target.index, 1);
-+        if (!carried(mc).isEmpty()) {
-+            click(mc, menu, source.index, 0);
-+        }
-+    }
- 
--    //~ // ------------------------------------------------------------------ scroll transfer
--
--    //~ /**
--     //~ * Mouse wheel over a slot. Down (amount below 0) moves one item of the hovered stack to the
--     //~ * other part of the screen; up pulls one matching item from the other part into the hovered
--     //~ * stack. Returns true when the wheel was used.
--     //~ */
--    //~ public static boolean scroll(final Minecraft mc, final AbstractContainerScreen<?> screen, final Slot hovered,
--                                 //~ final double amount) {
--        //~ if (!Qol.scrollTransfer || amount == 0.0 || hovered == null || mc.player == null || mc.gameMode == null
--                //~ || !supported(screen) || !carried(mc).isEmpty() || sortMenu != null) {
--            //~ return false;
--        //~ }
--        //~ final AbstractContainerMenu menu = screen.getMenu();
--        //~ final int from = section(menu, hovered);
--        //~ final ItemStack stack = hovered.getItem();
--        //~ if (from == EXCLUDED || stack.isEmpty()) {
--            //~ return false;
--        //~ }
--        //~ // Touchpads send fractions of a notch: one item per whole notch, in the latest direction.
--        //~ if (scrollRemainder != 0.0 && Math.signum(scrollRemainder) != Math.signum(amount)) {
--            //~ scrollRemainder = 0.0;
--        //~ }
--        //~ scrollRemainder += amount;
--        //~ if (Math.abs(scrollRemainder) < 1.0) {
--            //~ return true;
--        //~ }
--        //~ scrollRemainder = 0.0;
--        //~ if (amount < 0.0) {
--            //~ final Slot target = findTarget(menu, from, stack);
--            //~ if (target == null || !hovered.mayPickup(mc.player)) {
--                //~ return true;
--            //~ }
--            //~ moveOne(mc, menu, hovered, target);
--        //~ } else {
--            //~ if (stack.getCount() >= Math.min(stack.getMaxStackSize(), hovered.getMaxStackSize(stack))) {
--                //~ return true;
--            //~ }
--            //~ final Slot source = findSource(mc, menu, from, stack);
--            //~ if (source != null) {
--                //~ moveOne(mc, menu, source, hovered);
--            //~ }
--        //~ }
--        //~ return true;
--    //~ }
-+    /** A slot in another section that can take one more of {@code stack}: a matching stack first, else an empty slot. */
-+    private static Slot findTarget(final AbstractContainerMenu menu, final int from, final ItemStack stack) {
-+        Slot empty = null;
-+        for (final Slot slot : menu.slots) {
-+            final int s = section(menu, slot);
-+            if (s == EXCLUDED || s == from || !slot.mayPlace(stack)) {
-+                continue;
-+            }
-+            final ItemStack there = slot.getItem();
-+            if (there.isEmpty()) {
-+                if (empty == null) {
-+                    empty = slot;
-+                }
-+            } else if (canMerge(there, stack)
-+                    && there.getCount() < Math.min(there.getMaxStackSize(), slot.getMaxStackSize(there))) {
-+                return slot;
-+            }
-+        }
-+        return empty;
-+    }
- 
--    //~ /** Pick up the source stack, place one item on the target with a right click, put the rest back. */
--    //~ private static void moveOne(final Minecraft mc, final AbstractContainerMenu menu, final Slot source, final Slot target) {
--        //~ click(mc, menu, source.index, 0);
--        //~ click(mc, menu, target.index, 1);
--        //~ if (!carried(mc).isEmpty()) {
--            //~ click(mc, menu, source.index, 0);
--        //~ }
--    //~ }
-+    /** A slot in another section holding a stack that matches {@code stack}; the smallest such stack. */
-+    private static Slot findSource(final Minecraft mc, final AbstractContainerMenu menu, final int to, final ItemStack stack) {
-+        Slot best = null;
-+        for (final Slot slot : menu.slots) {
-+            final int s = section(menu, slot);
-+            if (s == EXCLUDED || s == to || !canMerge(slot.getItem(), stack) || !slot.mayPickup(mc.player)) {
-+                continue;
-+            }
-+            if (best == null || slot.getItem().getCount() < best.getItem().getCount()) {
-+                best = slot;
-+            }
-+        }
-+        return best;
-+    }
- 
--    //~ /** A slot in another section that can take one more of {@code stack}: a matching stack first, else an empty slot. */
--    //~ private static Slot findTarget(final AbstractContainerMenu menu, final int from, final ItemStack stack) {
--        //~ Slot empty = null;
--        //~ for (final Slot slot : menu.slots) {
--            //~ final int s = section(menu, slot);
--            //~ if (s == EXCLUDED || s == from || !slot.mayPlace(stack)) {
--                //~ continue;
--            //~ }
--            //~ final ItemStack there = slot.getItem();
--            //~ if (there.isEmpty()) {
--                //~ if (empty == null) {
--                    //~ empty = slot;
--                //~ }
--            //~ } else if (canMerge(there, stack)
--                    //~ && there.getCount() < Math.min(there.getMaxStackSize(), slot.getMaxStackSize(there))) {
--                //~ return slot;
--            //~ }
--        //~ }
--        //~ return empty;
--    //~ }
-+    // ------------------------------------------------------------------ shift-drag
- 
--    //~ /** A slot in another section holding a stack that matches {@code stack}; the smallest such stack. */
--    //~ private static Slot findSource(final Minecraft mc, final AbstractContainerMenu menu, final int to, final ItemStack stack) {
--        //~ Slot best = null;
--        //~ for (final Slot slot : menu.slots) {
--            //~ final int s = section(menu, slot);
--            //~ if (s == EXCLUDED || s == to || !canMerge(slot.getItem(), stack) || !slot.mayPickup(mc.player)) {
--                //~ continue;
--            //~ }
--            //~ if (best == null || slot.getItem().getCount() < best.getItem().getCount()) {
--                //~ best = slot;
--            //~ }
--        //~ }
--        //~ return best;
--    //~ }
-+    /** Left button pressed on {@code slot} (vanilla handles that first slot itself): a new drag starts. */
-+    public static void dragStart(final Slot slot) {
-+        lastDragSlot = slot;
-+    }
- 
--    //~ // ------------------------------------------------------------------ shift-drag
-+    /**
-+     * Left-button drag with Shift held and nothing on the cursor: every stack passed over is
-+     * quick-moved like a shift-click. Returns true when the drag was used.
-+     */
-+    public static boolean shiftDrag(final Minecraft mc, final AbstractContainerScreen<?> screen, final Slot slot) {
-+        if (!Qol.shiftDrag || slot == null || mc.player == null || mc.gameMode == null || !supported(screen)
-+                || !carried(mc).isEmpty() || sortMenu != null) {
-+            return false;
-+        }
-+        if (slot == lastDragSlot) {
-+            return true;
-+        }
-+        lastDragSlot = slot;
-+        if (slot.hasItem() && slot.mayPickup(mc.player)) {
-+            mc.gameMode.handleInventoryMouseClick(screen.getMenu().containerId, slot.index, 0, ClickType.QUICK_MOVE,
-+                    mc.player);
-+        }
-+        return true;
-+    }
- 
--    //~ /** Left button pressed on {@code slot} (vanilla handles that first slot itself): a new drag starts. */
--    //~ public static void dragStart(final Slot slot) {
--        //~ lastDragSlot = slot;
--    //~ }
-+    // ------------------------------------------------------------------ sort
- 
--    //~ /**
--     //~ * Left-button drag with Shift held and nothing on the cursor: every stack passed over is
--     //~ * quick-moved like a shift-click. Returns true when the drag was used.
--     //~ */
--    //~ public static boolean shiftDrag(final Minecraft mc, final AbstractContainerScreen<?> screen, final Slot slot) {
--        //~ if (!Qol.shiftDrag || slot == null || mc.player == null || mc.gameMode == null || !supported(screen)
--                //~ || !carried(mc).isEmpty() || sortMenu != null) {
--            //~ return false;
--        //~ }
--        //~ if (slot == lastDragSlot) {
--            //~ return true;
--        //~ }
--        //~ lastDragSlot = slot;
--        //~ if (slot.hasItem() && slot.mayPickup(mc.player)) {
--            //~ mc.gameMode.handleInventoryMouseClick(screen.getMenu().containerId, slot.index, 0, ClickType.QUICK_MOVE,
--                    //~ mc.player);
--        //~ }
--        //~ return true;
--    //~ }
-+    /** True when the menu has a container part the Sort button can sort (chests, shulker boxes, hoppers, dispensers). */
-+    public static boolean sortableContainer(final AbstractContainerMenu menu) {
-+        return menu instanceof ChestMenu || menu instanceof ShulkerBoxMenu || menu instanceof DispenserMenu
-+                || menu instanceof HopperMenu;
-+    }
- 
--    //~ // ------------------------------------------------------------------ sort
-+    /** True while a sort is running. */
-+    public static boolean sorting() {
-+        return sortMenu != null;
-+    }
- 
--    //~ /** True when the menu has a container part the Sort button can sort (chests, shulker boxes, hoppers, dispensers). */
--    //~ public static boolean sortableContainer(final AbstractContainerMenu menu) {
--        //~ return menu instanceof ChestMenu || menu instanceof ShulkerBoxMenu || menu instanceof DispenserMenu
--                //~ || menu instanceof HopperMenu;
--    //~ }
-+    /** Starts sorting the container part ({@code player} false) or the player's main inventory (true). */
-+    public static void startSort(final Minecraft mc, final AbstractContainerScreen<?> screen, final boolean player) {
-+        if (!Qol.sortButton || mc.player == null || !supported(screen) || sortMenu != null) {
-+            return;
-+        }
-+        final AbstractContainerMenu menu = screen.getMenu();
-+        final List<Integer> slots = new ArrayList<Integer>();
-+        for (final Slot slot : menu.slots) {
-+            final boolean inventory = slot.container instanceof Inventory;
-+            if (player) {
-+                if (inventory && containerSlot(slot) >= 9 && containerSlot(slot) < 36) {
-+                    slots.add(Integer.valueOf(slot.index));
-+                }
-+            } else if (!inventory && section(menu, slot) == OTHER) {
-+                slots.add(Integer.valueOf(slot.index));
-+            }
-+        }
-+        if (slots.size() < 2) {
-+            return;
-+        }
-+        final int[] indices = new int[slots.size()];
-+        for (int i = 0; i < indices.length; i++) {
-+            indices[i] = slots.get(i).intValue();
-+        }
-+        sortMenu = menu;
-+        sortSlots = indices;
-+        sortMoves = 0;
-+        sortStalls = 0;
-+    }
- 
--    //~ /** True while a sort is running. */
--    //~ public static boolean sorting() {
--        //~ return sortMenu != null;
--    //~ }
-+    /** Sort key in a container screen: sorts the part under the mouse. */
-+    public static boolean sortKey(final Minecraft mc, final AbstractContainerScreen<?> screen, final Slot hovered) {
-+        if (!Qol.sortButton || hovered == null || !supported(screen)) {
-+            return false;
-+        }
-+        final AbstractContainerMenu menu = screen.getMenu();
-+        if (hovered.container instanceof Inventory) {
-+            startSort(mc, screen, true);
-+            return true;
-+        }
-+        if (sortableContainer(menu) && section(menu, hovered) == OTHER) {
-+            startSort(mc, screen, false);
-+            return true;
-+        }
-+        return false;
-+    }
- 
--    //~ /** Starts sorting the container part ({@code player} false) or the player's main inventory (true). */
--    //~ public static void startSort(final Minecraft mc, final AbstractContainerScreen<?> screen, final boolean player) {
--        //~ if (!Qol.sortButton || mc.player == null || !supported(screen) || sortMenu != null) {
--            //~ return;
--        //~ }
--        //~ final AbstractContainerMenu menu = screen.getMenu();
--        //~ final List<Integer> slots = new ArrayList<Integer>();
--        //~ for (final Slot slot : menu.slots) {
--            //~ final boolean inventory = slot.container instanceof Inventory;
--            //~ if (player) {
--                //~ if (inventory && containerSlot(slot) >= 9 && containerSlot(slot) < 36) {
--                    //~ slots.add(Integer.valueOf(slot.index));
--                //~ }
--            //~ } else if (!inventory && section(menu, slot) == OTHER) {
--                //~ slots.add(Integer.valueOf(slot.index));
--            //~ }
--        //~ }
--        //~ if (slots.size() < 2) {
--            //~ return;
--        //~ }
--        //~ final int[] indices = new int[slots.size()];
--        //~ for (int i = 0; i < indices.length; i++) {
--            //~ indices[i] = slots.get(i).intValue();
--        //~ }
--        //~ sortMenu = menu;
--        //~ sortSlots = indices;
--        //~ sortMoves = 0;
--        //~ sortStalls = 0;
--    //~ }
-+    /** One sort move per client tick. */
-+    public static void tick(final Minecraft mc) {
-+        final AbstractContainerMenu menu = sortMenu;
-+        if (menu == null) {
-+            return;
-+        }
-+        if (mc.player == null || mc.gameMode == null || mc.player.containerMenu != menu || !Qol.sortButton
-+                || sortMoves >= MAX_MOVES || !(mc.screen instanceof AbstractContainerScreen)
-+                || ((AbstractContainerScreen<?>) mc.screen).getMenu() != menu) {
-+            cancel();
-+            return;
-+        }
-+        if (!carried(mc).isEmpty()) {
-+            // The player is holding something (or a click was refused): wait a little, then give up.
-+            if (++sortStalls > 20) {
-+                cancel();
-+            }
-+            return;
-+        }
-+        final MenuSlots view = new MenuSlots(menu, sortSlots);
-+        final SortPlanner.Move move = SortPlanner.next(view);
-+        if (move == null) {
-+            cancel();
-+            return;
-+        }
-+        final int from = sortSlots[move.from];
-+        final int to = sortSlots[move.to];
-+        click(mc, menu, from, 0);
-+        click(mc, menu, to, 0);
-+        if (!carried(mc).isEmpty()) {
-+            click(mc, menu, from, 0);
-+        }
-+        sortMoves++;
-+    }
- 
--    //~ /** Sort key in a container screen: sorts the part under the mouse. */
--    //~ public static boolean sortKey(final Minecraft mc, final AbstractContainerScreen<?> screen, final Slot hovered) {
--        //~ if (!Qol.sortButton || hovered == null || !supported(screen)) {
--            //~ return false;
--        //~ }
--        //~ final AbstractContainerMenu menu = screen.getMenu();
--        //~ if (hovered.container instanceof Inventory) {
--            //~ startSort(mc, screen, true);
--            //~ return true;
--        //~ }
--        //~ if (sortableContainer(menu) && section(menu, hovered) == OTHER) {
--            //~ startSort(mc, screen, false);
--            //~ return true;
--        //~ }
--        //~ return false;
-+    /** The sorted slots of a menu as the planner sees them. */
-+    private static final class MenuSlots implements SortPlanner.Slots {
-+        private final AbstractContainerMenu menu;
-+        private final int[] indices;
-+
-+        MenuSlots(final AbstractContainerMenu menu, final int[] indices) {
-+            this.menu = menu;
-+            this.indices = indices;
-+        }
-+
-+        private Slot slot(final int i) {
-+            return this.menu.slots.get(this.indices[i]);
-+        }
-+
-+        private ItemStack stack(final int i) {
-+            return slot(i).getItem();
-+        }
-+
-+        @Override
-+        public int size() {
-+            return this.indices.length;
-+        }
-+
-+        @Override
-+        public boolean isEmpty(final int i) {
-+            return stack(i).isEmpty();
-+        }
-+
-+        @Override
-+        public boolean sameItem(final int a, final int b) {
-+            return canMerge(stack(a), stack(b));
-+        }
-+
-+        @Override
-+        public int count(final int i) {
-+            return stack(i).getCount();
-+        }
-+
-+        @Override
-+        public int maxCount(final int i) {
-+            final ItemStack stack = stack(i);
-+            return Math.min(stack.getMaxStackSize(), slot(i).getMaxStackSize(stack));
-+        }
-+
-+        @Override
-+        public int compareItems(final int a, final int b) {
-+            final ItemStack x = stack(a);
-+            final ItemStack y = stack(b);
-+            int c = Integer.compare(Item.getId(x.getItem()), Item.getId(y.getItem()));
-+            if (c == 0) {
-+                c = Integer.compare(x.getDamageValue(), y.getDamageValue());
-+            }
-+            if (c == 0 && !canMerge(x, y)) {
-+                c = x.getHoverName().getString().compareTo(y.getHoverName().getString());
-+                if (c == 0) {
-+                    c = Integer.compare(String.valueOf(x.getTag()).hashCode(), String.valueOf(y.getTag()).hashCode());
-+                }
-+            }
-+            return c;
-+        }
-+    }
-+    // @era:q-inv-else none
-+    //~ public static void cancel() {
-     //~ }
- 
--    //~ /** One sort move per client tick. */
-     //~ public static void tick(final Minecraft mc) {
--        //~ final AbstractContainerMenu menu = sortMenu;
--        //~ if (menu == null) {
--            //~ return;
--        //~ }
--        //~ if (mc.player == null || mc.gameMode == null || mc.player.containerMenu != menu || !Qol.sortButton
--                //~ || sortMoves >= MAX_MOVES || !(mc.screen instanceof AbstractContainerScreen)
--                //~ || ((AbstractContainerScreen<?>) mc.screen).getMenu() != menu) {
--            //~ cancel();
--            //~ return;
--        //~ }
--        //~ if (!carried(mc).isEmpty()) {
--            //~ // The player is holding something (or a click was refused): wait a little, then give up.
--            //~ if (++sortStalls > 20) {
--                //~ cancel();
--            //~ }
--            //~ return;
--        //~ }
--        //~ final MenuSlots view = new MenuSlots(menu, sortSlots);
--        //~ final SortPlanner.Move move = SortPlanner.next(view);
--        //~ if (move == null) {
--            //~ cancel();
--            //~ return;
--        //~ }
--        //~ final int from = sortSlots[move.from];
--        //~ final int to = sortSlots[move.to];
--        //~ click(mc, menu, from, 0);
--        //~ click(mc, menu, to, 0);
--        //~ if (!carried(mc).isEmpty()) {
--            //~ click(mc, menu, from, 0);
--        //~ }
--        //~ sortMoves++;
--    //~ }
--
--    //~ /** The sorted slots of a menu as the planner sees them. */
--    //~ private static final class MenuSlots implements SortPlanner.Slots {
--        //~ private final AbstractContainerMenu menu;
--        //~ private final int[] indices;
--
--        //~ MenuSlots(final AbstractContainerMenu menu, final int[] indices) {
--            //~ this.menu = menu;
--            //~ this.indices = indices;
--        //~ }
--
--        //~ private Slot slot(final int i) {
--            //~ return this.menu.slots.get(this.indices[i]);
--        //~ }
--
--        //~ private ItemStack stack(final int i) {
--            //~ return slot(i).getItem();
--        //~ }
--
--        //~ @Override
--        //~ public int size() {
--            //~ return this.indices.length;
--        //~ }
--
--        //~ @Override
--        //~ public boolean isEmpty(final int i) {
--            //~ return stack(i).isEmpty();
--        //~ }
--
--        //~ @Override
--        //~ public boolean sameItem(final int a, final int b) {
--            //~ return canMerge(stack(a), stack(b));
--        //~ }
--
--        //~ @Override
--        //~ public int count(final int i) {
--            //~ return stack(i).getCount();
--        //~ }
--
--        //~ @Override
--        //~ public int maxCount(final int i) {
--            //~ final ItemStack stack = stack(i);
--            //~ return Math.min(stack.getMaxStackSize(), slot(i).getMaxStackSize(stack));
--        //~ }
--
--        //~ @Override
--        //~ public int compareItems(final int a, final int b) {
--            //~ final ItemStack x = stack(a);
--            //~ final ItemStack y = stack(b);
--            //~ int c = Integer.compare(Item.getId(x.getItem()), Item.getId(y.getItem()));
--            //~ if (c == 0) {
--                //~ c = Integer.compare(x.getDamageValue(), y.getDamageValue());
--            //~ }
--            //~ if (c == 0 && !canMerge(x, y)) {
--                //~ c = x.getHoverName().getString().compareTo(y.getHoverName().getString());
--                //~ if (c == 0) {
--                    //~ c = Integer.compare(String.valueOf(x.getTag()).hashCode(), String.valueOf(y.getTag()).hashCode());
--                //~ }
--            //~ }
--            //~ return c;
--        //~ }
-     //~ }
++    // @era:q-inv-begin v16
++        return mc.player.inventory.getCarried();
++    // @era:q-inv-else c205|c261|t17
++        //~ return mc.player.containerMenu.getCarried();
      // @era:q-inv-end
- }
+     }
+ 
+@@ -125,21 +125,21 @@ public final class QolInventory {
+     }
+ 
+     private static boolean canMerge(final ItemStack a, final ItemStack b) {
+-    // @era:q-inv-begin c205|c261
+-        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
++    // @era:q-inv-begin v16
++        return !a.isEmpty() && !b.isEmpty() && a.getItem() == b.getItem() && ItemStack.tagMatches(a, b);
++    // @era:q-inv-else c205|c261
++        //~ return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
+     // @era:q-inv-else t17
+         //~ return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameTags(a, b);
+-    // @era:q-inv-else v16
+-        //~ return !a.isEmpty() && !b.isEmpty() && a.getItem() == b.getItem() && ItemStack.tagMatches(a, b);
+     // @era:q-inv-end
+     }
+ 
+     /** A stable hash of the stack's extra data (tag or components), the last sort key. */
+     private static int extraHash(final ItemStack stack) {
+-    // @era:q-inv-begin c205|c261
+-        return String.valueOf(stack.getComponentsPatch()).hashCode();
+-    // @era:q-inv-else t17|v16
+-        //~ return String.valueOf(stack.getTag()).hashCode();
++    // @era:q-inv-begin t17|v16
++        return String.valueOf(stack.getTag()).hashCode();
++    // @era:q-inv-else c205|c261
++        //~ return String.valueOf(stack.getComponentsPatch()).hashCode();
+     // @era:q-inv-end
+     }
+ 
 diff --git a/common/src/main/java/com/aetherium/client/QolWorldRenderer.java b/common/src/main/java/com/aetherium/client/QolWorldRenderer.java
-index 55e55a8..5fa233e 100644
+index eede84f..5d2c711 100644
 --- a/common/src/main/java/com/aetherium/client/QolWorldRenderer.java
 +++ b/common/src/main/java/com/aetherium/client/QolWorldRenderer.java
 @@ -1,22 +1,22 @@
  package com.aetherium.client;
  
--// @era:q-world-begin none
+-// @era:q-world-begin hud
 -// @era:q-world-else v16
 -//~ import com.aetherium.qol.DamageNumbers;
 -//~ import com.aetherium.qol.Qol;
@@ -4337,7 +3853,7 @@ index 55e55a8..5fa233e 100644
 +import net.minecraft.client.gui.Font;
 +import net.minecraft.client.renderer.MultiBufferSource;
 +import net.minecraft.world.phys.Vec3;
-+// @era:q-world-else none
++// @era:q-world-else hud
  // @era:q-world-end
  
  /**
@@ -4345,7 +3861,7 @@ index 55e55a8..5fa233e 100644
      private QolWorldRenderer() {
      }
  
--    // @era:q-world-begin none
+-    // @era:q-world-begin hud
 -    // @era:q-world-else v16
 -    //~ private static final int FULL_BRIGHT = 0xF000F0;
 -    //~ private static final float BEAM_HALF_WIDTH = 0.12f;
@@ -4720,7 +4236,7 @@ index 55e55a8..5fa233e 100644
 +            buffers.endBatch();
 +        }
 +    }
-+    // @era:q-world-else none
++    // @era:q-world-else hud
      // @era:q-world-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/RawFrame.java b/common/src/main/java/com/aetherium/client/RawFrame.java
@@ -6476,239 +5992,92 @@ index a561e63..e5c6f9f 100644
      // @era:options-end
  }
 diff --git a/common/src/main/java/com/aetherium/client/WaypointScreen.java b/common/src/main/java/com/aetherium/client/WaypointScreen.java
-index 213f659..5d6847b 100644
+index 0c34169..1acf198 100644
 --- a/common/src/main/java/com/aetherium/client/WaypointScreen.java
 +++ b/common/src/main/java/com/aetherium/client/WaypointScreen.java
-@@ -1,126 +1,126 @@
- package com.aetherium.client;
+@@ -4,10 +4,10 @@ import com.aetherium.Aetherium;
+ import com.aetherium.gui.UiSound;
+ import com.aetherium.qol.WaypointView;
  
--// @era:q-world-begin none
--/** The waypoint list exists on Minecraft 1.16.5 only for now (Quality of life test build). */
--public final class WaypointScreen {
--    private WaypointScreen() {
-+// @era:q-world-begin v16
-+import com.aetherium.Aetherium;
-+import com.aetherium.gui.UiSound;
-+import com.aetherium.qol.WaypointView;
-+
-+import com.mojang.blaze3d.vertex.PoseStack;
-+import net.minecraft.client.gui.screens.Screen;
-+import net.minecraft.network.chat.Component;
-+
-+/**
-+ * The waypoint list (Quality of life). A thin shell around the version-independent
-+ * {@link WaypointView}, like {@link AetheriumScreen} around the settings view.
-+ */
-+public final class WaypointScreen extends Screen implements WaypointView.Host {
-+    private final Screen parent;
-+    private WaypointView view;
-+
-+    public WaypointScreen(final Screen parent) {
-+        super(Component.nullToEmpty("Waypoints"));
-+        this.parent = parent;
-     }
--}
--// @era:q-world-else v16
--//~ import com.aetherium.Aetherium;
--//~ import com.aetherium.gui.UiSound;
--//~ import com.aetherium.qol.WaypointView;
--
+-// @era:gui-begin graphics
+-import net.minecraft.client.gui.GuiGraphics;
+-// @era:gui-else stack
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
--//~ import net.minecraft.client.gui.screens.Screen;
--//~ import net.minecraft.network.chat.Component;
--
--//~ /**
-- //~ * The waypoint list (Quality of life). A thin shell around the version-independent
-- //~ * {@link WaypointView}, like {@link AetheriumScreen} around the settings view.
-- //~ */
--//~ public final class WaypointScreen extends Screen implements WaypointView.Host {
--    //~ private final Screen parent;
--    //~ private WaypointView view;
--
--    //~ public WaypointScreen(final Screen parent) {
--        //~ super(Component.nullToEmpty("Waypoints"));
--        //~ this.parent = parent;
--    //~ }
++// @era:gui-begin stack
++import com.mojang.blaze3d.vertex.PoseStack;
++// @era:gui-else graphics
++//~ import net.minecraft.client.gui.GuiGraphics;
+ // @era:gui-else extractor
+ //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
+ // @era:gui-end
+@@ -44,18 +44,18 @@ public final class WaypointScreen extends Screen implements WaypointView.Host {
  
--    //~ @Override
--    //~ protected void init() {
--        //~ if (this.view == null) {
--            //~ this.view = new WaypointView(QolClient.waypoints(), this);
--        //~ }
--        //~ this.view.resize(this.width, this.height);
--    //~ }
-+    @Override
-+    protected void init() {
-+        if (this.view == null) {
-+            this.view = new WaypointView(QolClient.waypoints(), this);
-+        }
-+        this.view.resize(this.width, this.height);
-+    }
+     // ------------------------------------------------------------------ rendering
  
--    //~ @Override
--    //~ public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
--        //~ if (this.view != null) {
--            //~ this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
--        //~ }
--    //~ }
-+    @Override
+-    // @era:gui-begin graphics
++    // @era:gui-begin stack
+     @Override
+-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
 +    public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
-+        if (this.view != null) {
+         if (this.view != null) {
+-            this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
 +            this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
-+        }
-+    }
+         }
+     }
+-    // @era:gui-else stack
++    // @era:gui-else graphics
+     //~ @Override
+-    //~ public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
++    //~ public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
+         //~ if (this.view != null) {
+-            //~ this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
++            //~ this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
+         //~ }
+     //~ }
+     // @era:gui-else extractor
+@@ -69,11 +69,11 @@ public final class WaypointScreen extends Screen implements WaypointView.Host {
+     // @era:gui-end
  
--    //~ @Override
--    //~ public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
--        //~ return this.view != null && this.view.mouseClicked(mouseX, mouseY, button)
--                //~ || super.mouseClicked(mouseX, mouseY, button);
--    //~ }
-+    @Override
-+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
-+        return this.view != null && this.view.mouseClicked(mouseX, mouseY, button)
-+                || super.mouseClicked(mouseX, mouseY, button);
-+    }
+     // The view paints an opaque background, so vanilla's (a blur pass on 1.21+) is skipped.
+-    // @era:background-begin render
+-    @Override
+-    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
+-    }
+-    // @era:background-else none
++    // @era:background-begin none
++    // @era:background-else render
++    //~ @Override
++    //~ public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
++    //~ }
+     // @era:background-else extract
+     //~ @Override
+     //~ public void extractBackground(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
+@@ -119,17 +119,17 @@ public final class WaypointScreen extends Screen implements WaypointView.Host {
+     //~ }
+     // @era:input-end
  
--    //~ @Override
--    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
--        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
--                //~ || super.mouseScrolled(mouseX, mouseY, amount);
--    //~ }
-+    @Override
+-    // @era:scroll-begin four
++    // @era:scroll-begin three
+     @Override
+-    public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
+-        return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
+-                || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 +    public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
 +        return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
 +                || super.mouseScrolled(mouseX, mouseY, amount);
-+    }
- 
--    //~ @Override
--    //~ public boolean keyPressed(final int key, final int scanCode, final int modifiers) {
--        //~ return this.view != null && this.view.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
--    //~ }
-+    @Override
-+    public boolean keyPressed(final int key, final int scanCode, final int modifiers) {
-+        return this.view != null && this.view.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
-+    }
- 
--    //~ @Override
--    //~ public boolean charTyped(final char c, final int modifiers) {
--        //~ return this.view != null && this.view.charTyped(c) || super.charTyped(c, modifiers);
--    //~ }
-+    @Override
-+    public boolean charTyped(final char c, final int modifiers) {
-+        return this.view != null && this.view.charTyped(c) || super.charTyped(c, modifiers);
-+    }
- 
--    //~ @Override
--    //~ public boolean isPauseScreen() {
--        //~ return false;
--    //~ }
-+    @Override
-+    public boolean isPauseScreen() {
-+        return false;
-+    }
- 
--    //~ @Override
--    //~ public void onClose() {
--        //~ ClientHooks.setScreen(this.minecraft, this.parent);
--    //~ }
-+    @Override
-+    public void onClose() {
-+        ClientHooks.setScreen(this.minecraft, this.parent);
-+    }
- 
--    //~ @Override
--    //~ public void removed() {
--        //~ if (this.view != null) {
--            //~ this.view.onClose();
--        //~ }
--    //~ }
-+    @Override
-+    public void removed() {
-+        if (this.view != null) {
-+            this.view.onClose();
-+        }
-+    }
- 
--    //~ // ------------------------------------------------------------------ WaypointView.Host
-+    // ------------------------------------------------------------------ WaypointView.Host
- 
--    //~ @Override
--    //~ public double playerX() {
--        //~ return this.minecraft.player == null ? 0.0 : this.minecraft.player.getX();
--    //~ }
-+    @Override
-+    public double playerX() {
-+        return this.minecraft.player == null ? 0.0 : this.minecraft.player.getX();
-+    }
- 
--    //~ @Override
--    //~ public double playerY() {
--        //~ return this.minecraft.player == null ? 0.0 : this.minecraft.player.getY();
--    //~ }
-+    @Override
-+    public double playerY() {
-+        return this.minecraft.player == null ? 0.0 : this.minecraft.player.getY();
-+    }
- 
--    //~ @Override
--    //~ public double playerZ() {
--        //~ return this.minecraft.player == null ? 0.0 : this.minecraft.player.getZ();
--    //~ }
-+    @Override
-+    public double playerZ() {
-+        return this.minecraft.player == null ? 0.0 : this.minecraft.player.getZ();
-+    }
- 
--    //~ @Override
--    //~ public String dimension() {
--        //~ return QolClient.dimension(this.minecraft);
--    //~ }
-+    @Override
-+    public String dimension() {
-+        return QolClient.dimension(this.minecraft);
-+    }
- 
--    //~ @Override
--    //~ public void close() {
--        //~ onClose();
--    //~ }
-+    @Override
-+    public void close() {
-+        onClose();
-+    }
- 
--    //~ @Override
--    //~ public void playSound(final UiSound sound) {
--        //~ final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
--        //~ if (sub != null && sub.config.uiSounds.get().booleanValue()) {
--            //~ UiSounds.play(this.minecraft, sound);
--        //~ }
--    //~ }
-+    @Override
-+    public void playSound(final UiSound sound) {
-+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
-+        if (sub != null && sub.config.uiSounds.get().booleanValue()) {
-+            UiSounds.play(this.minecraft, sound);
-+        }
-+    }
- 
--    //~ @Override
--    //~ public boolean darkMode() {
--        //~ final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
--        //~ return sub != null && sub.config.darkMode.get().booleanValue();
-+    @Override
-+    public boolean darkMode() {
-+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
-+        return sub != null && sub.config.darkMode.get().booleanValue();
-+    }
-+}
-+// @era:q-world-else none
-+//~ /** The waypoint list exists on Minecraft 1.16.5 only for now (Quality of life test build). */
-+//~ public final class WaypointScreen {
-+    //~ private WaypointScreen() {
+     }
+-    // @era:scroll-else three
++    // @era:scroll-else four
+     //~ @Override
+-    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
+-        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
+-                //~ || super.mouseScrolled(mouseX, mouseY, amount);
++    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
++        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
++                //~ || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
      //~ }
- //~ }
- // @era:q-world-end
+     // @era:scroll-end
+ 
 diff --git a/common/src/main/java/com/aetherium/client/WorldCache.java b/common/src/main/java/com/aetherium/client/WorldCache.java
 index 52a7a56..14b9cc7 100644
 --- a/common/src/main/java/com/aetherium/client/WorldCache.java
@@ -9387,1205 +8756,161 @@ index 0bb9134..70f6233 100644
  //~ }
  // @era:options-end
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
-index df66330..826752c 100644
+index 9f042ad..2fab682 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
-@@ -2,27 +2,27 @@ package com.aetherium.mixin.core;
+@@ -127,17 +127,17 @@ public abstract class QolContainerScreenMixin implements QolContainerAccess {
+         return mx >= x && mx < x + SIZE && my >= y && my < y + SIZE;
+     }
  
- import com.aetherium.client.QolContainerAccess;
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-inv-begin none
--// @era:q-inv-else v16
--//~ import com.aetherium.client.McCanvas;
--//~ import com.aetherium.client.QolClient;
--//~ import com.aetherium.client.QolInventory;
--//~ import com.aetherium.gui.GuiCanvas;
--//~ import com.aetherium.qol.Qol;
--//~ import com.mojang.blaze3d.vertex.PoseStack;
--//~ import net.minecraft.client.KeyMapping;
--//~ import net.minecraft.client.Minecraft;
--//~ import net.minecraft.client.gui.screens.Screen;
--//~ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
--//~ import net.minecraft.world.entity.player.Inventory;
--//~ import net.minecraft.world.inventory.AbstractContainerMenu;
--//~ import net.minecraft.world.inventory.InventoryMenu;
--//~ import net.minecraft.world.inventory.Slot;
--//~ import org.spongepowered.asm.mixin.Shadow;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-+// @era:q-inv-begin v16
-+import com.aetherium.client.McCanvas;
-+import com.aetherium.client.QolClient;
-+import com.aetherium.client.QolInventory;
-+import com.aetherium.gui.GuiCanvas;
-+import com.aetherium.qol.Qol;
-+import com.mojang.blaze3d.vertex.PoseStack;
-+import net.minecraft.client.KeyMapping;
-+import net.minecraft.client.Minecraft;
-+import net.minecraft.client.gui.screens.Screen;
-+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-+import net.minecraft.world.entity.player.Inventory;
-+import net.minecraft.world.inventory.AbstractContainerMenu;
-+import net.minecraft.world.inventory.InventoryMenu;
-+import net.minecraft.world.inventory.Slot;
-+import org.spongepowered.asm.mixin.Shadow;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-+// @era:q-inv-else none
- // @era:q-inv-end
- 
- /**
-@@ -33,164 +33,164 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.gui.screens.inventory.AbstractContainerScreen")
- public abstract class QolContainerScreenMixin implements QolContainerAccess {
--    // @era:q-inv-begin none
--    @Override
--    public Object aetherium$hoveredSlot() {
--        return null;
--    }
--    // @era:q-inv-else v16
--    //~ private static final int SIZE = 11;
-+    // @era:q-inv-begin v16
-+    private static final int SIZE = 11;
- 
--    //~ @Shadow
--    //~ protected int leftPos;
-+    @Shadow
-+    protected int leftPos;
- 
--    //~ @Shadow
--    //~ protected int topPos;
-+    @Shadow
-+    protected int topPos;
- 
--    //~ @Shadow
--    //~ protected int imageWidth;
-+    @Shadow
-+    protected int imageWidth;
- 
--    //~ @Shadow
--    //~ protected int inventoryLabelY;
-+    @Shadow
-+    protected int inventoryLabelY;
- 
--    //~ @Shadow
--    //~ protected Slot hoveredSlot;
-+    @Shadow
-+    protected Slot hoveredSlot;
- 
--    //~ @Shadow
--    //~ private Slot findSlot(final double x, final double y) {
--        //~ throw new AssertionError();
--    //~ }
-+    @Shadow
-+    private Slot findSlot(final double x, final double y) {
-+        throw new AssertionError();
-+    }
- 
--    //~ @Override
--    //~ public Object aetherium$hoveredSlot() {
--        //~ return this.hoveredSlot;
--    //~ }
-+    @Override
-+    public Object aetherium$hoveredSlot() {
-+        return this.hoveredSlot;
-+    }
- 
--    //~ private AbstractContainerScreen<?> aetherium$self() {
--        //~ return (AbstractContainerScreen<?>) (Object) this;
--    //~ }
-+    private AbstractContainerScreen<?> aetherium$self() {
-+        return (AbstractContainerScreen<?>) (Object) this;
-+    }
- 
--    //~ // ------------------------------------------------------------------ sort buttons
-+    // ------------------------------------------------------------------ sort buttons
- 
--    //~ /** True when the container part (chest, shulker box, hopper, dispenser) gets a Sort button. */
--    //~ private boolean aetherium$hasContainerButton() {
--        //~ return Qol.sortButton && QolInventory.supported(aetherium$self())
--                //~ && QolInventory.sortableContainer(aetherium$self().getMenu());
--    //~ }
-+    /** True when the container part (chest, shulker box, hopper, dispenser) gets a Sort button. */
-+    private boolean aetherium$hasContainerButton() {
-+        return Qol.sortButton && QolInventory.supported(aetherium$self())
-+                && QolInventory.sortableContainer(aetherium$self().getMenu());
-+    }
- 
--    //~ private boolean aetherium$hasPlayerButton() {
--        //~ if (!Qol.sortButton || !QolInventory.supported(aetherium$self())) {
--            //~ return false;
--        //~ }
--        //~ for (final Slot slot : aetherium$self().getMenu().slots) {
--            //~ final int index = QolInventory.containerSlot(slot);
--            //~ if (slot.container instanceof Inventory && index >= 9 && index < 36) {
--                //~ return true;
--            //~ }
--        //~ }
--        //~ return false;
--    //~ }
-+    private boolean aetherium$hasPlayerButton() {
-+        if (!Qol.sortButton || !QolInventory.supported(aetherium$self())) {
-+            return false;
-+        }
-+        for (final Slot slot : aetherium$self().getMenu().slots) {
-+            final int index = QolInventory.containerSlot(slot);
-+            if (slot.container instanceof Inventory && index >= 9 && index < 36) {
-+                return true;
-+            }
-+        }
-+        return false;
-+    }
- 
--    //~ private int aetherium$buttonX() {
--        //~ return this.leftPos + this.imageWidth - SIZE - 6;
--    //~ }
-+    private int aetherium$buttonX() {
-+        return this.leftPos + this.imageWidth - SIZE - 6;
-+    }
- 
--    //~ private int aetherium$containerButtonY() {
--        //~ return this.topPos + 4;
--    //~ }
-+    private int aetherium$containerButtonY() {
-+        return this.topPos + 4;
-+    }
- 
--    //~ private int aetherium$playerButtonY() {
--        //~ final AbstractContainerMenu menu = aetherium$self().getMenu();
--        //~ // The player's own inventory screen has no "Inventory" label; its top-right corner is free.
--        //~ return (Object) menu instanceof InventoryMenu ? this.topPos + 4 : this.topPos + this.inventoryLabelY - 2;
--    //~ }
-+    private int aetherium$playerButtonY() {
-+        final AbstractContainerMenu menu = aetherium$self().getMenu();
-+        // The player's own inventory screen has no "Inventory" label; its top-right corner is free.
-+        return (Object) menu instanceof InventoryMenu ? this.topPos + 4 : this.topPos + this.inventoryLabelY - 2;
-+    }
- 
--    //~ private static boolean aetherium$inside(final double mx, final double my, final int x, final int y) {
--        //~ return mx >= x && mx < x + SIZE && my >= y && my < y + SIZE;
--    //~ }
-+    private static boolean aetherium$inside(final double mx, final double my, final int x, final int y) {
-+        return mx >= x && mx < x + SIZE && my >= y && my < y + SIZE;
-+    }
- 
--    //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
--    //~ private void aetherium$drawSortButtons(final PoseStack pose, final int mouseX, final int mouseY,
--                                           //~ final float partialTick, final CallbackInfo ci) {
--        //~ if (!Qol.sortButton) {
--            //~ return;
--        //~ }
--        //~ final boolean container = aetherium$hasContainerButton();
--        //~ final boolean player = aetherium$hasPlayerButton();
--        //~ if (!container && !player) {
--            //~ return;
--        //~ }
--        //~ final GuiCanvas canvas = McCanvas.INSTANCE.begin(pose);
--        //~ final int x = aetherium$buttonX();
--        //~ if (container) {
--            //~ aetherium$drawButton(canvas, x, aetherium$containerButtonY(), mouseX, mouseY);
--        //~ }
--        //~ if (player) {
--            //~ aetherium$drawButton(canvas, x, aetherium$playerButtonY(), mouseX, mouseY);
--        //~ }
--    //~ }
-+    @Inject(method = "render", at = @At("TAIL"), require = 0)
-+    private void aetherium$drawSortButtons(final PoseStack pose, final int mouseX, final int mouseY,
-+                                           final float partialTick, final CallbackInfo ci) {
-+        if (!Qol.sortButton) {
-+            return;
-+        }
-+        final boolean container = aetherium$hasContainerButton();
-+        final boolean player = aetherium$hasPlayerButton();
-+        if (!container && !player) {
-+            return;
-+        }
-+        final GuiCanvas canvas = McCanvas.INSTANCE.begin(pose);
-+        final int x = aetherium$buttonX();
-+        if (container) {
-+            aetherium$drawButton(canvas, x, aetherium$containerButtonY(), mouseX, mouseY);
-+        }
-+        if (player) {
-+            aetherium$drawButton(canvas, x, aetherium$playerButtonY(), mouseX, mouseY);
-+        }
-+    }
- 
--    //~ private static void aetherium$drawButton(final GuiCanvas canvas, final int x, final int y, final int mouseX,
--                                             //~ final int mouseY) {
--        //~ final boolean hover = aetherium$inside(mouseX, mouseY, x, y);
--        //~ final boolean busy = QolInventory.sorting();
--        //~ canvas.fill(x, y, x + SIZE, y + SIZE, 0xFF373737);
--        //~ canvas.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, busy ? 0xFF5E8F5E : (hover ? 0xFFA8A8A8 : 0xFF8B8B8B));
--        //~ // Three bars getting shorter: "sorted".
--        //~ canvas.fill(x + 3, y + 3, x + 8, y + 4, 0xFFFFFFFF);
--        //~ canvas.fill(x + 3, y + 5, x + 7, y + 6, 0xFFFFFFFF);
--        //~ canvas.fill(x + 3, y + 7, x + 6, y + 8, 0xFFFFFFFF);
--    //~ }
-+    private static void aetherium$drawButton(final GuiCanvas canvas, final int x, final int y, final int mouseX,
-+                                             final int mouseY) {
-+        final boolean hover = aetherium$inside(mouseX, mouseY, x, y);
-+        final boolean busy = QolInventory.sorting();
-+        canvas.fill(x, y, x + SIZE, y + SIZE, 0xFF373737);
-+        canvas.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, busy ? 0xFF5E8F5E : (hover ? 0xFFA8A8A8 : 0xFF8B8B8B));
-+        // Three bars getting shorter: "sorted".
-+        canvas.fill(x + 3, y + 3, x + 8, y + 4, 0xFFFFFFFF);
-+        canvas.fill(x + 3, y + 5, x + 7, y + 6, 0xFFFFFFFF);
-+        canvas.fill(x + 3, y + 7, x + 6, y + 8, 0xFFFFFFFF);
-+    }
- 
--    //~ // ------------------------------------------------------------------ input
--
--    //~ @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true, require = 0)
--    //~ private void aetherium$clicked(final double mouseX, final double mouseY, final int button,
--                                   //~ final CallbackInfoReturnable<Boolean> cir) {
--        //~ if (button != 0) {
--            //~ return;
--        //~ }
--        //~ if (Qol.sortButton) {
--            //~ final Minecraft mc = Minecraft.getInstance();
--            //~ final int x = aetherium$buttonX();
--            //~ final boolean container = aetherium$hasContainerButton()
--                    //~ && aetherium$inside(mouseX, mouseY, x, aetherium$containerButtonY());
--            //~ final boolean player = !container && aetherium$hasPlayerButton()
--                    //~ && aetherium$inside(mouseX, mouseY, x, aetherium$playerButtonY());
--            //~ if (container || player) {
--                //~ QolClient.clickSound(mc);
--                //~ QolInventory.startSort(mc, aetherium$self(), player);
--                //~ cir.setReturnValue(Boolean.TRUE);
--                //~ return;
--            //~ }
--        //~ }
--        //~ if (Qol.shiftDrag) {
--            //~ QolInventory.dragStart(findSlot(mouseX, mouseY));
--        //~ }
--    //~ }
-+    // ------------------------------------------------------------------ input
-+
-+    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true, require = 0)
-+    private void aetherium$clicked(final double mouseX, final double mouseY, final int button,
-+                                   final CallbackInfoReturnable<Boolean> cir) {
-+        if (button != 0) {
-+            return;
-+        }
-+        if (Qol.sortButton) {
-+            final Minecraft mc = Minecraft.getInstance();
-+            final int x = aetherium$buttonX();
-+            final boolean container = aetherium$hasContainerButton()
-+                    && aetherium$inside(mouseX, mouseY, x, aetherium$containerButtonY());
-+            final boolean player = !container && aetherium$hasPlayerButton()
-+                    && aetherium$inside(mouseX, mouseY, x, aetherium$playerButtonY());
-+            if (container || player) {
-+                QolClient.clickSound(mc);
-+                QolInventory.startSort(mc, aetherium$self(), player);
-+                cir.setReturnValue(Boolean.TRUE);
-+                return;
-+            }
-+        }
-+        if (Qol.shiftDrag) {
-+            QolInventory.dragStart(findSlot(mouseX, mouseY));
-+        }
-+    }
- 
--    //~ @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true, require = 0)
--    //~ private void aetherium$dragged(final double mouseX, final double mouseY, final int button, final double dragX,
--                                   //~ final double dragY, final CallbackInfoReturnable<Boolean> cir) {
--        //~ if (!Qol.shiftDrag || button != 0 || !Screen.hasShiftDown()) {
--            //~ return;
--        //~ }
--        //~ if (QolInventory.shiftDrag(Minecraft.getInstance(), aetherium$self(), findSlot(mouseX, mouseY))) {
--            //~ cir.setReturnValue(Boolean.TRUE);
--        //~ }
--    //~ }
-+    @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true, require = 0)
-+    private void aetherium$dragged(final double mouseX, final double mouseY, final int button, final double dragX,
-+                                   final double dragY, final CallbackInfoReturnable<Boolean> cir) {
-+        if (!Qol.shiftDrag || button != 0 || !Screen.hasShiftDown()) {
-+            return;
-+        }
-+        if (QolInventory.shiftDrag(Minecraft.getInstance(), aetherium$self(), findSlot(mouseX, mouseY))) {
-+            cir.setReturnValue(Boolean.TRUE);
-+        }
-+    }
- 
--    //~ @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true, require = 0)
--    //~ private void aetherium$sortKey(final int key, final int scanCode, final int modifiers,
--                                   //~ final CallbackInfoReturnable<Boolean> cir) {
--        //~ if (!Qol.sortButton) {
--            //~ return;
--        //~ }
--        //~ final KeyMapping sort = QolClient.sortKey();
--        //~ if (sort != null && sort.matches(key, scanCode)
--                //~ && QolInventory.sortKey(Minecraft.getInstance(), aetherium$self(), this.hoveredSlot)) {
--            //~ cir.setReturnValue(Boolean.TRUE);
--        //~ }
-+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true, require = 0)
-+    private void aetherium$sortKey(final int key, final int scanCode, final int modifiers,
-+                                   final CallbackInfoReturnable<Boolean> cir) {
-+        if (!Qol.sortButton) {
-+            return;
-+        }
-+        final KeyMapping sort = QolClient.sortKey();
-+        if (sort != null && sort.matches(key, scanCode)
-+                && QolInventory.sortKey(Minecraft.getInstance(), aetherium$self(), this.hoveredSlot)) {
-+            cir.setReturnValue(Boolean.TRUE);
-+        }
-+    }
-+    // @era:q-inv-else none
-+    //~ @Override
-+    //~ public Object aetherium$hoveredSlot() {
-+        //~ return null;
-     //~ }
-     // @era:q-inv-end
- }
+-    // @era:gui-begin graphics
++    // @era:gui-begin stack
+     @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    private void aetherium$drawSortButtons(final net.minecraft.client.gui.GuiGraphics context, final int mouseX, final int mouseY,
++    private void aetherium$drawSortButtons(final com.mojang.blaze3d.vertex.PoseStack context, final int mouseX, final int mouseY,
+                                            final float partialTick, final CallbackInfo ci) {
+         if (Qol.sortButton) {
+             aetherium$drawSortButtons(McCanvas.INSTANCE.begin(context), mouseX, mouseY);
+         }
+     }
+-    // @era:gui-else stack
++    // @era:gui-else graphics
+     //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$drawSortButtons(final com.mojang.blaze3d.vertex.PoseStack context, final int mouseX, final int mouseY,
++    //~ private void aetherium$drawSortButtons(final net.minecraft.client.gui.GuiGraphics context, final int mouseX, final int mouseY,
+                                            //~ final float partialTick, final CallbackInfo ci) {
+         //~ if (Qol.sortButton) {
+             //~ aetherium$drawSortButtons(McCanvas.INSTANCE.begin(context), mouseX, mouseY);
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolDeathScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolDeathScreenMixin.java
-index 5ce83b8..2beedd8 100644
+index 48e9be1..20e11d4 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolDeathScreenMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolDeathScreenMixin.java
-@@ -1,16 +1,16 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-world-begin none
--// @era:q-world-else v16
--//~ import com.aetherium.client.QolClient;
--//~ import com.mojang.blaze3d.vertex.PoseStack;
--//~ import net.minecraft.client.Minecraft;
--//~ import net.minecraft.client.gui.GuiComponent;
--//~ import net.minecraft.client.gui.screens.Screen;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-world-begin v16
-+import com.aetherium.client.QolClient;
-+import com.mojang.blaze3d.vertex.PoseStack;
-+import net.minecraft.client.Minecraft;
-+import net.minecraft.client.gui.GuiComponent;
-+import net.minecraft.client.gui.screens.Screen;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-world-else none
- // @era:q-world-end
- 
- /**
-@@ -19,16 +19,16 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -17,15 +17,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
   */
  @Mixin(targets = "net.minecraft.client.gui.screens.DeathScreen")
  public abstract class QolDeathScreenMixin {
--    // @era:q-world-begin none
--    // @era:q-world-else v16
--    //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
--    //~ private void aetherium$deathPoint(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick,
--                                      //~ final CallbackInfo ci) {
--        //~ final Minecraft mc = Minecraft.getInstance();
--        //~ final String line = QolClient.deathLine(mc);
--        //~ if (line != null) {
--            //~ GuiComponent.drawCenteredString(pose, mc.font, line, ((Screen) (Object) this).width / 2, 112, 0xFFFFAA55);
--        //~ }
--    //~ }
-+    // @era:q-world-begin v16
-+    @Inject(method = "render", at = @At("TAIL"), require = 0)
-+    private void aetherium$deathPoint(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick,
-+                                      final CallbackInfo ci) {
-+        final Minecraft mc = Minecraft.getInstance();
-+        final String line = QolClient.deathLine(mc);
-+        if (line != null) {
-+            GuiComponent.drawCenteredString(pose, mc.font, line, ((Screen) (Object) this).width / 2, 112, 0xFFFFAA55);
-+        }
-+    }
-+    // @era:q-world-else none
-     // @era:q-world-end
- }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/QolFireMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolFireMixin.java
-index f95041e..e137554 100644
---- a/common/src/main/java/com/aetherium/mixin/core/QolFireMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/QolFireMixin.java
-@@ -1,14 +1,14 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-fire-begin none
--// @era:q-fire-else v16
--//~ import com.aetherium.qol.Qol;
--//~ import com.mojang.blaze3d.vertex.PoseStack;
--//~ import net.minecraft.client.Minecraft;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-fire-begin v16
-+import com.aetherium.qol.Qol;
-+import com.mojang.blaze3d.vertex.PoseStack;
-+import net.minecraft.client.Minecraft;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-fire-else none
- // @era:q-fire-end
- 
- /**
-@@ -18,33 +18,33 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.renderer.ScreenEffectRenderer")
- public abstract class QolFireMixin {
--    // @era:q-fire-begin none
--    // @era:q-fire-else v16
--    //~ /** How far the flames sink at 0% (their sheet is one unit tall, centred on the view). */
--    //~ private static final double DROP = 0.75;
--    //~ private static boolean aetherium$pushed;
-+    // @era:q-fire-begin v16
-+    /** How far the flames sink at 0% (their sheet is one unit tall, centred on the view). */
-+    private static final double DROP = 0.75;
-+    private static boolean aetherium$pushed;
- 
--    //~ @Inject(method = "renderFire", at = @At("HEAD"), cancellable = true, require = 0)
--    //~ private static void aetherium$fireStart(final Minecraft mc, final PoseStack pose, final CallbackInfo ci) {
--        //~ final int height = Qol.fireOverlay;
--        //~ if (height >= 100) {
--            //~ return;
--        //~ }
--        //~ if (height <= 0) {
--            //~ ci.cancel();
--            //~ return;
--        //~ }
--        //~ pose.pushPose();
--        //~ pose.translate(0.0, -DROP * (1.0 - height / 100.0), 0.0);
--        //~ aetherium$pushed = true;
--    //~ }
-+    @Inject(method = "renderFire", at = @At("HEAD"), cancellable = true, require = 0)
-+    private static void aetherium$fireStart(final Minecraft mc, final PoseStack pose, final CallbackInfo ci) {
-+        final int height = Qol.fireOverlay;
-+        if (height >= 100) {
-+            return;
-+        }
-+        if (height <= 0) {
-+            ci.cancel();
-+            return;
-+        }
-+        pose.pushPose();
-+        pose.translate(0.0, -DROP * (1.0 - height / 100.0), 0.0);
-+        aetherium$pushed = true;
-+    }
- 
--    //~ @Inject(method = "renderFire", at = @At("RETURN"), require = 0)
--    //~ private static void aetherium$fireEnd(final Minecraft mc, final PoseStack pose, final CallbackInfo ci) {
--        //~ if (aetherium$pushed) {
--            //~ aetherium$pushed = false;
--            //~ pose.popPose();
--        //~ }
--    //~ }
-+    @Inject(method = "renderFire", at = @At("RETURN"), require = 0)
-+    private static void aetherium$fireEnd(final Minecraft mc, final PoseStack pose, final CallbackInfo ci) {
-+        if (aetherium$pushed) {
-+            aetherium$pushed = false;
-+            pose.popPose();
-+        }
-+    }
-+    // @era:q-fire-else none
-     // @era:q-fire-end
- }
+-    // @era:gui-begin graphics
++    // @era:gui-begin stack
+     @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    private void aetherium$deathPoint(final net.minecraft.client.gui.GuiGraphics context, final int mouseX, final int mouseY,
++    private void aetherium$deathPoint(final com.mojang.blaze3d.vertex.PoseStack context, final int mouseX, final int mouseY,
+                                       final float partialTick, final CallbackInfo ci) {
+         aetherium$draw(McCanvas.INSTANCE.begin(context));
+     }
+-    // @era:gui-else stack
++    // @era:gui-else graphics
+     //~ @Inject(method = "render", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$deathPoint(final com.mojang.blaze3d.vertex.PoseStack context, final int mouseX, final int mouseY,
++    //~ private void aetherium$deathPoint(final net.minecraft.client.gui.GuiGraphics context, final int mouseX, final int mouseY,
+                                       //~ final float partialTick, final CallbackInfo ci) {
+         //~ aetherium$draw(McCanvas.INSTANCE.begin(context));
+     //~ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java
-index ee34485..639096b 100644
+index a66b702..f422e12 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java
-@@ -1,34 +1,34 @@
- package com.aetherium.mixin.core;
+@@ -27,40 +27,40 @@ public abstract class QolGuiMixin {
  
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-hud-begin none
--// @era:q-hud-else v16
--//~ import com.aetherium.client.McCanvas;
--//~ import com.aetherium.gui.GuiCanvas;
--//~ import com.aetherium.client.QolFoodIcons;
--//~ import com.aetherium.qol.FoodOverlay;
--//~ import com.aetherium.qol.Qol;
--//~ import com.mojang.blaze3d.vertex.BufferBuilder;
--//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
--//~ import com.mojang.blaze3d.vertex.Tesselator;
--//~ import com.mojang.math.Matrix4f;
--//~ import net.minecraft.client.gui.GuiComponent;
--//~ import com.mojang.blaze3d.systems.RenderSystem;
--//~ import com.mojang.blaze3d.vertex.PoseStack;
--//~ import net.minecraft.client.Minecraft;
--//~ import net.minecraft.client.gui.Gui;
--//~ import net.minecraft.client.player.LocalPlayer;
--//~ import net.minecraft.world.entity.LivingEntity;
--//~ import net.minecraft.world.food.FoodData;
--//~ import net.minecraft.world.food.FoodProperties;
--//~ import net.minecraft.world.item.ItemStack;
--//~ import net.minecraft.world.phys.EntityHitResult;
--//~ import net.minecraft.world.phys.HitResult;
--//~ import org.spongepowered.asm.mixin.Shadow;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.Redirect;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-hud-begin v16
-+import com.aetherium.client.McCanvas;
-+import com.aetherium.gui.GuiCanvas;
-+import com.aetherium.client.QolFoodIcons;
-+import com.aetherium.qol.FoodOverlay;
-+import com.aetherium.qol.Qol;
-+import com.mojang.blaze3d.vertex.BufferBuilder;
-+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-+import com.mojang.blaze3d.vertex.Tesselator;
-+import com.mojang.math.Matrix4f;
-+import net.minecraft.client.gui.GuiComponent;
-+import com.mojang.blaze3d.systems.RenderSystem;
-+import com.mojang.blaze3d.vertex.PoseStack;
-+import net.minecraft.client.Minecraft;
-+import net.minecraft.client.gui.Gui;
-+import net.minecraft.client.player.LocalPlayer;
-+import net.minecraft.world.entity.LivingEntity;
-+import net.minecraft.world.food.FoodData;
-+import net.minecraft.world.food.FoodProperties;
-+import net.minecraft.world.item.ItemStack;
-+import net.minecraft.world.phys.EntityHitResult;
-+import net.minecraft.world.phys.HitResult;
-+import org.spongepowered.asm.mixin.Shadow;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.Redirect;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-hud-else none
- // @era:q-hud-end
- 
- /**
-@@ -37,174 +37,174 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.gui.Gui")
- public abstract class QolGuiMixin {
--    // @era:q-hud-begin none
--    // @era:q-hud-else v16
--    //~ private static final int GL_ZERO = 0;
--    //~ private static final int GL_ONE = 1;
--    //~ private static final int GL_ONE_MINUS_SRC_COLOR = 0x0301;
--    //~ private static final int GL_ONE_MINUS_DST_COLOR = 0x0307;
--
--    //~ @Shadow
--    //~ private int screenWidth;
--
--    //~ @Shadow
--    //~ private int screenHeight;
--
--    //~ @Shadow
--    //~ private int tickCount;
--
--    //~ // ------------------------------------------------------------------ crosshair
--
--    //~ /** The crosshair sprite itself (the first blit; the attack indicator below it stays vanilla). */
--    //~ @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE",
--            //~ target = "Lnet/minecraft/client/gui/Gui;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIII)V", ordinal = 0),
--            //~ require = 0)
--    //~ private void aetherium$crosshair(final Gui gui, final PoseStack pose, final int x, final int y, final int u,
--                                     //~ final int v, final int w, final int h) {
--        //~ if (!Qol.crosshair) {
--            //~ gui.blit(pose, x, y, u, v, w, h);
--            //~ return;
--        //~ }
--        //~ // Vanilla's sprite is 15x15 at x, y: its middle pixel is the centre.
--        //~ final int cx = x + 7;
--        //~ final int cy = y + 7;
--        //~ final int color = Qol.crosshairTarget && aetherium$aimingAtMob() ? Qol.crosshairTargetArgb : Qol.crosshairArgb;
--        //~ RenderSystem.defaultBlendFunc();
--        //~ final GuiCanvas canvas = McCanvas.INSTANCE.begin(pose);
--        //~ final int[] outline = Qol.crosshairOutlineRects;
--        //~ final int shadow = color & 0xFF000000;
--        //~ for (int i = 0; i + 3 < outline.length; i += 4) {
--            //~ canvas.fill(cx + outline[i], cy + outline[i + 1], cx + outline[i + 2], cy + outline[i + 3], shadow);
--        //~ }
--        //~ final int[] rects = Qol.crosshairRects;
--        //~ for (int i = 0; i + 3 < rects.length; i += 4) {
--            //~ canvas.fill(cx + rects[i], cy + rects[i + 1], cx + rects[i + 2], cy + rects[i + 3], color);
--        //~ }
--        //~ // Back to the state vanilla set up for the attack indicator that follows.
--        //~ RenderSystem.enableBlend();
--        //~ RenderSystem.blendFuncSeparate(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ZERO);
--    //~ }
--
--    //~ private static boolean aetherium$aimingAtMob() {
--        //~ final HitResult hit = Minecraft.getInstance().hitResult;
--        //~ return hit != null && hit.getType() == HitResult.Type.ENTITY
--                //~ && ((EntityHitResult) hit).getEntity() instanceof LivingEntity;
--    //~ }
--
--    //~ // ------------------------------------------------------------------ food bar
--
--    //~ private static final int GL_QUADS = 7;
--
--    //~ /**
--     //~ * Hunger bar overlay in the style of AppleSkin, drawn over vanilla's bar: the saturation you
--     //~ * have as a gold outline around the shanks, and while you hold food, the shanks it would fill
--     //~ * and the saturation it would add, flashing. One extra draw for the outline (all pixels in a
--     //~ * single batch), two small sprites per previewed shank; nothing at all while it is off.
--     //~ */
--    //~ @Inject(method = "renderPlayerHealth", at = @At("TAIL"), require = 0)
--    //~ private void aetherium$foodBar(final PoseStack pose, final CallbackInfo ci) {
--        //~ if (!Qol.foodHud) {
--            //~ return;
--        //~ }
--        //~ final Minecraft mc = Minecraft.getInstance();
--        //~ final LocalPlayer player = mc.player;
--        //~ if (player == null || player.getVehicle() instanceof LivingEntity) {
--            //~ return; // riding a horse: the bar shows the horse's health instead
--        //~ }
--        //~ final FoodData data = player.getFoodData();
--        //~ final int food = data.getFoodLevel();
--        //~ final float saturation = data.getSaturationLevel();
--        //~ final int right = this.screenWidth / 2 + 91;
--        //~ final int top = this.screenHeight - 39;
--        //~ final int hearts = (int) Math.ceil((player.getMaxHealth() + (float) Math.ceil(player.getAbsorptionAmount())) / 2.0f);
--        //~ FoodOverlay.shake(QolFoodIcons.SHAKE, this.tickCount, (int) Math.ceil(player.getHealth()), hearts, saturation, food);
--
--        //~ final FoodProperties held = aetherium$heldFood(player);
--        //~ int foodAfter = food;
--        //~ float saturationAfter = saturation;
--        //~ float flash = 0f;
--        //~ if (held != null) {
--            //~ foodAfter = Math.min(20, food + held.getNutrition());
--            //~ saturationAfter = FoodOverlay.saturationAfter(food, saturation, held.getNutrition(), held.getSaturationModifier());
--            //~ flash = FoodOverlay.flash(this.tickCount, 0f);
--        //~ }
--
--        //~ // Held food: the shanks it would fill, flashing over a faint highlight (under the outline).
--        //~ if (foodAfter > food && flash > 0.01f) {
--            //~ mc.getTextureManager().bind(GuiComponent.GUI_ICONS_LOCATION);
--            //~ RenderSystem.enableBlend();
--            //~ RenderSystem.defaultBlendFunc();
--            //~ final Gui gui = (Gui) (Object) this;
--            //~ for (int i = food / 2; i < (foodAfter + 1) / 2; i++) {
--                //~ final int x = right - i * 8 - 9;
--                //~ final int y = top + QolFoodIcons.SHAKE[i];
--                //~ RenderSystem.color4f(1f, 1f, 1f, flash * 0.25f);
--                //~ gui.blit(pose, x, y, 25, 27, 9, 9);
--                //~ RenderSystem.color4f(1f, 1f, 1f, flash);
--                //~ gui.blit(pose, x, y, i * 2 + 1 == foodAfter ? 61 : 52, 27, 9, 9);
--            //~ }
--            //~ RenderSystem.color4f(1f, 1f, 1f, 1f);
--        //~ }
--
--        //~ // Saturation: the gold outline, solid for what you have, flashing for what the food adds.
--        //~ aetherium$saturation(pose, right, top, saturation, Math.max(saturation, saturationAfter), flash);
--        //~ RenderSystem.disableBlend();
--    //~ }
--
--    //~ private static void aetherium$saturation(final PoseStack pose, final int right, final int top, final float saturation,
--                                             //~ final float after, final float flash) {
--        //~ if (after <= 0f) {
--            //~ return;
--        //~ }
--        //~ final int[] outline = QolFoodIcons.outline();
--        //~ final int total = outline.length;
--        //~ if (total == 0) {
--            //~ return;
--        //~ }
--        //~ final int flashAlpha = (int) (flash * 255f);
--        //~ RenderSystem.enableBlend();
--        //~ RenderSystem.defaultBlendFunc();
--        //~ RenderSystem.disableTexture();
--        //~ final Tesselator tesselator = Tesselator.getInstance();
--        //~ final BufferBuilder buffer = tesselator.getBuilder();
--        //~ buffer.begin(GL_QUADS, DefaultVertexFormat.POSITION_COLOR);
--        //~ final Matrix4f m = pose.last().pose();
--        //~ for (int i = 0; i < 10; i++) {
--            //~ final int shown = FoodOverlay.pixelsFor(saturation / 2f - i, total);
--            //~ final int preview = flashAlpha > 2 ? FoodOverlay.pixelsFor(after / 2f - i, total) : 0;
--            //~ final int count = Math.max(shown, preview);
--            //~ final int x0 = right - i * 8 - 9;
--            //~ final int y0 = top + QolFoodIcons.SHAKE[i];
--            //~ for (int k = 0; k < count; k++) {
--                //~ final int px = FoodOverlay.sx(outline[k]);
--                //~ final int py = FoodOverlay.sy(outline[k]);
--                //~ final int rgb = FoodOverlay.gold(px, py);
--                //~ final int a = k < shown ? 255 : flashAlpha;
--                //~ final int r = rgb >> 16 & 0xFF;
--                //~ final int g = rgb >> 8 & 0xFF;
--                //~ final int b = rgb & 0xFF;
--                //~ final float x = x0 + px;
--                //~ final float y = y0 + py;
--                //~ buffer.vertex(m, x, y + 1f, 0f).color(r, g, b, a).endVertex();
--                //~ buffer.vertex(m, x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
--                //~ buffer.vertex(m, x + 1f, y, 0f).color(r, g, b, a).endVertex();
--                //~ buffer.vertex(m, x, y, 0f).color(r, g, b, a).endVertex();
--            //~ }
--        //~ }
--        //~ tesselator.end();
--        //~ RenderSystem.enableTexture();
--    //~ }
--
--    //~ /** The food in the main hand, else the off hand, or null. */
--    //~ private static FoodProperties aetherium$heldFood(final LocalPlayer player) {
--        //~ ItemStack stack = player.getMainHandItem();
--        //~ if (!stack.getItem().isEdible()) {
--            //~ stack = player.getOffhandItem();
--            //~ if (!stack.getItem().isEdible()) {
--                //~ return null;
--            //~ }
--        //~ }
--        //~ return stack.getItem().getFoodProperties();
--    //~ }
-+    // @era:q-hud-begin v16
-+    private static final int GL_ZERO = 0;
-+    private static final int GL_ONE = 1;
-+    private static final int GL_ONE_MINUS_SRC_COLOR = 0x0301;
-+    private static final int GL_ONE_MINUS_DST_COLOR = 0x0307;
-+
-+    @Shadow
-+    private int screenWidth;
-+
-+    @Shadow
-+    private int screenHeight;
-+
-+    @Shadow
-+    private int tickCount;
-+
-+    // ------------------------------------------------------------------ crosshair
-+
-+    /** The crosshair sprite itself (the first blit; the attack indicator below it stays vanilla). */
-+    @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE",
-+            target = "Lnet/minecraft/client/gui/Gui;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIII)V", ordinal = 0),
-+            require = 0)
-+    private void aetherium$crosshair(final Gui gui, final PoseStack pose, final int x, final int y, final int u,
-+                                     final int v, final int w, final int h) {
-+        if (!Qol.crosshair) {
-+            gui.blit(pose, x, y, u, v, w, h);
-+            return;
-+        }
-+        // Vanilla's sprite is 15x15 at x, y: its middle pixel is the centre.
-+        final int cx = x + 7;
-+        final int cy = y + 7;
-+        final int color = Qol.crosshairTarget && aetherium$aimingAtMob() ? Qol.crosshairTargetArgb : Qol.crosshairArgb;
-+        RenderSystem.defaultBlendFunc();
-+        final GuiCanvas canvas = McCanvas.INSTANCE.begin(pose);
-+        final int[] outline = Qol.crosshairOutlineRects;
-+        final int shadow = color & 0xFF000000;
-+        for (int i = 0; i + 3 < outline.length; i += 4) {
-+            canvas.fill(cx + outline[i], cy + outline[i + 1], cx + outline[i + 2], cy + outline[i + 3], shadow);
-+        }
-+        final int[] rects = Qol.crosshairRects;
-+        for (int i = 0; i + 3 < rects.length; i += 4) {
-+            canvas.fill(cx + rects[i], cy + rects[i + 1], cx + rects[i + 2], cy + rects[i + 3], color);
-+        }
-+        // Back to the state vanilla set up for the attack indicator that follows.
-+        RenderSystem.enableBlend();
-+        RenderSystem.blendFuncSeparate(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ZERO);
-+    }
-+
-+    private static boolean aetherium$aimingAtMob() {
-+        final HitResult hit = Minecraft.getInstance().hitResult;
-+        return hit != null && hit.getType() == HitResult.Type.ENTITY
-+                && ((EntityHitResult) hit).getEntity() instanceof LivingEntity;
-+    }
-+
-+    // ------------------------------------------------------------------ food bar
-+
-+    private static final int GL_QUADS = 7;
-+
-+    /**
-+     * Hunger bar overlay in the style of AppleSkin, drawn over vanilla's bar: the saturation you
-+     * have as a gold outline around the shanks, and while you hold food, the shanks it would fill
-+     * and the saturation it would add, flashing. One extra draw for the outline (all pixels in a
-+     * single batch), two small sprites per previewed shank; nothing at all while it is off.
-+     */
-+    @Inject(method = "renderPlayerHealth", at = @At("TAIL"), require = 0)
-+    private void aetherium$foodBar(final PoseStack pose, final CallbackInfo ci) {
-+        if (!Qol.foodHud) {
-+            return;
-+        }
-+        final Minecraft mc = Minecraft.getInstance();
-+        final LocalPlayer player = mc.player;
-+        if (player == null || player.getVehicle() instanceof LivingEntity) {
-+            return; // riding a horse: the bar shows the horse's health instead
-+        }
-+        final FoodData data = player.getFoodData();
-+        final int food = data.getFoodLevel();
-+        final float saturation = data.getSaturationLevel();
-+        final int right = this.screenWidth / 2 + 91;
-+        final int top = this.screenHeight - 39;
-+        final int hearts = (int) Math.ceil((player.getMaxHealth() + (float) Math.ceil(player.getAbsorptionAmount())) / 2.0f);
-+        FoodOverlay.shake(QolFoodIcons.SHAKE, this.tickCount, (int) Math.ceil(player.getHealth()), hearts, saturation, food);
-+
-+        final FoodProperties held = aetherium$heldFood(player);
-+        int foodAfter = food;
-+        float saturationAfter = saturation;
-+        float flash = 0f;
-+        if (held != null) {
-+            foodAfter = Math.min(20, food + held.getNutrition());
-+            saturationAfter = FoodOverlay.saturationAfter(food, saturation, held.getNutrition(), held.getSaturationModifier());
-+            flash = FoodOverlay.flash(this.tickCount, 0f);
-+        }
-+
-+        // Held food: the shanks it would fill, flashing over a faint highlight (under the outline).
-+        if (foodAfter > food && flash > 0.01f) {
-+            mc.getTextureManager().bind(GuiComponent.GUI_ICONS_LOCATION);
-+            RenderSystem.enableBlend();
-+            RenderSystem.defaultBlendFunc();
-+            final Gui gui = (Gui) (Object) this;
-+            for (int i = food / 2; i < (foodAfter + 1) / 2; i++) {
-+                final int x = right - i * 8 - 9;
-+                final int y = top + QolFoodIcons.SHAKE[i];
-+                RenderSystem.color4f(1f, 1f, 1f, flash * 0.25f);
-+                gui.blit(pose, x, y, 25, 27, 9, 9);
-+                RenderSystem.color4f(1f, 1f, 1f, flash);
-+                gui.blit(pose, x, y, i * 2 + 1 == foodAfter ? 61 : 52, 27, 9, 9);
-+            }
-+            RenderSystem.color4f(1f, 1f, 1f, 1f);
-+        }
-+
-+        // Saturation: the gold outline, solid for what you have, flashing for what the food adds.
-+        aetherium$saturation(pose, right, top, saturation, Math.max(saturation, saturationAfter), flash);
-+        RenderSystem.disableBlend();
-+    }
-+
-+    private static void aetherium$saturation(final PoseStack pose, final int right, final int top, final float saturation,
-+                                             final float after, final float flash) {
-+        if (after <= 0f) {
-+            return;
-+        }
-+        final int[] outline = QolFoodIcons.outline();
-+        final int total = outline.length;
-+        if (total == 0) {
-+            return;
-+        }
-+        final int flashAlpha = (int) (flash * 255f);
-+        RenderSystem.enableBlend();
-+        RenderSystem.defaultBlendFunc();
-+        RenderSystem.disableTexture();
-+        final Tesselator tesselator = Tesselator.getInstance();
-+        final BufferBuilder buffer = tesselator.getBuilder();
-+        buffer.begin(GL_QUADS, DefaultVertexFormat.POSITION_COLOR);
-+        final Matrix4f m = pose.last().pose();
-+        for (int i = 0; i < 10; i++) {
-+            final int shown = FoodOverlay.pixelsFor(saturation / 2f - i, total);
-+            final int preview = flashAlpha > 2 ? FoodOverlay.pixelsFor(after / 2f - i, total) : 0;
-+            final int count = Math.max(shown, preview);
-+            final int x0 = right - i * 8 - 9;
-+            final int y0 = top + QolFoodIcons.SHAKE[i];
-+            for (int k = 0; k < count; k++) {
-+                final int px = FoodOverlay.sx(outline[k]);
-+                final int py = FoodOverlay.sy(outline[k]);
-+                final int rgb = FoodOverlay.gold(px, py);
-+                final int a = k < shown ? 255 : flashAlpha;
-+                final int r = rgb >> 16 & 0xFF;
-+                final int g = rgb >> 8 & 0xFF;
-+                final int b = rgb & 0xFF;
-+                final float x = x0 + px;
-+                final float y = y0 + py;
-+                buffer.vertex(m, x, y + 1f, 0f).color(r, g, b, a).endVertex();
-+                buffer.vertex(m, x + 1f, y + 1f, 0f).color(r, g, b, a).endVertex();
-+                buffer.vertex(m, x + 1f, y, 0f).color(r, g, b, a).endVertex();
-+                buffer.vertex(m, x, y, 0f).color(r, g, b, a).endVertex();
-+            }
-+        }
-+        tesselator.end();
-+        RenderSystem.enableTexture();
-+    }
-+
-+    /** The food in the main hand, else the off hand, or null. */
-+    private static FoodProperties aetherium$heldFood(final LocalPlayer player) {
-+        ItemStack stack = player.getMainHandItem();
-+        if (!stack.getItem().isEdible()) {
-+            stack = player.getOffhandItem();
-+            if (!stack.getItem().isEdible()) {
-+                return null;
-+            }
-+        }
-+        return stack.getItem().getFoodProperties();
-+    }
-+    // @era:q-hud-else none
+     // @era:q-hud-else x262|x263|none
      // @era:q-hud-end
- }
+-    // @era:q-hud-begin g202|g21
++    // @era:q-hud-begin v16|s17
+     /** The crosshair sprite itself (the first sprite drawn; the attack indicator after it stays vanilla). */
+     @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V", ordinal = 0),
++            target = "Lnet/minecraft/client/gui/Gui;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIII)V", ordinal = 0),
+             require = 0)
+-    private void aetherium$crosshair(final net.minecraft.client.gui.GuiGraphics graphics, final net.minecraft.resources.ResourceLocation sprite, final int x, final int y, final int w, final int h) {
++    private void aetherium$crosshair(final net.minecraft.client.gui.Gui gui, final com.mojang.blaze3d.vertex.PoseStack pose, final int x, final int y, final int u, final int v, final int w, final int h) {
+         if (!QolHud.crosshair()) {
+-            graphics.blitSprite(sprite, x, y, w, h);
++            gui.blit(pose, x, y, u, v, w, h);
+             return;
+         }
+-        QolHud.crosshair(McCanvas.INSTANCE.begin(graphics), x, y);
++        QolHud.crosshair(McCanvas.INSTANCE.begin(pose), x, y);
+     }
+ 
+     /** Right after vanilla's health and hunger bars: the AppleSkin-style overlay. */
+     @Inject(method = "renderPlayerHealth", at = @At("TAIL"), require = 0)
+-    private void aetherium$foodBar(final net.minecraft.client.gui.GuiGraphics context, final CallbackInfo ci) {
++    private void aetherium$foodBar(final com.mojang.blaze3d.vertex.PoseStack context, final CallbackInfo ci) {
+         QolHud.food(McCanvas.INSTANCE.begin(context), this.tickCount);
+     }
+-    // @era:q-hud-else v16|s17
++    // @era:q-hud-else g202|g21
+     //~ /** The crosshair sprite itself (the first sprite drawn; the attack indicator after it stays vanilla). */
+     //~ @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/gui/Gui;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIII)V", ordinal = 0),
++            //~ target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V", ordinal = 0),
+             //~ require = 0)
+-    //~ private void aetherium$crosshair(final net.minecraft.client.gui.Gui gui, final com.mojang.blaze3d.vertex.PoseStack pose, final int x, final int y, final int u, final int v, final int w, final int h) {
++    //~ private void aetherium$crosshair(final net.minecraft.client.gui.GuiGraphics graphics, final net.minecraft.resources.ResourceLocation sprite, final int x, final int y, final int w, final int h) {
+         //~ if (!QolHud.crosshair()) {
+-            //~ gui.blit(pose, x, y, u, v, w, h);
++            //~ graphics.blitSprite(sprite, x, y, w, h);
+             //~ return;
+         //~ }
+-        //~ QolHud.crosshair(McCanvas.INSTANCE.begin(pose), x, y);
++        //~ QolHud.crosshair(McCanvas.INSTANCE.begin(graphics), x, y);
+     //~ }
+ 
+     //~ /** Right after vanilla's health and hunger bars: the AppleSkin-style overlay. */
+     //~ @Inject(method = "renderPlayerHealth", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$foodBar(final com.mojang.blaze3d.vertex.PoseStack context, final CallbackInfo ci) {
++    //~ private void aetherium$foodBar(final net.minecraft.client.gui.GuiGraphics context, final CallbackInfo ci) {
+         //~ QolHud.food(McCanvas.INSTANCE.begin(context), this.tickCount);
+     //~ }
+     // @era:q-hud-else s194
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java
-index c027257..3bc1710 100644
+index fb87cb1..3f2548a 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java
-@@ -1,21 +1,21 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-hand-begin none
--// @era:q-hand-else v16
--//~ import com.aetherium.qol.Qol;
--//~ import com.mojang.blaze3d.vertex.PoseStack;
--//~ import com.mojang.math.Vector3f;
--//~ import net.minecraft.client.player.AbstractClientPlayer;
--//~ import net.minecraft.client.renderer.MultiBufferSource;
--//~ import net.minecraft.world.InteractionHand;
--//~ import net.minecraft.world.entity.HumanoidArm;
--//~ import net.minecraft.world.item.ItemStack;
--//~ import net.minecraft.world.item.Items;
--//~ import org.spongepowered.asm.mixin.Shadow;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-hand-begin v16
-+import com.aetherium.qol.Qol;
-+import com.mojang.blaze3d.vertex.PoseStack;
-+import com.mojang.math.Vector3f;
-+import net.minecraft.client.player.AbstractClientPlayer;
-+import net.minecraft.client.renderer.MultiBufferSource;
-+import net.minecraft.world.InteractionHand;
-+import net.minecraft.world.entity.HumanoidArm;
-+import net.minecraft.world.item.ItemStack;
-+import net.minecraft.world.item.Items;
-+import org.spongepowered.asm.mixin.Shadow;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-hand-else none
- // @era:q-hand-end
- 
- /**
-@@ -35,123 +35,123 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.renderer.ItemInHandRenderer")
- public abstract class QolHandMixin {
--    // @era:q-hand-begin none
--    // @era:q-hand-else v16
--    //~ /** Where vanilla rests the right hand (applyItemArmTransform), the pivot for rotation and scale. */
--    //~ private static final float PIVOT_X = 0.56f;
--    //~ private static final float PIVOT_Y = -0.52f;
--    //~ private static final float PIVOT_Z = -0.72f;
--    //~ /** How far a held item is lifted into view when the arm is shown (right hand; x mirrors). */
--    //~ private static final float LIFT_X = -0.08f;
--    //~ private static final float LIFT_Y = 0.2f;
--    //~ private static final float LIFT_Z = 0.02f;
--    //~ /**
--     //~ * Item grip relative to the item's resting place: pixel (2.5, 2.5) of a flat item (a sword's
--     //~ * handle) under the first-person item transform. Worked out from vanilla's numbers offline.
--     //~ */
--    //~ private static final float GRIP_X = 0.071f;
--    //~ private static final float GRIP_Y = -0.111f;
--    //~ private static final float GRIP_Z = -0.042f;
--    //~ /** Where renderPlayerArm (no swing, no equip) puts the palm, in camera space (right hand). */
--    //~ private static final float PALM_X = 0.704f;
--    //~ private static final float PALM_Y = -0.523f;
--    //~ private static final float PALM_Z = -1.062f;
--    //~ /** The arm is drawn a little smaller than vanilla's far-away empty arm, since it sits closer. */
--    //~ private static final float ARM_SCALE = 0.8f;
-+    // @era:q-hand-begin v16
-+    /** Where vanilla rests the right hand (applyItemArmTransform), the pivot for rotation and scale. */
-+    private static final float PIVOT_X = 0.56f;
-+    private static final float PIVOT_Y = -0.52f;
-+    private static final float PIVOT_Z = -0.72f;
-+    /** How far a held item is lifted into view when the arm is shown (right hand; x mirrors). */
-+    private static final float LIFT_X = -0.08f;
-+    private static final float LIFT_Y = 0.2f;
-+    private static final float LIFT_Z = 0.02f;
-+    /**
-+     * Item grip relative to the item's resting place: pixel (2.5, 2.5) of a flat item (a sword's
-+     * handle) under the first-person item transform. Worked out from vanilla's numbers offline.
-+     */
-+    private static final float GRIP_X = 0.071f;
-+    private static final float GRIP_Y = -0.111f;
-+    private static final float GRIP_Z = -0.042f;
-+    /** Where renderPlayerArm (no swing, no equip) puts the palm, in camera space (right hand). */
-+    private static final float PALM_X = 0.704f;
-+    private static final float PALM_Y = -0.523f;
-+    private static final float PALM_Z = -1.062f;
-+    /** The arm is drawn a little smaller than vanilla's far-away empty arm, since it sits closer. */
-+    private static final float ARM_SCALE = 0.8f;
- 
--    //~ @Shadow
--    //~ private void renderPlayerArm(final PoseStack pose, final MultiBufferSource buffers, final int light,
--                                 //~ final float equip, final float swing, final HumanoidArm arm) {
--    //~ }
-+    @Shadow
-+    private void renderPlayerArm(final PoseStack pose, final MultiBufferSource buffers, final int light,
-+                                 final float equip, final float swing, final HumanoidArm arm) {
-+    }
- 
--    //~ private static boolean aetherium$showArm(final AbstractClientPlayer player, final ItemStack stack) {
--        //~ return Qol.handVisible && !stack.isEmpty() && stack.getItem() != Items.FILLED_MAP && !player.isInvisible();
--    //~ }
-+    private static boolean aetherium$showArm(final AbstractClientPlayer player, final ItemStack stack) {
-+        return Qol.handVisible && !stack.isEmpty() && stack.getItem() != Items.FILLED_MAP && !player.isInvisible();
-+    }
- 
--    //~ private static HumanoidArm aetherium$arm(final AbstractClientPlayer player, final InteractionHand hand) {
--        //~ return hand == InteractionHand.MAIN_HAND ? player.getMainArm() : player.getMainArm().getOpposite();
--    //~ }
-+    private static HumanoidArm aetherium$arm(final AbstractClientPlayer player, final InteractionHand hand) {
-+        return hand == InteractionHand.MAIN_HAND ? player.getMainArm() : player.getMainArm().getOpposite();
-+    }
- 
--    //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
--            //~ target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
--            //~ require = 0)
--    //~ private void aetherium$armWithItem(final AbstractClientPlayer player, final float partialTick, final float pitch,
--                                       //~ final InteractionHand hand, final float swing, final ItemStack stack,
--                                       //~ final float equip, final PoseStack pose, final MultiBufferSource buffers,
--                                       //~ final int light, final CallbackInfo ci) {
--        //~ if (!aetherium$showArm(player, stack)) {
--            //~ return;
--        //~ }
--        //~ final HumanoidArm arm = aetherium$arm(player, hand);
--        //~ final float side = arm == HumanoidArm.RIGHT ? 1f : -1f;
--        //~ pose.pushPose();
--        //~ // From the item's resting place to the grip, then put renderPlayerArm's palm there.
--        //~ pose.translate(side * GRIP_X, GRIP_Y, GRIP_Z);
--        //~ pose.scale(ARM_SCALE, ARM_SCALE, ARM_SCALE);
--        //~ pose.translate(-side * PALM_X, -PALM_Y, -PALM_Z);
--        //~ this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
--        //~ pose.popPose();
--    //~ }
-+    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
-+            target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
-+            require = 0)
-+    private void aetherium$armWithItem(final AbstractClientPlayer player, final float partialTick, final float pitch,
-+                                       final InteractionHand hand, final float swing, final ItemStack stack,
-+                                       final float equip, final PoseStack pose, final MultiBufferSource buffers,
-+                                       final int light, final CallbackInfo ci) {
-+        if (!aetherium$showArm(player, stack)) {
-+            return;
-+        }
-+        final HumanoidArm arm = aetherium$arm(player, hand);
-+        final float side = arm == HumanoidArm.RIGHT ? 1f : -1f;
-+        pose.pushPose();
-+        // From the item's resting place to the grip, then put renderPlayerArm's palm there.
-+        pose.translate(side * GRIP_X, GRIP_Y, GRIP_Z);
-+        pose.scale(ARM_SCALE, ARM_SCALE, ARM_SCALE);
-+        pose.translate(-side * PALM_X, -PALM_Y, -PALM_Z);
-+        this.renderPlayerArm(pose, buffers, light, 0f, 0f, arm);
-+        pose.popPose();
-+    }
- 
--    //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
--            //~ target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
--            //~ require = 0)
--    //~ private void aetherium$handTransform(final AbstractClientPlayer player, final float partialTick, final float pitch,
--                                         //~ final InteractionHand hand, final float swing, final ItemStack stack,
--                                         //~ final float equip, final PoseStack pose, final MultiBufferSource buffers,
--                                         //~ final int light, final CallbackInfo ci) {
--        //~ final boolean editor = Qol.hand && (hand == InteractionHand.MAIN_HAND || Qol.handMirror);
--        //~ final int shield = Qol.shieldOffset;
--        //~ final boolean showArm = aetherium$showArm(player, stack);
--        //~ final boolean sculpt = Qol.arm;
--        //~ final boolean emptyOffHand = Qol.armBoth && hand == InteractionHand.OFF_HAND && stack.isEmpty()
--                //~ && !player.isInvisible();
--        //~ if (!editor && shield == 0 && !showArm && !sculpt && !emptyOffHand) {
--            //~ return;
--        //~ }
--        //~ final HumanoidArm arm = aetherium$arm(player, hand);
--        //~ final float side = arm == HumanoidArm.RIGHT ? 1f : -1f;
--        //~ final float px = side * PIVOT_X;
--        //~ if (sculpt) {
--            //~ // Punchy's arm sculpt: both arms and what they hold, with or without an item.
--            //~ pose.translate(side * Qol.armX, Qol.armY, -Qol.armZ);
--            //~ final float scale = Qol.armScale;
--            //~ if (scale != 1f) {
--                //~ pose.translate(px, PIVOT_Y, PIVOT_Z);
--                //~ pose.scale(scale, scale, scale);
--                //~ pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
--            //~ }
--        //~ }
--        //~ if (showArm) {
--            //~ pose.translate(side * LIFT_X, LIFT_Y, LIFT_Z);
--        //~ }
--        //~ if (shield > 0 && player.isUsingItem() && player.getUsedItemHand() == hand && !stack.isEmpty()
--                //~ && "BLOCK".equals(String.valueOf(stack.getUseAnimation()))) {
--            //~ final float k = shield / 100f;
--            //~ pose.translate(side * 0.12f * k, -0.38f * k, 0.0);
--        //~ }
--        //~ if (editor) {
--            //~ pose.translate(side * Qol.handX, Qol.handY, Qol.handZ);
--            //~ pose.translate(px, PIVOT_Y, PIVOT_Z);
--            //~ if (Qol.handYaw != 0f) {
--                //~ pose.mulPose(Vector3f.YP.rotationDegrees(side * Qol.handYaw));
--            //~ }
--            //~ if (Qol.handPitch != 0f) {
--                //~ pose.mulPose(Vector3f.XP.rotationDegrees(Qol.handPitch));
--            //~ }
--            //~ if (Qol.handRoll != 0f) {
--                //~ pose.mulPose(Vector3f.ZP.rotationDegrees(side * Qol.handRoll));
--            //~ }
--            //~ final float scale = Qol.handScale;
--            //~ if (scale != 1f) {
--                //~ pose.scale(scale, scale, scale);
--            //~ }
--            //~ pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
--        //~ }
--        //~ if (emptyOffHand) {
--            //~ // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
--            //~ this.renderPlayerArm(pose, buffers, light, equip, swing, arm);
--        //~ }
--    //~ }
-+    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
-+            target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
-+            require = 0)
-+    private void aetherium$handTransform(final AbstractClientPlayer player, final float partialTick, final float pitch,
-+                                         final InteractionHand hand, final float swing, final ItemStack stack,
-+                                         final float equip, final PoseStack pose, final MultiBufferSource buffers,
-+                                         final int light, final CallbackInfo ci) {
-+        final boolean editor = Qol.hand && (hand == InteractionHand.MAIN_HAND || Qol.handMirror);
-+        final int shield = Qol.shieldOffset;
-+        final boolean showArm = aetherium$showArm(player, stack);
-+        final boolean sculpt = Qol.arm;
-+        final boolean emptyOffHand = Qol.armBoth && hand == InteractionHand.OFF_HAND && stack.isEmpty()
-+                && !player.isInvisible();
-+        if (!editor && shield == 0 && !showArm && !sculpt && !emptyOffHand) {
-+            return;
-+        }
-+        final HumanoidArm arm = aetherium$arm(player, hand);
-+        final float side = arm == HumanoidArm.RIGHT ? 1f : -1f;
-+        final float px = side * PIVOT_X;
-+        if (sculpt) {
-+            // Punchy's arm sculpt: both arms and what they hold, with or without an item.
-+            pose.translate(side * Qol.armX, Qol.armY, -Qol.armZ);
-+            final float scale = Qol.armScale;
-+            if (scale != 1f) {
-+                pose.translate(px, PIVOT_Y, PIVOT_Z);
-+                pose.scale(scale, scale, scale);
-+                pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
-+            }
-+        }
-+        if (showArm) {
-+            pose.translate(side * LIFT_X, LIFT_Y, LIFT_Z);
-+        }
-+        if (shield > 0 && player.isUsingItem() && player.getUsedItemHand() == hand && !stack.isEmpty()
-+                && "BLOCK".equals(String.valueOf(stack.getUseAnimation()))) {
-+            final float k = shield / 100f;
-+            pose.translate(side * 0.12f * k, -0.38f * k, 0.0);
-+        }
-+        if (editor) {
-+            pose.translate(side * Qol.handX, Qol.handY, Qol.handZ);
-+            pose.translate(px, PIVOT_Y, PIVOT_Z);
-+            if (Qol.handYaw != 0f) {
-+                pose.mulPose(Vector3f.YP.rotationDegrees(side * Qol.handYaw));
-+            }
-+            if (Qol.handPitch != 0f) {
-+                pose.mulPose(Vector3f.XP.rotationDegrees(Qol.handPitch));
-+            }
-+            if (Qol.handRoll != 0f) {
-+                pose.mulPose(Vector3f.ZP.rotationDegrees(side * Qol.handRoll));
-+            }
-+            final float scale = Qol.handScale;
-+            if (scale != 1f) {
-+                pose.scale(scale, scale, scale);
-+            }
-+            pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
-+        }
-+        if (emptyOffHand) {
-+            // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
-+            this.renderPlayerArm(pose, buffers, light, equip, swing, arm);
-+        }
-+    }
-+    // @era:q-hand-else none
+@@ -40,7 +40,7 @@ public abstract class QolHandMixin {
+     // @era:q-hand-else none
      // @era:q-hand-end
- }
+ 
+-    // @era:q-hand-begin d194
++    // @era:q-hand-begin v16|t17
+     @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
+             target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
+             require = 0)
+@@ -55,7 +55,7 @@ public abstract class QolHandMixin {
+     }
+ 
+     @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
+-            target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
++            target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
+             require = 0)
+     private void aetherium$armWithItem(final AbstractClientPlayer player, final float partialTick, final float pitch,
+                                        final InteractionHand hand, final float swing, final ItemStack stack,
+@@ -69,7 +69,7 @@ public abstract class QolHandMixin {
+             pose.popPose();
+         }
+     }
+-    // @era:q-hand-else v16|t17
++    // @era:q-hand-else d194
+     //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
+             //~ target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
+             //~ require = 0)
+@@ -84,7 +84,7 @@ public abstract class QolHandMixin {
+     //~ }
+ 
+     //~ @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
++            //~ target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"),
+             //~ require = 0)
+     //~ private void aetherium$armWithItem(final AbstractClientPlayer player, final float partialTick, final float pitch,
+                                        //~ final InteractionHand hand, final float swing, final ItemStack stack,
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolLevelRenderMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolLevelRenderMixin.java
-index 3b215c0..2ba7e58 100644
+index 2f0120e..6a28439 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolLevelRenderMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolLevelRenderMixin.java
 @@ -1,17 +1,17 @@
  package com.aetherium.mixin.core;
  
  import org.spongepowered.asm.mixin.Mixin;
--// @era:q-world-begin none
+-// @era:q-world-begin hud
 -// @era:q-world-else v16
 -//~ import com.aetherium.client.QolWorldRenderer;
 -//~ import com.mojang.blaze3d.vertex.PoseStack;
@@ -10606,7 +8931,7 @@ index 3b215c0..2ba7e58 100644
 +import org.spongepowered.asm.mixin.injection.At;
 +import org.spongepowered.asm.mixin.injection.Inject;
 +import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-world-else none
++// @era:q-world-else hud
  // @era:q-world-end
  
  /**
@@ -10614,7 +8939,7 @@ index 3b215c0..2ba7e58 100644
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class QolLevelRenderMixin {
--    // @era:q-world-begin none
+-    // @era:q-world-begin hud
 -    // @era:q-world-else v16
 -    //~ @Inject(method = "renderLevel", at = @At("TAIL"), require = 0)
 -    //~ private void aetherium$qolWorld(final PoseStack pose, final float partialTick, final long finishNanos,
@@ -10629,418 +8954,28 @@ index 3b215c0..2ba7e58 100644
 +                                    final LightTexture light, final Matrix4f projection, final CallbackInfo ci) {
 +        QolWorldRenderer.render(pose, camera);
 +    }
-+    // @era:q-world-else none
++    // @era:q-world-else hud
      // @era:q-world-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolPlacementMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolPlacementMixin.java
-index c940af4..30810ce 100644
+index a153e93..06a2927 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolPlacementMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolPlacementMixin.java
-@@ -1,23 +1,23 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-place-begin none
--// @era:q-place-else v16
--//~ import com.aetherium.client.QolClient;
--//~ import com.aetherium.qol.AccuratePlacement;
--//~ import com.aetherium.qol.Qol;
--//~ import net.minecraft.client.Options;
--//~ import net.minecraft.client.multiplayer.ClientLevel;
--//~ import net.minecraft.client.player.LocalPlayer;
--//~ import net.minecraft.core.BlockPos;
--//~ import net.minecraft.world.item.BlockItem;
--//~ import net.minecraft.world.phys.BlockHitResult;
--//~ import net.minecraft.world.phys.HitResult;
--//~ import org.spongepowered.asm.mixin.Final;
--//~ import org.spongepowered.asm.mixin.Shadow;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-place-begin v16
-+import com.aetherium.client.QolClient;
-+import com.aetherium.qol.AccuratePlacement;
-+import com.aetherium.qol.Qol;
-+import net.minecraft.client.Options;
-+import net.minecraft.client.multiplayer.ClientLevel;
-+import net.minecraft.client.player.LocalPlayer;
-+import net.minecraft.core.BlockPos;
-+import net.minecraft.world.item.BlockItem;
-+import net.minecraft.world.phys.BlockHitResult;
-+import net.minecraft.world.phys.HitResult;
-+import org.spongepowered.asm.mixin.Final;
-+import org.spongepowered.asm.mixin.Shadow;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-place-else none
- // @era:q-place-end
- 
- /**
-@@ -30,76 +30,76 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.Minecraft")
- public abstract class QolPlacementMixin {
--    // @era:q-place-begin none
--    // @era:q-place-else v16
--    //~ @Shadow
--    //~ private int rightClickDelay;
-+    // @era:q-place-begin v16
-+    @Shadow
-+    private int rightClickDelay;
- 
--    //~ @Shadow
--    //~ public HitResult hitResult;
-+    @Shadow
-+    public HitResult hitResult;
- 
--    //~ @Shadow
--    //~ public LocalPlayer player;
-+    @Shadow
-+    public LocalPlayer player;
- 
--    //~ @Shadow
--    //~ public ClientLevel level;
-+    @Shadow
-+    public ClientLevel level;
- 
--    //~ @Shadow
--    //~ @Final
--    //~ public Options options;
-+    @Shadow
-+    @Final
-+    public Options options;
- 
--    //~ @Inject(method = "handleKeybinds", at = @At("HEAD"), require = 0)
--    //~ private void aetherium$accuratePlacement(final CallbackInfo ci) {
--        //~ if (!Qol.accuratePlacement) {
--            //~ return;
--        //~ }
--        //~ if (this.player == null || this.level == null || !this.options.keyUse.isDown() || this.player.isUsingItem()
--                //~ || !aetherium$holdsBlock()) {
--            //~ QolClient.PLACEMENT.reset();
--            //~ return;
--        //~ }
--        //~ if (this.rightClickDelay <= 0) {
--            //~ return;
--        //~ }
--        //~ final long clicked = aetherium$clicked();
--        //~ if (clicked != AccuratePlacement.NONE && QolClient.PLACEMENT.placeEarly(clicked, aetherium$target())) {
--            //~ this.rightClickDelay = 0;
--        //~ }
--    //~ }
-+    @Inject(method = "handleKeybinds", at = @At("HEAD"), require = 0)
-+    private void aetherium$accuratePlacement(final CallbackInfo ci) {
-+        if (!Qol.accuratePlacement) {
-+            return;
-+        }
-+        if (this.player == null || this.level == null || !this.options.keyUse.isDown() || this.player.isUsingItem()
-+                || !aetherium$holdsBlock()) {
-+            QolClient.PLACEMENT.reset();
-+            return;
-+        }
-+        if (this.rightClickDelay <= 0) {
-+            return;
-+        }
-+        final long clicked = aetherium$clicked();
-+        if (clicked != AccuratePlacement.NONE && QolClient.PLACEMENT.placeEarly(clicked, aetherium$target())) {
-+            this.rightClickDelay = 0;
-+        }
-+    }
- 
--    //~ @Inject(method = "startUseItem", at = @At("HEAD"), require = 0)
--    //~ private void aetherium$placementAttempt(final CallbackInfo ci) {
--        //~ if (Qol.accuratePlacement && this.player != null && this.level != null) {
--            //~ QolClient.PLACEMENT.placed(aetherium$target());
--        //~ }
--    //~ }
-+    @Inject(method = "startUseItem", at = @At("HEAD"), require = 0)
-+    private void aetherium$placementAttempt(final CallbackInfo ci) {
-+        if (Qol.accuratePlacement && this.player != null && this.level != null) {
-+            QolClient.PLACEMENT.placed(aetherium$target());
-+        }
-+    }
- 
--    //~ private boolean aetherium$holdsBlock() {
--        //~ return this.player.getMainHandItem().getItem() instanceof BlockItem
--                //~ || this.player.getOffhandItem().getItem() instanceof BlockItem;
--    //~ }
-+    private boolean aetherium$holdsBlock() {
-+        return this.player.getMainHandItem().getItem() instanceof BlockItem
-+                || this.player.getOffhandItem().getItem() instanceof BlockItem;
-+    }
- 
--    //~ /** The block the crosshair is on, packed, or NONE. */
--    //~ private long aetherium$clicked() {
--        //~ final HitResult hit = this.hitResult;
--        //~ if (hit == null || hit.getType() != HitResult.Type.BLOCK) {
--            //~ return AccuratePlacement.NONE;
--        //~ }
--        //~ return ((BlockHitResult) hit).getBlockPos().asLong();
--    //~ }
-+    /** The block the crosshair is on, packed, or NONE. */
-+    private long aetherium$clicked() {
-+        final HitResult hit = this.hitResult;
-+        if (hit == null || hit.getType() != HitResult.Type.BLOCK) {
-+            return AccuratePlacement.NONE;
-+        }
-+        return ((BlockHitResult) hit).getBlockPos().asLong();
-+    }
- 
--    //~ /** The space a block would go to: the clicked block when it is replaceable, else its neighbour on the clicked face. */
--    //~ private long aetherium$target() {
--        //~ final HitResult hit = this.hitResult;
--        //~ if (hit == null || hit.getType() != HitResult.Type.BLOCK) {
--            //~ return AccuratePlacement.NONE;
--        //~ }
--        //~ final BlockHitResult block = (BlockHitResult) hit;
--        //~ final BlockPos pos = block.getBlockPos();
--        //~ if (this.level.getBlockState(pos).getMaterial().isReplaceable()) {
--            //~ return pos.asLong();
--        //~ }
--        //~ return pos.relative(block.getDirection()).asLong();
--    //~ }
-+    /** The space a block would go to: the clicked block when it is replaceable, else its neighbour on the clicked face. */
-+    private long aetherium$target() {
-+        final HitResult hit = this.hitResult;
-+        if (hit == null || hit.getType() != HitResult.Type.BLOCK) {
-+            return AccuratePlacement.NONE;
-+        }
-+        final BlockHitResult block = (BlockHitResult) hit;
-+        final BlockPos pos = block.getBlockPos();
-+        if (this.level.getBlockState(pos).getMaterial().isReplaceable()) {
-+            return pos.asLong();
-+        }
-+        return pos.relative(block.getDirection()).asLong();
-+    }
-+    // @era:q-place-else none
-     // @era:q-place-end
- }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/QolScrollMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolScrollMixin.java
-index 9df00e8..5d62b37 100644
---- a/common/src/main/java/com/aetherium/mixin/core/QolScrollMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/QolScrollMixin.java
-@@ -1,18 +1,18 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-inv-begin none
--// @era:q-inv-else v16
--//~ import com.aetherium.client.QolContainerAccess;
--//~ import com.aetherium.client.QolInventory;
--//~ import com.aetherium.qol.Qol;
--//~ import net.minecraft.client.Minecraft;
--//~ import net.minecraft.client.gui.screens.Screen;
--//~ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
--//~ import net.minecraft.world.inventory.Slot;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-inv-begin v16
-+import com.aetherium.client.QolContainerAccess;
-+import com.aetherium.client.QolInventory;
-+import com.aetherium.qol.Qol;
-+import net.minecraft.client.Minecraft;
-+import net.minecraft.client.gui.screens.Screen;
-+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-+import net.minecraft.world.inventory.Slot;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-+// @era:q-inv-else none
- // @era:q-inv-end
- 
- /**
-@@ -22,24 +22,24 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.client.MouseHandler")
- public abstract class QolScrollMixin {
--    // @era:q-inv-begin none
--    // @era:q-inv-else v16
--    //~ @Inject(method = "onScroll", at = @At(value = "INVOKE",
--            //~ target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z"), cancellable = true, require = 0)
--    //~ private void aetherium$scrollTransfer(final long window, final double xOffset, final double yOffset,
--                                          //~ final CallbackInfo ci) {
--        //~ if (!Qol.scrollTransfer) {
--            //~ return;
--        //~ }
--        //~ final Minecraft mc = Minecraft.getInstance();
--        //~ final Screen screen = mc.screen;
--        //~ if (screen instanceof AbstractContainerScreen && screen instanceof QolContainerAccess) {
--            //~ final Object hovered = ((QolContainerAccess) screen).aetherium$hoveredSlot();
--            //~ if (hovered instanceof Slot
--                    //~ && QolInventory.scroll(mc, (AbstractContainerScreen<?>) screen, (Slot) hovered, yOffset)) {
--                //~ ci.cancel();
--            //~ }
--        //~ }
--    //~ }
-+    // @era:q-inv-begin v16
-+    @Inject(method = "onScroll", at = @At(value = "INVOKE",
-+            target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z"), cancellable = true, require = 0)
-+    private void aetherium$scrollTransfer(final long window, final double xOffset, final double yOffset,
-+                                          final CallbackInfo ci) {
-+        if (!Qol.scrollTransfer) {
-+            return;
-+        }
-+        final Minecraft mc = Minecraft.getInstance();
-+        final Screen screen = mc.screen;
-+        if (screen instanceof AbstractContainerScreen && screen instanceof QolContainerAccess) {
-+            final Object hovered = ((QolContainerAccess) screen).aetherium$hoveredSlot();
-+            if (hovered instanceof Slot
-+                    && QolInventory.scroll(mc, (AbstractContainerScreen<?>) screen, (Slot) hovered, yOffset)) {
-+                ci.cancel();
-+            }
-+        }
-+    }
-+    // @era:q-inv-else none
-     // @era:q-inv-end
- }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/QolSlotMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolSlotMixin.java
-index 450457e..1e6ff3a 100644
---- a/common/src/main/java/com/aetherium/mixin/core/QolSlotMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/QolSlotMixin.java
-@@ -2,10 +2,10 @@ package com.aetherium.mixin.core;
- 
- import com.aetherium.client.QolSlotAccess;
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-inv-begin none
--// @era:q-inv-else v16
--//~ import org.spongepowered.asm.mixin.Final;
--//~ import org.spongepowered.asm.mixin.Shadow;
-+// @era:q-inv-begin v16
-+import org.spongepowered.asm.mixin.Final;
-+import org.spongepowered.asm.mixin.Shadow;
-+// @era:q-inv-else none
- // @era:q-inv-end
- 
- /**
-@@ -14,19 +14,19 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.world.inventory.Slot")
- public abstract class QolSlotMixin implements QolSlotAccess {
--    // @era:q-inv-begin none
-+    // @era:q-inv-begin v16
-+    @Shadow
-+    @Final
-+    private int slot;
-+
-     @Override
-     public int aetherium$containerSlot() {
--        return -1;
-+        return this.slot;
-     }
--    // @era:q-inv-else v16
--    //~ @Shadow
--    //~ @Final
--    //~ private int slot;
--
-+    // @era:q-inv-else none
-     //~ @Override
-     //~ public int aetherium$containerSlot() {
--        //~ return this.slot;
-+        //~ return -1;
-     //~ }
-     // @era:q-inv-end
- }
-diff --git a/common/src/main/java/com/aetherium/mixin/core/QolTooltipMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolTooltipMixin.java
-index fd7a6ab..2fa8092 100644
---- a/common/src/main/java/com/aetherium/mixin/core/QolTooltipMixin.java
-+++ b/common/src/main/java/com/aetherium/mixin/core/QolTooltipMixin.java
-@@ -1,21 +1,21 @@
- package com.aetherium.mixin.core;
- 
- import org.spongepowered.asm.mixin.Mixin;
--// @era:q-food-begin none
--// @era:q-food-else v16
--//~ import com.aetherium.qol.Qol;
--//~ import java.util.List;
--//~ import net.minecraft.ChatFormatting;
--//~ import net.minecraft.network.chat.Component;
--//~ import net.minecraft.network.chat.TextComponent;
--//~ import net.minecraft.world.entity.player.Player;
--//~ import net.minecraft.world.food.FoodProperties;
--//~ import net.minecraft.world.item.Item;
--//~ import net.minecraft.world.item.ItemStack;
--//~ import net.minecraft.world.item.TooltipFlag;
--//~ import org.spongepowered.asm.mixin.injection.At;
--//~ import org.spongepowered.asm.mixin.injection.Inject;
--//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-+// @era:q-food-begin v16
-+import com.aetherium.qol.Qol;
-+import java.util.List;
-+import net.minecraft.ChatFormatting;
-+import net.minecraft.network.chat.Component;
-+import net.minecraft.network.chat.TextComponent;
-+import net.minecraft.world.entity.player.Player;
-+import net.minecraft.world.food.FoodProperties;
-+import net.minecraft.world.item.Item;
-+import net.minecraft.world.item.ItemStack;
-+import net.minecraft.world.item.TooltipFlag;
-+import org.spongepowered.asm.mixin.injection.At;
-+import org.spongepowered.asm.mixin.injection.Inject;
-+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-+// @era:q-food-else none
- // @era:q-food-end
- 
- /**
-@@ -24,31 +24,31 @@ import org.spongepowered.asm.mixin.Mixin;
-  */
- @Mixin(targets = "net.minecraft.world.item.ItemStack")
- public abstract class QolTooltipMixin {
--    // @era:q-food-begin none
--    // @era:q-food-else v16
--    //~ @Inject(method = "getTooltipLines", at = @At("RETURN"), require = 0)
--    //~ private void aetherium$foodLine(final Player player, final TooltipFlag flag,
--                                    //~ final CallbackInfoReturnable<List<Component>> cir) {
--        //~ if (!Qol.foodTooltip) {
--            //~ return;
--        //~ }
--        //~ final Item item = ((ItemStack) (Object) this).getItem();
--        //~ if (!item.isEdible()) {
--            //~ return;
--        //~ }
--        //~ final FoodProperties food = item.getFoodProperties();
--        //~ final List<Component> lines = cir.getReturnValue();
--        //~ if (food == null || lines == null) {
--            //~ return;
--        //~ }
--        //~ final int nutrition = food.getNutrition();
--        //~ final String text = "Hunger +" + nutrition + " (" + Qol.oneDecimal(nutrition / 2f) + " shanks)  \u00b7  Saturation +"
--                //~ + Qol.oneDecimal(Qol.saturation(nutrition, food.getSaturationModifier()));
--        //~ try {
--            //~ lines.add(Math.min(1, lines.size()), new TextComponent(text).withStyle(ChatFormatting.GOLD));
--        //~ } catch (final UnsupportedOperationException immutable) {
--            //~ // A mod returned a fixed list; leave it alone.
--        //~ }
--    //~ }
-+    // @era:q-food-begin v16
-+    @Inject(method = "getTooltipLines", at = @At("RETURN"), require = 0)
-+    private void aetherium$foodLine(final Player player, final TooltipFlag flag,
-+                                    final CallbackInfoReturnable<List<Component>> cir) {
-+        if (!Qol.foodTooltip) {
-+            return;
-+        }
-+        final Item item = ((ItemStack) (Object) this).getItem();
-+        if (!item.isEdible()) {
-+            return;
-+        }
-+        final FoodProperties food = item.getFoodProperties();
-+        final List<Component> lines = cir.getReturnValue();
-+        if (food == null || lines == null) {
-+            return;
-+        }
-+        final int nutrition = food.getNutrition();
-+        final String text = "Hunger +" + nutrition + " (" + Qol.oneDecimal(nutrition / 2f) + " shanks)  \u00b7  Saturation +"
-+                + Qol.oneDecimal(Qol.saturation(nutrition, food.getSaturationModifier()));
-+        try {
-+            lines.add(Math.min(1, lines.size()), new TextComponent(text).withStyle(ChatFormatting.GOLD));
-+        } catch (final UnsupportedOperationException immutable) {
-+            // A mod returned a fixed list; leave it alone.
-+        }
-+    }
-+    // @era:q-food-else none
-     // @era:q-food-end
- }
+@@ -91,10 +91,10 @@ public abstract class QolPlacementMixin {
+         }
+         final BlockHitResult block = (BlockHitResult) hit;
+         final BlockPos pos = block.getBlockPos();
+-        // @era:q-place-begin replace
+-        final boolean replaceable = this.level.getBlockState(pos).canBeReplaced();
+-        // @era:q-place-else material
+-        //~ final boolean replaceable = this.level.getBlockState(pos).getMaterial().isReplaceable();
++        // @era:q-place-begin material
++        final boolean replaceable = this.level.getBlockState(pos).getMaterial().isReplaceable();
++        // @era:q-place-else replace
++        //~ final boolean replaceable = this.level.getBlockState(pos).canBeReplaced();
+         // @era:q-place-end
+         if (replaceable) {
+             return pos.asLong();
 diff --git a/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java b/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
 index 6d8460a..4341c30 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java
@@ -16560,84 +14495,24 @@ index 6d8b564..8436628 100644
  
      // @era:t-world-begin v16|w182|w206|w21
 diff --git a/common/src/main/java/com/aetherium/qol/QolSupport.java b/common/src/main/java/com/aetherium/qol/QolSupport.java
-index 9aa73d4..73a5a11 100644
+index 36c40a0..74897e3 100644
 --- a/common/src/main/java/com/aetherium/qol/QolSupport.java
 +++ b/common/src/main/java/com/aetherium/qol/QolSupport.java
-@@ -10,46 +10,46 @@ public final class QolSupport {
-     private QolSupport() {
-     }
- 
--    // @era:q-place-begin none
--    public static final boolean PLACEMENT = false;
--    // @era:q-place-else v16
--    //~ public static final boolean PLACEMENT = true;
-+    // @era:q-place-begin v16
-+    public static final boolean PLACEMENT = true;
-+    // @era:q-place-else none
-+    //~ public static final boolean PLACEMENT = false;
-     // @era:q-place-end
- 
--    // @era:q-inv-begin none
--    public static final boolean INVENTORY = false;
--    // @era:q-inv-else v16
--    //~ public static final boolean INVENTORY = true;
-+    // @era:q-inv-begin v16
-+    public static final boolean INVENTORY = true;
-+    // @era:q-inv-else none
-+    //~ public static final boolean INVENTORY = false;
-     // @era:q-inv-end
- 
--    // @era:q-food-begin none
--    public static final boolean FOOD = false;
--    // @era:q-food-else v16
--    //~ public static final boolean FOOD = true;
-+    // @era:q-food-begin v16
-+    public static final boolean FOOD = true;
-+    // @era:q-food-else none
-+    //~ public static final boolean FOOD = false;
-     // @era:q-food-end
- 
--    // @era:q-hud-begin none
--    public static final boolean HUD = false;
--    // @era:q-hud-else v16
--    //~ public static final boolean HUD = true;
-+    // @era:q-hud-begin v16
-+    public static final boolean HUD = true;
-+    // @era:q-hud-else none
-+    //~ public static final boolean HUD = false;
-     // @era:q-hud-end
- 
--    // @era:q-world-begin none
--    public static final boolean WORLD = false;
+@@ -30,10 +30,10 @@ public final class QolSupport {
+      * Waypoints and damage numbers are drawn inside the world renderer (1.16.5); elsewhere they
+      * are projected onto the HUD ({@code QolOverlay}).
+      */
+-    // @era:q-world-begin hud
+-    public static final boolean WORLD_IN_LEVEL = false;
 -    // @era:q-world-else v16
--    //~ public static final boolean WORLD = true;
+-    //~ public static final boolean WORLD_IN_LEVEL = true;
 +    // @era:q-world-begin v16
-+    public static final boolean WORLD = true;
-+    // @era:q-world-else none
-+    //~ public static final boolean WORLD = false;
++    public static final boolean WORLD_IN_LEVEL = true;
++    // @era:q-world-else hud
++    //~ public static final boolean WORLD_IN_LEVEL = false;
      // @era:q-world-end
  
--    // @era:q-hand-begin none
--    public static final boolean HAND = false;
--    // @era:q-hand-else v16
--    //~ public static final boolean HAND = true;
-+    // @era:q-hand-begin v16
-+    public static final boolean HAND = true;
-+    // @era:q-hand-else none
-+    //~ public static final boolean HAND = false;
-     // @era:q-hand-end
- 
--    // @era:q-fire-begin none
--    public static final boolean FIRE = false;
--    // @era:q-fire-else v16
--    //~ public static final boolean FIRE = true;
-+    // @era:q-fire-begin v16
-+    public static final boolean FIRE = true;
-+    // @era:q-fire-else none
-+    //~ public static final boolean FIRE = false;
-     // @era:q-fire-end
- 
-     /** True when at least one Quality of life feature exists, so the tab is worth showing. */
+     // @era:q-hand-begin v16|t17|d194|d215|s219|s262
 diff --git a/common/src/main/java/com/aetherium/util/AetheriumLog.java b/common/src/main/java/com/aetherium/util/AetheriumLog.java
 index 8e1185d..9bed01b 100644
 --- a/common/src/main/java/com/aetherium/util/AetheriumLog.java
@@ -16677,7 +14552,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 5e39f7e..bef3cbd 100644
+index 74345cd..0e71e20 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -16690,7 +14565,7 @@ index 5e39f7e..bef3cbd 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 712944b..4aef764 100644
+index dc52e39..1a03567 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false
