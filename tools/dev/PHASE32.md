@@ -54,3 +54,15 @@ Modrinth project t1gApRrh still unpublished: tell the user to submit it).
 - net.minecraft.client.input.CharacterEvent (WaypointScreen.charTyped on 1.21.9+)
 - org.joml.Quaternionf (no-arg constructor, rotationX/Y/Z: stub gap only); probe.yml now searches
   every Gradle cache for library jars (d58386d), so JOML should dump from the next probe on.
+
+## Backport status (164e8ea, CI 1f6dead: build 0, smoke PASS, 7 tabs, 33/34 hooks applied;
+TuningMapMixin only loads once a map is drawn, targets verified in probe/out)
+- QoL tab: every QoL feature (placement, inventory, food, HUD, waypoints, hand/arms, fire, shield,
+  damage numbers, crosshair), live hand preview, waypoint list.
+- Tuning (backport perf/TuningSupport + client/TuningBackport + 11 Tuning*Mixin): low-end mode,
+  dynamic FPS, menu FPS, hitch guard, entity detail distance, explosion clouds, map throttle,
+  redstone particle limit + toggle, block entity limit, light weather, leaves mode, leaf culling,
+  enchant glint, end crystal beams.
+- Not portable to 1.12.2 (1.13+ systems or vanilla already does it): cloud distance, lightmap rate,
+  far terrain, preloads, threaded builder, render scale, model LOD, menu world cache, loading-screen
+  GC (1.12 loadWorld already calls System.gc), async skulls (sync GameProfile lookup), server_*.
