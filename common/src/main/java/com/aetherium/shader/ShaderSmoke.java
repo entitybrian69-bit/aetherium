@@ -85,6 +85,9 @@ public final class ShaderSmoke {
                 //~ try {
                     //~ final ShaderPipeline pl = ShaderRuntime.buildForTest(mc, name, compat);
                     //~ detail.append(pl.summary()).append('\n');
+                    //~ if (!compat) {
+                        //~ detail.append(pl.describePasses());
+                    //~ }
                     //~ if (pl.errors.isEmpty()) {
                         //~ clean++;
                     //~ }

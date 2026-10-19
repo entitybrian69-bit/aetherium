@@ -42,6 +42,12 @@ public final class ProgramSource {
     public final Map<String, String> consts = new LinkedHashMap<>();
     /** Fragment outputs needing glBindFragDataLocation: name to output index. */
     public final Map<String, Integer> fragOutputs = new LinkedHashMap<>();
+    /**
+     * Without DRAWBUFFERS, the colour buffers a shader writes through {@code gl_FragData[n]}, in
+     * order; {@link #remapFragData} renumbers the writes to match (gl_FragData[3] alone -> slot 0
+     * drawing into colortex3), so unwritten slots never put undefined values into other buffers.
+     */
+    int[] fragDataSlots;
     public boolean usesEntity;
     public boolean usesMidTexCoord;
     public boolean usesTangent;
@@ -135,11 +141,18 @@ public final class ProgramSource {
             this.drawBuffers = db;
             this.explicitDrawBuffers = true;
         } else if (!fragData.isEmpty()) {
-            int max = 0;
+            final java.util.TreeSet<Integer> used = new java.util.TreeSet<>();
             for (final int i : fragData) {
-                max = Math.max(max, i);
+                if (i >= 0 && i < 8) {
+                    used.add(i);
+                }
             }
-            this.drawBuffers = range(Math.min(max, 7) + 1);
+            this.drawBuffers = toArray(new ArrayList<>(used));
+            if (this.drawBuffers.length == 0) {
+                this.drawBuffers = range(1);
+            } else if (this.drawBuffers[this.drawBuffers.length - 1] != this.drawBuffers.length - 1) {
+                this.fragDataSlots = this.drawBuffers.clone();
+            }
         } else if (!outLoc.isEmpty()) {
             int max = 0;
             for (final int i : outLoc) {
@@ -187,6 +200,28 @@ public final class ProgramSource {
             }
         }
         return 110;
+    }
+
+    /** The fragment source with gl_FragData indices renumbered to draw-buffer slots (see fragDataSlots). */
+    public String remapFragData(final String text) {
+        if (this.fragDataSlots == null) {
+            return text;
+        }
+        final Matcher m = FRAG_DATA.matcher(text);
+        final StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            final int buffer = Integer.parseInt(m.group(1));
+            int slot = -1;
+            for (int i = 0; i < this.fragDataSlots.length; i++) {
+                if (this.fragDataSlots[i] == buffer) {
+                    slot = i;
+                }
+            }
+            m.appendReplacement(sb, slot < 0 ? Matcher.quoteReplacement(m.group())
+                    : "gl_FragData[" + slot + "]");
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
     private static int[] range(final int n) {

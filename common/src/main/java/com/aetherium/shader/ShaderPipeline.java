@@ -330,7 +330,8 @@ public final class ShaderPipeline {
         final boolean compat = this.caps.translator;
         final int max = this.caps.glslVersion;
         final String vs = GlslPatcher.patch(src.vertex.text, GlslPatcher.VERTEX, macros, compat, max);
-        final String fs = GlslPatcher.patch(src.fragment.text, GlslPatcher.FRAGMENT, macros, compat, max);
+        final String fs = GlslPatcher.patch(src.remapFragData(src.fragment.text), GlslPatcher.FRAGMENT, macros,
+                compat, max);
         final String gs = src.geometry == null ? null
                 : GlslPatcher.patch(src.geometry.text, GlslPatcher.GEOMETRY, macros, compat, max);
         final GlProgram p;
@@ -848,6 +849,24 @@ public final class ShaderPipeline {
         GL20.glUseProgram(0);
         this.current = null;
         this.currentStage = -1;
+    }
+
+    /** CI smoke diagnostics: full-screen passes with their draw buffers and active uniforms. */
+    public String describePasses() {
+        final StringBuilder sb = new StringBuilder();
+        final List<GlProgram> all = new ArrayList<>(this.deferred);
+        all.addAll(this.composite);
+        if (this.finalProgram != null) {
+            all.add(this.finalProgram);
+        }
+        for (final GlProgram p : all) {
+            sb.append("PASS ").append(p.name).append(" buffers ").append(java.util.Arrays.toString(this.drawBuffers(p)));
+            if (p.source != null && p.source.fragDataSlots != null) {
+                sb.append(" (renumbered)");
+            }
+            sb.append(" uniforms ").append(new java.util.TreeSet<>(p.uniforms.keySet())).append('\n');
+        }
+        return sb.toString();
     }
 
     /** CI smoke diagnostics: centre pixel (rgba bytes) of every colour target, main and alt. */

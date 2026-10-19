@@ -67,6 +67,10 @@ public final class GlslPatcher {
         if (version < 130 && maxGlsl >= 130 && needs130(body)) {
             version = 130; // GLSL 1.30 syntax under "#version 120" (lenient drivers accept it, Mesa and GLES do not)
         }
+        if (version >= 130 && stage != GEOMETRY && body.indexOf("flat") >= 0) {
+            // 1.30 rejects "flat varying": the qualifier needs in/out
+            body = FLAT_VARYING.matcher(body).replaceAll(stage == VERTEX ? "flat out" : "flat in");
+        }
         if (stage != FRAGMENT) {
             if (body.indexOf("gl_MultiTexCoord1") >= 0) {
                 body = MULTITEX1.matcher(body).replaceAll("gl_MultiTexCoord2");
@@ -131,6 +135,7 @@ public final class GlslPatcher {
     private static final Pattern NEEDS_130 = Pattern.compile(
             "\\bflat\\s+(?:varying|in|out)\\b|\\b(?:texture|texelFetch|textureLod|textureSize|textureGrad)\\s*\\("
                     + "|\\bgl_VertexID\\b|\\bgl_InstanceID\\b|\\b(?:uint|uvec[234])\\b");
+    private static final Pattern FLAT_VARYING = Pattern.compile("\\bflat\\s+varying\\b");
     private static final Pattern TEXTURE_VARIABLE = Pattern.compile(
             "\\b(?:sampler2D|sampler2DShadow|float|vec[234]|int)\\s+texture\\s*[;=,\\[]");
 
