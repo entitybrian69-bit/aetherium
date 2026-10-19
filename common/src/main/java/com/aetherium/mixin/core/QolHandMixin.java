@@ -29,6 +29,9 @@ import org.spongepowered.asm.mixin.Mixin;
  * is empty. With it on, the held item is lifted into view and vanilla's own arm is drawn in the
  * item's space right before the item, placed so the palm closes around the item's grip; that way
  * the arm follows every swing, eat, draw and block animation the item does.
+ *
+ * <p>Arms (Punchy's arm sculpt): one offset and size for both arms and whatever they hold, with
+ * or without an item, and "Show both hands", which draws an empty off hand that vanilla skips.
  */
 @Mixin(targets = "net.minecraft.client.renderer.ItemInHandRenderer")
 public abstract class QolHandMixin {
@@ -100,11 +103,25 @@ public abstract class QolHandMixin {
         //~ final boolean editor = Qol.hand && (hand == InteractionHand.MAIN_HAND || Qol.handMirror);
         //~ final int shield = Qol.shieldOffset;
         //~ final boolean showArm = aetherium$showArm(player, stack);
-        //~ if (!editor && shield == 0 && !showArm) {
+        //~ final boolean sculpt = Qol.arm;
+        //~ final boolean emptyOffHand = Qol.armBoth && hand == InteractionHand.OFF_HAND && stack.isEmpty()
+                //~ && !player.isInvisible();
+        //~ if (!editor && shield == 0 && !showArm && !sculpt && !emptyOffHand) {
             //~ return;
         //~ }
         //~ final HumanoidArm arm = aetherium$arm(player, hand);
         //~ final float side = arm == HumanoidArm.RIGHT ? 1f : -1f;
+        //~ final float px = side * PIVOT_X;
+        //~ if (sculpt) {
+            //~ // Punchy's arm sculpt: both arms and what they hold, with or without an item.
+            //~ pose.translate(side * Qol.armX, Qol.armY, -Qol.armZ);
+            //~ final float scale = Qol.armScale;
+            //~ if (scale != 1f) {
+                //~ pose.translate(px, PIVOT_Y, PIVOT_Z);
+                //~ pose.scale(scale, scale, scale);
+                //~ pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
+            //~ }
+        //~ }
         //~ if (showArm) {
             //~ pose.translate(side * LIFT_X, LIFT_Y, LIFT_Z);
         //~ }
@@ -113,26 +130,28 @@ public abstract class QolHandMixin {
             //~ final float k = shield / 100f;
             //~ pose.translate(side * 0.12f * k, -0.38f * k, 0.0);
         //~ }
-        //~ if (!editor) {
-            //~ return;
+        //~ if (editor) {
+            //~ pose.translate(side * Qol.handX, Qol.handY, Qol.handZ);
+            //~ pose.translate(px, PIVOT_Y, PIVOT_Z);
+            //~ if (Qol.handYaw != 0f) {
+                //~ pose.mulPose(Vector3f.YP.rotationDegrees(side * Qol.handYaw));
+            //~ }
+            //~ if (Qol.handPitch != 0f) {
+                //~ pose.mulPose(Vector3f.XP.rotationDegrees(Qol.handPitch));
+            //~ }
+            //~ if (Qol.handRoll != 0f) {
+                //~ pose.mulPose(Vector3f.ZP.rotationDegrees(side * Qol.handRoll));
+            //~ }
+            //~ final float scale = Qol.handScale;
+            //~ if (scale != 1f) {
+                //~ pose.scale(scale, scale, scale);
+            //~ }
+            //~ pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
         //~ }
-        //~ pose.translate(side * Qol.handX, Qol.handY, Qol.handZ);
-        //~ final float px = side * PIVOT_X;
-        //~ pose.translate(px, PIVOT_Y, PIVOT_Z);
-        //~ if (Qol.handYaw != 0f) {
-            //~ pose.mulPose(Vector3f.YP.rotationDegrees(side * Qol.handYaw));
+        //~ if (emptyOffHand) {
+            //~ // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
+            //~ this.renderPlayerArm(pose, buffers, light, equip, swing, arm);
         //~ }
-        //~ if (Qol.handPitch != 0f) {
-            //~ pose.mulPose(Vector3f.XP.rotationDegrees(Qol.handPitch));
-        //~ }
-        //~ if (Qol.handRoll != 0f) {
-            //~ pose.mulPose(Vector3f.ZP.rotationDegrees(side * Qol.handRoll));
-        //~ }
-        //~ final float scale = Qol.handScale;
-        //~ if (scale != 1f) {
-            //~ pose.scale(scale, scale, scale);
-        //~ }
-        //~ pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
     //~ }
     // @era:q-hand-end
 }

@@ -10300,7 +10300,7 @@ index ee34485..639096b 100644
      // @era:q-hud-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java
-index dabeaed..8523c39 100644
+index c027257..3bc1710 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java
 @@ -1,21 +1,21 @@
@@ -10340,7 +10340,7 @@ index dabeaed..8523c39 100644
  // @era:q-hand-end
  
  /**
-@@ -32,107 +32,107 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -35,123 +35,123 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.ItemInHandRenderer")
  public abstract class QolHandMixin {
@@ -10464,11 +10464,25 @@ index dabeaed..8523c39 100644
 -        //~ final boolean editor = Qol.hand && (hand == InteractionHand.MAIN_HAND || Qol.handMirror);
 -        //~ final int shield = Qol.shieldOffset;
 -        //~ final boolean showArm = aetherium$showArm(player, stack);
--        //~ if (!editor && shield == 0 && !showArm) {
+-        //~ final boolean sculpt = Qol.arm;
+-        //~ final boolean emptyOffHand = Qol.armBoth && hand == InteractionHand.OFF_HAND && stack.isEmpty()
+-                //~ && !player.isInvisible();
+-        //~ if (!editor && shield == 0 && !showArm && !sculpt && !emptyOffHand) {
 -            //~ return;
 -        //~ }
 -        //~ final HumanoidArm arm = aetherium$arm(player, hand);
 -        //~ final float side = arm == HumanoidArm.RIGHT ? 1f : -1f;
+-        //~ final float px = side * PIVOT_X;
+-        //~ if (sculpt) {
+-            //~ // Punchy's arm sculpt: both arms and what they hold, with or without an item.
+-            //~ pose.translate(side * Qol.armX, Qol.armY, -Qol.armZ);
+-            //~ final float scale = Qol.armScale;
+-            //~ if (scale != 1f) {
+-                //~ pose.translate(px, PIVOT_Y, PIVOT_Z);
+-                //~ pose.scale(scale, scale, scale);
+-                //~ pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
+-            //~ }
+-        //~ }
 -        //~ if (showArm) {
 -            //~ pose.translate(side * LIFT_X, LIFT_Y, LIFT_Z);
 -        //~ }
@@ -10477,26 +10491,28 @@ index dabeaed..8523c39 100644
 -            //~ final float k = shield / 100f;
 -            //~ pose.translate(side * 0.12f * k, -0.38f * k, 0.0);
 -        //~ }
--        //~ if (!editor) {
--            //~ return;
+-        //~ if (editor) {
+-            //~ pose.translate(side * Qol.handX, Qol.handY, Qol.handZ);
+-            //~ pose.translate(px, PIVOT_Y, PIVOT_Z);
+-            //~ if (Qol.handYaw != 0f) {
+-                //~ pose.mulPose(Vector3f.YP.rotationDegrees(side * Qol.handYaw));
+-            //~ }
+-            //~ if (Qol.handPitch != 0f) {
+-                //~ pose.mulPose(Vector3f.XP.rotationDegrees(Qol.handPitch));
+-            //~ }
+-            //~ if (Qol.handRoll != 0f) {
+-                //~ pose.mulPose(Vector3f.ZP.rotationDegrees(side * Qol.handRoll));
+-            //~ }
+-            //~ final float scale = Qol.handScale;
+-            //~ if (scale != 1f) {
+-                //~ pose.scale(scale, scale, scale);
+-            //~ }
+-            //~ pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
 -        //~ }
--        //~ pose.translate(side * Qol.handX, Qol.handY, Qol.handZ);
--        //~ final float px = side * PIVOT_X;
--        //~ pose.translate(px, PIVOT_Y, PIVOT_Z);
--        //~ if (Qol.handYaw != 0f) {
--            //~ pose.mulPose(Vector3f.YP.rotationDegrees(side * Qol.handYaw));
+-        //~ if (emptyOffHand) {
+-            //~ // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
+-            //~ this.renderPlayerArm(pose, buffers, light, equip, swing, arm);
 -        //~ }
--        //~ if (Qol.handPitch != 0f) {
--            //~ pose.mulPose(Vector3f.XP.rotationDegrees(Qol.handPitch));
--        //~ }
--        //~ if (Qol.handRoll != 0f) {
--            //~ pose.mulPose(Vector3f.ZP.rotationDegrees(side * Qol.handRoll));
--        //~ }
--        //~ final float scale = Qol.handScale;
--        //~ if (scale != 1f) {
--            //~ pose.scale(scale, scale, scale);
--        //~ }
--        //~ pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
 -    //~ }
 +    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
 +            target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", ordinal = 0, shift = At.Shift.AFTER),
@@ -10508,11 +10524,25 @@ index dabeaed..8523c39 100644
 +        final boolean editor = Qol.hand && (hand == InteractionHand.MAIN_HAND || Qol.handMirror);
 +        final int shield = Qol.shieldOffset;
 +        final boolean showArm = aetherium$showArm(player, stack);
-+        if (!editor && shield == 0 && !showArm) {
++        final boolean sculpt = Qol.arm;
++        final boolean emptyOffHand = Qol.armBoth && hand == InteractionHand.OFF_HAND && stack.isEmpty()
++                && !player.isInvisible();
++        if (!editor && shield == 0 && !showArm && !sculpt && !emptyOffHand) {
 +            return;
 +        }
 +        final HumanoidArm arm = aetherium$arm(player, hand);
 +        final float side = arm == HumanoidArm.RIGHT ? 1f : -1f;
++        final float px = side * PIVOT_X;
++        if (sculpt) {
++            // Punchy's arm sculpt: both arms and what they hold, with or without an item.
++            pose.translate(side * Qol.armX, Qol.armY, -Qol.armZ);
++            final float scale = Qol.armScale;
++            if (scale != 1f) {
++                pose.translate(px, PIVOT_Y, PIVOT_Z);
++                pose.scale(scale, scale, scale);
++                pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
++            }
++        }
 +        if (showArm) {
 +            pose.translate(side * LIFT_X, LIFT_Y, LIFT_Z);
 +        }
@@ -10521,26 +10551,28 @@ index dabeaed..8523c39 100644
 +            final float k = shield / 100f;
 +            pose.translate(side * 0.12f * k, -0.38f * k, 0.0);
 +        }
-+        if (!editor) {
-+            return;
++        if (editor) {
++            pose.translate(side * Qol.handX, Qol.handY, Qol.handZ);
++            pose.translate(px, PIVOT_Y, PIVOT_Z);
++            if (Qol.handYaw != 0f) {
++                pose.mulPose(Vector3f.YP.rotationDegrees(side * Qol.handYaw));
++            }
++            if (Qol.handPitch != 0f) {
++                pose.mulPose(Vector3f.XP.rotationDegrees(Qol.handPitch));
++            }
++            if (Qol.handRoll != 0f) {
++                pose.mulPose(Vector3f.ZP.rotationDegrees(side * Qol.handRoll));
++            }
++            final float scale = Qol.handScale;
++            if (scale != 1f) {
++                pose.scale(scale, scale, scale);
++            }
++            pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
 +        }
-+        pose.translate(side * Qol.handX, Qol.handY, Qol.handZ);
-+        final float px = side * PIVOT_X;
-+        pose.translate(px, PIVOT_Y, PIVOT_Z);
-+        if (Qol.handYaw != 0f) {
-+            pose.mulPose(Vector3f.YP.rotationDegrees(side * Qol.handYaw));
++        if (emptyOffHand) {
++            // Vanilla skips an empty off hand entirely (it only draws an empty main hand).
++            this.renderPlayerArm(pose, buffers, light, equip, swing, arm);
 +        }
-+        if (Qol.handPitch != 0f) {
-+            pose.mulPose(Vector3f.XP.rotationDegrees(Qol.handPitch));
-+        }
-+        if (Qol.handRoll != 0f) {
-+            pose.mulPose(Vector3f.ZP.rotationDegrees(side * Qol.handRoll));
-+        }
-+        final float scale = Qol.handScale;
-+        if (scale != 1f) {
-+            pose.scale(scale, scale, scale);
-+        }
-+        pose.translate(-px, -PIVOT_Y, -PIVOT_Z);
 +    }
 +    // @era:q-hand-else none
      // @era:q-hand-end
@@ -16658,7 +16690,7 @@ index 5e39f7e..bef3cbd 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index 3485a55..7962e3b 100644
+index 712944b..4aef764 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

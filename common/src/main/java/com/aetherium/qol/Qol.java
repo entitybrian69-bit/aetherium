@@ -51,6 +51,15 @@ public final class Qol {
     public static volatile float handYaw;
     public static volatile float handRoll;
     public static volatile float handScale = 1f;
+    /** Punchy-style "visible hands at all times": the empty off hand is drawn too. */
+    public static volatile boolean armBoth;
+    /** True when the arm values below differ from vanilla (both hands, with or without an item). */
+    public static volatile boolean arm;
+    /** Both arms, in blocks: sideways (outwards positive), height, distance (farther positive). */
+    public static volatile float armX;
+    public static volatile float armY;
+    public static volatile float armZ;
+    public static volatile float armScale = 1f;
     /** True while the settings screen shows staged (not yet applied) hand values live. */
     public static volatile boolean handPreview;
     /** The hand hook exists and Aetherium is active (last {@link #configure}). */
@@ -98,11 +107,32 @@ public final class Qol {
      * Live preview from the settings screen: shows staged hand values (config units, see
      * {@link #HAND_PRESETS}) before Apply. {@link #endHandPreview} puts the applied values back.
      */
-    public static void previewHand(final boolean enabled, final boolean visible, final boolean mirror, final int x,
-                                   final int y, final int z, final int pitch, final int yaw, final int roll,
-                                   final int scale) {
-        handPreview = handAllowed && (enabled || visible);
-        setHand(enabled, visible, mirror, x, y, z, pitch, yaw, roll, scale);
+    public static void previewHand(final int[] values) {
+        handPreview = handAllowed;
+        setHand(values);
+    }
+
+    /** The config keys behind {@link #previewHand}, in the order of its values (switches are 0/1). */
+    public static final String[] HAND_KEYS = {
+        "qol.hand.enabled", "qol.hand.visible", "qol.hand.mirror",
+        "qol.hand.x", "qol.hand.y", "qol.hand.z", "qol.hand.pitch", "qol.hand.yaw", "qol.hand.roll", "qol.hand.scale",
+        "qol.arm.both", "qol.arm.x", "qol.arm.y", "qol.arm.z", "qol.arm.scale",
+    };
+
+    /** The applied config as {@link #previewHand} values. */
+    public static int[] handValues(final AetheriumConfig c) {
+        return new int[]{
+            bit(c.handEditor.get()), bit(c.handVisible.get()), bit(c.handMirror.get()),
+            c.handX.get().intValue(), c.handY.get().intValue(), c.handZ.get().intValue(),
+            c.handPitch.get().intValue(), c.handYaw.get().intValue(), c.handRoll.get().intValue(),
+            c.handScale.get().intValue(),
+            bit(c.armBoth.get()), c.armX.get().intValue(), c.armY.get().intValue(), c.armZ.get().intValue(),
+            c.armScale.get().intValue(),
+        };
+    }
+
+    private static int bit(final Boolean value) {
+        return value.booleanValue() ? 1 : 0;
     }
 
     /** Ends {@link #previewHand}: back to the applied config. */
@@ -112,25 +142,26 @@ public final class Qol {
     }
 
     private static void setHand(final AetheriumConfig c) {
-        setHand(c.handEditor.get().booleanValue(), c.handVisible.get().booleanValue(), c.handMirror.get().booleanValue(),
-                c.handX.get().intValue(), c.handY.get().intValue(), c.handZ.get().intValue(),
-                c.handPitch.get().intValue(), c.handYaw.get().intValue(), c.handRoll.get().intValue(),
-                c.handScale.get().intValue());
+        setHand(handValues(c));
     }
 
-    private static void setHand(final boolean enabled, final boolean visible, final boolean mirror, final int x,
-                                final int y, final int z, final int pitch, final int yaw, final int roll,
-                                final int scale) {
-        handMirror = mirror;
-        handX = clamp(x, -200, 200) / 100f;
-        handY = clamp(y, -200, 200) / 100f;
-        handZ = clamp(z, -200, 200) / 100f;
-        handPitch = clamp(pitch, -180, 180);
-        handYaw = clamp(yaw, -180, 180);
-        handRoll = clamp(roll, -180, 180);
-        handScale = clamp(scale, 10, 300) / 100f;
-        hand = handAllowed && enabled;
-        handVisible = handAllowed && visible;
+    private static void setHand(final int[] v) {
+        handMirror = v[2] != 0;
+        handX = clamp(v[3], -200, 200) / 100f;
+        handY = clamp(v[4], -200, 200) / 100f;
+        handZ = clamp(v[5], -200, 200) / 100f;
+        handPitch = clamp(v[6], -180, 180);
+        handYaw = clamp(v[7], -180, 180);
+        handRoll = clamp(v[8], -180, 180);
+        handScale = clamp(v[9], 10, 300) / 100f;
+        armX = clamp(v[11], -200, 200) / 100f;
+        armY = clamp(v[12], -200, 200) / 100f;
+        armZ = clamp(v[13], -200, 200) / 100f;
+        armScale = clamp(v[14], 10, 300) / 100f;
+        hand = handAllowed && v[0] != 0;
+        handVisible = handAllowed && v[1] != 0;
+        armBoth = handAllowed && v[10] != 0;
+        arm = handAllowed && (armX != 0f || armY != 0f || armZ != 0f || armScale != 1f);
     }
 
     // ------------------------------------------------------------------ hand presets

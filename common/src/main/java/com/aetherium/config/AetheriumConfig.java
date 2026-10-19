@@ -314,6 +314,16 @@ public final class AetheriumConfig {
             "qol.hand.visible", false, "Draws your arm holding whatever you carry in first person, like Punchy and Hold My Items (vanilla only shows the arm when the hand is empty). The arm follows every swing, eat and block animation and moves with the hand editor values.");
     public final ConfigValue<Boolean> handMirror = ConfigValue.bool(
             "qol.hand.mirror", true, "Use the same values for the off hand, mirrored, so both hands match. Off leaves the off hand as in vanilla.");
+    public final ConfigValue<Boolean> armBoth = ConfigValue.bool(
+            "qol.arm.both", false, "Visible hands at all times, like Punchy: your off hand is drawn even when it is empty, so you always see both hands (vanilla hides an empty off hand).");
+    public final ConfigValue<Integer> armX = ConfigValue.intRange(
+            "qol.arm.x", 0, -200, 200, false, "Moves both arms sideways together, with or without an item, like Punchy's arm sculpt: positive spreads them apart, negative brings them towards the middle. 100 = one block.");
+    public final ConfigValue<Integer> armY = ConfigValue.intRange(
+            "qol.arm.y", 0, -200, 200, false, "Moves both arms up or down together, with or without an item. 100 = one block.");
+    public final ConfigValue<Integer> armZ = ConfigValue.intRange(
+            "qol.arm.z", 0, -200, 200, false, "Moves both arms farther away (positive) or closer to you (negative) together, with or without an item. 100 = one block.");
+    public final ConfigValue<Integer> armScale = ConfigValue.intRange(
+            "qol.arm.scale", 100, 10, 300, false, "Size of both arms and what they hold, in percent. 100 = vanilla.");
 
     // ----------------------------------------------------------------- android
     public final ConfigValue<Boolean> androidSupport = ConfigValue.bool("android.enabled", true, "Enable launcher/renderer probing. No-op on desktop.");

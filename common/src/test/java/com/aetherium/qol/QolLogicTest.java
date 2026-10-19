@@ -503,7 +503,7 @@ final class QolLogicTest {
         assertFalse(config.handVisible.get());
         Qol.configure(config, true);
         try {
-            Qol.previewHand(true, true, true, -175, -120, 150, -170, 180, -90, 280);
+            Qol.previewHand(new int[]{1, 1, 1, -175, -120, 150, -170, 180, -90, 280, 0, 0, 0, 0, 100});
             if (QolSupport.HAND) {
                 assertTrue(Qol.hand && Qol.handVisible && Qol.handPreview);
                 assertEquals(-1.75f, Qol.handX, 1e-6f);
@@ -512,18 +512,51 @@ final class QolLogicTest {
                 assertEquals(-170f, Qol.handPitch, 1e-6f);
                 assertEquals(180f, Qol.handYaw, 1e-6f);
                 assertEquals(2.8f, Qol.handScale, 1e-6f);
-                Qol.previewHand(false, true, true, -999, 999, 0, -999, 999, 0, 999);
+                assertFalse(Qol.arm || Qol.armBoth, "neutral arm values leave the arms alone");
+                Qol.previewHand(new int[]{0, 1, 1, -999, 999, 0, -999, 999, 0, 999, 0, 0, 0, 0, 100});
                 assertTrue(!Qol.hand && Qol.handVisible && Qol.handPreview, "the arm previews without the editor");
                 assertEquals(-2f, Qol.handX, 1e-6f);
                 assertEquals(2f, Qol.handY, 1e-6f);
                 assertEquals(-180f, Qol.handPitch, 1e-6f);
                 assertEquals(3f, Qol.handScale, 1e-6f);
+                Qol.previewHand(new int[]{0, 0, 1, 0, 0, 0, 0, 0, 0, 100, 1, 25, -10, 150, 120});
+                assertTrue(Qol.arm && Qol.armBoth && !Qol.hand && !Qol.handVisible, "arms work without the editor");
+                assertEquals(0.25f, Qol.armX, 1e-6f);
+                assertEquals(-0.1f, Qol.armY, 1e-6f);
+                assertEquals(1.5f, Qol.armZ, 1e-6f);
+                assertEquals(1.2f, Qol.armScale, 1e-6f);
+                Qol.previewHand(new int[]{0, 0, 1, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, -999, 999});
+                assertTrue(Qol.arm && !Qol.armBoth);
+                assertEquals(-2f, Qol.armZ, 1e-6f);
+                assertEquals(3f, Qol.armScale, 1e-6f);
             }
         } finally {
             Qol.endHandPreview(config);
         }
-        assertFalse(Qol.hand || Qol.handVisible || Qol.handPreview);
+        assertFalse(Qol.hand || Qol.handVisible || Qol.handPreview || Qol.arm || Qol.armBoth);
         Qol.configure(config, false);
+    }
+
+    @Test
+    @DisplayName("Hand and arm keys: every previewed key is a config option, and the defaults change nothing")
+    void handKeys() throws Exception {
+        final AetheriumConfig config = new AetheriumConfig();
+        final java.util.Set<String> keys = new java.util.HashSet<>();
+        for (final java.lang.reflect.Field field : AetheriumConfig.class.getFields()) {
+            if (ConfigValue.class.isAssignableFrom(field.getType())) {
+                keys.add(((ConfigValue<?>) field.get(config)).getKey());
+            }
+        }
+        for (final String key : Qol.HAND_KEYS) {
+            assertTrue(keys.contains(key), key);
+        }
+        final int[] values = Qol.handValues(config);
+        assertEquals(Qol.HAND_KEYS.length, values.length);
+        assertEquals(-200, config.armZ.getMin());
+        assertEquals(200, config.armZ.getMax());
+        assertEquals(300, config.armScale.getMax());
+        assertEquals(100, config.armScale.get().intValue());
+        assertFalse(config.armBoth.get());
     }
 
     @Test

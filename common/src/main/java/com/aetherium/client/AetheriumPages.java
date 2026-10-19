@@ -580,6 +580,11 @@ public final class AetheriumPages {
         page.add(handRow(intSlider("qol.hand.roll", "Hand roll", config.handRoll, 1, v -> v + "\u00b0")));
         page.add(handRow(intSlider("qol.hand.scale", "Hand size", config.handScale, 5, v -> v + "%")));
         page.add(qolRow(bool("qol.hand.mirror", "Same for off hand", config.handMirror), QolSupport.HAND).livePreview());
+        page.add(armRow(bool("qol.arm.both", "Show both hands", config.armBoth)));
+        page.add(armRow(intSlider("qol.arm.x", "Arms sideways", config.armX, 1, AetheriumPages::hundredths)));
+        page.add(armRow(intSlider("qol.arm.y", "Arms height", config.armY, 1, AetheriumPages::hundredths)));
+        page.add(armRow(intSlider("qol.arm.z", "Arms distance", config.armZ, 1, AetheriumPages::hundredths)));
+        page.add(armRow(intSlider("qol.arm.scale", "Arms size", config.armScale, 5, v -> v + "%")));
 
         addZoomAndFreelook(page);
         return page;
@@ -605,6 +610,27 @@ public final class AetheriumPages {
         });
     }
 
+    /**
+     * Punchy's arm sculpt: moves both arms (and what they hold) together, with or without an item.
+     * Like Punchy, touching it shows both hands with whatever they hold, so the change is visible.
+     */
+    private Setting armRow(final Setting setting) {
+        return qolRow(setting, QolSupport.HAND).livePreview().onPick(v -> {
+            if (this.view != null) {
+                stageOn("qol.hand.visible", "qol.arm.both");
+            }
+        });
+    }
+
+    private void stageOn(final String... ids) {
+        for (final String id : ids) {
+            final Setting row = this.view.find(id);
+            if (row != null && row.isEditable()) {
+                row.stage(1);
+            }
+        }
+    }
+
     private void stageHandPreset(final int index) {
         if (this.view == null || index < 1 || index > Qol.HAND_PRESETS.length) {
             return;
@@ -625,27 +651,21 @@ public final class AetheriumPages {
      * turns both on, the way Punchy's hand editor always shows the arm.
      */
     private void enableHandEditor() {
-        for (final String id : new String[]{"qol.hand.enabled", "qol.hand.visible"}) {
-            final Setting row = this.view.find(id);
-            if (row != null && row.isEditable()) {
-                row.stage(1);
-            }
-        }
+        stageOn("qol.hand.enabled", "qol.hand.visible");
     }
 
     // ------------------------------------------------------------------ hand live preview
 
-    /** qol.hand.enabled, .visible, .mirror, then {@link #HAND_ROWS}; null when the page has none. */
+    /** The rows of {@link Qol#HAND_KEYS}, in that order; null when the page has none. */
     private Setting[] handRows;
     private boolean handPreviewing;
+    /** Reused every previewed frame (no per-frame garbage). */
+    private final int[] handValues = new int[Qol.HAND_KEYS.length];
 
     private void cacheHandRows() {
-        final Setting[] rows = new Setting[3 + HAND_ROWS.length];
-        rows[0] = this.view.find("qol.hand.enabled");
-        rows[1] = this.view.find("qol.hand.visible");
-        rows[2] = this.view.find("qol.hand.mirror");
-        for (int i = 0; i < HAND_ROWS.length; i++) {
-            rows[3 + i] = this.view.find(HAND_ROWS[i]);
+        final Setting[] rows = new Setting[Qol.HAND_KEYS.length];
+        for (int i = 0; i < rows.length; i++) {
+            rows[i] = this.view.find(Qol.HAND_KEYS[i]);
         }
         for (final Setting row : rows) {
             if (row == null || !row.isEditable()) {
@@ -673,9 +693,11 @@ public final class AetheriumPages {
             }
         }
         if (dirty) {
-            Qol.previewHand(rows[0].pending() != 0, rows[1].pending() != 0, rows[2].pending() != 0, rows[3].pending(),
-                    rows[4].pending(), rows[5].pending(), rows[6].pending(), rows[7].pending(), rows[8].pending(),
-                    rows[9].pending());
+            final int[] values = this.handValues;
+            for (int i = 0; i < rows.length; i++) {
+                values[i] = rows[i].pending();
+            }
+            Qol.previewHand(values);
             this.handPreviewing = true;
         } else if (this.handPreviewing) {
             endPreview();
