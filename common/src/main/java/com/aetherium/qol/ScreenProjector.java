@@ -114,8 +114,12 @@ public final class ScreenProjector {
 
     /** True when the last projected point lies within the screen, with a margin in GUI pixels. */
     public boolean onScreen(final double margin) {
-        return this.x >= -margin && this.y >= -margin && this.x <= this.width + margin && this.y <= this.height + margin;
+        final double m = margin + EDGE_EPSILON; // a point exactly on the edge counts despite rounding
+        return this.x >= -m && this.y >= -m && this.x <= this.width + m && this.y <= this.height + m;
     }
+
+    /** A millionth of a pixel: rounding slack for points that land exactly on a screen edge. */
+    private static final double EDGE_EPSILON = 1e-6;
 
     /**
      * The visible part of the segment a-b (world coordinates) after clipping it to the near plane,
