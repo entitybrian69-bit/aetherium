@@ -3,6 +3,15 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.16.1
+**Quality of life fixes (test build for Minecraft 1.16.5 only).**
+
+- Hand editor live preview, like Punchy's: while you drag a hand slider, the whole menu fades away and only that slider stays on screen, so you see your hand change as you move it. Picking a preset or switching the editor or "Same for off hand" shows the result for a moment the same way (click anywhere to bring the menu back early). Works in a world, in first person.
+- Hand presets work: picking one moves your hand at once (before Apply) and turns the hand editor on by itself. The presets are now further apart so each one is easy to tell from the others.
+- The Punchy preset is gone. Presets: Default, Lowered, Centered, Small, Big.
+- Saturation on the hunger bar is now drawn like AppleSkin: a gold outline traced around each shank (partly drawn for a partly saturated shank) instead of a colour tint. The outline is traced from the shank of your resource pack, so it fits custom packs too.
+- While you hold food, the shanks it would fill flash over a faint highlight, and the saturation it would add flashes as outline, both exactly where vanilla shakes the bar when you are starving.
+
 ## 1.16.0
 **Quality of life tab (test build for Minecraft 1.16.5 only).** Twelve small features in a new QoL tab. All are off by default, run only on your client, and work on any server, including servers without Aetherium.
 
@@ -16,7 +25,7 @@ One `## <mod_version>` section per release. tools/modrinth_publish.py uses the s
 - Lower fire overlay (flame height slider, 0 hides it) and a lowered shield while blocking.
 - Floating damage numbers (and optional heal numbers) above nearby mobs and players.
 - Custom crosshair: style, colour, size, thickness, gap, opacity, outline, and it turns red while you aim at a mob or player.
-- Hand editor: move, rotate and scale the held item, mirror it, or pick a preset (Lowered, Centered, Small, Big, Punchy).
+- Hand editor: move, rotate and scale the held item, mirror it, or pick a preset (Lowered, Centered, Small, Big).
 - Zoom and freelook options moved to the QoL tab.
 
 ## 1.15.0
