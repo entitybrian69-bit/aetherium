@@ -75,6 +75,7 @@ neoforge_version=unavailable (module disabled)
 - `section-compile=v16`
 - `section-cull=v16`
 - `section-vis=list16`
+- `shader=v16`
 - `simdist=none`
 - `sky=v16`
 - `slot-find=find`
@@ -235,6 +236,15 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/SectionCullOwnerMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionOcclusionGraphAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/SectionSpritesMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderBlockIdMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderBufferBuilderMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderGameRendererMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderLevelMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderParticleMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderShadeMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderStateShardMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/ShaderVertexBufferMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SkyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/SpriteActivityMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/StreamingLevelMixin.java`
@@ -270,6 +280,8 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
 - `common/src/main/java/com/aetherium/qol/QolSupport.java`
+- `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
+- `common/src/main/java/com/aetherium/shader/ShaderVertex.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 
 ## Verifying this row before shipping it

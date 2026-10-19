@@ -69,12 +69,12 @@ public final class ShaderRuntime {
     //~ private static final AetheriumLog LOG = AetheriumLog.of(ShaderRuntime.class);
 
     //~ static final int PHASE_NONE = 0;
-    //~ static final int PHASE_SKY = 1;
-    //~ static final int PHASE_CLOUDS = 2;
-    //~ static final int PHASE_WEATHER = 3;
-    //~ static final int PHASE_PARTICLES = 4;
-    //~ static final int PHASE_BORDER = 5;
-    //~ static final int PHASE_SHADOW = 6;
+    //~ public static final int PHASE_SKY = 1;
+    //~ public static final int PHASE_CLOUDS = 2;
+    //~ public static final int PHASE_WEATHER = 3;
+    //~ public static final int PHASE_PARTICLES = 4;
+    //~ public static final int PHASE_BORDER = 5;
+    //~ public static final int PHASE_SHADOW = 6;
 
     //~ private static ShaderPipeline pipe;
     //~ private static String loadedFolder = "";
@@ -332,8 +332,7 @@ public final class ShaderRuntime {
     //~ public static void frameStart(final ViewArea viewArea, final PoseStack pose, final float partial,
                                   //~ final Camera camera, final Matrix4f projection) {
         //~ final Minecraft mc = Minecraft.getInstance();
-        //~ if (ShaderBridge.takeReload() || (pipe != null && !worldFolder(mc.level).equals(loadedFolder)
-                //~ && pipe.pack.source != null)) {
+        //~ if (ShaderBridge.takeReload() || (pipe != null && !worldFolder(mc.level).equals(loadedFolder))) {
             //~ reload(mc);
         //~ }
         //~ final ShaderPipeline p = pipe;
@@ -358,6 +357,12 @@ public final class ShaderRuntime {
         //~ }
     //~ }
 
+    //~ private static void read(final FloatBuffer from, final float[] to) {
+        //~ for (int i = 0; i < 16; i++) {
+            //~ to[i] = from.get(i);
+        //~ }
+    //~ }
+
     //~ private static void fill(final FrameState f, final Minecraft mc, final PoseStack pose, final float partial,
                              //~ final Camera camera, final Matrix4f projection, final RenderTarget main) {
         //~ f.beginFrame(System.nanoTime());
@@ -365,10 +370,10 @@ public final class ShaderRuntime {
         //~ f.viewHeight = main.height;
         //~ MATRIX.clear();
         //~ pose.last().pose().store(MATRIX);
-        //~ MATRIX.get(f.modelView);
+        //~ read(MATRIX, f.modelView);
         //~ MATRIX.clear();
         //~ projection.store(MATRIX);
-        //~ MATRIX.get(f.projection);
+        //~ read(MATRIX, f.projection);
         //~ final Vec3 cam = camera.getPosition();
         //~ f.camX = cam.x;
         //~ f.camY = cam.y;

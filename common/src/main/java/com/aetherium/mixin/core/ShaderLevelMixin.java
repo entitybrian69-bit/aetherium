@@ -12,7 +12,6 @@ package com.aetherium.mixin.core;
 //~ import net.minecraft.client.renderer.LightTexture;
 //~ import net.minecraft.client.renderer.RenderType;
 //~ import net.minecraft.client.renderer.ViewArea;
-//~ import org.objectweb.asm.Opcodes;
 //~ import org.spongepowered.asm.mixin.Shadow;
 //~ import org.spongepowered.asm.mixin.injection.At;
 //~ import org.spongepowered.asm.mixin.injection.Inject;
@@ -49,10 +48,11 @@ public abstract class ShaderLevelMixin {
         //~ ShaderRuntime.chunkLayer(type);
     //~ }
 
-    //~ @Redirect(method = "renderChunkLayer", at = @At(value = "FIELD", opcode = Opcodes.GETSTATIC,
-            //~ target = "Lcom/mojang/blaze3d/vertex/DefaultVertexFormat;BLOCK:Lcom/mojang/blaze3d/vertex/VertexFormat;"),
+    //~ // renderChunkLayer reads its vertex layout from LevelRenderer.format (= BLOCK)
+    //~ @Redirect(method = "renderChunkLayer", at = @At(value = "FIELD", opcode = 180 /* GETFIELD */,
+            //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;format:Lcom/mojang/blaze3d/vertex/VertexFormat;"),
             //~ require = 0)
-    //~ private VertexFormat aetherium$shaderChunkFormat() {
+    //~ private VertexFormat aetherium$shaderChunkFormat(final LevelRenderer self) {
         //~ return ShaderVertex.chunkFormat();
     //~ }
 

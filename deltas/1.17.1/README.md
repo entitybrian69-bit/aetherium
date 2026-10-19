@@ -72,6 +72,7 @@ neoforge_version=unavailable (module disabled)
 - `section-compile=param17`
 - `section-cull=pop17`
 - `section-vis=list17`
+- `shader=none`
 - `simdist=none`
 - `sky=end17`
 - `slot-find=find`

@@ -58,6 +58,7 @@ neoforge_version=21.5.81
 - `section-compile=none`
 - `section-cull=none`
 - `section-vis=render-origin`
+- `shader=none`
 - `simdist=sim`
 - `sky=renderer`
 - `slot-find=hovered`

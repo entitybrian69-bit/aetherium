@@ -18,7 +18,7 @@ index 004733e..fcb3d2d 100644
  
  /** Aggregate: the CI entry point (see .github/workflows/build.yml). */
 diff --git a/common/src/main/java/com/aetherium/Capabilities.java b/common/src/main/java/com/aetherium/Capabilities.java
-index 58ebebd..6762300 100644
+index ceddf8a..5acc351 100644
 --- a/common/src/main/java/com/aetherium/Capabilities.java
 +++ b/common/src/main/java/com/aetherium/Capabilities.java
 @@ -37,17 +37,17 @@ public final class Capabilities {
@@ -62,7 +62,7 @@ index 58ebebd..6762300 100644
      // @era:bg-threads-end
  
      /**
-@@ -88,27 +88,27 @@ public final class Capabilities {
+@@ -88,37 +88,37 @@ public final class Capabilities {
      public static final boolean ENTITY_OCCLUSION = true;
  
      /** The visible list holds {@code LevelRenderer$RenderChunkInfo} (1.16.5-1.20.1) rather than sections. */
@@ -75,6 +75,20 @@ index 58ebebd..6762300 100644
 +    // @era:section-vis-else sections|render-origin
 +    //~ public static final boolean CHUNK_INFO_LIST = false;
      // @era:section-vis-end
+ 
+     /**
+      * The OptiFine-format shader pack engine (com.aetherium.shader, Shader*Mixin): it drives the
+      * fixed-function GL 2.1 renderer, which exists until 1.16.5.
+      */
+-    // @era:shader-begin none
+-    public static final boolean SHADERS = false;
+-    // @era:shader-else v16
+-    //~ public static final boolean SHADERS = true;
++    // @era:shader-begin v16
++    public static final boolean SHADERS = true;
++    // @era:shader-else none
++    //~ public static final boolean SHADERS = false;
+     // @era:shader-end
  
      /** Aetherium's own terrain renderer exists for this version. */
 -    // @era:chunk-renderer-begin none
@@ -102,7 +116,7 @@ index 58ebebd..6762300 100644
      // @era:section-cull-end
  
      /**
-@@ -149,20 +149,20 @@ public final class Capabilities {
+@@ -159,20 +159,20 @@ public final class Capabilities {
       * Dirty sections near the camera are rebuilt on worker threads instead of the render thread,
       * and client light updates get a per-frame time budget (1.16.5's "build near" path).
       */
@@ -131,7 +145,7 @@ index 58ebebd..6762300 100644
      // @era:qol16-end
  
      /**
-@@ -210,10 +210,10 @@ public final class Capabilities {
+@@ -220,10 +220,10 @@ public final class Capabilities {
      // @era:particle-fast-end
  
      /** Per-frame camera frustum from vanilla's own matrices (1.16.5 via StreamingLevelMixin). */
@@ -146,7 +160,7 @@ index 58ebebd..6762300 100644
      // @era:frustum-cap-end
  
      /** 26.2+: the frustum pass moved to LevelExtractor, so the fog cull filters there (FogCullExtractMixin). */
-@@ -224,22 +224,22 @@ public final class Capabilities {
+@@ -234,22 +234,22 @@ public final class Capabilities {
      // @era:fog-cull-x-end
  
      /** Visible sections wholly inside the fog are skipped (1.17+; 1.16.5 culls in STREAMING). */
@@ -178,7 +192,7 @@ index 58ebebd..6762300 100644
      // @era:fog-cull-end
  
      /** Visible-section search limited while terrain streams in (1.17; 1.16.5 in STREAMING). */
-@@ -250,33 +250,33 @@ public final class Capabilities {
+@@ -260,33 +260,33 @@ public final class Capabilities {
      // @era:search-throttle-end
  
      /** Visible-only animated textures (1.16.5..1.21.4; 1.21.5 reworks tickers, quads and sections). */
@@ -9880,6 +9894,856 @@ index 51b3c6e..93977e3 100644
      //~ }
      // @era:section-compile-else none
      // @era:section-compile-end
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderBlockIdMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderBlockIdMixin.java
+index 80b9356..c11d1d5 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderBlockIdMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderBlockIdMixin.java
+@@ -1,19 +1,19 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderVertex;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.VertexConsumer;
+-//~ import java.util.Random;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.world.level.BlockAndTintGetter;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import net.minecraft.world.level.material.FluidState;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+-//~ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderVertex;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.VertexConsumer;
++import java.util.Random;
++import net.minecraft.core.BlockPos;
++import net.minecraft.world.level.BlockAndTintGetter;
++import net.minecraft.world.level.block.state.BlockState;
++import net.minecraft.world.level.material.FluidState;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++import net.minecraft.client.renderer.block.BlockRenderDispatcher;
++// @era:shader-else none
+ // @era:shader-end
+ import net.minecraft.client.Minecraft;
+ 
+@@ -23,28 +23,28 @@ import org.spongepowered.asm.mixin.Mixin;
+  * Shader pack engine (1.16.5): the block.properties id of the block being meshed, for mc_Entity.
+  * One volatile read per block while no pack extends the format.
+  */
+-// @era:shader-begin none
+-@Mixin(Minecraft.class)
+-// @era:shader-else v16
+-//~ @Mixin(BlockRenderDispatcher.class)
++// @era:shader-begin v16
++@Mixin(BlockRenderDispatcher.class)
++// @era:shader-else none
++//~ @Mixin(Minecraft.class)
+ // @era:shader-end
+ public abstract class ShaderBlockIdMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Inject(method = "renderBatched", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$blockId(final BlockState state, final BlockPos pos, final BlockAndTintGetter level,
+-                                   //~ final PoseStack poseStack, final VertexConsumer consumer, final boolean cull,
+-                                   //~ final Random random, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ ShaderVertex.setBlock(state);
+-    //~ }
++    // @era:shader-begin v16
++    @Inject(method = "renderBatched", at = @At("HEAD"), require = 0)
++    private void aetherium$blockId(final BlockState state, final BlockPos pos, final BlockAndTintGetter level,
++                                   final PoseStack poseStack, final VertexConsumer consumer, final boolean cull,
++                                   final Random random, final CallbackInfoReturnable<Boolean> cir) {
++        ShaderVertex.setBlock(state);
++    }
+ 
+-    //~ @Inject(method = "renderLiquid", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$fluidId(final BlockPos pos, final BlockAndTintGetter level, final VertexConsumer consumer,
+-                                   //~ final FluidState fluid, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ if (ShaderVertex.extended()) {
+-            //~ ShaderVertex.setBlock(fluid.createLegacyBlock());
+-        //~ }
+-    //~ }
++    @Inject(method = "renderLiquid", at = @At("HEAD"), require = 0)
++    private void aetherium$fluidId(final BlockPos pos, final BlockAndTintGetter level, final VertexConsumer consumer,
++                                   final FluidState fluid, final CallbackInfoReturnable<Boolean> cir) {
++        if (ShaderVertex.extended()) {
++            ShaderVertex.setBlock(fluid.createLegacyBlock());
++        }
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderBufferBuilderMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderBufferBuilderMixin.java
+index 0da3a21..1fbb1a7 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderBufferBuilderMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderBufferBuilderMixin.java
+@@ -1,16 +1,16 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderVertex;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import com.mojang.blaze3d.vertex.VertexFormatElement;
+-//~ import java.nio.ByteBuffer;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderVertex;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import com.mojang.blaze3d.vertex.VertexFormatElement;
++import java.nio.ByteBuffer;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.ModifyVariable;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-else none
+ // @era:shader-end
+ import com.mojang.blaze3d.vertex.BufferBuilder;
+ 
+@@ -24,38 +24,38 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(BufferBuilder.class)
+ public abstract class ShaderBufferBuilderMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Shadow
+-    //~ private ByteBuffer buffer;
+-    //~ @Shadow
+-    //~ private int nextElementByte;
+-    //~ @Shadow
+-    //~ private int vertices;
+-    //~ @Shadow
+-    //~ private int elementIndex;
+-    //~ @Shadow
+-    //~ private int mode;
+-    //~ @Shadow
+-    //~ private VertexFormat format;
++    // @era:shader-begin v16
++    @Shadow
++    private ByteBuffer buffer;
++    @Shadow
++    private int nextElementByte;
++    @Shadow
++    private int vertices;
++    @Shadow
++    private int elementIndex;
++    @Shadow
++    private int mode;
++    @Shadow
++    private VertexFormat format;
+ 
+-    //~ @Shadow
+-    //~ public abstract void nextElement();
++    @Shadow
++    public abstract void nextElement();
+ 
+-    //~ @ModifyVariable(method = "begin", at = @At("HEAD"), argsOnly = true, require = 0)
+-    //~ private VertexFormat aetherium$shaderFormat(final VertexFormat format) {
+-        //~ return ShaderVertex.swap(format);
+-    //~ }
++    @ModifyVariable(method = "begin", at = @At("HEAD"), argsOnly = true, require = 0)
++    private VertexFormat aetherium$shaderFormat(final VertexFormat format) {
++        return ShaderVertex.swap(format);
++    }
+ 
+-    //~ @Inject(method = "endVertex", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$shaderVertex(final CallbackInfo ci) {
+-        //~ if (!ShaderVertex.isExtended(this.format) || this.elementIndex != 6) {
+-            //~ return;
+-        //~ }
+-        //~ ShaderVertex.fill(this.buffer, this.nextElementByte, this.vertices, this.mode == 7);
+-        //~ for (int i = ShaderVertex.extraElements(); i > 0; i--) {
+-            //~ this.nextElement();
+-        //~ }
+-    //~ }
++    @Inject(method = "endVertex", at = @At("HEAD"), require = 0)
++    private void aetherium$shaderVertex(final CallbackInfo ci) {
++        if (!ShaderVertex.isExtended(this.format) || this.elementIndex != 6) {
++            return;
++        }
++        ShaderVertex.fill(this.buffer, this.nextElementByte, this.vertices, this.mode == 7);
++        for (int i = ShaderVertex.extraElements(); i > 0; i--) {
++            this.nextElement();
++        }
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderGameRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderGameRendererMixin.java
+index a5a8541..d266efc 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderGameRendererMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderGameRendererMixin.java
+@@ -1,17 +1,17 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderRuntime;
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.math.Matrix4f;
+-//~ import net.minecraft.client.Camera;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyArg;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderRuntime;
++import com.mojang.blaze3d.systems.RenderSystem;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.math.Matrix4f;
++import net.minecraft.client.Camera;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.ModifyArg;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-else none
+ // @era:shader-end
+ import net.minecraft.client.renderer.GameRenderer;
+ 
+@@ -25,39 +25,39 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(GameRenderer.class)
+ public abstract class ShaderGameRendererMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Redirect(method = "renderLevel", at = @At(value = "INVOKE",
+-            //~ target = "Lcom/mojang/blaze3d/systems/RenderSystem;clear(IZ)V"), require = 0)
+-    //~ private void aetherium$handDepthClear(final int mask, final boolean checkError) {
+-        //~ if (!ShaderRuntime.skipHandDepthClear(mask)) {
+-            //~ RenderSystem.clear(mask, checkError);
+-        //~ }
+-    //~ }
+-
+-    //~ @Inject(method = "renderLevel", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$shaderFrameEnd(final float partialTick, final long finishNanos, final PoseStack poseStack,
+-                                          //~ final CallbackInfo ci) {
+-        //~ ShaderRuntime.frameEnd();
+-    //~ }
+-
+-    //~ @Inject(method = "renderItemInHand", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$handStart(final PoseStack poseStack, final Camera camera, final float partialTick,
+-                                     //~ final CallbackInfo ci) {
+-        //~ ShaderRuntime.handPhase(true);
+-    //~ }
+-
+-    //~ @Inject(method = "renderItemInHand", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$handEnd(final PoseStack poseStack, final Camera camera, final float partialTick,
+-                                   //~ final CallbackInfo ci) {
+-        //~ ShaderRuntime.handPhase(false);
+-    //~ }
+-
+-    //~ @ModifyArg(method = "renderItemInHand", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/GameRenderer;resetProjectionMatrix(Lcom/mojang/math/Matrix4f;)V"),
+-            //~ require = 0)
+-    //~ private Matrix4f aetherium$handProjection(final Matrix4f projection) {
+-        //~ return ShaderRuntime.handProjection(projection);
+-    //~ }
++    // @era:shader-begin v16
++    @Redirect(method = "renderLevel", at = @At(value = "INVOKE",
++            target = "Lcom/mojang/blaze3d/systems/RenderSystem;clear(IZ)V"), require = 0)
++    private void aetherium$handDepthClear(final int mask, final boolean checkError) {
++        if (!ShaderRuntime.skipHandDepthClear(mask)) {
++            RenderSystem.clear(mask, checkError);
++        }
++    }
++
++    @Inject(method = "renderLevel", at = @At("RETURN"), require = 0)
++    private void aetherium$shaderFrameEnd(final float partialTick, final long finishNanos, final PoseStack poseStack,
++                                          final CallbackInfo ci) {
++        ShaderRuntime.frameEnd();
++    }
++
++    @Inject(method = "renderItemInHand", at = @At("HEAD"), require = 0)
++    private void aetherium$handStart(final PoseStack poseStack, final Camera camera, final float partialTick,
++                                     final CallbackInfo ci) {
++        ShaderRuntime.handPhase(true);
++    }
++
++    @Inject(method = "renderItemInHand", at = @At("RETURN"), require = 0)
++    private void aetherium$handEnd(final PoseStack poseStack, final Camera camera, final float partialTick,
++                                   final CallbackInfo ci) {
++        ShaderRuntime.handPhase(false);
++    }
++
++    @ModifyArg(method = "renderItemInHand", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/GameRenderer;resetProjectionMatrix(Lcom/mojang/math/Matrix4f;)V"),
++            require = 0)
++    private Matrix4f aetherium$handProjection(final Matrix4f projection) {
++        return ShaderRuntime.handProjection(projection);
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java
+index ca7659d..b3ea723 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java
+@@ -1,12 +1,12 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderRuntime;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderRuntime;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.ModifyVariable;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-else none
+ // @era:shader-end
+ import org.spongepowered.asm.mixin.Mixin;
+ 
+@@ -19,43 +19,43 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
+ public abstract class ShaderGlMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Inject(method = "_drawArrays", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private static void aetherium$draw(final int mode, final int first, final int count, final CallbackInfo ci) {
+-        //~ if (ShaderRuntime.beforeDraw()) {
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
+-
+-    //~ @Inject(method = "_glUseProgram", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$useProgram(final int program, final CallbackInfo ci) {
+-        //~ ShaderRuntime.useProgram(program);
+-    //~ }
+-
+-    //~ @ModifyVariable(method = "_glBindFramebuffer", at = @At("HEAD"), argsOnly = true, ordinal = 1, require = 0)
+-    //~ private static int aetherium$framebuffer(final int framebuffer) {
+-        //~ return ShaderRuntime.redirectFramebuffer(framebuffer);
+-    //~ }
+-
+-    //~ @Inject(method = "_activeTexture", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$activeTexture(final int unit, final CallbackInfo ci) {
+-        //~ ShaderRuntime.activeTexture(unit);
+-    //~ }
+-
+-    //~ @Inject(method = "_bindTexture", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$bindTexture(final int id, final CallbackInfo ci) {
+-        //~ ShaderRuntime.bindTexture(id);
+-    //~ }
+-
+-    //~ @Inject(method = "_enableTexture", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$enableTexture(final CallbackInfo ci) {
+-        //~ ShaderRuntime.textureEnabled(true);
+-    //~ }
+-
+-    //~ @Inject(method = "_disableTexture", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$disableTexture(final CallbackInfo ci) {
+-        //~ ShaderRuntime.textureEnabled(false);
+-    //~ }
++    // @era:shader-begin v16
++    @Inject(method = "_drawArrays", at = @At("HEAD"), cancellable = true, require = 0)
++    private static void aetherium$draw(final int mode, final int first, final int count, final CallbackInfo ci) {
++        if (ShaderRuntime.beforeDraw()) {
++            ci.cancel();
++        }
++    }
++
++    @Inject(method = "_glUseProgram", at = @At("HEAD"), require = 0)
++    private static void aetherium$useProgram(final int program, final CallbackInfo ci) {
++        ShaderRuntime.useProgram(program);
++    }
++
++    @ModifyVariable(method = "_glBindFramebuffer", at = @At("HEAD"), argsOnly = true, ordinal = 1, require = 0)
++    private static int aetherium$framebuffer(final int framebuffer) {
++        return ShaderRuntime.redirectFramebuffer(framebuffer);
++    }
++
++    @Inject(method = "_activeTexture", at = @At("HEAD"), require = 0)
++    private static void aetherium$activeTexture(final int unit, final CallbackInfo ci) {
++        ShaderRuntime.activeTexture(unit);
++    }
++
++    @Inject(method = "_bindTexture", at = @At("HEAD"), require = 0)
++    private static void aetherium$bindTexture(final int id, final CallbackInfo ci) {
++        ShaderRuntime.bindTexture(id);
++    }
++
++    @Inject(method = "_enableTexture", at = @At("HEAD"), require = 0)
++    private static void aetherium$enableTexture(final CallbackInfo ci) {
++        ShaderRuntime.textureEnabled(true);
++    }
++
++    @Inject(method = "_disableTexture", at = @At("HEAD"), require = 0)
++    private static void aetherium$disableTexture(final CallbackInfo ci) {
++        ShaderRuntime.textureEnabled(false);
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderLevelMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderLevelMixin.java
+index 3485970..f19ee5c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderLevelMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderLevelMixin.java
+@@ -1,22 +1,22 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderRuntime;
+-//~ import com.aetherium.shader.ShaderVertex;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import com.mojang.math.Matrix4f;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.renderer.GameRenderer;
+-//~ import net.minecraft.client.renderer.LightTexture;
+-//~ import net.minecraft.client.renderer.RenderType;
+-//~ import net.minecraft.client.renderer.ViewArea;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderRuntime;
++import com.aetherium.shader.ShaderVertex;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import com.mojang.math.Matrix4f;
++import net.minecraft.client.Camera;
++import net.minecraft.client.renderer.GameRenderer;
++import net.minecraft.client.renderer.LightTexture;
++import net.minecraft.client.renderer.RenderType;
++import net.minecraft.client.renderer.ViewArea;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-else none
+ // @era:shader-end
+ import net.minecraft.client.renderer.LevelRenderer;
+ 
+@@ -30,78 +30,78 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(LevelRenderer.class)
+ public abstract class ShaderLevelMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Shadow
+-    //~ private ViewArea viewArea;
++    // @era:shader-begin v16
++    @Shadow
++    private ViewArea viewArea;
+ 
+-    //~ @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$shaderFrame(final PoseStack poseStack, final float partialTick, final long finishNanos,
+-                                       //~ final boolean renderOutline, final Camera camera, final GameRenderer gameRenderer,
+-                                       //~ final LightTexture lightTexture, final Matrix4f projection, final CallbackInfo ci) {
+-        //~ ShaderRuntime.frameStart(this.viewArea, poseStack, partialTick, camera, projection);
+-    //~ }
++    @Inject(method = "renderLevel", at = @At("HEAD"), require = 0)
++    private void aetherium$shaderFrame(final PoseStack poseStack, final float partialTick, final long finishNanos,
++                                       final boolean renderOutline, final Camera camera, final GameRenderer gameRenderer,
++                                       final LightTexture lightTexture, final Matrix4f projection, final CallbackInfo ci) {
++        ShaderRuntime.frameStart(this.viewArea, poseStack, partialTick, camera, projection);
++    }
+ 
+-    //~ @Inject(method = "renderChunkLayer", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$shaderLayer(final RenderType type, final PoseStack poseStack, final double x,
+-                                       //~ final double y, final double z, final CallbackInfo ci) {
+-        //~ ShaderRuntime.chunkLayer(type);
+-    //~ }
++    @Inject(method = "renderChunkLayer", at = @At("HEAD"), require = 0)
++    private void aetherium$shaderLayer(final RenderType type, final PoseStack poseStack, final double x,
++                                       final double y, final double z, final CallbackInfo ci) {
++        ShaderRuntime.chunkLayer(type);
++    }
+ 
+-    //~ // renderChunkLayer reads its vertex layout from LevelRenderer.format (= BLOCK)
+-    //~ @Redirect(method = "renderChunkLayer", at = @At(value = "FIELD", opcode = 180 /* GETFIELD */,
+-            //~ target = "Lnet/minecraft/client/renderer/LevelRenderer;format:Lcom/mojang/blaze3d/vertex/VertexFormat;"),
+-            //~ require = 0)
+-    //~ private VertexFormat aetherium$shaderChunkFormat(final LevelRenderer self) {
+-        //~ return ShaderVertex.chunkFormat();
+-    //~ }
++    // renderChunkLayer reads its vertex layout from LevelRenderer.format (= BLOCK)
++    @Redirect(method = "renderChunkLayer", at = @At(value = "FIELD", opcode = 180 /* GETFIELD */,
++            target = "Lnet/minecraft/client/renderer/LevelRenderer;format:Lcom/mojang/blaze3d/vertex/VertexFormat;"),
++            require = 0)
++    private VertexFormat aetherium$shaderChunkFormat(final LevelRenderer self) {
++        return ShaderVertex.chunkFormat();
++    }
+ 
+-    //~ @Inject(method = "renderSky", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$skyStart(final PoseStack poseStack, final float partialTick, final CallbackInfo ci) {
+-        //~ ShaderRuntime.setPhase(1);
+-    //~ }
++    @Inject(method = "renderSky", at = @At("HEAD"), require = 0)
++    private void aetherium$skyStart(final PoseStack poseStack, final float partialTick, final CallbackInfo ci) {
++        ShaderRuntime.setPhase(1);
++    }
+ 
+-    //~ @Inject(method = "renderSky", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$skyEnd(final PoseStack poseStack, final float partialTick, final CallbackInfo ci) {
+-        //~ ShaderRuntime.endPhase(1);
+-    //~ }
++    @Inject(method = "renderSky", at = @At("RETURN"), require = 0)
++    private void aetherium$skyEnd(final PoseStack poseStack, final float partialTick, final CallbackInfo ci) {
++        ShaderRuntime.endPhase(1);
++    }
+ 
+-    //~ @Inject(method = "renderClouds", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$cloudsStart(final PoseStack poseStack, final float partialTick, final double x,
+-                                       //~ final double y, final double z, final CallbackInfo ci) {
+-        //~ if (ShaderRuntime.cloudsOff()) {
+-            //~ ci.cancel();
+-            //~ return;
+-        //~ }
+-        //~ ShaderRuntime.setPhase(2);
+-    //~ }
++    @Inject(method = "renderClouds", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$cloudsStart(final PoseStack poseStack, final float partialTick, final double x,
++                                       final double y, final double z, final CallbackInfo ci) {
++        if (ShaderRuntime.cloudsOff()) {
++            ci.cancel();
++            return;
++        }
++        ShaderRuntime.setPhase(2);
++    }
+ 
+-    //~ @Inject(method = "renderClouds", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$cloudsEnd(final PoseStack poseStack, final float partialTick, final double x,
+-                                     //~ final double y, final double z, final CallbackInfo ci) {
+-        //~ ShaderRuntime.endPhase(2);
+-    //~ }
++    @Inject(method = "renderClouds", at = @At("RETURN"), require = 0)
++    private void aetherium$cloudsEnd(final PoseStack poseStack, final float partialTick, final double x,
++                                     final double y, final double z, final CallbackInfo ci) {
++        ShaderRuntime.endPhase(2);
++    }
+ 
+-    //~ @Inject(method = "renderSnowAndRain", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$weatherStart(final LightTexture lightTexture, final float partialTick, final double x,
+-                                        //~ final double y, final double z, final CallbackInfo ci) {
+-        //~ ShaderRuntime.setPhase(3);
+-    //~ }
++    @Inject(method = "renderSnowAndRain", at = @At("HEAD"), require = 0)
++    private void aetherium$weatherStart(final LightTexture lightTexture, final float partialTick, final double x,
++                                        final double y, final double z, final CallbackInfo ci) {
++        ShaderRuntime.setPhase(3);
++    }
+ 
+-    //~ @Inject(method = "renderSnowAndRain", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$weatherEnd(final LightTexture lightTexture, final float partialTick, final double x,
+-                                      //~ final double y, final double z, final CallbackInfo ci) {
+-        //~ ShaderRuntime.endPhase(3);
+-    //~ }
++    @Inject(method = "renderSnowAndRain", at = @At("RETURN"), require = 0)
++    private void aetherium$weatherEnd(final LightTexture lightTexture, final float partialTick, final double x,
++                                      final double y, final double z, final CallbackInfo ci) {
++        ShaderRuntime.endPhase(3);
++    }
+ 
+-    //~ @Inject(method = "renderWorldBounds", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$borderStart(final Camera camera, final CallbackInfo ci) {
+-        //~ ShaderRuntime.setPhase(5);
+-    //~ }
++    @Inject(method = "renderWorldBounds", at = @At("HEAD"), require = 0)
++    private void aetherium$borderStart(final Camera camera, final CallbackInfo ci) {
++        ShaderRuntime.setPhase(5);
++    }
+ 
+-    //~ @Inject(method = "renderWorldBounds", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$borderEnd(final Camera camera, final CallbackInfo ci) {
+-        //~ ShaderRuntime.endPhase(5);
+-    //~ }
++    @Inject(method = "renderWorldBounds", at = @At("RETURN"), require = 0)
++    private void aetherium$borderEnd(final Camera camera, final CallbackInfo ci) {
++        ShaderRuntime.endPhase(5);
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderParticleMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderParticleMixin.java
+index 9081cc8..af4390c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderParticleMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderParticleMixin.java
+@@ -1,15 +1,15 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderRuntime;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.renderer.LightTexture;
+-//~ import net.minecraft.client.renderer.MultiBufferSource;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderRuntime;
++import com.mojang.blaze3d.vertex.PoseStack;
++import net.minecraft.client.Camera;
++import net.minecraft.client.renderer.LightTexture;
++import net.minecraft.client.renderer.MultiBufferSource;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-else none
+ // @era:shader-end
+ import net.minecraft.client.particle.ParticleEngine;
+ 
+@@ -19,20 +19,20 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(ParticleEngine.class)
+ public abstract class ShaderParticleMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Inject(method = "render", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$particlesStart(final PoseStack poseStack, final MultiBufferSource.BufferSource buffers,
+-                                          //~ final LightTexture lightTexture, final Camera camera, final float partialTick,
+-                                          //~ final CallbackInfo ci) {
+-        //~ ShaderRuntime.setPhase(4);
+-    //~ }
++    // @era:shader-begin v16
++    @Inject(method = "render", at = @At("HEAD"), require = 0)
++    private void aetherium$particlesStart(final PoseStack poseStack, final MultiBufferSource.BufferSource buffers,
++                                          final LightTexture lightTexture, final Camera camera, final float partialTick,
++                                          final CallbackInfo ci) {
++        ShaderRuntime.setPhase(4);
++    }
+ 
+-    //~ @Inject(method = "render", at = @At("RETURN"), require = 0)
+-    //~ private void aetherium$particlesEnd(final PoseStack poseStack, final MultiBufferSource.BufferSource buffers,
+-                                        //~ final LightTexture lightTexture, final Camera camera, final float partialTick,
+-                                        //~ final CallbackInfo ci) {
+-        //~ ShaderRuntime.endPhase(4);
+-    //~ }
++    @Inject(method = "render", at = @At("RETURN"), require = 0)
++    private void aetherium$particlesEnd(final PoseStack poseStack, final MultiBufferSource.BufferSource buffers,
++                                        final LightTexture lightTexture, final Camera camera, final float partialTick,
++                                        final CallbackInfo ci) {
++        ShaderRuntime.endPhase(4);
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderShadeMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderShadeMixin.java
+index 9608522..32b2db7 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderShadeMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderShadeMixin.java
+@@ -1,12 +1,12 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderRuntime;
+-//~ import net.minecraft.core.Direction;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderRuntime;
++import net.minecraft.core.Direction;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:shader-else none
+ // @era:shader-end
+ import net.minecraft.client.multiplayer.ClientLevel;
+ 
+@@ -20,14 +20,14 @@ import org.spongepowered.asm.mixin.Mixin;
+ @Mixin(ClientLevel.class)
+ public abstract class ShaderShadeMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Inject(method = "getShade", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$flatShade(final Direction direction, final boolean shade,
+-                                     //~ final CallbackInfoReturnable<Float> cir) {
+-        //~ if (ShaderRuntime.flatShading()) {
+-            //~ cir.setReturnValue(1.0F);
+-        //~ }
+-    //~ }
++    // @era:shader-begin v16
++    @Inject(method = "getShade", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$flatShade(final Direction direction, final boolean shade,
++                                     final CallbackInfoReturnable<Float> cir) {
++        if (ShaderRuntime.flatShading()) {
++            cir.setReturnValue(1.0F);
++        }
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderStateShardMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderStateShardMixin.java
+index d4034ed..75d65c2 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderStateShardMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderStateShardMixin.java
+@@ -1,15 +1,15 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderRuntime;
+-//~ import net.minecraft.client.renderer.RenderType;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-//~ import net.minecraft.client.renderer.RenderStateShard;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderRuntime;
++import net.minecraft.client.renderer.RenderType;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++import net.minecraft.client.renderer.RenderStateShard;
++// @era:shader-else none
+ // @era:shader-end
+ import net.minecraft.client.Minecraft;
+ 
+@@ -19,31 +19,31 @@ import org.spongepowered.asm.mixin.Mixin;
+  * Shader pack engine (1.16.5): which RenderType is set up decides the gbuffers program of the
+  * draws that follow (terrain, water, entities, glint, ...). One call per render-type batch.
+  */
+-// @era:shader-begin none
+-@Mixin(Minecraft.class)
+-// @era:shader-else v16
+-//~ @Mixin(RenderStateShard.class)
++// @era:shader-begin v16
++@Mixin(RenderStateShard.class)
++// @era:shader-else none
++//~ @Mixin(Minecraft.class)
+ // @era:shader-end
+ public abstract class ShaderStateShardMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ protected String name;
++    // @era:shader-begin v16
++    @Shadow
++    @Final
++    protected String name;
+ 
+-    //~ @Inject(method = "setupRenderState", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$typeSetup(final CallbackInfo ci) {
+-        //~ if ((Object) this instanceof RenderType) {
+-            //~ ShaderRuntime.typeSetup(this.name);
+-        //~ }
+-    //~ }
++    @Inject(method = "setupRenderState", at = @At("HEAD"), require = 0)
++    private void aetherium$typeSetup(final CallbackInfo ci) {
++        if ((Object) this instanceof RenderType) {
++            ShaderRuntime.typeSetup(this.name);
++        }
++    }
+ 
+-    //~ @Inject(method = "clearRenderState", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$typeClear(final CallbackInfo ci) {
+-        //~ if ((Object) this instanceof RenderType) {
+-            //~ ShaderRuntime.typeClear();
+-        //~ }
+-    //~ }
++    @Inject(method = "clearRenderState", at = @At("HEAD"), require = 0)
++    private void aetherium$typeClear(final CallbackInfo ci) {
++        if ((Object) this instanceof RenderType) {
++            ShaderRuntime.typeClear();
++        }
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderVertexBufferMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderVertexBufferMixin.java
+index 27e9130..b368cd6 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/ShaderVertexBufferMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/ShaderVertexBufferMixin.java
+@@ -1,15 +1,15 @@
+ package com.aetherium.mixin.core;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.shader.ShaderVertex;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Mutable;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-begin v16
++import com.aetherium.shader.ShaderVertex;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Mutable;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:shader-else none
+ // @era:shader-end
+ import net.minecraft.client.Minecraft;
+ 
+@@ -19,23 +19,23 @@ import org.spongepowered.asm.mixin.Mixin;
+  * Shader pack engine (1.16.5): chunk buffers created while a pack extends the terrain format
+  * count their vertices with the extended size. Once per buffer creation.
+  */
+-// @era:shader-begin none
+-@Mixin(Minecraft.class)
+-// @era:shader-else v16
+-//~ @Mixin(targets = "com.mojang.blaze3d.vertex.VertexBuffer")
++// @era:shader-begin v16
++@Mixin(targets = "com.mojang.blaze3d.vertex.VertexBuffer")
++// @era:shader-else none
++//~ @Mixin(Minecraft.class)
+ // @era:shader-end
+ public abstract class ShaderVertexBufferMixin {
+ 
+-    // @era:shader-begin none
+-    // @era:shader-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ @Mutable
+-    //~ private VertexFormat format;
++    // @era:shader-begin v16
++    @Shadow
++    @Final
++    @Mutable
++    private VertexFormat format;
+ 
+-    //~ @Inject(method = "<init>", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$shaderFormat(final VertexFormat requested, final CallbackInfo ci) {
+-        //~ this.format = ShaderVertex.swap(this.format);
+-    //~ }
++    @Inject(method = "<init>", at = @At("TAIL"), require = 0)
++    private void aetherium$shaderFormat(final VertexFormat requested, final CallbackInfo ci) {
++        this.format = ShaderVertex.swap(this.format);
++    }
++    // @era:shader-else none
+     // @era:shader-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java b/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
 index 7594ede..70528b8 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/SkyMixin.java
@@ -14534,6 +15398,1855 @@ index 36c40a0..74897e3 100644
      // @era:q-world-end
  
      // @era:q-hand-begin v16|t17|d194|d215|s219|s262
+diff --git a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
+index 098b231..13d81ee 100644
+--- a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
++++ b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
+@@ -1,54 +1,54 @@
+ package com.aetherium.shader;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.aetherium.client.FogTracker;
+-//~ import com.aetherium.client.VertexBufferAccess;
+-//~ import com.aetherium.util.AetheriumLog;
+-//~ import com.mojang.blaze3d.pipeline.RenderTarget;
+-//~ import com.mojang.blaze3d.platform.NativeImage;
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.VertexBuffer;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import com.mojang.math.Matrix4f;
+-//~ import java.io.ByteArrayInputStream;
+-//~ import java.io.InputStream;
+-//~ import java.nio.ByteBuffer;
+-//~ import java.nio.FloatBuffer;
+-//~ import java.nio.charset.StandardCharsets;
+-//~ import java.nio.file.Files;
+-//~ import java.nio.file.Path;
+-//~ import java.util.ArrayList;
+-//~ import java.util.Collections;
+-//~ import java.util.HashMap;
+-//~ import java.util.List;
+-//~ import java.util.Map;
+-//~ import java.util.TreeMap;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.GraphicsStatus;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.multiplayer.ClientLevel;
+-//~ import net.minecraft.client.player.LocalPlayer;
+-//~ import net.minecraft.client.renderer.GameRenderer;
+-//~ import net.minecraft.client.renderer.RenderType;
+-//~ import net.minecraft.client.renderer.ViewArea;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.core.Registry;
+-//~ import net.minecraft.resources.ResourceLocation;
+-//~ import net.minecraft.tags.FluidTags;
+-//~ import net.minecraft.world.effect.MobEffects;
+-//~ import net.minecraft.world.item.BlockItem;
+-//~ import net.minecraft.world.item.ItemStack;
+-//~ import net.minecraft.world.level.Level;
+-//~ import net.minecraft.world.level.LightLayer;
+-//~ import net.minecraft.world.level.material.FluidState;
+-//~ import net.minecraft.world.phys.Vec3;
+-//~ import org.lwjgl.BufferUtils;
+-//~ import org.lwjgl.opengl.GL11;
+-//~ import org.lwjgl.opengl.GL12;
+-//~ import org.lwjgl.opengl.GL13;
++// @era:shader-begin v16
++import com.aetherium.client.FogTracker;
++import com.aetherium.client.VertexBufferAccess;
++import com.aetherium.util.AetheriumLog;
++import com.mojang.blaze3d.pipeline.RenderTarget;
++import com.mojang.blaze3d.platform.NativeImage;
++import com.mojang.blaze3d.systems.RenderSystem;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.VertexBuffer;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import com.mojang.math.Matrix4f;
++import java.io.ByteArrayInputStream;
++import java.io.InputStream;
++import java.nio.ByteBuffer;
++import java.nio.FloatBuffer;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.TreeMap;
++import net.minecraft.client.Camera;
++import net.minecraft.client.GraphicsStatus;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.client.player.LocalPlayer;
++import net.minecraft.client.renderer.GameRenderer;
++import net.minecraft.client.renderer.RenderType;
++import net.minecraft.client.renderer.ViewArea;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Registry;
++import net.minecraft.resources.ResourceLocation;
++import net.minecraft.tags.FluidTags;
++import net.minecraft.world.effect.MobEffects;
++import net.minecraft.world.item.BlockItem;
++import net.minecraft.world.item.ItemStack;
++import net.minecraft.world.level.Level;
++import net.minecraft.world.level.LightLayer;
++import net.minecraft.world.level.material.FluidState;
++import net.minecraft.world.phys.Vec3;
++import org.lwjgl.BufferUtils;
++import org.lwjgl.opengl.GL11;
++import org.lwjgl.opengl.GL12;
++import org.lwjgl.opengl.GL13;
++// @era:shader-else none
+ // @era:shader-end
+ 
+ /**
+@@ -62,663 +62,663 @@ package com.aetherium.shader;
+  * the hand) runs composite and final into the main framebuffer.</p>
+  */
+ public final class ShaderRuntime {
+-    // @era:shader-begin none
++    // @era:shader-begin v16
++    private static final AetheriumLog LOG = AetheriumLog.of(ShaderRuntime.class);
++
++    static final int PHASE_NONE = 0;
++    public static final int PHASE_SKY = 1;
++    public static final int PHASE_CLOUDS = 2;
++    public static final int PHASE_WEATHER = 3;
++    public static final int PHASE_PARTICLES = 4;
++    public static final int PHASE_BORDER = 5;
++    public static final int PHASE_SHADOW = 6;
++
++    private static ShaderPipeline pipe;
++    private static String loadedFolder = "";
++    private static boolean inWorld;
++    private static int phase;
++    private static boolean hand;
++    private static String typeProgram;
++    private static String typeHandProgram;
++    private static boolean externalProgram;
++    private static int mainFbo = -1;
++    private static int activeUnit = GL13.GL_TEXTURE0;
++    private static boolean texture0 = true;
++    private static int boundTex0;
++    private static int sunTex = -1;
++    private static int moonTex = -1;
++    private static final Map<String, String[]> TYPE_PROGRAMS = new HashMap<>();
++    private static final FloatBuffer MATRIX = BufferUtils.createFloatBuffer(16);
++    private static final FloatBuffer FOG = BufferUtils.createFloatBuffer(4);
++    private static final ResourceLocation SUN = new ResourceLocation("textures/environment/sun.png");
++    private static final ResourceLocation MOON = new ResourceLocation("textures/environment/moon_phases.png");
++
+     private ShaderRuntime() {
+     }
+-    // @era:shader-else v16
+-    //~ private static final AetheriumLog LOG = AetheriumLog.of(ShaderRuntime.class);
+-
+-    //~ static final int PHASE_NONE = 0;
+-    //~ public static final int PHASE_SKY = 1;
+-    //~ public static final int PHASE_CLOUDS = 2;
+-    //~ public static final int PHASE_WEATHER = 3;
+-    //~ public static final int PHASE_PARTICLES = 4;
+-    //~ public static final int PHASE_BORDER = 5;
+-    //~ public static final int PHASE_SHADOW = 6;
+-
+-    //~ private static ShaderPipeline pipe;
+-    //~ private static String loadedFolder = "";
+-    //~ private static boolean inWorld;
+-    //~ private static int phase;
+-    //~ private static boolean hand;
+-    //~ private static String typeProgram;
+-    //~ private static String typeHandProgram;
+-    //~ private static boolean externalProgram;
+-    //~ private static int mainFbo = -1;
+-    //~ private static int activeUnit = GL13.GL_TEXTURE0;
+-    //~ private static boolean texture0 = true;
+-    //~ private static int boundTex0;
+-    //~ private static int sunTex = -1;
+-    //~ private static int moonTex = -1;
+-    //~ private static final Map<String, String[]> TYPE_PROGRAMS = new HashMap<>();
+-    //~ private static final FloatBuffer MATRIX = BufferUtils.createFloatBuffer(16);
+-    //~ private static final FloatBuffer FOG = BufferUtils.createFloatBuffer(4);
+-    //~ private static final ResourceLocation SUN = new ResourceLocation("textures/environment/sun.png");
+-    //~ private static final ResourceLocation MOON = new ResourceLocation("textures/environment/moon_phases.png");
+ 
+-    //~ private ShaderRuntime() {
+-    //~ }
+-
+-    //~ public static boolean running() {
+-        //~ return pipe != null;
+-    //~ }
++    public static boolean running() {
++        return pipe != null;
++    }
+ 
+-    //~ // ================================================================== loading
+-
+-    //~ private static String worldFolder(final ClientLevel level) {
+-        //~ if (level == null) {
+-            //~ return "world0";
+-        //~ }
+-        //~ if (level.dimension() == Level.NETHER) {
+-            //~ return "world-1";
+-        //~ }
+-        //~ if (level.dimension() == Level.END) {
+-            //~ return "world1";
+-        //~ }
+-        //~ return "world0";
+-    //~ }
++    // ================================================================== loading
++
++    private static String worldFolder(final ClientLevel level) {
++        if (level == null) {
++            return "world0";
++        }
++        if (level.dimension() == Level.NETHER) {
++            return "world-1";
++        }
++        if (level.dimension() == Level.END) {
++            return "world1";
++        }
++        return "world0";
++    }
+ 
+-    //~ private static void reload(final Minecraft mc) {
+-        //~ final boolean wasRunning = pipe != null || ShaderVertex.extended();
+-        //~ if (pipe != null) {
+-            //~ try {
+-                //~ pipe.delete();
+-            //~ } catch (final Throwable ignored) {
+-                //~ // context trouble: the textures go with it
+-            //~ }
+-        //~ }
+-        //~ pipe = null;
+-        //~ inWorld = false;
+-        //~ TYPE_PROGRAMS.clear();
+-        //~ ShaderBridge.setGameDir(mc.gameDirectory.toPath());
+-        //~ final String name = ShaderBridge.selected();
+-        //~ if (!ShaderBridge.supported() || name.isEmpty()) {
+-            //~ ShaderVertex.configure(false, false, false, null);
+-            //~ ShaderBridge.off();
+-            //~ if (wasRunning && mc.level != null) {
+-                //~ mc.levelRenderer.allChanged();
+-            //~ }
+-            //~ return;
+-        //~ }
+-        //~ PackSource source = null;
+-        //~ try {
+-            //~ final GlCaps caps = GlCaps.read(ShaderBridge.forceCompat(), ShaderBridge.disableCompat());
+-            //~ final Map<String, String> macros = new TreeMap<>(caps.standardMacros());
+-            //~ macros.put("MC_VERSION", "11605");
+-            //~ macros.put("MC_RENDER_QUALITY", "1.0");
+-            //~ macros.put("MC_SHADOW_QUALITY", "1.0");
+-            //~ macros.put("MC_HAND_DEPTH", "0.125");
+-            //~ macros.put("AETHERIUM", "1");
+-            //~ source = ShaderBridge.LITE.equals(name) ? liteSource()
+-                    //~ : PackSource.open(ShaderBridge.shaderpacksDir().resolve(name));
+-            //~ if (source == null) {
+-                //~ throw new IllegalStateException("no shaders folder in " + name);
+-            //~ }
+-            //~ final Path optionsFile = ShaderBridge.optionsFile(name);
+-            //~ final ShaderPack pack = ShaderPack.load(name, source, macros, optionsFile, null);
+-            //~ if (ShaderBridge.applyPending(pack) && optionsFile != null) {
+-                //~ Files.createDirectories(optionsFile.getParent());
+-                //~ pack.options.save(optionsFile);
+-            //~ }
+-            //~ final String folder = worldFolder(mc.level);
+-            //~ final ShaderPipeline pl = new ShaderPipeline(pack, folder, caps, ShaderRuntime::loadTexture,
+-                    //~ caps.translator);
+-            //~ writeLog(mc, pack, pl, caps);
+-            //~ if (pl.program("gbuffers_terrain") == null && pl.program("gbuffers_textured") == null
+-                    //~ && pl.programCount() == 0) {
+-                //~ pl.delete();
+-                //~ ShaderBridge.failed(name + ": no program could be built (see logs/aetherium-shaders.log)", pl.errors);
+-                //~ ShaderVertex.configure(false, false, false, null);
+-                //~ return;
+-            //~ }
+-            //~ boolean mid = false;
+-            //~ boolean tangent = false;
+-            //~ for (final ProgramSource p : pl.set.defined.values()) {
+-                //~ mid |= p.usesMidTexCoord;
+-                //~ tangent |= p.usesTangent;
+-            //~ }
+-            //~ ShaderVertex.configure(pl.set.needsExtendedVertex(), mid, tangent, pack.blocks);
+-            //~ pipe = pl;
+-            //~ loadedFolder = folder;
+-            //~ sunTex = textureId(mc, SUN);
+-            //~ moonTex = textureId(mc, MOON);
+-            //~ ShaderBridge.loaded(pack, pl, caps.describe());
+-            //~ LOG.info("Shader pack " + name + " loaded: " + pl.summary() + " on " + caps.describe());
+-            //~ if (mc.options.graphicsMode == GraphicsStatus.FABULOUS) {
+-                //~ mc.options.graphicsMode = GraphicsStatus.FANCY; // its transparency targets bypass the pack
+-            //~ }
+-            //~ if (mc.level != null) {
+-                //~ mc.levelRenderer.allChanged(); // extended vertex format, shading, pipeline switch
+-            //~ }
+-        //~ } catch (final Throwable t) {
+-            //~ LOG.warn("Shader pack " + name + " failed to load", t);
+-            //~ pipe = null;
+-            //~ ShaderVertex.configure(false, false, false, null);
+-            //~ ShaderBridge.failed("Could not load " + name + ": " + t.getMessage(), null);
+-            //~ if (wasRunning && mc.level != null) {
+-                //~ mc.levelRenderer.allChanged();
+-            //~ }
+-        //~ } finally {
+-            //~ if (source != null) {
+-                //~ try {
+-                    //~ source.close();
+-                //~ } catch (final Exception ignored) {
+-                    //~ // read fully already
+-                //~ }
+-            //~ }
+-        //~ }
+-    //~ }
++    private static void reload(final Minecraft mc) {
++        final boolean wasRunning = pipe != null || ShaderVertex.extended();
++        if (pipe != null) {
++            try {
++                pipe.delete();
++            } catch (final Throwable ignored) {
++                // context trouble: the textures go with it
++            }
++        }
++        pipe = null;
++        inWorld = false;
++        TYPE_PROGRAMS.clear();
++        ShaderBridge.setGameDir(mc.gameDirectory.toPath());
++        final String name = ShaderBridge.selected();
++        if (!ShaderBridge.supported() || name.isEmpty()) {
++            ShaderVertex.configure(false, false, false, null);
++            ShaderBridge.off();
++            if (wasRunning && mc.level != null) {
++                mc.levelRenderer.allChanged();
++            }
++            return;
++        }
++        PackSource source = null;
++        try {
++            final GlCaps caps = GlCaps.read(ShaderBridge.forceCompat(), ShaderBridge.disableCompat());
++            final Map<String, String> macros = new TreeMap<>(caps.standardMacros());
++            macros.put("MC_VERSION", "11605");
++            macros.put("MC_RENDER_QUALITY", "1.0");
++            macros.put("MC_SHADOW_QUALITY", "1.0");
++            macros.put("MC_HAND_DEPTH", "0.125");
++            macros.put("AETHERIUM", "1");
++            source = ShaderBridge.LITE.equals(name) ? liteSource()
++                    : PackSource.open(ShaderBridge.shaderpacksDir().resolve(name));
++            if (source == null) {
++                throw new IllegalStateException("no shaders folder in " + name);
++            }
++            final Path optionsFile = ShaderBridge.optionsFile(name);
++            final ShaderPack pack = ShaderPack.load(name, source, macros, optionsFile, null);
++            if (ShaderBridge.applyPending(pack) && optionsFile != null) {
++                Files.createDirectories(optionsFile.getParent());
++                pack.options.save(optionsFile);
++            }
++            final String folder = worldFolder(mc.level);
++            final ShaderPipeline pl = new ShaderPipeline(pack, folder, caps, ShaderRuntime::loadTexture,
++                    caps.translator);
++            writeLog(mc, pack, pl, caps);
++            if (pl.program("gbuffers_terrain") == null && pl.program("gbuffers_textured") == null
++                    && pl.programCount() == 0) {
++                pl.delete();
++                ShaderBridge.failed(name + ": no program could be built (see logs/aetherium-shaders.log)", pl.errors);
++                ShaderVertex.configure(false, false, false, null);
++                return;
++            }
++            boolean mid = false;
++            boolean tangent = false;
++            for (final ProgramSource p : pl.set.defined.values()) {
++                mid |= p.usesMidTexCoord;
++                tangent |= p.usesTangent;
++            }
++            ShaderVertex.configure(pl.set.needsExtendedVertex(), mid, tangent, pack.blocks);
++            pipe = pl;
++            loadedFolder = folder;
++            sunTex = textureId(mc, SUN);
++            moonTex = textureId(mc, MOON);
++            ShaderBridge.loaded(pack, pl, caps.describe());
++            LOG.info("Shader pack " + name + " loaded: " + pl.summary() + " on " + caps.describe());
++            if (mc.options.graphicsMode == GraphicsStatus.FABULOUS) {
++                mc.options.graphicsMode = GraphicsStatus.FANCY; // its transparency targets bypass the pack
++            }
++            if (mc.level != null) {
++                mc.levelRenderer.allChanged(); // extended vertex format, shading, pipeline switch
++            }
++        } catch (final Throwable t) {
++            LOG.warn("Shader pack " + name + " failed to load", t);
++            pipe = null;
++            ShaderVertex.configure(false, false, false, null);
++            ShaderBridge.failed("Could not load " + name + ": " + t.getMessage(), null);
++            if (wasRunning && mc.level != null) {
++                mc.levelRenderer.allChanged();
++            }
++        } finally {
++            if (source != null) {
++                try {
++                    source.close();
++                } catch (final Exception ignored) {
++                    // read fully already
++                }
++            }
++        }
++    }
+ 
+-    //~ private static int textureId(final Minecraft mc, final ResourceLocation loc) {
+-        //~ try {
+-            //~ mc.getTextureManager().bind(loc);
+-            //~ return mc.getTextureManager().getTexture(loc).getId();
+-        //~ } catch (final Throwable t) {
+-            //~ return -1;
+-        //~ }
+-    //~ }
++    private static int textureId(final Minecraft mc, final ResourceLocation loc) {
++        try {
++            mc.getTextureManager().bind(loc);
++            return mc.getTextureManager().getTexture(loc).getId();
++        } catch (final Throwable t) {
++            return -1;
++        }
++    }
+ 
+-    //~ /** The bundled pack, read from the jar through its file index. */
+-    //~ private static PackSource liteSource() throws Exception {
+-        //~ final String root = "/assets/aetherium/shaderpacks/lite/";
+-        //~ final Map<String, byte[]> files = new HashMap<>();
+-        //~ final byte[] index = resource(root + "files.txt");
+-        //~ if (index == null) {
+-            //~ return null;
+-        //~ }
+-        //~ for (final String line : new String(index, StandardCharsets.UTF_8).split("\n")) {
+-            //~ final String f = line.trim();
+-            //~ if (f.isEmpty()) {
+-                //~ continue;
+-            //~ }
+-            //~ final byte[] data = resource(root + "shaders/" + f);
+-            //~ if (data != null) {
+-                //~ files.put(f, data);
+-            //~ }
+-        //~ }
+-        //~ return new PackSource.Memory(files);
+-    //~ }
++    /** The bundled pack, read from the jar through its file index. */
++    private static PackSource liteSource() throws Exception {
++        final String root = "/assets/aetherium/shaderpacks/lite/";
++        final Map<String, byte[]> files = new HashMap<>();
++        final byte[] index = resource(root + "files.txt");
++        if (index == null) {
++            return null;
++        }
++        for (final String line : new String(index, StandardCharsets.UTF_8).split("\n")) {
++            final String f = line.trim();
++            if (f.isEmpty()) {
++                continue;
++            }
++            final byte[] data = resource(root + "shaders/" + f);
++            if (data != null) {
++                files.put(f, data);
++            }
++        }
++        return new PackSource.Memory(files);
++    }
+ 
+-    //~ private static byte[] resource(final String path) throws Exception {
+-        //~ try (InputStream in = ShaderRuntime.class.getResourceAsStream(path)) {
+-            //~ if (in == null) {
+-                //~ return null;
+-            //~ }
+-            //~ final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+-            //~ final byte[] buf = new byte[8192];
+-            //~ int n;
+-            //~ while ((n = in.read(buf)) > 0) {
+-                //~ out.write(buf, 0, n);
+-            //~ }
+-            //~ return out.toByteArray();
+-        //~ }
+-    //~ }
++    private static byte[] resource(final String path) throws Exception {
++        try (InputStream in = ShaderRuntime.class.getResourceAsStream(path)) {
++            if (in == null) {
++                return null;
++            }
++            final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
++            final byte[] buf = new byte[8192];
++            int n;
++            while ((n = in.read(buf)) > 0) {
++                out.write(buf, 0, n);
++            }
++            return out.toByteArray();
++        }
++    }
+ 
+-    //~ private static int loadTexture(final byte[] png, final boolean blur, final boolean clamp) {
+-        //~ try (NativeImage img = NativeImage.read(new ByteArrayInputStream(png))) {
+-            //~ final int w = img.getWidth();
+-            //~ final int h = img.getHeight();
+-            //~ final ByteBuffer px = BufferUtils.createByteBuffer(w * h * 4);
+-            //~ for (int y = 0; y < h; y++) {
+-                //~ for (int x = 0; x < w; x++) {
+-                    //~ final int abgr = img.getPixelRGBA(x, y);
+-                    //~ px.put((byte) abgr).put((byte) (abgr >> 8)).put((byte) (abgr >> 16)).put((byte) (abgr >>> 24));
+-                //~ }
+-            //~ }
+-            //~ px.flip();
+-            //~ final int t = GL11.glGenTextures();
+-            //~ GL11.glBindTexture(GL11.GL_TEXTURE_2D, t);
+-            //~ final int filter = blur ? GL11.GL_LINEAR : GL11.GL_NEAREST;
+-            //~ GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, filter);
+-            //~ GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, filter);
+-            //~ final int wrap = clamp ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_REPEAT;
+-            //~ GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, wrap);
+-            //~ GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, wrap);
+-            //~ GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, w, h, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, px);
+-            //~ return t;
+-        //~ } catch (final Throwable t) {
+-            //~ return 0;
+-        //~ }
+-    //~ }
++    private static int loadTexture(final byte[] png, final boolean blur, final boolean clamp) {
++        try (NativeImage img = NativeImage.read(new ByteArrayInputStream(png))) {
++            final int w = img.getWidth();
++            final int h = img.getHeight();
++            final ByteBuffer px = BufferUtils.createByteBuffer(w * h * 4);
++            for (int y = 0; y < h; y++) {
++                for (int x = 0; x < w; x++) {
++                    final int abgr = img.getPixelRGBA(x, y);
++                    px.put((byte) abgr).put((byte) (abgr >> 8)).put((byte) (abgr >> 16)).put((byte) (abgr >>> 24));
++                }
++            }
++            px.flip();
++            final int t = GL11.glGenTextures();
++            GL11.glBindTexture(GL11.GL_TEXTURE_2D, t);
++            final int filter = blur ? GL11.GL_LINEAR : GL11.GL_NEAREST;
++            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, filter);
++            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, filter);
++            final int wrap = clamp ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_REPEAT;
++            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, wrap);
++            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, wrap);
++            GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, w, h, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, px);
++            return t;
++        } catch (final Throwable t) {
++            return 0;
++        }
++    }
+ 
+-    //~ private static void writeLog(final Minecraft mc, final ShaderPack pack, final ShaderPipeline pl, final GlCaps caps) {
+-        //~ try {
+-            //~ final Path log = mc.gameDirectory.toPath().resolve("logs").resolve("aetherium-shaders.log");
+-            //~ Files.createDirectories(log.getParent());
+-            //~ final List<String> lines = new ArrayList<>();
+-            //~ lines.add("Shader pack: " + pack.name);
+-            //~ lines.add("Device: " + caps.describe());
+-            //~ lines.add("Result: " + pl.summary());
+-            //~ lines.add("");
+-            //~ for (final String e : pl.errors) {
+-                //~ lines.add("ERROR " + e);
+-            //~ }
+-            //~ for (final String w : pl.warnings) {
+-                //~ lines.add("WARN  " + w);
+-            //~ }
+-            //~ Files.write(log, lines, StandardCharsets.UTF_8);
+-            //~ for (final String e : pl.errors) {
+-                //~ LOG.warn("Shader program failed: " + e);
+-            //~ }
+-        //~ } catch (final Throwable ignored) {
+-            //~ // the status line still shows the count
+-        //~ }
+-    //~ }
++    private static void writeLog(final Minecraft mc, final ShaderPack pack, final ShaderPipeline pl, final GlCaps caps) {
++        try {
++            final Path log = mc.gameDirectory.toPath().resolve("logs").resolve("aetherium-shaders.log");
++            Files.createDirectories(log.getParent());
++            final List<String> lines = new ArrayList<>();
++            lines.add("Shader pack: " + pack.name);
++            lines.add("Device: " + caps.describe());
++            lines.add("Result: " + pl.summary());
++            lines.add("");
++            for (final String e : pl.errors) {
++                lines.add("ERROR " + e);
++            }
++            for (final String w : pl.warnings) {
++                lines.add("WARN  " + w);
++            }
++            Files.write(log, lines, StandardCharsets.UTF_8);
++            for (final String e : pl.errors) {
++                LOG.warn("Shader program failed: " + e);
++            }
++        } catch (final Throwable ignored) {
++            // the status line still shows the count
++        }
++    }
+ 
+-    //~ private static void fail(final Throwable t) {
+-        //~ LOG.warn("Shader pack stopped after an error while drawing", t);
+-        //~ final ShaderPipeline p = pipe;
+-        //~ pipe = null;
+-        //~ inWorld = false;
+-        //~ phase = PHASE_NONE;
+-        //~ if (p != null) {
+-            //~ try {
+-                //~ p.delete();
+-            //~ } catch (final Throwable ignored) {
+-                //~ // nothing more to do
+-            //~ }
+-        //~ }
+-        //~ ShaderVertex.configure(false, false, false, null);
+-        //~ ShaderBridge.broken(String.valueOf(t));
+-        //~ final Minecraft mc = Minecraft.getInstance();
+-        //~ if (mc.level != null) {
+-            //~ mc.levelRenderer.allChanged();
+-        //~ }
+-    //~ }
++    private static void fail(final Throwable t) {
++        LOG.warn("Shader pack stopped after an error while drawing", t);
++        final ShaderPipeline p = pipe;
++        pipe = null;
++        inWorld = false;
++        phase = PHASE_NONE;
++        if (p != null) {
++            try {
++                p.delete();
++            } catch (final Throwable ignored) {
++                // nothing more to do
++            }
++        }
++        ShaderVertex.configure(false, false, false, null);
++        ShaderBridge.broken(String.valueOf(t));
++        final Minecraft mc = Minecraft.getInstance();
++        if (mc.level != null) {
++            mc.levelRenderer.allChanged();
++        }
++    }
+ 
+-    //~ // ================================================================== frame
+-
+-    //~ /** LevelRenderer.renderLevel HEAD. */
+-    //~ public static void frameStart(final ViewArea viewArea, final PoseStack pose, final float partial,
+-                                  //~ final Camera camera, final Matrix4f projection) {
+-        //~ final Minecraft mc = Minecraft.getInstance();
+-        //~ if (ShaderBridge.takeReload() || (pipe != null && !worldFolder(mc.level).equals(loadedFolder))) {
+-            //~ reload(mc);
+-        //~ }
+-        //~ final ShaderPipeline p = pipe;
+-        //~ inWorld = false;
+-        //~ phase = PHASE_NONE;
+-        //~ hand = false;
+-        //~ if (p == null) {
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ final RenderTarget main = mc.getMainRenderTarget();
+-            //~ mainFbo = main.frameBufferId;
+-            //~ fill(p.frame, mc, pose, partial, camera, projection, main);
+-            //~ p.beginWorld(main.width, main.height);
+-            //~ inWorld = true;
+-            //~ if (p.shadowEnabled && viewArea != null) {
+-                //~ shadowPass(p, viewArea, camera);
+-            //~ }
+-            //~ p.afterShadow();
+-        //~ } catch (final Throwable t) {
+-            //~ fail(t);
+-        //~ }
+-    //~ }
++    // ================================================================== frame
++
++    /** LevelRenderer.renderLevel HEAD. */
++    public static void frameStart(final ViewArea viewArea, final PoseStack pose, final float partial,
++                                  final Camera camera, final Matrix4f projection) {
++        final Minecraft mc = Minecraft.getInstance();
++        if (ShaderBridge.takeReload() || (pipe != null && !worldFolder(mc.level).equals(loadedFolder))) {
++            reload(mc);
++        }
++        final ShaderPipeline p = pipe;
++        inWorld = false;
++        phase = PHASE_NONE;
++        hand = false;
++        if (p == null) {
++            return;
++        }
++        try {
++            final RenderTarget main = mc.getMainRenderTarget();
++            mainFbo = main.frameBufferId;
++            fill(p.frame, mc, pose, partial, camera, projection, main);
++            p.beginWorld(main.width, main.height);
++            inWorld = true;
++            if (p.shadowEnabled && viewArea != null) {
++                shadowPass(p, viewArea, camera);
++            }
++            p.afterShadow();
++        } catch (final Throwable t) {
++            fail(t);
++        }
++    }
+ 
+-    //~ private static void read(final FloatBuffer from, final float[] to) {
+-        //~ for (int i = 0; i < 16; i++) {
+-            //~ to[i] = from.get(i);
+-        //~ }
+-    //~ }
++    private static void read(final FloatBuffer from, final float[] to) {
++        for (int i = 0; i < 16; i++) {
++            to[i] = from.get(i);
++        }
++    }
+ 
+-    //~ private static void fill(final FrameState f, final Minecraft mc, final PoseStack pose, final float partial,
+-                             //~ final Camera camera, final Matrix4f projection, final RenderTarget main) {
+-        //~ f.beginFrame(System.nanoTime());
+-        //~ f.viewWidth = main.width;
+-        //~ f.viewHeight = main.height;
+-        //~ MATRIX.clear();
+-        //~ pose.last().pose().store(MATRIX);
+-        //~ read(MATRIX, f.modelView);
+-        //~ MATRIX.clear();
+-        //~ projection.store(MATRIX);
+-        //~ read(MATRIX, f.projection);
+-        //~ final Vec3 cam = camera.getPosition();
+-        //~ f.camX = cam.x;
+-        //~ f.camY = cam.y;
+-        //~ f.camZ = cam.z;
+-        //~ f.eyeAltitude = (float) cam.y;
+-        //~ f.near = 0.05f;
+-        //~ f.far = mc.gameRenderer.getRenderDistance();
+-        //~ final ClientLevel level = mc.level;
+-        //~ if (level != null) {
+-            //~ final long day = level.getDayTime();
+-            //~ f.worldTime = day;
+-            //~ f.skyAngle = level.dimensionType().timeOfDay(day);
+-            //~ f.moonPhase = level.dimensionType().moonPhase(day);
+-            //~ f.rainStrength = level.getRainLevel(partial);
+-            //~ f.thunderStrength = level.getThunderLevel(partial);
+-            //~ final BlockPos at = camera.getBlockPosition();
+-            //~ final Vec3 sky = level.getSkyColor(at, partial);
+-            //~ f.skyColor[0] = (float) sky.x;
+-            //~ f.skyColor[1] = (float) sky.y;
+-            //~ f.skyColor[2] = (float) sky.z;
+-            //~ f.eyeBlockLight = level.getBrightness(LightLayer.BLOCK, at) * 16;
+-            //~ f.eyeSkyLight = level.getBrightness(LightLayer.SKY, at) * 16;
+-        //~ }
+-        //~ FOG.clear();
+-        //~ FogTracker.copyColor(FOG);
+-        //~ f.fogColor[0] = FOG.get(0);
+-        //~ f.fogColor[1] = FOG.get(1);
+-        //~ f.fogColor[2] = FOG.get(2);
+-        //~ f.fogMode = FogTracker.mode();
+-        //~ f.fogStart = FogTracker.start();
+-        //~ f.fogEnd = FogTracker.end();
+-        //~ f.fogDensity = FogTracker.density();
+-        //~ final FluidState fluid = camera.getFluidInCamera();
+-        //~ f.isEyeInWater = fluid.isEmpty() ? 0 : fluid.is(FluidTags.WATER) ? 1 : fluid.is(FluidTags.LAVA) ? 2 : 0;
+-        //~ f.screenBrightness = (float) mc.options.gamma;
+-        //~ f.hideGUI = mc.options.hideGui;
+-        //~ final LocalPlayer player = mc.player;
+-        //~ if (player != null) {
+-            //~ f.nightVision = player.hasEffect(MobEffects.NIGHT_VISION) ? GameRenderer.getNightVisionScale(player, partial)
+-                    //~ : 0;
+-            //~ f.blindness = player.hasEffect(MobEffects.BLINDNESS) ? 1 : 0;
+-            //~ f.sneaking = player.isCrouching();
+-            //~ f.sprinting = player.isSprinting();
+-            //~ f.hurt = player.hurtTime > 0;
+-            //~ f.invisible = player.isInvisible();
+-            //~ f.burning = player.isOnFire();
+-            //~ f.onGround = player.isOnGround();
+-            //~ final ShaderPack pack = pipe.pack;
+-            //~ held(f, pack, player.getMainHandItem(), true);
+-            //~ held(f, pack, player.getOffhandItem(), false);
+-        //~ }
+-        //~ f.finishFrame();
+-    //~ }
++    private static void fill(final FrameState f, final Minecraft mc, final PoseStack pose, final float partial,
++                             final Camera camera, final Matrix4f projection, final RenderTarget main) {
++        f.beginFrame(System.nanoTime());
++        f.viewWidth = main.width;
++        f.viewHeight = main.height;
++        MATRIX.clear();
++        pose.last().pose().store(MATRIX);
++        read(MATRIX, f.modelView);
++        MATRIX.clear();
++        projection.store(MATRIX);
++        read(MATRIX, f.projection);
++        final Vec3 cam = camera.getPosition();
++        f.camX = cam.x;
++        f.camY = cam.y;
++        f.camZ = cam.z;
++        f.eyeAltitude = (float) cam.y;
++        f.near = 0.05f;
++        f.far = mc.gameRenderer.getRenderDistance();
++        final ClientLevel level = mc.level;
++        if (level != null) {
++            final long day = level.getDayTime();
++            f.worldTime = day;
++            f.skyAngle = level.dimensionType().timeOfDay(day);
++            f.moonPhase = level.dimensionType().moonPhase(day);
++            f.rainStrength = level.getRainLevel(partial);
++            f.thunderStrength = level.getThunderLevel(partial);
++            final BlockPos at = camera.getBlockPosition();
++            final Vec3 sky = level.getSkyColor(at, partial);
++            f.skyColor[0] = (float) sky.x;
++            f.skyColor[1] = (float) sky.y;
++            f.skyColor[2] = (float) sky.z;
++            f.eyeBlockLight = level.getBrightness(LightLayer.BLOCK, at) * 16;
++            f.eyeSkyLight = level.getBrightness(LightLayer.SKY, at) * 16;
++        }
++        FOG.clear();
++        FogTracker.copyColor(FOG);
++        f.fogColor[0] = FOG.get(0);
++        f.fogColor[1] = FOG.get(1);
++        f.fogColor[2] = FOG.get(2);
++        f.fogMode = FogTracker.mode();
++        f.fogStart = FogTracker.start();
++        f.fogEnd = FogTracker.end();
++        f.fogDensity = FogTracker.density();
++        final FluidState fluid = camera.getFluidInCamera();
++        f.isEyeInWater = fluid.isEmpty() ? 0 : fluid.is(FluidTags.WATER) ? 1 : fluid.is(FluidTags.LAVA) ? 2 : 0;
++        f.screenBrightness = (float) mc.options.gamma;
++        f.hideGUI = mc.options.hideGui;
++        final LocalPlayer player = mc.player;
++        if (player != null) {
++            f.nightVision = player.hasEffect(MobEffects.NIGHT_VISION) ? GameRenderer.getNightVisionScale(player, partial)
++                    : 0;
++            f.blindness = player.hasEffect(MobEffects.BLINDNESS) ? 1 : 0;
++            f.sneaking = player.isCrouching();
++            f.sprinting = player.isSprinting();
++            f.hurt = player.hurtTime > 0;
++            f.invisible = player.isInvisible();
++            f.burning = player.isOnFire();
++            f.onGround = player.isOnGround();
++            final ShaderPack pack = pipe.pack;
++            held(f, pack, player.getMainHandItem(), true);
++            held(f, pack, player.getOffhandItem(), false);
++        }
++        f.finishFrame();
++    }
+ 
+-    //~ private static void held(final FrameState f, final ShaderPack pack, final ItemStack stack, final boolean main) {
+-        //~ int id = -1;
+-        //~ int light = 0;
+-        //~ if (!stack.isEmpty()) {
+-            //~ final String name = Registry.ITEM.getKey(stack.getItem()).toString();
+-            //~ id = pack.items == null ? -1 : pack.items.lookup(name, Collections.<String, String>emptyMap(), -1);
+-            //~ if (stack.getItem() instanceof BlockItem) {
+-                //~ light = ((BlockItem) stack.getItem()).getBlock().defaultBlockState().getLightEmission();
+-            //~ }
+-        //~ }
+-        //~ if (main) {
+-            //~ f.heldItemId = id;
+-            //~ f.heldBlockLightValue = light;
+-        //~ } else {
+-            //~ f.heldItemId2 = id;
+-            //~ f.heldBlockLightValue2 = light;
+-        //~ }
+-    //~ }
++    private static void held(final FrameState f, final ShaderPack pack, final ItemStack stack, final boolean main) {
++        int id = -1;
++        int light = 0;
++        if (!stack.isEmpty()) {
++            final String name = Registry.ITEM.getKey(stack.getItem()).toString();
++            id = pack.items == null ? -1 : pack.items.lookup(name, Collections.<String, String>emptyMap(), -1);
++            if (stack.getItem() instanceof BlockItem) {
++                light = ((BlockItem) stack.getItem()).getBlock().defaultBlockState().getLightEmission();
++            }
++        }
++        if (main) {
++            f.heldItemId = id;
++            f.heldBlockLightValue = light;
++        } else {
++            f.heldItemId2 = id;
++            f.heldBlockLightValue2 = light;
++        }
++    }
+ 
+-    //~ private static void shadowPass(final ShaderPipeline p, final ViewArea viewArea, final Camera camera) {
+-        //~ phase = PHASE_SHADOW;
+-        //~ p.beginShadow();
+-        //~ RenderSystem.disableCull();
+-        //~ final Vec3 cam = camera.getPosition();
+-        //~ final float reach = p.shadowRenderDistance + 16;
+-        //~ shadowLayer(p, viewArea, RenderType.solid(), cam, reach);
+-        //~ shadowLayer(p, viewArea, RenderType.cutoutMipped(), cam, reach);
+-        //~ shadowLayer(p, viewArea, RenderType.cutout(), cam, reach);
+-        //~ if (p.shadowTranslucent) {
+-            //~ shadowLayer(p, viewArea, RenderType.translucent(), cam, reach);
+-        //~ }
+-        //~ RenderSystem.enableCull();
+-        //~ p.endShadow();
+-        //~ phase = PHASE_NONE;
+-    //~ }
++    private static void shadowPass(final ShaderPipeline p, final ViewArea viewArea, final Camera camera) {
++        phase = PHASE_SHADOW;
++        p.beginShadow();
++        RenderSystem.disableCull();
++        final Vec3 cam = camera.getPosition();
++        final float reach = p.shadowRenderDistance + 16;
++        shadowLayer(p, viewArea, RenderType.solid(), cam, reach);
++        shadowLayer(p, viewArea, RenderType.cutoutMipped(), cam, reach);
++        shadowLayer(p, viewArea, RenderType.cutout(), cam, reach);
++        if (p.shadowTranslucent) {
++            shadowLayer(p, viewArea, RenderType.translucent(), cam, reach);
++        }
++        RenderSystem.enableCull();
++        p.endShadow();
++        phase = PHASE_NONE;
++    }
+ 
+-    //~ private static void shadowLayer(final ShaderPipeline p, final ViewArea viewArea, final RenderType type,
+-                                    //~ final Vec3 cam, final float reach) {
+-        //~ final ChunkRenderDispatcher.RenderChunk[] chunks = viewArea.chunks;
+-        //~ if (chunks == null) {
+-            //~ return;
+-        //~ }
+-        //~ type.setupRenderState();
+-        //~ final VertexFormat format = ShaderVertex.chunkFormat();
+-        //~ boolean any = false;
+-        //~ for (final ChunkRenderDispatcher.RenderChunk chunk : chunks) {
+-            //~ if (chunk == null || chunk.getCompiledChunk().isEmpty(type)) {
+-                //~ continue;
+-            //~ }
+-            //~ final BlockPos origin = chunk.getOrigin();
+-            //~ final float dx = (float) (origin.getX() - cam.x);
+-            //~ final float dy = (float) (origin.getY() - cam.y);
+-            //~ final float dz = (float) (origin.getZ() - cam.z);
+-            //~ if (Math.abs(dx + 8) > reach || Math.abs(dz + 8) > reach || Math.abs(dy + 8) > reach + 64) {
+-                //~ continue;
+-            //~ }
+-            //~ final VertexBuffer buffer = chunk.getBuffer(type);
+-            //~ final int count = ((VertexBufferAccess) buffer).aetheriumVertexCount();
+-            //~ if (count <= 0) {
+-                //~ continue;
+-            //~ }
+-            //~ GL11.glLoadMatrixf(p.shadowChunkMatrix(dx, dy, dz));
+-            //~ buffer.bind();
+-            //~ format.setupBufferState(0L);
+-            //~ RenderSystem.drawArrays(GL11.GL_QUADS, 0, count);
+-            //~ any = true;
+-        //~ }
+-        //~ if (any) {
+-            //~ VertexBuffer.unbind();
+-            //~ format.clearBufferState();
+-        //~ }
+-        //~ type.clearRenderState();
+-    //~ }
++    private static void shadowLayer(final ShaderPipeline p, final ViewArea viewArea, final RenderType type,
++                                    final Vec3 cam, final float reach) {
++        final ChunkRenderDispatcher.RenderChunk[] chunks = viewArea.chunks;
++        if (chunks == null) {
++            return;
++        }
++        type.setupRenderState();
++        final VertexFormat format = ShaderVertex.chunkFormat();
++        boolean any = false;
++        for (final ChunkRenderDispatcher.RenderChunk chunk : chunks) {
++            if (chunk == null || chunk.getCompiledChunk().isEmpty(type)) {
++                continue;
++            }
++            final BlockPos origin = chunk.getOrigin();
++            final float dx = (float) (origin.getX() - cam.x);
++            final float dy = (float) (origin.getY() - cam.y);
++            final float dz = (float) (origin.getZ() - cam.z);
++            if (Math.abs(dx + 8) > reach || Math.abs(dz + 8) > reach || Math.abs(dy + 8) > reach + 64) {
++                continue;
++            }
++            final VertexBuffer buffer = chunk.getBuffer(type);
++            final int count = ((VertexBufferAccess) buffer).aetheriumVertexCount();
++            if (count <= 0) {
++                continue;
++            }
++            GL11.glLoadMatrixf(p.shadowChunkMatrix(dx, dy, dz));
++            buffer.bind();
++            format.setupBufferState(0L);
++            RenderSystem.drawArrays(GL11.GL_QUADS, 0, count);
++            any = true;
++        }
++        if (any) {
++            VertexBuffer.unbind();
++            format.clearBufferState();
++        }
++        type.clearRenderState();
++    }
+ 
+-    //~ /** GameRenderer.renderLevel RETURN: composite and final into the main framebuffer. */
+-    //~ public static void frameEnd() {
+-        //~ if (!inWorld) {
+-            //~ return;
+-        //~ }
+-        //~ inWorld = false;
+-        //~ phase = PHASE_NONE;
+-        //~ hand = false;
+-        //~ final ShaderPipeline p = pipe;
+-        //~ if (p == null) {
+-            //~ return;
+-        //~ }
+-        //~ try {
+-            //~ p.endWorld(mainFbo);
+-        //~ } catch (final Throwable t) {
+-            //~ fail(t);
+-        //~ }
+-    //~ }
++    /** GameRenderer.renderLevel RETURN: composite and final into the main framebuffer. */
++    public static void frameEnd() {
++        if (!inWorld) {
++            return;
++        }
++        inWorld = false;
++        phase = PHASE_NONE;
++        hand = false;
++        final ShaderPipeline p = pipe;
++        if (p == null) {
++            return;
++        }
++        try {
++            p.endWorld(mainFbo);
++        } catch (final Throwable t) {
++            fail(t);
++        }
++    }
+ 
+-    //~ // ================================================================== draw hooks
+-
+-    //~ /** GlStateManager._drawArrays HEAD; true = skip this draw. */
+-    //~ public static boolean beforeDraw() {
+-        //~ final ShaderPipeline p = pipe;
+-        //~ if (!inWorld || p == null || externalProgram) {
+-            //~ return false;
+-        //~ }
+-        //~ try {
+-            //~ if (phase == PHASE_SHADOW) {
+-                //~ p.beforeShadowDraw();
+-                //~ return false;
+-            //~ }
+-            //~ if (phase == PHASE_SKY && texture0 && boundTex0 > 0
+-                    //~ && ((!p.sun && boundTex0 == sunTex) || (!p.moon && boundTex0 == moonTex))) {
+-                //~ return true;
+-            //~ }
+-            //~ p.beforeDraw(programName());
+-        //~ } catch (final Throwable t) {
+-            //~ fail(t);
+-        //~ }
+-        //~ return false;
+-    //~ }
++    // ================================================================== draw hooks
++
++    /** GlStateManager._drawArrays HEAD; true = skip this draw. */
++    public static boolean beforeDraw() {
++        final ShaderPipeline p = pipe;
++        if (!inWorld || p == null || externalProgram) {
++            return false;
++        }
++        try {
++            if (phase == PHASE_SHADOW) {
++                p.beforeShadowDraw();
++                return false;
++            }
++            if (phase == PHASE_SKY && texture0 && boundTex0 > 0
++                    && ((!p.sun && boundTex0 == sunTex) || (!p.moon && boundTex0 == moonTex))) {
++                return true;
++            }
++            p.beforeDraw(programName());
++        } catch (final Throwable t) {
++            fail(t);
++        }
++        return false;
++    }
+ 
+-    //~ private static String programName() {
+-        //~ if (typeProgram != null) {
+-            //~ return hand ? typeHandProgram : typeProgram;
+-        //~ }
+-        //~ switch (phase) {
+-            //~ case PHASE_SKY:
+-                //~ return texture0 ? "gbuffers_skytextured" : "gbuffers_skybasic";
+-            //~ case PHASE_CLOUDS:
+-                //~ return "gbuffers_clouds";
+-            //~ case PHASE_WEATHER:
+-                //~ return "gbuffers_weather";
+-            //~ case PHASE_PARTICLES:
+-            //~ case PHASE_BORDER:
+-                //~ return "gbuffers_textured_lit";
+-            //~ default:
+-                //~ if (hand) {
+-                    //~ return "gbuffers_hand";
+-                //~ }
+-                //~ return texture0 ? "gbuffers_textured_lit" : "gbuffers_basic";
+-        //~ }
+-    //~ }
++    private static String programName() {
++        if (typeProgram != null) {
++            return hand ? typeHandProgram : typeProgram;
++        }
++        switch (phase) {
++            case PHASE_SKY:
++                return texture0 ? "gbuffers_skytextured" : "gbuffers_skybasic";
++            case PHASE_CLOUDS:
++                return "gbuffers_clouds";
++            case PHASE_WEATHER:
++                return "gbuffers_weather";
++            case PHASE_PARTICLES:
++            case PHASE_BORDER:
++                return "gbuffers_textured_lit";
++            default:
++                if (hand) {
++                    return "gbuffers_hand";
++                }
++                return texture0 ? "gbuffers_textured_lit" : "gbuffers_basic";
++        }
++    }
+ 
+-    //~ /** RenderStateShard.setupRenderState of a RenderType. */
+-    //~ public static void typeSetup(final String name) {
+-        //~ if (pipe == null) {
+-            //~ return;
+-        //~ }
+-        //~ String[] programs = TYPE_PROGRAMS.get(name);
+-        //~ if (programs == null) {
+-            //~ programs = programsFor(name);
+-            //~ TYPE_PROGRAMS.put(name, programs);
+-        //~ }
+-        //~ typeProgram = programs[0];
+-        //~ typeHandProgram = programs[1];
+-    //~ }
++    /** RenderStateShard.setupRenderState of a RenderType. */
++    public static void typeSetup(final String name) {
++        if (pipe == null) {
++            return;
++        }
++        String[] programs = TYPE_PROGRAMS.get(name);
++        if (programs == null) {
++            programs = programsFor(name);
++            TYPE_PROGRAMS.put(name, programs);
++        }
++        typeProgram = programs[0];
++        typeHandProgram = programs[1];
++    }
+ 
+-    //~ public static void typeClear() {
+-        //~ typeProgram = null;
+-        //~ typeHandProgram = null;
+-    //~ }
++    public static void typeClear() {
++        typeProgram = null;
++        typeHandProgram = null;
++    }
+ 
+-    //~ /** {gbuffers program, program inside the hand pass}; nulls = fixed function. */
+-    //~ static String[] programsFor(final String type) {
+-        //~ switch (type) {
+-            //~ case "solid":
+-            //~ case "cutout_mipped":
+-            //~ case "cutout":
+-                //~ return new String[] {"gbuffers_terrain", "gbuffers_hand"};
+-            //~ case "translucent":
+-            //~ case "translucent_moving_block":
+-            //~ case "translucent_no_crumbling":
+-            //~ case "tripwire":
+-                //~ return new String[] {"gbuffers_water", "gbuffers_hand_water"};
+-            //~ case "crumbling":
+-                //~ return new String[] {"gbuffers_damagedblock", "gbuffers_damagedblock"};
+-            //~ case "eyes":
+-                //~ return new String[] {"gbuffers_spidereyes", "gbuffers_spidereyes"};
+-            //~ case "beacon_beam":
+-                //~ return new String[] {"gbuffers_beaconbeam", "gbuffers_beaconbeam"};
+-            //~ case "lines":
+-                //~ return new String[] {"gbuffers_line", "gbuffers_line"};
+-            //~ case "lightning":
+-            //~ case "leash":
+-                //~ return new String[] {"gbuffers_basic", "gbuffers_basic"};
+-            //~ case "entity_shadow":
+-                //~ return new String[] {"gbuffers_textured_lit", "gbuffers_textured_lit"};
+-            //~ case "end_portal":
+-            //~ case "end_gateway":
+-            //~ case "outline":
+-            //~ case "water_mask":
+-                //~ return new String[] {null, null};
+-            //~ default:
+-                //~ break;
+-        //~ }
+-        //~ if (type.contains("glint")) {
+-            //~ return new String[] {"gbuffers_armor_glint", "gbuffers_armor_glint"};
+-        //~ }
+-        //~ if (type.startsWith("entity") || type.startsWith("armor") || type.startsWith("item_entity")
+-                //~ || type.startsWith("text") || type.startsWith("energy_swirl")) {
+-            //~ final boolean translucent = type.contains("translucent");
+-            //~ return new String[] {"gbuffers_entities", translucent ? "gbuffers_hand_water" : "gbuffers_hand"};
+-        //~ }
+-        //~ return new String[] {"gbuffers_textured_lit", "gbuffers_hand"};
+-    //~ }
++    /** {gbuffers program, program inside the hand pass}; nulls = fixed function. */
++    static String[] programsFor(final String type) {
++        switch (type) {
++            case "solid":
++            case "cutout_mipped":
++            case "cutout":
++                return new String[] {"gbuffers_terrain", "gbuffers_hand"};
++            case "translucent":
++            case "translucent_moving_block":
++            case "translucent_no_crumbling":
++            case "tripwire":
++                return new String[] {"gbuffers_water", "gbuffers_hand_water"};
++            case "crumbling":
++                return new String[] {"gbuffers_damagedblock", "gbuffers_damagedblock"};
++            case "eyes":
++                return new String[] {"gbuffers_spidereyes", "gbuffers_spidereyes"};
++            case "beacon_beam":
++                return new String[] {"gbuffers_beaconbeam", "gbuffers_beaconbeam"};
++            case "lines":
++                return new String[] {"gbuffers_line", "gbuffers_line"};
++            case "lightning":
++            case "leash":
++                return new String[] {"gbuffers_basic", "gbuffers_basic"};
++            case "entity_shadow":
++                return new String[] {"gbuffers_textured_lit", "gbuffers_textured_lit"};
++            case "end_portal":
++            case "end_gateway":
++            case "outline":
++            case "water_mask":
++                return new String[] {null, null};
++            default:
++                break;
++        }
++        if (type.contains("glint")) {
++            return new String[] {"gbuffers_armor_glint", "gbuffers_armor_glint"};
++        }
++        if (type.startsWith("entity") || type.startsWith("armor") || type.startsWith("item_entity")
++                || type.startsWith("text") || type.startsWith("energy_swirl")) {
++            final boolean translucent = type.contains("translucent");
++            return new String[] {"gbuffers_entities", translucent ? "gbuffers_hand_water" : "gbuffers_hand"};
++        }
++        return new String[] {"gbuffers_textured_lit", "gbuffers_hand"};
++    }
+ 
+-    //~ public static void setPhase(final int newPhase) {
+-        //~ if (pipe != null && inWorld) {
+-            //~ phase = newPhase;
+-        //~ }
+-    //~ }
++    public static void setPhase(final int newPhase) {
++        if (pipe != null && inWorld) {
++            phase = newPhase;
++        }
++    }
+ 
+-    //~ public static void endPhase(final int oldPhase) {
+-        //~ if (phase == oldPhase) {
+-            //~ phase = PHASE_NONE;
+-        //~ }
+-    //~ }
++    public static void endPhase(final int oldPhase) {
++        if (phase == oldPhase) {
++            phase = PHASE_NONE;
++        }
++    }
+ 
+-    //~ public static boolean cloudsOff() {
+-        //~ final ShaderPipeline p = pipe;
+-        //~ return p != null && "off".equalsIgnoreCase(p.clouds.trim());
+-    //~ }
++    public static boolean cloudsOff() {
++        final ShaderPipeline p = pipe;
++        return p != null && "off".equalsIgnoreCase(p.clouds.trim());
++    }
+ 
+-    //~ public static void handPhase(final boolean on) {
+-        //~ hand = on && pipe != null && inWorld;
+-    //~ }
++    public static void handPhase(final boolean on) {
++        hand = on && pipe != null && inWorld;
++    }
+ 
+-    //~ /** GameRenderer.renderLevel: skip the depth clear before the hand (the hand is depth-scaled instead). */
+-    //~ public static boolean skipHandDepthClear(final int mask) {
+-        //~ return mask == GL11.GL_DEPTH_BUFFER_BIT && pipe != null && inWorld;
+-    //~ }
++    /** GameRenderer.renderLevel: skip the depth clear before the hand (the hand is depth-scaled instead). */
++    public static boolean skipHandDepthClear(final int mask) {
++        return mask == GL11.GL_DEPTH_BUFFER_BIT && pipe != null && inWorld;
++    }
+ 
+-    //~ /** The hand's projection with depth scaled by MC_HAND_DEPTH so it stays in front of the world. */
+-    //~ public static Matrix4f handProjection(final Matrix4f projection) {
+-        //~ if (pipe == null || !inWorld) {
+-            //~ return projection;
+-        //~ }
+-        //~ final Matrix4f scaled = Matrix4f.createScaleMatrix(1, 1, 0.125f);
+-        //~ scaled.multiply(projection);
+-        //~ return scaled;
+-    //~ }
++    /** The hand's projection with depth scaled by MC_HAND_DEPTH so it stays in front of the world. */
++    public static Matrix4f handProjection(final Matrix4f projection) {
++        if (pipe == null || !inWorld) {
++            return projection;
++        }
++        final Matrix4f scaled = Matrix4f.createScaleMatrix(1, 1, 0.125f);
++        scaled.multiply(projection);
++        return scaled;
++    }
+ 
+-    //~ /** LevelRenderer.renderChunkLayer HEAD. */
+-    //~ public static void chunkLayer(final RenderType type) {
+-        //~ final ShaderPipeline p = pipe;
+-        //~ if (p != null && inWorld && phase == PHASE_NONE && type == RenderType.translucent()) {
+-            //~ try {
+-                //~ p.beforeTranslucent();
+-            //~ } catch (final Throwable t) {
+-                //~ fail(t);
+-            //~ }
+-        //~ }
+-    //~ }
++    /** LevelRenderer.renderChunkLayer HEAD. */
++    public static void chunkLayer(final RenderType type) {
++        final ShaderPipeline p = pipe;
++        if (p != null && inWorld && phase == PHASE_NONE && type == RenderType.translucent()) {
++            try {
++                p.beforeTranslucent();
++            } catch (final Throwable t) {
++                fail(t);
++            }
++        }
++    }
+ 
+-    //~ /** GlStateManager._glBindFramebuffer: the main framebuffer becomes the gbuffers during the world pass. */
+-    //~ public static int redirectFramebuffer(final int framebuffer) {
+-        //~ final ShaderPipeline p = pipe;
+-        //~ if (inWorld && p != null && framebuffer == mainFbo && framebuffer > 0) {
+-            //~ return p.worldFbo();
+-        //~ }
+-        //~ return framebuffer;
+-    //~ }
++    /** GlStateManager._glBindFramebuffer: the main framebuffer becomes the gbuffers during the world pass. */
++    public static int redirectFramebuffer(final int framebuffer) {
++        final ShaderPipeline p = pipe;
++        if (inWorld && p != null && framebuffer == mainFbo && framebuffer > 0) {
++            return p.worldFbo();
++        }
++        return framebuffer;
++    }
+ 
+-    //~ public static void useProgram(final int program) {
+-        //~ final boolean external = program != 0;
+-        //~ if (external != externalProgram) {
+-            //~ externalProgram = external;
+-            //~ final ShaderPipeline p = pipe;
+-            //~ if (p != null) {
+-                //~ p.invalidateProgram();
+-            //~ }
+-        //~ }
+-    //~ }
++    public static void useProgram(final int program) {
++        final boolean external = program != 0;
++        if (external != externalProgram) {
++            externalProgram = external;
++            final ShaderPipeline p = pipe;
++            if (p != null) {
++                p.invalidateProgram();
++            }
++        }
++    }
+ 
+-    //~ public static void activeTexture(final int unit) {
+-        //~ activeUnit = unit;
+-        //~ ShaderPipeline.vanillaActiveTexture = unit;
+-    //~ }
++    public static void activeTexture(final int unit) {
++        activeUnit = unit;
++        ShaderPipeline.vanillaActiveTexture = unit;
++    }
+ 
+-    //~ public static void bindTexture(final int id) {
+-        //~ if (activeUnit == GL13.GL_TEXTURE0) {
+-            //~ boundTex0 = id;
+-        //~ }
+-    //~ }
++    public static void bindTexture(final int id) {
++        if (activeUnit == GL13.GL_TEXTURE0) {
++            boundTex0 = id;
++        }
++    }
+ 
+-    //~ public static void textureEnabled(final boolean on) {
+-        //~ if (activeUnit == GL13.GL_TEXTURE0) {
+-            //~ texture0 = on;
+-        //~ }
+-    //~ }
++    public static void textureEnabled(final boolean on) {
++        if (activeUnit == GL13.GL_TEXTURE0) {
++            texture0 = on;
++        }
++    }
+ 
+-    //~ /** ClientLevel.getShade: OptiFine's oldLighting=false (the default with shaders) drops face shading. */
+-    //~ public static boolean flatShading() {
+-        //~ final ShaderPipeline p = pipe;
+-        //~ return p != null && !p.oldLighting;
++    /** ClientLevel.getShade: OptiFine's oldLighting=false (the default with shaders) drops face shading. */
++    public static boolean flatShading() {
++        final ShaderPipeline p = pipe;
++        return p != null && !p.oldLighting;
++    }
++    // @era:shader-else none
++    //~ private ShaderRuntime() {
+     //~ }
+     // @era:shader-end
+ }
+diff --git a/common/src/main/java/com/aetherium/shader/ShaderVertex.java b/common/src/main/java/com/aetherium/shader/ShaderVertex.java
+index 7c62b0a..c0c3d4e 100644
+--- a/common/src/main/java/com/aetherium/shader/ShaderVertex.java
++++ b/common/src/main/java/com/aetherium/shader/ShaderVertex.java
+@@ -1,19 +1,19 @@
+ package com.aetherium.shader;
+ 
+-// @era:shader-begin none
+-// @era:shader-else v16
+-//~ import com.google.common.collect.ImmutableList;
+-//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+-//~ import com.mojang.blaze3d.vertex.VertexFormat;
+-//~ import com.mojang.blaze3d.vertex.VertexFormatElement;
+-//~ import java.nio.ByteBuffer;
+-//~ import java.util.HashMap;
+-//~ import java.util.IdentityHashMap;
+-//~ import java.util.Map;
+-//~ import net.minecraft.core.Registry;
+-//~ import net.minecraft.world.level.block.Block;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import net.minecraft.world.level.block.state.properties.Property;
++// @era:shader-begin v16
++import com.google.common.collect.ImmutableList;
++import com.mojang.blaze3d.vertex.DefaultVertexFormat;
++import com.mojang.blaze3d.vertex.VertexFormat;
++import com.mojang.blaze3d.vertex.VertexFormatElement;
++import java.nio.ByteBuffer;
++import java.util.HashMap;
++import java.util.IdentityHashMap;
++import java.util.Map;
++import net.minecraft.core.Registry;
++import net.minecraft.world.level.block.Block;
++import net.minecraft.world.level.block.state.BlockState;
++import net.minecraft.world.level.block.state.properties.Property;
++// @era:shader-else none
+ // @era:shader-end
+ 
+ /**
+@@ -28,218 +28,218 @@ package com.aetherium.shader;
+  * ours, and on every fourth vertex of a quad goes back to fill the quad-wide values.</p>
+  */
+ public final class ShaderVertex {
+-    // @era:shader-begin none
++    // @era:shader-begin v16
++    private static final int BASE = 32;
++    private static volatile boolean extended;
++    private static volatile VertexFormat format;
++    private static volatile int stride = BASE;
++    private static volatile int midOffset = -1;
++    private static volatile int tangentOffset = -1;
++    private static volatile int extraElements;
++    private static volatile Map<BlockState, Integer> ids = new IdentityHashMap<>();
++    private static final ThreadLocal<int[]> CURRENT = ThreadLocal.withInitial(() -> new int[] {-1});
++
+     private ShaderVertex() {
+     }
+-    // @era:shader-else v16
+-    //~ private static final int BASE = 32;
+-    //~ private static volatile boolean extended;
+-    //~ private static volatile VertexFormat format;
+-    //~ private static volatile int stride = BASE;
+-    //~ private static volatile int midOffset = -1;
+-    //~ private static volatile int tangentOffset = -1;
+-    //~ private static volatile int extraElements;
+-    //~ private static volatile Map<BlockState, Integer> ids = new IdentityHashMap<>();
+-    //~ private static final ThreadLocal<int[]> CURRENT = ThreadLocal.withInitial(() -> new int[] {-1});
+-
+-    //~ private ShaderVertex() {
+-    //~ }
+ 
+-    //~ /** Render thread, before the chunks are rebuilt: the format a pack needs (or vanilla's). */
+-    //~ public static void configure(final boolean needed, final boolean midTex, final boolean tangent, final IdMap blocks) {
+-        //~ if (!needed) {
+-            //~ extended = false;
+-            //~ format = null;
+-            //~ ids = new IdentityHashMap<>();
+-            //~ return;
+-        //~ }
+-        //~ final ImmutableList.Builder<VertexFormatElement> list = ImmutableList.builder();
+-        //~ list.addAll(DefaultVertexFormat.BLOCK.getElements());
+-        //~ int offset = BASE;
+-        //~ int count = 1;
+-        //~ list.add(new VertexFormatElement(3, VertexFormatElement.Type.SHORT, VertexFormatElement.Usage.UV, 4));
+-        //~ offset += 8;
+-        //~ int mid = -1;
+-        //~ int tan = -1;
+-        //~ if (midTex || tangent) {
+-            //~ // mc_midTexCoord is always present when anything after it is, so offsets stay fixed
+-            //~ list.add(new VertexFormatElement(4, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.UV, 2));
+-            //~ mid = offset;
+-            //~ offset += 8;
+-            //~ count++;
+-        //~ }
+-        //~ if (tangent) {
+-            //~ list.add(new VertexFormatElement(5, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.UV, 4));
+-            //~ tan = offset;
+-            //~ offset += 16;
+-            //~ count++;
+-        //~ }
+-        //~ ids = buildIds(blocks);
+-        //~ midOffset = mid;
+-        //~ tangentOffset = tan;
+-        //~ extraElements = count;
+-        //~ stride = offset;
+-        //~ format = new VertexFormat(list.build());
+-        //~ extended = true;
+-    //~ }
++    /** Render thread, before the chunks are rebuilt: the format a pack needs (or vanilla's). */
++    public static void configure(final boolean needed, final boolean midTex, final boolean tangent, final IdMap blocks) {
++        if (!needed) {
++            extended = false;
++            format = null;
++            ids = new IdentityHashMap<>();
++            return;
++        }
++        final ImmutableList.Builder<VertexFormatElement> list = ImmutableList.builder();
++        list.addAll(DefaultVertexFormat.BLOCK.getElements());
++        int offset = BASE;
++        int count = 1;
++        list.add(new VertexFormatElement(3, VertexFormatElement.Type.SHORT, VertexFormatElement.Usage.UV, 4));
++        offset += 8;
++        int mid = -1;
++        int tan = -1;
++        if (midTex || tangent) {
++            // mc_midTexCoord is always present when anything after it is, so offsets stay fixed
++            list.add(new VertexFormatElement(4, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.UV, 2));
++            mid = offset;
++            offset += 8;
++            count++;
++        }
++        if (tangent) {
++            list.add(new VertexFormatElement(5, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.UV, 4));
++            tan = offset;
++            offset += 16;
++            count++;
++        }
++        ids = buildIds(blocks);
++        midOffset = mid;
++        tangentOffset = tan;
++        extraElements = count;
++        stride = offset;
++        format = new VertexFormat(list.build());
++        extended = true;
++    }
+ 
+-    //~ private static Map<BlockState, Integer> buildIds(final IdMap blocks) {
+-        //~ final Map<BlockState, Integer> out = new IdentityHashMap<>();
+-        //~ if (blocks == null) {
+-            //~ return out;
+-        //~ }
+-        //~ final Map<String, String> props = new HashMap<>();
+-        //~ for (final Block block : Registry.BLOCK) {
+-            //~ final String name = Registry.BLOCK.getKey(block).toString();
+-            //~ for (final BlockState state : block.getStateDefinition().getPossibleStates()) {
+-                //~ props.clear();
+-                //~ for (final Property<?> p : state.getProperties()) {
+-                    //~ props.put(p.getName(), valueName(p, state));
+-                //~ }
+-                //~ final int id = blocks.lookup(name, props, -1);
+-                //~ if (id != -1) {
+-                    //~ out.put(state, id);
+-                //~ }
+-            //~ }
+-        //~ }
+-        //~ return out;
+-    //~ }
++    private static Map<BlockState, Integer> buildIds(final IdMap blocks) {
++        final Map<BlockState, Integer> out = new IdentityHashMap<>();
++        if (blocks == null) {
++            return out;
++        }
++        final Map<String, String> props = new HashMap<>();
++        for (final Block block : Registry.BLOCK) {
++            final String name = Registry.BLOCK.getKey(block).toString();
++            for (final BlockState state : block.getStateDefinition().getPossibleStates()) {
++                props.clear();
++                for (final Property<?> p : state.getProperties()) {
++                    props.put(p.getName(), valueName(p, state));
++                }
++                final int id = blocks.lookup(name, props, -1);
++                if (id != -1) {
++                    out.put(state, id);
++                }
++            }
++        }
++        return out;
++    }
+ 
+-    //~ @SuppressWarnings({"unchecked", "rawtypes"})
+-    //~ private static String valueName(final Property p, final BlockState state) {
+-        //~ return p.getName((Comparable) state.getValue(p));
+-    //~ }
++    @SuppressWarnings({"unchecked", "rawtypes"})
++    private static String valueName(final Property p, final BlockState state) {
++        return p.getName((Comparable) state.getValue(p));
++    }
+ 
+-    //~ public static boolean extended() {
+-        //~ return extended;
+-    //~ }
++    public static boolean extended() {
++        return extended;
++    }
+ 
+-    //~ /** The format chunk buffers use: extended while a pack needs it, else vanilla's BLOCK. */
+-    //~ public static VertexFormat chunkFormat() {
+-        //~ final VertexFormat f = format;
+-        //~ return extended && f != null ? f : DefaultVertexFormat.BLOCK;
+-    //~ }
++    /** The format chunk buffers use: extended while a pack needs it, else vanilla's BLOCK. */
++    public static VertexFormat chunkFormat() {
++        final VertexFormat f = format;
++        return extended && f != null ? f : DefaultVertexFormat.BLOCK;
++    }
+ 
+-    //~ /** BufferBuilder.begin: builders that would use BLOCK use the extended format instead. */
+-    //~ public static VertexFormat swap(final VertexFormat requested) {
+-        //~ final VertexFormat f = format;
+-        //~ return extended && f != null && requested == DefaultVertexFormat.BLOCK ? f : requested;
+-    //~ }
++    /** BufferBuilder.begin: builders that would use BLOCK use the extended format instead. */
++    public static VertexFormat swap(final VertexFormat requested) {
++        final VertexFormat f = format;
++        return extended && f != null && requested == DefaultVertexFormat.BLOCK ? f : requested;
++    }
+ 
+-    //~ public static boolean isExtended(final VertexFormat f) {
+-        //~ return f != null && f == format;
+-    //~ }
++    public static boolean isExtended(final VertexFormat f) {
++        return f != null && f == format;
++    }
+ 
+-    //~ /** Mesher thread: the block (or fluid's legacy block) being meshed. */
+-    //~ public static void setBlock(final BlockState state) {
+-        //~ if (!extended) {
+-            //~ return;
+-        //~ }
+-        //~ final Integer id = ids.get(state);
+-        //~ CURRENT.get()[0] = id == null ? -1 : id;
+-    //~ }
++    /** Mesher thread: the block (or fluid's legacy block) being meshed. */
++    public static void setBlock(final BlockState state) {
++        if (!extended) {
++            return;
++        }
++        final Integer id = ids.get(state);
++        CURRENT.get()[0] = id == null ? -1 : id;
++    }
+ 
+-    //~ public static int extraElements() {
+-        //~ return extraElements;
+-    //~ }
++    public static int extraElements() {
++        return extraElements;
++    }
+ 
+-    //~ /**
+-     //~ * BufferBuilder.endVertex, extended format, all vanilla elements written: our elements start
+-     //~ * at {@code elementByte}. {@code vertexIndex} counts finished vertices; {@code quads} is true
+-     //~ * for GL_QUADS builders.
+-     //~ */
+-    //~ public static void fill(final ByteBuffer buffer, final int elementByte, final int vertexIndex, final boolean quads) {
+-        //~ final int start = elementByte - BASE;
+-        //~ final short id = (short) CURRENT.get()[0];
+-        //~ buffer.putShort(start + BASE, id);
+-        //~ buffer.putShort(start + BASE + 2, (short) 0);
+-        //~ buffer.putShort(start + BASE + 4, (short) 0);
+-        //~ buffer.putShort(start + BASE + 6, (short) 0);
+-        //~ final int mid = midOffset;
+-        //~ final int tan = tangentOffset;
+-        //~ if (mid >= 0) {
+-            //~ buffer.putFloat(start + mid, buffer.getFloat(start + 16));
+-            //~ buffer.putFloat(start + mid + 4, buffer.getFloat(start + 20));
+-        //~ }
+-        //~ if (tan >= 0) {
+-            //~ buffer.putFloat(start + tan, 1);
+-            //~ buffer.putFloat(start + tan + 4, 0);
+-            //~ buffer.putFloat(start + tan + 8, 0);
+-            //~ buffer.putFloat(start + tan + 12, 1);
+-        //~ }
+-        //~ if (!quads || (vertexIndex & 3) != 3 || (mid < 0 && tan < 0)) {
+-            //~ return;
+-        //~ }
+-        //~ final int s = stride;
+-        //~ final int base = start - 3 * s;
+-        //~ if (base < 0) {
+-            //~ return;
+-        //~ }
+-        //~ if (mid >= 0) {
+-            //~ float u = 0;
+-            //~ float v = 0;
+-            //~ for (int i = 0; i < 4; i++) {
+-                //~ u += buffer.getFloat(base + i * s + 16);
+-                //~ v += buffer.getFloat(base + i * s + 20);
+-            //~ }
+-            //~ u *= 0.25f;
+-            //~ v *= 0.25f;
+-            //~ for (int i = 0; i < 4; i++) {
+-                //~ buffer.putFloat(base + i * s + mid, u);
+-                //~ buffer.putFloat(base + i * s + mid + 4, v);
+-            //~ }
+-        //~ }
+-        //~ if (tan >= 0) {
+-            //~ tangent(buffer, base, s, tan);
+-        //~ }
+-    //~ }
++    /**
++     * BufferBuilder.endVertex, extended format, all vanilla elements written: our elements start
++     * at {@code elementByte}. {@code vertexIndex} counts finished vertices; {@code quads} is true
++     * for GL_QUADS builders.
++     */
++    public static void fill(final ByteBuffer buffer, final int elementByte, final int vertexIndex, final boolean quads) {
++        final int start = elementByte - BASE;
++        final short id = (short) CURRENT.get()[0];
++        buffer.putShort(start + BASE, id);
++        buffer.putShort(start + BASE + 2, (short) 0);
++        buffer.putShort(start + BASE + 4, (short) 0);
++        buffer.putShort(start + BASE + 6, (short) 0);
++        final int mid = midOffset;
++        final int tan = tangentOffset;
++        if (mid >= 0) {
++            buffer.putFloat(start + mid, buffer.getFloat(start + 16));
++            buffer.putFloat(start + mid + 4, buffer.getFloat(start + 20));
++        }
++        if (tan >= 0) {
++            buffer.putFloat(start + tan, 1);
++            buffer.putFloat(start + tan + 4, 0);
++            buffer.putFloat(start + tan + 8, 0);
++            buffer.putFloat(start + tan + 12, 1);
++        }
++        if (!quads || (vertexIndex & 3) != 3 || (mid < 0 && tan < 0)) {
++            return;
++        }
++        final int s = stride;
++        final int base = start - 3 * s;
++        if (base < 0) {
++            return;
++        }
++        if (mid >= 0) {
++            float u = 0;
++            float v = 0;
++            for (int i = 0; i < 4; i++) {
++                u += buffer.getFloat(base + i * s + 16);
++                v += buffer.getFloat(base + i * s + 20);
++            }
++            u *= 0.25f;
++            v *= 0.25f;
++            for (int i = 0; i < 4; i++) {
++                buffer.putFloat(base + i * s + mid, u);
++                buffer.putFloat(base + i * s + mid + 4, v);
++            }
++        }
++        if (tan >= 0) {
++            tangent(buffer, base, s, tan);
++        }
++    }
+ 
+-    //~ private static void tangent(final ByteBuffer b, final int base, final int s, final int tan) {
+-        //~ final int v1 = base + s;
+-        //~ final int v2 = base + 2 * s;
+-        //~ final float e1x = b.getFloat(v1) - b.getFloat(base);
+-        //~ final float e1y = b.getFloat(v1 + 4) - b.getFloat(base + 4);
+-        //~ final float e1z = b.getFloat(v1 + 8) - b.getFloat(base + 8);
+-        //~ final float e2x = b.getFloat(v2) - b.getFloat(base);
+-        //~ final float e2y = b.getFloat(v2 + 4) - b.getFloat(base + 4);
+-        //~ final float e2z = b.getFloat(v2 + 8) - b.getFloat(base + 8);
+-        //~ final float du1 = b.getFloat(v1 + 16) - b.getFloat(base + 16);
+-        //~ final float dv1 = b.getFloat(v1 + 20) - b.getFloat(base + 20);
+-        //~ final float du2 = b.getFloat(v2 + 16) - b.getFloat(base + 16);
+-        //~ final float dv2 = b.getFloat(v2 + 20) - b.getFloat(base + 20);
+-        //~ final float det = du1 * dv2 - du2 * dv1;
+-        //~ final float r = Math.abs(det) < 1e-12f ? 1 : 1 / det;
+-        //~ float tx = (e1x * dv2 - e2x * dv1) * r;
+-        //~ float ty = (e1y * dv2 - e2y * dv1) * r;
+-        //~ float tz = (e1z * dv2 - e2z * dv1) * r;
+-        //~ final float bx = (e2x * du1 - e1x * du2) * r;
+-        //~ final float by = (e2y * du1 - e1y * du2) * r;
+-        //~ final float bz = (e2z * du1 - e1z * du2) * r;
+-        //~ final float len = (float) Math.sqrt(tx * tx + ty * ty + tz * tz);
+-        //~ if (len < 1e-12f) {
+-            //~ tx = 1;
+-            //~ ty = 0;
+-            //~ tz = 0;
+-        //~ } else {
+-            //~ tx /= len;
+-            //~ ty /= len;
+-            //~ tz /= len;
+-        //~ }
+-        //~ final float nx = b.get(base + 28) / 127f;
+-        //~ final float ny = b.get(base + 29) / 127f;
+-        //~ final float nz = b.get(base + 30) / 127f;
+-        //~ // handedness: does cross(n, t) point along the bitangent?
+-        //~ final float cx = ny * tz - nz * ty;
+-        //~ final float cy = nz * tx - nx * tz;
+-        //~ final float cz = nx * ty - ny * tx;
+-        //~ final float w = cx * bx + cy * by + cz * bz < 0 ? -1 : 1;
+-        //~ for (int i = 0; i < 4; i++) {
+-            //~ final int at = base + i * s + tan;
+-            //~ b.putFloat(at, tx);
+-            //~ b.putFloat(at + 4, ty);
+-            //~ b.putFloat(at + 8, tz);
+-            //~ b.putFloat(at + 12, w);
+-        //~ }
++    private static void tangent(final ByteBuffer b, final int base, final int s, final int tan) {
++        final int v1 = base + s;
++        final int v2 = base + 2 * s;
++        final float e1x = b.getFloat(v1) - b.getFloat(base);
++        final float e1y = b.getFloat(v1 + 4) - b.getFloat(base + 4);
++        final float e1z = b.getFloat(v1 + 8) - b.getFloat(base + 8);
++        final float e2x = b.getFloat(v2) - b.getFloat(base);
++        final float e2y = b.getFloat(v2 + 4) - b.getFloat(base + 4);
++        final float e2z = b.getFloat(v2 + 8) - b.getFloat(base + 8);
++        final float du1 = b.getFloat(v1 + 16) - b.getFloat(base + 16);
++        final float dv1 = b.getFloat(v1 + 20) - b.getFloat(base + 20);
++        final float du2 = b.getFloat(v2 + 16) - b.getFloat(base + 16);
++        final float dv2 = b.getFloat(v2 + 20) - b.getFloat(base + 20);
++        final float det = du1 * dv2 - du2 * dv1;
++        final float r = Math.abs(det) < 1e-12f ? 1 : 1 / det;
++        float tx = (e1x * dv2 - e2x * dv1) * r;
++        float ty = (e1y * dv2 - e2y * dv1) * r;
++        float tz = (e1z * dv2 - e2z * dv1) * r;
++        final float bx = (e2x * du1 - e1x * du2) * r;
++        final float by = (e2y * du1 - e1y * du2) * r;
++        final float bz = (e2z * du1 - e1z * du2) * r;
++        final float len = (float) Math.sqrt(tx * tx + ty * ty + tz * tz);
++        if (len < 1e-12f) {
++            tx = 1;
++            ty = 0;
++            tz = 0;
++        } else {
++            tx /= len;
++            ty /= len;
++            tz /= len;
++        }
++        final float nx = b.get(base + 28) / 127f;
++        final float ny = b.get(base + 29) / 127f;
++        final float nz = b.get(base + 30) / 127f;
++        // handedness: does cross(n, t) point along the bitangent?
++        final float cx = ny * tz - nz * ty;
++        final float cy = nz * tx - nx * tz;
++        final float cz = nx * ty - ny * tx;
++        final float w = cx * bx + cy * by + cz * bz < 0 ? -1 : 1;
++        for (int i = 0; i < 4; i++) {
++            final int at = base + i * s + tan;
++            b.putFloat(at, tx);
++            b.putFloat(at + 4, ty);
++            b.putFloat(at + 8, tz);
++            b.putFloat(at + 12, w);
++        }
++    }
++    // @era:shader-else none
++    //~ private ShaderVertex() {
+     //~ }
+     // @era:shader-end
+ }
 diff --git a/common/src/main/java/com/aetherium/util/AetheriumLog.java b/common/src/main/java/com/aetherium/util/AetheriumLog.java
 index 8e1185d..9bed01b 100644
 --- a/common/src/main/java/com/aetherium/util/AetheriumLog.java
@@ -14573,7 +17286,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 74345cd..0e71e20 100644
+index 3d7e94f..e9a3cc4 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@
@@ -14586,7 +17299,7 @@ index 74345cd..0e71e20 100644
      "defaultRequire": 0,
      "defaultExpect": 0
 diff --git a/gradle.properties b/gradle.properties
-index dc52e39..1a03567 100644
+index 8a087cd..54e73b3 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -11,10 +11,10 @@ org.gradle.configuration-cache=false

@@ -12,4 +12,15 @@ public class GL30 {
     public static void glBindVertexArray(int array) { }
     public static void glDeleteVertexArrays(int array) { }
     public static void glBindFragDataLocation(int program, int colorNumber, CharSequence name) { }
+    public static final int GL_COLOR_ATTACHMENT0 = 0x8CE0;
+    public static final int GL_DEPTH_ATTACHMENT = 0x8D00;
+    public static final int GL_DRAW_FRAMEBUFFER = 0x8CA9;
+    public static final int GL_FRAMEBUFFER = 0x8D40;
+    public static final int GL_FRAMEBUFFER_BINDING = 0x8CA6;
+    public static final int GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
+    public static final int GL_MAX_COLOR_ATTACHMENTS = 0x8CDF;
+    public static final int GL_NUM_EXTENSIONS = 0x821D;
+    public static final int GL_READ_FRAMEBUFFER = 0x8CA8;
+    public static void glGenerateMipmap(int target) { }
+    public static String glGetStringi(int name, int index) { return null; }
 }

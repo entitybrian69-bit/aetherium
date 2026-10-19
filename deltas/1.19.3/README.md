@@ -65,6 +65,7 @@ neoforge_version=unavailable (module disabled)
 - `section-compile=rebuild19`
 - `section-cull=rendered19`
 - `section-vis=list18`
+- `shader=none`
 - `simdist=sim`
 - `sky=rb193`
 - `slot-find=find`

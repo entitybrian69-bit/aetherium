@@ -185,7 +185,7 @@ public final class FrameState implements Expr.Env {
         celestial(this.modelView, this.sunPathRotation, sky, 100, this.sunPosition);
         celestial(this.modelView, this.sunPathRotation, sky, -100, this.moonPosition);
         System.arraycopy(day ? this.sunPosition : this.moonPosition, 0, this.shadowLightPosition, 0, 3);
-        final float[] up = Mat4.transform(this.modelView, 0, 100, 0, 0);
+        final float[] up = Mat4.mulVec(this.modelView, 0, 100, 0, 0);
         System.arraycopy(up, 0, this.upPosition, 0, 3);
 
         this.shadowModelView = Mat4.shadowModelView(this.shadowAngle, this.sunPathRotation, this.shadowIntervalSize,
@@ -232,7 +232,7 @@ public final class FrameState implements Expr.Env {
         float[] m = Mat4.mul(mv, Mat4.rotation(-90, 0, 1, 0));
         m = Mat4.mul(m, Mat4.rotation(spr, 0, 0, 1));
         m = Mat4.mul(m, Mat4.rotation(sky * 360f, 1, 0, 0));
-        final float[] p = Mat4.transform(m, 0, y, 0, 0);
+        final float[] p = Mat4.mulVec(m, 0, y, 0, 0);
         out[0] = p[0];
         out[1] = p[1];
         out[2] = p[2];

@@ -75,7 +75,7 @@ public final class Mat4 {
     }
 
     /** (x, y, z, w) transformed. */
-    public static float[] transform(final float[] m, final float x, final float y, final float z, final float w) {
+    public static float[] mulVec(final float[] m, final float x, final float y, final float z, final float w) {
         return new float[] {
                 m[0] * x + m[4] * y + m[8] * z + m[12] * w,
                 m[1] * x + m[5] * y + m[9] * z + m[13] * w,

@@ -70,6 +70,7 @@ neoforge_version=21.10.64
 - `section-compile=none`
 - `section-cull=none`
 - `section-vis=render-origin`
+- `shader=none`
 - `simdist=sim`
 - `sky=renderer`
 - `slot-find=hovered`

@@ -53,6 +53,7 @@ neoforge_version=20.6.141
 - `section-compile=rebuild202`
 - `section-cull=rendered19`
 - `section-vis=sections`
+- `shader=none`
 - `simdist=sim`
 - `sky=rb193`
 - `t-chunk-save=v16`
