@@ -234,6 +234,14 @@ public final class ShaderSmoke {
         //~ for (int i = 0; i < Math.min(12, problems.size()); i++) {
             //~ OUT.append("  ").append(problems.get(i)).append('\n');
         //~ }
+        //~ final ShaderPipeline pl = ShaderBridge.pipeline();
+        //~ if (running && pl != null) {
+            //~ try {
+                //~ OUT.append("targets").append(pl.probe()).append('\n');
+            //~ } catch (final Throwable t) {
+                //~ OUT.append("targets FAILED ").append(t).append('\n');
+            //~ }
+        //~ }
         //~ final String shot = "shot-" + String.format("%02d", stage) + ".png";
         //~ OUT.append("screenshot ").append(shot).append(' ').append(screenshot(mc, new File(dir, shot))).append('\n');
         //~ write(new File(dir, "shaders-world.txt"), OUT.toString());

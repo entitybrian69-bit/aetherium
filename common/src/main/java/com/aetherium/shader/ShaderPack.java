@@ -201,7 +201,14 @@ public final class ShaderPack {
             }
             names.add("final");
             final Set<String> files = new HashSet<>(pack.source.files());
+            // OptiFine before 1.17 has no gbuffers_line: packs write it for the 1.17+ core profile
+            // (projectionMatrix, gl_VertexID line expansion), so older versions draw lines with basic
+            final String mc = pack.standardMacros == null ? null : pack.standardMacros.get("MC_VERSION");
+            final boolean legacy = mc != null && mc.matches("\\d+") && Integer.parseInt(mc) < 11700;
             for (final String n : names) {
+                if (legacy && n.equals("gbuffers_line")) {
+                    continue;
+                }
                 if (!files.contains(folder + n + ".fsh") || !files.contains(folder + n + ".vsh")) {
                     continue;
                 }

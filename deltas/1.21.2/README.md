@@ -32,6 +32,7 @@ neoforge_version=21.2.1-beta
 - `registry=builtin`
 - `render-scale=r212`
 - `rs-api=r212`
+- `shader=none`
 - `sky=renderer`
 - `slot-find=hovered`
 - `t-ao-cache=v16`
@@ -149,6 +150,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.2.t
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
+- `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
 
 ## Verifying this row before shipping it
 

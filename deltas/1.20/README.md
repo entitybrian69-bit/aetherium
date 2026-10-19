@@ -158,6 +158,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.20.txt
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSectionsMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/VisibleSpritesMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
+- `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
 
 ## Verifying this row before shipping it
 

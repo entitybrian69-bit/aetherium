@@ -241,6 +241,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.17.txt
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
+- `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 
 ## Verifying this row before shipping it

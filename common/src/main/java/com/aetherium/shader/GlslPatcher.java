@@ -30,6 +30,9 @@ public final class GlslPatcher {
     private static final Pattern ATTRIBUTE = Pattern.compile(
             "^\\s*(?:attribute|in)\\s+(?:(?:highp|mediump|lowp)\\s+)?(float|vec[234]|ivec[234])\\s+"
                     + "(mc_Entity|mc_midTexCoord|at_tangent|at_velocity|at_midBlock)\\s*;.*$", Pattern.MULTILINE);
+    /** #extension lines anywhere in the expanded source (includes put them mid-file). */
+    private static final Pattern EXTENSION = Pattern.compile("^[ \\t]*#[ \\t]*extension[ \\t]+([A-Za-z0-9_]+)[ \\t]*:[ \\t]*([a-z]+)[^\\n]*$",
+            Pattern.MULTILINE);
     private static final Pattern TEXMAT1 = Pattern.compile("\\bgl_TextureMatrix\\s*\\[\\s*1\\s*\\]");
 
     private GlslPatcher() {
@@ -77,6 +80,23 @@ public final class GlslPatcher {
         if (body.indexOf("gl_TextureMatrix") >= 0) {
             body = TEXMAT1.matcher(body).replaceAll("gl_TextureMatrix[2]");
         }
+        // GLSL wants #extension before any code; drivers like Mesa reject it later. Hoisted under
+        // #version (the line stays, empty); "require" becomes "enable" so an unused one cannot fail.
+        final StringBuilder extensions = new StringBuilder();
+        if (body.indexOf("extension") >= 0) {
+            final Matcher em = EXTENSION.matcher(body);
+            final StringBuffer sb = new StringBuffer();
+            final java.util.Set<String> seen = new java.util.HashSet<>();
+            while (em.find()) {
+                final String behaviour = "require".equals(em.group(2)) ? "enable" : em.group(2);
+                if (seen.add(em.group(1))) {
+                    extensions.append("#extension ").append(em.group(1)).append(" : ").append(behaviour).append('\n');
+                }
+                em.appendReplacement(sb, "");
+            }
+            em.appendTail(sb);
+            body = sb.toString();
+        }
         final StringBuilder out = new StringBuilder(body.length() + 2048);
         out.append("#version ").append(version);
         if (version >= 150 && !compat && version != 300) {
@@ -85,6 +105,7 @@ public final class GlslPatcher {
             out.append(' ').append(profile);
         }
         out.append('\n');
+        out.append(extensions);
         for (final Map.Entry<String, String> e : macros.entrySet()) {
             out.append("#define ").append(e.getKey());
             if (!e.getValue().isEmpty()) {
@@ -129,7 +150,7 @@ public final class GlslPatcher {
     public static int headerLines(final String patched) {
         int n = 0;
         for (final String line : patched.split("\n", 4096)) {
-            if (!line.startsWith("#version") && !line.startsWith("#define ")) {
+            if (!line.startsWith("#version") && !line.startsWith("#define ") && !line.startsWith("#extension ")) {
                 break;
             }
             n++;

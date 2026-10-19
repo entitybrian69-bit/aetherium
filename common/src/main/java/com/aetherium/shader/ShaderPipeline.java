@@ -850,6 +850,29 @@ public final class ShaderPipeline {
         this.currentStage = -1;
     }
 
+    /** CI smoke diagnostics: centre pixel (rgba bytes) of every colour target, main and alt. */
+    public String probe() {
+        final StringBuilder sb = new StringBuilder();
+        final ByteBuffer px = BufferUtils.createByteBuffer(16);
+        for (int i = 0; i < this.targets.colors.length; i++) {
+            final Targets.Color c = this.targets.colors[i];
+            if (c == null || c.width <= 0 || c.height <= 0) {
+                continue;
+            }
+            sb.append(" c").append(i);
+            for (int pass = 0; pass < 2; pass++) {
+                final int tex = pass == 0 ? c.main() : c.alt();
+                GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, this.targets.fbo(new int[] {tex}, 0));
+                GL11.glReadBuffer(GL30.GL_COLOR_ATTACHMENT0);
+                px.clear();
+                GL11.glReadPixels(c.width / 2, c.height / 2, 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, px);
+                sb.append(pass == 0 ? "=" : "/").append(String.format("%02x%02x%02x%02x",
+                        px.get(0) & 255, px.get(1) & 255, px.get(2) & 255, px.get(3) & 255));
+            }
+        }
+        return sb.toString();
+    }
+
     private void readCenterDepth() {
         final FloatBuffer px = BufferUtils.createFloatBuffer(1);
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, this.targets.fbo(new int[0], this.targets.depth0));

@@ -133,7 +133,9 @@ public final class GlProgram {
         if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
             final String log = GL20.glGetShaderInfoLog(shader);
             GL20.glDeleteShader(shader);
-            throw new BuildException(file + ": " + annotate(trim(log), map, headerLines));
+            final int nl = text.indexOf('\n');
+            final String version = nl > 0 ? text.substring(0, nl).trim() : "";
+            throw new BuildException(file + " (" + version + "): " + annotate(trim(log), map, headerLines));
         }
         return shader;
     }
@@ -151,6 +153,10 @@ public final class GlProgram {
                 try {
                     final int n = Integer.parseInt(m.group(1)) - headerLines;
                     out.append("  [").append(map.origin(n)).append(']');
+                    final String src = sourceLine(map.text, n);
+                    if (!src.isEmpty()) {
+                        out.append("  >> ").append(src);
+                    }
                 } catch (final NumberFormatException ignored) {
                     // no line number
                 }
@@ -158,6 +164,24 @@ public final class GlProgram {
             out.append('\n');
         }
         return out.toString().trim();
+    }
+
+    /** Line {@code n} (1-based) of the expanded source, trimmed and shortened. */
+    static String sourceLine(final String text, final int n) {
+        if (text == null || n < 1) {
+            return "";
+        }
+        int start = 0;
+        for (int i = 1; i < n; i++) {
+            start = text.indexOf('\n', start) + 1;
+            if (start <= 0) {
+                return "";
+            }
+        }
+        int end = text.indexOf('\n', start);
+        end = end < 0 ? text.length() : end;
+        final String line = text.substring(start, end).trim();
+        return line.length() > 160 ? line.substring(0, 160) + "..." : line;
     }
 
     private static String trim(final String log) {
