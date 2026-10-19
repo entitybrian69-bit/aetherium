@@ -135,7 +135,8 @@ public final class GlProgram {
             GL20.glDeleteShader(shader);
             final int nl = text.indexOf('\n');
             final String version = nl > 0 ? text.substring(0, nl).trim() : "";
-            throw new BuildException(file + " (" + version + "): " + annotate(trim(log), map, headerLines));
+            throw new BuildException(file + " (" + version + "): " + annotate(trim(log), map,
+                    GlslPatcher.headerLines(text)));
         }
         return shader;
     }

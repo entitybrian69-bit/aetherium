@@ -12,7 +12,9 @@ import java.util.regex.Pattern;
  *   gets the {@code compatibility} profile, since OptiFine-format packs for 1.16.5 use the
  *   fixed-function built-ins ({@code gl_Vertex}, {@code gl_ModelViewMatrix}, {@code gl_Fog}).</li>
  *   <li>The standard macros ({@code MC_VERSION}, {@code MC_GL_*}, {@code MC_RENDER_STAGE_*}, ...)
- *   follow, then {@code #line 1} so driver errors count lines of the expanded source.</li>
+ *   follow, then a marker comment; compile errors subtract the header length (no {@code #line}).</li>
+ *   <li>{@code #extension} lines are hoisted under {@code #version}, and a {@code #version 120}
+ *   shader that uses GLSL 1.30 syntax is compiled as 130 where the context allows it.</li>
  *   <li>Lightmap: OptiFine moves vanilla's lightmap to texture unit 1. Minecraft 1.16.5 keeps it on
  *   unit 2 (unit 1 is the entity overlay), so {@code gl_MultiTexCoord1}/{@code gl_TextureMatrix[1]}
  *   become unit 2, and the {@code lightmap} sampler is set to unit 2.</li>
@@ -35,11 +37,13 @@ public final class GlslPatcher {
             Pattern.MULTILINE);
     private static final Pattern TEXMAT1 = Pattern.compile("\\bgl_TextureMatrix\\s*\\[\\s*1\\s*\\]");
 
+    static final String HEADER_END = "// end of Aetherium header";
+
     private GlslPatcher() {
     }
 
     /**
-     * @param compat GL translator on GLES (gl4es, Krypton): no profile suffix and no {@code #line}
+     * @param compat GL translator on GLES (gl4es, Krypton): no profile suffix
      *               (some translators mishandle it); version capped to what it accepts
      * @param maxGlsl highest GLSL version the context supports (e.g. 120, 330, 460)
      */
@@ -59,6 +63,9 @@ public final class GlslPatcher {
         }
         if (version > maxGlsl && maxGlsl >= 120) {
             version = Math.max(maxGlsl, 120); // try anyway: many "#version 130" packs only use 120 syntax
+        }
+        if (version < 130 && maxGlsl >= 130 && needs130(body)) {
+            version = 130; // GLSL 1.30 syntax under "#version 120" (lenient drivers accept it, Mesa and GLES do not)
         }
         if (stage != FRAGMENT) {
             if (body.indexOf("gl_MultiTexCoord1") >= 0) {
@@ -114,11 +121,22 @@ public final class GlslPatcher {
             out.append('\n');
         }
         out.append(attributeDefines);
-        if (!compat) {
-            out.append("#line 1\n");
-        }
+        // no #line: drivers disagree on whether "#line 1" numbers the next line 1 or 2 (GLSL < 3.30),
+        // and some translators mishandle it; errors subtract the header length instead
+        out.append(HEADER_END).append('\n');
         out.append(body);
         return out.toString();
+    }
+
+    private static final Pattern NEEDS_130 = Pattern.compile(
+            "\\bflat\\s+(?:varying|in|out)\\b|\\b(?:texture|texelFetch|textureLod|textureSize|textureGrad)\\s*\\("
+                    + "|\\bgl_VertexID\\b|\\bgl_InstanceID\\b|\\b(?:uint|uvec[234])\\b");
+    private static final Pattern TEXTURE_VARIABLE = Pattern.compile(
+            "\\b(?:sampler2D|sampler2DShadow|float|vec[234]|int)\\s+texture\\s*[;=,\\[]");
+
+    /** 1.30-only syntax in a pre-1.30 shader, and nothing named "texture" that 1.30 would clash with. */
+    static boolean needs130(final String body) {
+        return NEEDS_130.matcher(body).find() && !TEXTURE_VARIABLE.matcher(body).find();
     }
 
     /**
@@ -146,14 +164,17 @@ public final class GlslPatcher {
         }
     }
 
-    /** Number of lines {@link #patch} puts before the source's line 1 when {@code #line} is not used. */
+    /** Number of lines {@link #patch} puts before the source's line 1. */
     public static int headerLines(final String patched) {
-        int n = 0;
-        for (final String line : patched.split("\n", 4096)) {
-            if (!line.startsWith("#version") && !line.startsWith("#define ") && !line.startsWith("#extension ")) {
-                break;
+        final int end = patched.indexOf(HEADER_END);
+        if (end < 0) {
+            return 0;
+        }
+        int n = 1;
+        for (int i = 0; i < end; i++) {
+            if (patched.charAt(i) == '\n') {
+                n++;
             }
-            n++;
         }
         return n;
     }
