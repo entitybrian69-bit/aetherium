@@ -50,6 +50,13 @@ neoforge_version=unavailable (module disabled)
 - `near-build=v16`
 - `options=fields`
 - `particle-fast=v16`
+- `q-fire=v16`
+- `q-food=v16`
+- `q-hand=v16`
+- `q-hud=v16`
+- `q-inv=v16`
+- `q-place=v16`
+- `q-world=v16`
 - `qol16=v16`
 - `registry=static`
 - `reload=all-changed`
@@ -168,13 +175,17 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/client/FreelookHooks.java`
 - `common/src/main/java/com/aetherium/client/McCanvas.java`
 - `common/src/main/java/com/aetherium/client/OceanFloor.java`
+- `common/src/main/java/com/aetherium/client/QolClient.java`
 - `common/src/main/java/com/aetherium/client/QolHooks.java`
+- `common/src/main/java/com/aetherium/client/QolInventory.java`
+- `common/src/main/java/com/aetherium/client/QolWorldRenderer.java`
 - `common/src/main/java/com/aetherium/client/RawFrame.java`
 - `common/src/main/java/com/aetherium/client/ScaledRenderTarget.java`
 - `common/src/main/java/com/aetherium/client/SceneryHooks.java`
 - `common/src/main/java/com/aetherium/client/SkullLookup.java`
 - `common/src/main/java/com/aetherium/client/UiSounds.java`
 - `common/src/main/java/com/aetherium/client/VanillaOptions.java`
+- `common/src/main/java/com/aetherium/client/WaypointScreen.java`
 - `common/src/main/java/com/aetherium/client/WorldCache.java`
 - `common/src/main/java/com/aetherium/mixin/core/BufferBuilderAccessor.java`
 - `common/src/main/java/com/aetherium/mixin/core/ChunkPrepareMixin.java`
@@ -199,6 +210,16 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/ModelVertexMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/NearBuildMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/OptionInstanceMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolDeathScreenMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolFireMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolGuiMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolHandMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolLevelRenderMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolPlacementMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolScrollMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolSlotMixin.java`
+- `common/src/main/java/com/aetherium/mixin/core/QolTooltipMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkBuffersMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkDirtyMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/RenderChunkInfoMixin.java`
@@ -242,6 +263,7 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.16.5.t
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
+- `common/src/main/java/com/aetherium/qol/QolSupport.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 
 ## Verifying this row before shipping it

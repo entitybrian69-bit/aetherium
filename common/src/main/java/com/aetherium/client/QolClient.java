@@ -16,7 +16,6 @@ import java.util.Random;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -233,78 +232,87 @@ public final class QolClient {
 
     // ------------------------------------------------------------------ helpers
 
+    /** The button click (Sort button). */
+    public static void clickSound(final Minecraft mc) {
+        UiSounds.play(mc, com.aetherium.gui.UiSound.CLICK);
+    }
+
+    /** A chat line only this player sees. */
     private static void message(final Minecraft mc, final String text) {
-        if (mc.player != null) {
-            mc.player.displayClientMessage(Component.nullToEmpty(text), false);
-        }
+        // @era:q-world-begin none
+        // @era:q-world-else v16
+        //~ if (mc.player != null) {
+            //~ mc.player.displayClientMessage(net.minecraft.network.chat.Component.nullToEmpty(text), false);
+        //~ }
+        // @era:q-world-end
     }
 
     static int floor(final double value) {
         return (int) Math.floor(value);
     }
 
-    // @era:q-world-begin v16
-    /** Which waypoint list applies: the server address, or the save folder for single player. */
+    // @era:q-world-begin none
     static String worldKey(final Minecraft mc) {
-        final net.minecraft.client.multiplayer.ServerData server = mc.getCurrentServer();
-        if (server != null && server.ip != null) {
-            return "server:" + server.ip.trim().toLowerCase(java.util.Locale.ROOT);
-        }
-        final net.minecraft.client.server.IntegratedServer local = mc.getSingleplayerServer();
-        if (local != null) {
-            final Path root = local.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT)
-                    .toAbsolutePath().normalize();
-            final Path name = root.getFileName();
-            return "local:" + (name == null ? root.toString() : name.toString());
-        }
-        return "realms";
+        return "";
     }
 
-    /** Dimension id of the player's level, e.g. "minecraft:the_nether". */
     static String dimension(final Minecraft mc) {
-        return mc.level == null ? Waypoints.OVERWORLD : mc.level.dimension().location().toString();
+        return Waypoints.OVERWORLD;
     }
 
     private static boolean debugScreenShown(final Minecraft mc) {
-        return mc.options.renderDebug;
+        return true;
     }
 
-    /** "B / N / Not bound" (Add waypoint, Waypoints, Sort) for the settings screen. */
     public static String describeKeys() {
-        if (addWaypointKey == null) {
-            return "Not registered";
-        }
-        return addWaypointKey.getTranslatedKeyMessage().getString() + " / "
-                + waypointsKey.getTranslatedKeyMessage().getString() + " / "
-                + sortKey.getTranslatedKeyMessage().getString();
+        return "Not available on this version";
     }
 
-    /** Opens the waypoint list over {@code parent} (null = the game). */
     public static void openWaypoints(final Minecraft mc, final net.minecraft.client.gui.screens.Screen parent) {
-        if (mc.player == null) {
-            return;
-        }
-        waypoints().selectWorld(worldKey(mc));
-        ClientHooks.setScreen(mc, new WaypointScreen(parent));
     }
-    // @era:q-world-else none
+    // @era:q-world-else v16
+    //~ /** Which waypoint list applies: the server address, or the save folder for single player. */
     //~ static String worldKey(final Minecraft mc) {
-        //~ return "";
+        //~ final net.minecraft.client.multiplayer.ServerData server = mc.getCurrentServer();
+        //~ if (server != null && server.ip != null) {
+            //~ return "server:" + server.ip.trim().toLowerCase(java.util.Locale.ROOT);
+        //~ }
+        //~ final net.minecraft.client.server.IntegratedServer local = mc.getSingleplayerServer();
+        //~ if (local != null) {
+            //~ final Path root = local.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT)
+                    //~ .toAbsolutePath().normalize();
+            //~ final Path name = root.getFileName();
+            //~ return "local:" + (name == null ? root.toString() : name.toString());
+        //~ }
+        //~ return "realms";
     //~ }
 
+    //~ /** Dimension id of the player's level, e.g. "minecraft:the_nether". */
     //~ static String dimension(final Minecraft mc) {
-        //~ return Waypoints.OVERWORLD;
+        //~ return mc.level == null ? Waypoints.OVERWORLD : mc.level.dimension().location().toString();
     //~ }
 
     //~ private static boolean debugScreenShown(final Minecraft mc) {
-        //~ return true;
+        //~ return mc.options.renderDebug;
     //~ }
 
+    //~ /** "B / N / Not bound" (Add waypoint, Waypoints, Sort) for the settings screen. */
     //~ public static String describeKeys() {
-        //~ return "Not available on this version";
+        //~ if (addWaypointKey == null) {
+            //~ return "Not registered";
+        //~ }
+        //~ return addWaypointKey.getTranslatedKeyMessage().getString() + " / "
+                //~ + waypointsKey.getTranslatedKeyMessage().getString() + " / "
+                //~ + sortKey.getTranslatedKeyMessage().getString();
     //~ }
 
+    //~ /** Opens the waypoint list over {@code parent} (null = the game). */
     //~ public static void openWaypoints(final Minecraft mc, final net.minecraft.client.gui.screens.Screen parent) {
+        //~ if (mc.player == null) {
+            //~ return;
+        //~ }
+        //~ waypoints().selectWorld(worldKey(mc));
+        //~ ClientHooks.setScreen(mc, new WaypointScreen(parent));
     //~ }
     // @era:q-world-end
 }
