@@ -3,6 +3,19 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.17.0
+**Quality of life on every version.** The QoL tab, tested on Minecraft 1.16.5 in the 1.16.x GitHub test builds, now works on every version from 1.16.5 to 26.3. Every feature is off by default, runs only on your client, and works on any server, including servers without Aetherium.
+
+- Accurate placement: while you hold Use and move, a block goes down as soon as the crosshair reaches a new spot, so floors and walls come out without gaps or double blocks.
+- Inventory: scroll over a stack to move one item at a time; hold Shift and drag to shift-click every stack you pass; a Sort button (and an optional Sort key) for chests, barrels, shulker boxes, hoppers, dispensers and your own inventory.
+- Food info: hunger and saturation in food tooltips, and your hidden saturation drawn on the hunger bar as an AppleSkin-style gold outline (traced from your resource pack). The hunger and saturation held food would restore flash on the bar.
+- Waypoints per world and dimension, with optional beams and Nether/Overworld conversion (B adds one, N opens the list), plus a death point and coordinates on the death screen.
+- Nether and Overworld coordinates on the HUD, a lower fire overlay (0 hides it), a lowered shield while blocking, floating damage and heal numbers.
+- Custom crosshair: style, colour, size, thickness, gap, opacity, outline, and it turns red while you aim at a mob or player.
+- Punchy-style hands: a hand editor with presets and live preview (the menu fades away while you drag a slider), Show hand with items (your arm holds what you carry, like Punchy and Hold My Items), Show both hands (the empty off hand too) and Arms sideways, height, distance and size for both hands together.
+- Zoom and freelook options moved to the QoL tab.
+- An option a version cannot use is hidden on that version: the hand editor and arms are not on 26.3 yet.
+
 ## 1.16.3
 **Punchy-style arms (test build for Minecraft 1.16.5 only).**
 
