@@ -890,6 +890,39 @@ public final class ShaderPipeline {
             }
         }
         sb.append("PROGRAM-SWITCHES ").append(idents).append(" of ").append(values.size()).append(" options\n");
+        int shown = 0;
+        for (final Map.Entry<String, String> e : idents.entrySet()) {
+            if (!"MISSING".equals(e.getValue()) || shown >= 4 || e.getKey().equals("false") || e.getKey().equals("true")) {
+                continue;
+            }
+            shown++;
+            String hit = null;
+            String mention = null;
+            for (final String f : this.pack.source.files()) {
+                final String t = this.pack.source.text(f);
+                if (t == null || t.indexOf(e.getKey()) < 0 || f.endsWith(".png")) {
+                    continue;
+                }
+                final String[] lines = t.split("\n");
+                for (int i = 0; i < lines.length && hit == null; i++) {
+                    if (lines[i].indexOf(e.getKey()) >= 0) {
+                        final String at = f + ":" + (i + 1) + " " + lines[i].trim();
+                        if (lines[i].indexOf("define") >= 0) {
+                            hit = at;
+                        } else if (mention == null) {
+                            mention = at;
+                        }
+                    }
+                }
+                if (hit != null) {
+                    break;
+                }
+            }
+            final String show = hit != null ? hit : mention;
+            sb.append("WHERE ").append(e.getKey()).append(": ")
+                    .append(show == null ? "nowhere" : show.length() > 200 ? show.substring(0, 200) : show).append('\n');
+        }
+        sb.append("OPTIONS ").append(values.keySet()).append('\n');
         for (final GlProgram p : all) {
             sb.append("PASS ").append(p.name).append(" buffers ").append(java.util.Arrays.toString(this.drawBuffers(p)));
             if (p.source != null && p.source.fragDataSlots != null) {
