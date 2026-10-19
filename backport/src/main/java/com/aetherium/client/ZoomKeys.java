@@ -39,7 +39,11 @@ public final class ZoomKeys {
     }
 
     static KeyBinding newKey(final String name, final int code) {
-        final KeyBinding key = new KeyBinding(name, KeyConflictContext.IN_GAME, code, CATEGORY);
+        return newKey(name, code, KeyConflictContext.IN_GAME);
+    }
+
+    static KeyBinding newKey(final String name, final int code, final KeyConflictContext context) {
+        final KeyBinding key = new KeyBinding(name, context, code, CATEGORY);
         ClientRegistry.registerKeyBinding(key);
         return key;
     }

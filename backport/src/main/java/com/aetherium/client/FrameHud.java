@@ -54,6 +54,16 @@ public final class FrameHud {
         canvas.text(line2, x + PAD, y + PAD + 11, 0xFFD1D5DB);
     }
 
+    /** Height the frame overlay takes in {@code corner} (0 when it is elsewhere or off), so other HUD lines sit below it. */
+    static int heightIn(final String corner) {
+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
+        if (sub == null || !Aetherium.isActive() || !sub.config.showFrameHud.get().booleanValue()
+                || !corner.equals(sub.config.hudCorner.get())) {
+            return 0;
+        }
+        return PAD * 2 + 9 + 2 + 9 + 2;
+    }
+
     private static void refresh(final GuiCanvas canvas, final FrameStats stats) {
         final int fps = (int) Math.round(stats.getFps());
         final int cap = ClientHooks.currentCap();

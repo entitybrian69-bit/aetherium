@@ -334,6 +334,7 @@ public final class ClientHooks {
         ZoomKeys.configure(config);
         configureScenery(config, active);
         FreelookHooks.configure(config);
+        QolClient.configure(config, active);
         final Minecraft mc = Minecraft.getMinecraft();
         if (mc != null && mc.gameDir != null) {
             StutterRecorder.configure(Capabilities.STUTTER_LOG && config.stutterLog.get().booleanValue(), mc.gameDir);

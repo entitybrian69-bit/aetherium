@@ -2,6 +2,7 @@ package com.aetherium.backport;
 
 import com.aetherium.Aetherium;
 import com.aetherium.client.FreelookHooks;
+import com.aetherium.client.QolClient;
 import com.aetherium.client.ZoomKeys;
 import com.aetherium.platform.PlatformServices;
 import net.minecraftforge.common.MinecraftForge;
@@ -25,8 +26,10 @@ public final class AetheriumBackport {
         PlatformServices.register(new ForgePlatformAdapter());
         Aetherium.initialize();
         ZoomKeys.register();
+        QolClient.registerKeys();
         FreelookHooks.register();
         MinecraftForge.EVENT_BUS.register(new ForgeEvents());
+        MinecraftForge.EVENT_BUS.register(new QolEvents());
         SmokeTest.installIfRequested();
     }
 }
