@@ -2,190 +2,519 @@ package com.aetherium.qol;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.aetherium.config.AetheriumConfig;
+import com.aetherium.gui.GuiCanvas;
+import com.aetherium.gui.UiSound;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Random;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** 1.5.0 fog/sky settings, particle categories and freelook. */
+/** 1.16.0 Quality of life: the Minecraft-free logic behind each feature. */
 final class QolLogicTest {
 
-    @Test
-    @DisplayName("linear fog (1.17+): water moves its end; air and lava match the 1.16.5 rules")
-    void linearFog() {
-        vanillaScenery();
-        final float[] out = new float[3];
-        assertFalse(Scenery.adjustLinearFog(Scenery.WATER, false, 80f, -8f, 96f, out), "100 % is vanilla");
-        Scenery.waterFogPercent = 50;
-        assertTrue(Scenery.adjustLinearFog(Scenery.WATER, false, 80f, -8f, 96f, out));
-        assertEquals(-8f, out[Scenery.START], 1e-4f);
-        assertEquals(200f, out[Scenery.END], 1e-4f, "half the fog = twice the distance");
-        Scenery.waterFogPercent = 0;
-        assertTrue(Scenery.adjustLinearFog(Scenery.WATER, false, 80f, -8f, 96f, out));
-        assertTrue(out[Scenery.START] > 80f * 4f && out[Scenery.END] > out[Scenery.START], "0 % = no water fog");
-        vanillaScenery();
-        Scenery.fogStartPercent = 90;
-        assertTrue(Scenery.adjustLinearFog(Scenery.AIR, false, 80f, 60f, 80f, out));
-        assertEquals(72f, out[Scenery.START], 1e-4f);
-        assertEquals(80f, out[Scenery.END], 1e-4f);
-        vanillaScenery();
-        Scenery.clearLava = true;
-        assertTrue(Scenery.adjustLinearFog(Scenery.LAVA, false, 80f, 0.25f, 1f, out));
-        assertEquals(0f, out[Scenery.START], 1e-4f);
-        vanillaScenery();
-    }
+    // ------------------------------------------------------------------ sort
 
-    @Test
-    @DisplayName("fog (1.21.6+): distance settings move only the render-distance range, medium settings only the environmental one")
-    void splitFog() {
-        vanillaScenery();
-        final float[] out = new float[4];
-        assertFalse(Scenery.adjustFogData(Scenery.AIR, 1f, 4f, 230f, 256f, out), "vanilla");
-        assertFalse(Scenery.adjustFogData(Scenery.WATER, -8f, 96f, 230f, 256f, out), "vanilla water");
+    /**
+     * A container simulated with vanilla's left-click PICKUP rules, driven by exactly the click
+     * sequence QolInventory uses for one planner move (pick up from, click to, put back if needed).
+     */
+    private static final class Sim implements SortPlanner.Slots {
+        final int[] item;
+        final int[] count;
+        int carriedItem;
+        int carriedCount;
+        int clicks;
 
-        Scenery.distanceFog = false;
-        assertTrue(Scenery.adjustFogData(Scenery.AIR, 1f, 4f, 230f, 256f, out));
-        assertEquals(1f, out[Scenery.ENV_START], 0f, "blindness / Nether range untouched");
-        assertEquals(4f, out[Scenery.ENV_END], 0f);
-        assertTrue(out[Scenery.RD_START] > 256f * 4f && out[Scenery.RD_END] > out[Scenery.RD_START]);
-        assertFalse(Scenery.adjustFogData(Scenery.LAVA, 0.25f, 1f, 230f, 256f, out), "lava ignores distance fog");
-
-        vanillaScenery();
-        Scenery.fogStartPercent = 50;
-        assertTrue(Scenery.adjustFogData(Scenery.AIR, 1f, 4f, 230f, 256f, out));
-        assertEquals(128f, out[Scenery.RD_START], 1e-4f);
-        assertEquals(256f, out[Scenery.RD_END], 0f);
-        Scenery.fogStartPercent = 100;
-        assertTrue(Scenery.adjustFogData(Scenery.AIR, 1f, 4f, 230f, 256f, out));
-        assertTrue(out[Scenery.RD_START] < out[Scenery.RD_END], "start stays below end");
-
-        vanillaScenery();
-        Scenery.waterFogPercent = 25;
-        assertTrue(Scenery.adjustFogData(Scenery.WATER, -8f, 96f, 230f, 256f, out));
-        assertEquals(-8f + 104f * 4f, out[Scenery.ENV_END], 1e-3f);
-        assertEquals(230f, out[Scenery.RD_START], 0f, "terrain fade-out untouched underwater");
-        Scenery.waterFogPercent = 0;
-        assertTrue(Scenery.adjustFogData(Scenery.WATER, -8f, 96f, 230f, 256f, out));
-        assertTrue(out[Scenery.ENV_START] > 256f && out[Scenery.ENV_END] > out[Scenery.ENV_START]);
-
-        vanillaScenery();
-        Scenery.clearLava = true;
-        assertTrue(Scenery.adjustFogData(Scenery.LAVA, 0.25f, 1f, 230f, 256f, out));
-        assertEquals(0f, out[Scenery.ENV_START], 0f);
-        assertEquals(Scenery.CLEAR_LAVA_END, out[Scenery.ENV_END], 0f);
-        vanillaScenery();
-    }
-
-    private static void vanillaScenery() {
-        Scenery.distanceFog = true;
-        Scenery.fogStartPercent = Scenery.VANILLA_FOG_START;
-        Scenery.waterFogPercent = 100;
-        Scenery.clearLava = false;
-        Scenery.cloudHeight = 0;
-    }
-
-    @Test
-    @DisplayName("fog: vanilla settings change nothing; each option changes only its own medium")
-    void fogControls() {
-        vanillaScenery();
-        final float[] out = new float[3];
-        assertTrue(Scenery.fogVanilla());
-        assertFalse(Scenery.adjustFog(Scenery.AIR, false, 80f, 60f, 80f, 0.1f, out));
-        assertEquals(60f, out[Scenery.START], 0f);
-
-        Scenery.fogStartPercent = 90;
-        assertTrue(Scenery.adjustFog(Scenery.AIR, false, 80f, 60f, 80f, 0.1f, out));
-        assertEquals(72f, out[Scenery.START], 1e-4f);
-        assertEquals(80f, out[Scenery.END], 0f);
-        Scenery.fogStartPercent = 100;
-        Scenery.adjustFog(Scenery.AIR, false, 80f, 60f, 80f, 0.1f, out);
-        assertTrue(out[Scenery.START] < out[Scenery.END], "start stays below end");
-        assertFalse(Scenery.adjustFog(Scenery.AIR, true, 80f, 4f, 40f, 0.1f, out), "Nether fog keeps its shape");
-        assertFalse(Scenery.adjustFog(Scenery.WATER, false, 80f, 0f, 0f, 0.05f, out), "start % is air only");
-
-        Scenery.distanceFog = false;
-        assertTrue(Scenery.adjustFog(Scenery.AIR, true, 80f, 4f, 40f, 0.1f, out));
-        assertTrue(out[Scenery.START] > 80f && out[Scenery.END] > out[Scenery.START], "no fog anywhere in view");
-
-        vanillaScenery();
-        Scenery.waterFogPercent = 40;
-        assertTrue(Scenery.adjustFog(Scenery.WATER, false, 80f, 0f, 0f, 0.05f, out));
-        assertEquals(0.02f, out[Scenery.DENSITY], 1e-6f);
-        assertFalse(Scenery.adjustFog(Scenery.LAVA, false, 80f, 0.25f, 1f, 0.1f, out), "clear lava is separate");
-
-        vanillaScenery();
-        Scenery.clearLava = true;
-        assertTrue(Scenery.adjustFog(Scenery.LAVA, false, 80f, 0.25f, 1f, 0.1f, out));
-        assertEquals(0f, out[Scenery.START], 0f);
-        assertEquals(Scenery.CLEAR_LAVA_END, out[Scenery.END], 0f);
-        assertTrue(Scenery.adjustFog(Scenery.LAVA, false, 4f, 0.25f, 1f, 0.1f, out));
-        assertEquals(4f, out[Scenery.END], 0f, "never beyond the render distance");
-        vanillaScenery();
-    }
-
-    @Test
-    @DisplayName("cloud height: 0 keeps the dimension's height; dimensions without clouds stay without")
-    void cloudHeight() {
-        vanillaScenery();
-        assertEquals(128f, Scenery.cloudHeight(128f), 0f);
-        Scenery.cloudHeight = 192;
-        assertEquals(192f, Scenery.cloudHeight(128f), 0f);
-        assertTrue(Float.isNaN(Scenery.cloudHeight(Float.NaN)));
-        vanillaScenery();
-    }
-
-    @Test
-    @DisplayName("particles: registry names map to categories; toggles are tracked")
-    void particleCategories() {
-        assertEquals(ParticleFilter.EXPLOSIONS, ParticleFilter.categoryOf("minecraft:explosion"));
-        assertEquals(ParticleFilter.FIRE, ParticleFilter.categoryOf("minecraft:flame"));
-        assertEquals(ParticleFilter.WEATHER, ParticleFilter.categoryOf("rain"));
-        assertEquals(ParticleFilter.TOTEM, ParticleFilter.categoryOf("minecraft:totem_of_undying"));
-        assertEquals(ParticleFilter.AMBIENT, ParticleFilter.categoryOf("minecraft:white_ash"));
-        assertEquals(ParticleFilter.DRIPS, ParticleFilter.categoryOf("minecraft:dripping_obsidian_tear"));
-        assertEquals(ParticleFilter.NONE, ParticleFilter.categoryOf("minecraft:block"), "block dust has its own switch");
-        assertEquals(ParticleFilter.NONE, ParticleFilter.categoryOf("othermod:flame"), "other namespaces are left alone");
-        assertEquals(ParticleFilter.NONE, ParticleFilter.categoryOf(null));
-
-        // Other tests may leave the redstone limit set (Tuning.configure while active).
-        ParticleFilter.setRedstoneLimit(ParticleFilter.REDSTONE_UNLIMITED);
-        for (int c = 0; c < ParticleFilter.COUNT; c++) {
-            ParticleFilter.set(c, true);
+        Sim(final int[] item, final int[] count) {
+            this.item = item.clone();
+            this.count = count.clone();
         }
-        assertFalse(ParticleFilter.anyDisabled());
-        ParticleFilter.set(ParticleFilter.SMOKE, false);
-        assertTrue(ParticleFilter.anyDisabled());
-        assertFalse(ParticleFilter.allowed(ParticleFilter.SMOKE));
-        assertTrue(ParticleFilter.allowed(ParticleFilter.FIRE));
-        assertTrue(ParticleFilter.allowed(ParticleFilter.NONE));
-        ParticleFilter.set(ParticleFilter.SMOKE, true);
-        assertFalse(ParticleFilter.anyDisabled());
+
+        static int max(final int id) {
+            return id == 99 ? 1 : id % 3 == 0 ? 16 : 64;
+        }
+
+        void click(final int s) {
+            this.clicks++;
+            if (this.carriedCount == 0) {
+                if (this.count[s] > 0) {
+                    this.carriedItem = this.item[s];
+                    this.carriedCount = this.count[s];
+                    this.count[s] = 0;
+                    this.item[s] = 0;
+                }
+                return;
+            }
+            if (this.count[s] == 0) {
+                this.item[s] = this.carriedItem;
+                this.count[s] = this.carriedCount;
+                this.carriedCount = 0;
+                this.carriedItem = 0;
+                return;
+            }
+            if (this.item[s] == this.carriedItem) {
+                final int moved = Math.min(max(this.item[s]) - this.count[s], this.carriedCount);
+                this.count[s] += moved;
+                this.carriedCount -= moved;
+                if (this.carriedCount == 0) {
+                    this.carriedItem = 0;
+                }
+                return;
+            }
+            final int i = this.item[s];
+            final int c = this.count[s];
+            this.item[s] = this.carriedItem;
+            this.count[s] = this.carriedCount;
+            this.carriedItem = i;
+            this.carriedCount = c;
+        }
+
+        void perform(final SortPlanner.Move move) {
+            click(move.from);
+            click(move.to);
+            if (this.carriedCount > 0) {
+                click(move.from);
+            }
+        }
+
+        int total(final int id) {
+            int sum = 0;
+            for (int i = 0; i < this.item.length; i++) {
+                if (this.count[i] > 0 && this.item[i] == id) {
+                    sum += this.count[i];
+                }
+            }
+            return sum;
+        }
+
+        @Override
+        public int size() {
+            return this.item.length;
+        }
+
+        @Override
+        public boolean isEmpty(final int slot) {
+            return this.count[slot] == 0;
+        }
+
+        @Override
+        public boolean sameItem(final int a, final int b) {
+            return this.count[a] > 0 && this.count[b] > 0 && this.item[a] == this.item[b];
+        }
+
+        @Override
+        public int count(final int slot) {
+            return this.count[slot];
+        }
+
+        @Override
+        public int maxCount(final int slot) {
+            return max(this.item[slot]);
+        }
+
+        @Override
+        public int compareItems(final int a, final int b) {
+            return Integer.compare(this.item[a], this.item[b]);
+        }
+    }
+
+    /** Runs the sort like QolInventory.tick (one move per step, 200 at most); returns the moves used. */
+    private static int sort(final Sim sim) {
+        int moves = 0;
+        SortPlanner.Move move;
+        while ((move = SortPlanner.next(sim)) != null) {
+            assertTrue(moves < 200, "sort did not finish: " + move);
+            sim.perform(move);
+            assertEquals(0, sim.carriedCount, "cursor must be empty after every move");
+            moves++;
+        }
+        return moves;
+    }
+
+    private static void assertSorted(final Sim sim) {
+        boolean seenEmpty = false;
+        int lastItem = Integer.MIN_VALUE;
+        for (int i = 0; i < sim.size(); i++) {
+            if (sim.count[i] == 0) {
+                seenEmpty = true;
+                continue;
+            }
+            assertFalse(seenEmpty, "stack after an empty slot at " + i);
+            assertTrue(sim.item[i] >= lastItem, "out of order at " + i);
+            if (sim.item[i] == lastItem) {
+                assertTrue(sim.count[i - 1] == Sim.max(sim.item[i]) || sim.item[i] == 99,
+                        "partial stack before another stack of the same item at " + (i - 1));
+            }
+            lastItem = sim.item[i];
+        }
     }
 
     @Test
-    @DisplayName("freelook: hold and toggle modes, free camera turns like vanilla and clamps pitch")
-    void freelook() {
-        final Freelook hold = new Freelook();
-        assertEquals(Freelook.NO_CHANGE, hold.update(false, false));
-        assertEquals(Freelook.STARTED, hold.update(true, false));
-        assertEquals(Freelook.NO_CHANGE, hold.update(true, false));
-        assertEquals(Freelook.STOPPED, hold.update(false, false));
+    @DisplayName("Sort merges partial stacks and orders by item, keeping every item")
+    void sortSmallChest() {
+        final Sim sim = new Sim(
+                new int[] {5, 0, 2, 5, 7, 2, 0, 99, 99},
+                new int[] {10, 0, 64, 60, 1, 3, 0, 1, 1});
+        sort(sim);
+        assertSorted(sim);
+        assertEquals(70, sim.total(5));
+        assertEquals(67, sim.total(2));
+        assertEquals(2, sim.total(99));
+        assertEquals(2, sim.item[0]);
+        assertEquals(64, sim.count[0]);
+        assertEquals(3, sim.count[1]);
+        assertEquals(5, sim.item[2]);
+        assertEquals(64, sim.count[2]);
+        assertEquals(6, sim.count[3]);
+    }
 
-        final Freelook toggle = new Freelook();
-        assertEquals(Freelook.STARTED, toggle.update(true, true));
-        assertEquals(Freelook.NO_CHANGE, toggle.update(true, true), "holding does not toggle again");
-        assertEquals(Freelook.NO_CHANGE, toggle.update(false, true));
-        assertTrue(toggle.active());
-        assertEquals(Freelook.STOPPED, toggle.update(true, true));
-        assertFalse(toggle.active());
+    @Test
+    @DisplayName("Sort: random chests always end sorted, with nothing lost, within the move cap")
+    void sortFuzz() {
+        final Random random = new Random(1234);
+        for (int round = 0; round < 400; round++) {
+            final int n = random.nextBoolean() ? 27 : 54;
+            final int[] item = new int[n];
+            final int[] count = new int[n];
+            final int kinds = 1 + random.nextInt(12);
+            for (int i = 0; i < n; i++) {
+                if (random.nextInt(3) == 0) {
+                    continue;
+                }
+                item[i] = random.nextInt(20) == 0 ? 99 : 1 + random.nextInt(kinds);
+                count[i] = 1 + random.nextInt(Sim.max(item[i]));
+            }
+            final Sim sim = new Sim(item, count);
+            final int[] before = new int[100];
+            for (int id = 0; id < 100; id++) {
+                before[id] = sim.total(id);
+            }
+            sort(sim);
+            assertSorted(sim);
+            for (int id = 0; id < 100; id++) {
+                assertEquals(before[id], sim.total(id), "item " + id + " changed in round " + round);
+            }
+            assertNull(SortPlanner.next(sim));
+        }
+    }
 
-        final Freelook cam = new Freelook();
-        cam.begin(90f, 10f);
-        cam.turn(100.0, 0.0);
-        assertEquals(105f, cam.yaw(), 1e-4f);
-        cam.turn(0.0, 1000.0);
-        assertEquals(90f, cam.pitch(), 0f);
-        cam.turn(0.0, -2000.0);
-        assertEquals(-90f, cam.pitch(), 0f);
+    @Test
+    @DisplayName("Sort: an already sorted chest needs no clicks")
+    void sortNoop() {
+        final Sim sim = new Sim(new int[] {1, 1, 4, 0}, new int[] {64, 20, 16, 0});
+        assertEquals(0, sort(sim));
+        assertEquals(0, sim.clicks);
+    }
+
+    // ------------------------------------------------------------------ accurate placement
+
+    @Test
+    @DisplayName("Accurate placement: early only for a new spot, never onto the last block, at most every 2 ticks")
+    void accuratePlacement() {
+        final AccuratePlacement p = new AccuratePlacement();
+        assertFalse(p.placeEarly(AccuratePlacement.NONE, 5L));
+        assertTrue(p.placeEarly(1L, 2L), "fresh start may place");
+        p.placed(2L);
+        assertFalse(p.placeEarly(3L, 4L), "0 ticks since the last placement");
+        p.tick();
+        assertFalse(p.placeEarly(3L, 4L), "1 tick");
+        p.tick();
+        assertTrue(p.placeEarly(3L, 4L), "2 ticks, new spot");
+        assertFalse(p.placeEarly(3L, 2L), "same spot as last time");
+        assertFalse(p.placeEarly(2L, 9L), "building onto the block just placed keeps vanilla's rhythm");
+        p.reset();
+        assertTrue(p.placeEarly(2L, 9L));
+    }
+
+    // ------------------------------------------------------------------ waypoints
+
+    @Test
+    @DisplayName("Waypoints: per world, saved and loaded, one death point, names unique and capped")
+    void waypointsStore() throws Exception {
+        final Path dir = Files.createTempDirectory("aeth-wp");
+        final Path file = dir.resolve("aetherium-waypoints.json");
+        final Waypoints a = new Waypoints(file);
+        assertNull(a.add(0, 64, 0, Waypoints.OVERWORLD), "no world selected yet");
+        a.selectWorld("server:example.org");
+        final Waypoints.Waypoint home = a.add(10, 70, -5, Waypoints.OVERWORLD);
+        assertNotNull(home);
+        assertEquals("Waypoint 1", home.name);
+        home.name = Waypoints.clampName("Home base with a very long name indeed");
+        assertEquals(Waypoints.MAX_NAME, home.name.length());
+        a.changed();
+        a.add(1, 2, 3, Waypoints.NETHER);
+        a.setDeath(100, 12, 100, Waypoints.OVERWORLD);
+        a.setDeath(200, 30, 200, Waypoints.NETHER);
+        assertEquals(3, a.all().size());
+        assertTrue(a.all().get(0).death);
+        assertEquals(200, a.all().get(0).x);
+
+        a.selectWorld("local:New World");
+        assertEquals(0, a.all().size());
+        a.add(0, 0, 0, Waypoints.OVERWORLD);
+
+        final Waypoints b = new Waypoints(file);
+        b.selectWorld("server:example.org");
+        assertEquals(3, b.all().size());
+        assertEquals(home.name, b.all().get(1).name);
+        assertEquals(-5, b.all().get(1).z);
+        assertTrue(b.all().get(0).death);
+        b.selectWorld("local:New World");
+        assertEquals(1, b.all().size());
+
+        Files.write(file, "{ broken".getBytes(StandardCharsets.UTF_8));
+        final Waypoints c = new Waypoints(file);
+        c.selectWorld("server:example.org");
+        assertEquals(0, c.all().size(), "a damaged file starts empty");
+        assertTrue(Files.exists(dir.resolve("aetherium-waypoints.json.bad")), "and is kept aside");
+    }
+
+    @Test
+    @DisplayName("Waypoints: Nether and Overworld coordinates convert by 8, the End does not")
+    void waypointCoordinates() {
+        assertEquals(100.0, Waypoints.convert(800.0, Waypoints.OVERWORLD, Waypoints.NETHER), 1e-9);
+        assertEquals(800.0, Waypoints.convert(100.0, Waypoints.NETHER, Waypoints.OVERWORLD), 1e-9);
+        assertEquals(5.0, Waypoints.convert(5.0, Waypoints.NETHER, Waypoints.NETHER), 1e-9);
+        assertTrue(Double.isNaN(Waypoints.convert(5.0, "minecraft:the_end", Waypoints.OVERWORLD)));
+        assertEquals("Nether", Waypoints.dimensionName(Waypoints.NETHER));
+        assertEquals("twilight_forest", Waypoints.dimensionName("twilightforest:twilight_forest"));
+    }
+
+    // ------------------------------------------------------------------ waypoint screen
+
+    private static final class TextCanvas extends GuiCanvas {
+        final StringBuilder texts = new StringBuilder();
+
+        @Override
+        protected void rawFill(final int x1, final int y1, final int x2, final int y2, final int argb) {
+        }
+
+        @Override
+        protected void rawText(final String text, final int x, final int y, final int argb) {
+            this.texts.append(text).append('\n');
+        }
+
+        @Override
+        protected int rawTextWidth(final String text) {
+            return text.length() * 6;
+        }
+
+        @Override
+        protected void rawPushClip(final int x1, final int y1, final int x2, final int y2) {
+        }
+
+        @Override
+        protected void rawPopClip(final boolean restore, final int x1, final int y1, final int x2, final int y2) {
+        }
+    }
+
+    private static final class Host implements WaypointView.Host {
+        boolean closed;
+
+        @Override
+        public double playerX() {
+            return 80.5;
+        }
+
+        @Override
+        public double playerY() {
+            return 64.0;
+        }
+
+        @Override
+        public double playerZ() {
+            return -16.5;
+        }
+
+        @Override
+        public String dimension() {
+            return Waypoints.OVERWORLD;
+        }
+
+        @Override
+        public void close() {
+            this.closed = true;
+        }
+
+        @Override
+        public void playSound(final UiSound sound) {
+        }
+
+        @Override
+        public boolean darkMode() {
+            return false;
+        }
+    }
+
+    @Test
+    @DisplayName("Waypoint screen: add here, rename by typing, delete needs two clicks")
+    void waypointView() throws Exception {
+        final Waypoints store = new Waypoints(Files.createTempDirectory("aeth-wpv").resolve("w.json"));
+        store.selectWorld("local:Test");
+        final Host host = new Host();
+        final WaypointView view = new WaypointView(store, host);
+        view.resize(480, 270);
+        final TextCanvas canvas = new TextCanvas();
+        view.render(canvas, 0, 0);
+        assertTrue(canvas.texts.toString().contains("No waypoints"));
+
+        // "+ Add here" sits at px2-150..px2-74, py1+38..+52 with px2 = 40 + 400.
+        assertTrue(view.mouseClicked(440 - 120, 10 + 44, 0));
+        assertEquals(1, store.all().size());
+        assertEquals(80, store.all().get(0).x);
+        assertEquals(-17, store.all().get(0).z);
+        // The new waypoint is being renamed: replace its name.
+        for (int i = 0; i < 20; i++) {
+            view.keyPressed(259);
+        }
+        for (final char c : "Base".toCharArray()) {
+            view.charTyped(c);
+        }
+        view.keyPressed(257);
+        assertEquals("Base", store.all().get(0).name);
+
+        // Delete: px2-46..px2-12 on the first row (listY1 = py1 + 58).
+        final int rowY = 10 + 58 + 12;
+        view.mouseClicked(440 - 30, rowY, 0);
+        assertEquals(1, store.all().size(), "first click only arms");
+        view.mouseClicked(440 - 30, rowY, 0);
+        assertEquals(0, store.all().size());
+
+        assertTrue(view.mouseClicked(440 - 40, 10 + 44, 0), "Done");
+        assertTrue(host.closed);
+    }
+
+    // ------------------------------------------------------------------ crosshair
+
+    @Test
+    @DisplayName("Crosshair: shapes are symmetric, the outline grows every rect by one pixel")
+    void crosshair() {
+        for (final Crosshair.Style style : Crosshair.Style.values()) {
+            if (style == Crosshair.Style.VANILLA) {
+                assertEquals(0, Crosshair.shape(style, 5, 1, 2).length);
+                continue;
+            }
+            final int[] rects = Crosshair.shape(style, 5, 1, 2);
+            assertTrue(rects.length > 0 && rects.length % 4 == 0, style.name());
+            int minX = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            for (int i = 0; i < rects.length; i += 4) {
+                assertTrue(rects[i] < rects[i + 2] && rects[i + 1] < rects[i + 3], style + " has an empty rect");
+                minX = Math.min(minX, rects[i]);
+                maxX = Math.max(maxX, rects[i + 2]);
+            }
+            // Odd thickness: centred on the middle pixel [0, 1).
+            assertEquals(-minX, maxX - 1, style + " is not centred");
+            final int[] outline = Crosshair.outline(rects);
+            assertEquals(rects.length, outline.length);
+            for (int i = 0; i < rects.length; i += 4) {
+                assertEquals(rects[i] - 1, outline[i]);
+                assertEquals(rects[i + 3] + 1, outline[i + 3]);
+            }
+        }
+        assertEquals(0x80, Crosshair.argb(0xFF0000, 50) >>> 24);
+        assertEquals(0xFF0000, Crosshair.argb(0xFF0000, 50) & 0xFFFFFF);
+        assertEquals(0xFF, Crosshair.argb(0, 100) >>> 24);
+    }
+
+    // ------------------------------------------------------------------ damage numbers
+
+    @Test
+    @DisplayName("Damage numbers: first sighting only records, a drop spawns a popup, unseen entities are forgotten")
+    void damageNumbers() {
+        final DamageNumbers d = new DamageNumbers();
+        assertTrue(d.isIdle());
+        d.beginTick();
+        d.report(7, 20f, 0, 0, 0, false, 1000L, 0.5);
+        d.endTick(1000L);
+        assertTrue(d.isIdle(), "first report must not spawn");
+        d.beginTick();
+        d.report(7, 14.5f, 1, 2, 3, false, 1050L, 0.5);
+        d.endTick(1050L);
+        assertFalse(d.isIdle());
+        DamageNumbers.Popup popup = null;
+        for (int i = 0; i < d.capacity(); i++) {
+            if (d.popup(i).isLive()) {
+                popup = d.popup(i);
+            }
+        }
+        assertNotNull(popup);
+        assertEquals("5.5", popup.text());
+        // Heals only with the option.
+        d.beginTick();
+        d.report(7, 18f, 0, 0, 0, false, 1100L, 0.5);
+        d.endTick(1100L);
+        int live = 0;
+        for (int i = 0; i < d.capacity(); i++) {
+            live += d.popup(i).isLive() ? 1 : 0;
+        }
+        assertEquals(1, live);
+        // Expiry.
+        d.beginTick();
+        d.endTick(1050L + DamageNumbers.LIFETIME_MS + 1);
+        assertTrue(d.isIdle());
+        // Entity 7 was not reported in that tick, so it is forgotten: the next report only records.
+        d.beginTick();
+        d.report(7, 2f, 0, 0, 0, false, 5000L, 0.5);
+        d.endTick(5000L);
+        assertTrue(d.isIdle());
+    }
+
+    @Test
+    @DisplayName("Damage numbers: the popup ring never grows past its capacity")
+    void damageRing() {
+        final DamageNumbers d = new DamageNumbers();
+        d.beginTick();
+        for (int id = 0; id < 200; id++) {
+            d.report(id, 20f, 0, 0, 0, false, 0L, 0.0);
+        }
+        d.endTick(0L);
+        d.beginTick();
+        for (int id = 0; id < 200; id++) {
+            d.report(id, 10f, 0, 0, 0, false, 10L, 0.0);
+        }
+        d.endTick(10L);
+        assertEquals(DamageNumbers.MAX_POPUPS, d.capacity());
+    }
+
+    // ------------------------------------------------------------------ settings
+
+    @Test
+    @DisplayName("Quality of life: everything off by default, presets inside the option ranges, food maths")
+    void settings() {
+        final AetheriumConfig config = new AetheriumConfig();
+        Qol.configure(config, true);
+        assertFalse(Qol.accuratePlacement || Qol.scrollTransfer || Qol.shiftDrag || Qol.sortButton || Qol.foodTooltip
+                || Qol.foodHud || Qol.waypoints || Qol.deathPoint || Qol.dimensionCoords || Qol.damageNumbers
+                || Qol.crosshair || Qol.hand);
+        assertEquals(100, Qol.fireOverlay);
+        assertEquals(0, Qol.shieldOffset);
+        assertEquals(AetheriumConfig.HandPreset.values().length - 1, Qol.HAND_PRESETS.length);
+        assertEquals(Crosshair.Style.values().length, AetheriumConfig.CrosshairStyle.values().length);
+        assertEquals(Crosshair.Color.values().length, AetheriumConfig.CrosshairColor.values().length);
+        for (int i = 0; i < Crosshair.Style.values().length; i++) {
+            assertEquals(Crosshair.Style.values()[i].name(), AetheriumConfig.CrosshairStyle.values()[i].name());
+        }
+        for (final int[] preset : Qol.HAND_PRESETS) {
+            for (int i = 0; i < 3; i++) {
+                assertTrue(preset[i] >= -50 && preset[i] <= 50);
+            }
+            for (int i = 3; i < 6; i++) {
+                assertTrue(preset[i] >= -90 && preset[i] <= 90);
+            }
+            assertTrue(preset[6] >= 25 && preset[6] <= 200);
+        }
+        assertEquals(7.2f, Qol.saturation(6, 0.6f), 1e-4f);
+        assertEquals("7.2", Qol.oneDecimal(Qol.saturation(6, 0.6f)));
+        assertEquals("6", Qol.oneDecimal(6.0f));
     }
 }

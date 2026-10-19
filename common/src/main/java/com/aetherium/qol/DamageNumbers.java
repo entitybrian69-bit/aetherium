@@ -139,10 +139,9 @@ public final class DamageNumbers {
         return this.live == 0;
     }
 
-    /** The live popup at {@code index} of the ring, or null. */
+    /** The popup at {@code index} of the ring (never null; check {@link Popup#isLive()}). */
     public Popup popup(final int index) {
-        final Popup p = this.popups[index];
-        return p.live ? p : null;
+        return this.popups[index];
     }
 
     public int capacity() {
