@@ -9,6 +9,9 @@ import com.aetherium.gui.AetheriumView;
 import com.aetherium.gui.Page;
 import com.aetherium.gui.PixelArt;
 import com.aetherium.perf.BlockEntityCull;
+import com.aetherium.perf.Tuning;
+import com.aetherium.perf.TuningSupport;
+import com.aetherium.qol.ParticleFilter;
 import com.aetherium.qol.Qol;
 import com.aetherium.qol.QolSupport;
 import com.aetherium.perf.RenderToggles;
@@ -53,6 +56,7 @@ public final class AetheriumPages {
     private static final String[] PARTICLES = {"All", "Decreased", "Minimal"};
     private static final String[] PRESETS = {"Max FPS", "Balanced", "Quality"};
     private static final String[] LIGHTS = {"Off", "Fast", "Fancy"};
+    private static final String[] LEAVES = {"Graphics", "Fast", "Fancy"};
     private static final String[] CORNERS = {"Top left", "Top right", "Bottom left", "Bottom right"};
     private static final String[] CORNER_KEYS = {"top-left", "top-right", "bottom-left", "bottom-right"};
 
@@ -185,6 +189,15 @@ public final class AetheriumPages {
         page.add(flag("quality.shadows", "Entity shadows", "Round shadows under mobs and items.",
                 VanillaOptions::getEntityShadows, VanillaOptions::setEntityShadows).presetMember());
         page.add(bool("quality.weather", "Weather", config.weather).presetMember());
+        page.add(tuningRow(bool("quality.light_weather", "Lighter rain and snow", config.lightWeather)));
+        page.add(tuningRow(Setting.choice("quality.leaves", Setting.Kind.SEGMENTED, "Leaves",
+                        config.leaves.getComment(), LEAVES,
+                        () -> config.leaves.get().ordinal(),
+                        v -> config.leaves.set(AetheriumConfig.LeavesMode.values()[Math.max(0, Math.min(2, v))]))
+                .withDefault(config.leaves.getDefault().ordinal())));
+        page.add(tuningRow(bool("quality.leaf_culling", "Leaf culling", config.leafCulling)));
+        page.add(tuningRow(bool("quality.enchant_glint", "Enchantment glint", config.enchantGlint)));
+        page.add(tuningRow(bool("quality.end_crystal_beams", "End crystal beams", config.endCrystalBeams)));
         page.add(bool("quality.vignette", "Vignette", config.vignette).presetMember()
                 .availableWhen(() -> Capabilities.VIGNETTE_TOGGLE, NOT_ON_THIS_VERSION));
         addScenery(page);
@@ -219,6 +232,7 @@ public final class AetheriumPages {
         page.add(sceneryRow(bool("quality.particles_portals", "Portal particles", config.particlesPortals)));
         page.add(sceneryRow(bool("quality.particles_ambient", "Ambient particles", config.particlesAmbient)));
         page.add(sceneryRow(bool("quality.particles_totem", "Totem particles", config.particlesTotem)));
+        page.add(sceneryRow(bool("quality.particles_redstone", "Redstone particles", config.particlesRedstone)));
         page.add(sceneryRow(bool("quality.particles_block_break", "Block breaking particles", config.particlesBlockBreak)));
     }
 
@@ -267,7 +281,38 @@ public final class AetheriumPages {
                 .availableWhen(() -> Capabilities.BLOCK_ENTITY_CULL, NOT_ON_THIS_VERSION));
         page.add(bool("perf.smart_chunk_culling", "Smarter chunk culling", config.smartChunkCulling)
                 .availableWhen(() -> Capabilities.STREAMING || Capabilities.FOG_CULL, NOT_ON_THIS_VERSION));
+        addTuning(page);
         return page;
+    }
+
+    /**
+     * The main mod's tuning options that work on 1.12.2 ({@link TuningSupport}); the rest hook
+     * 1.13+ systems and are left out here.
+     */
+    private void addTuning(final Page page) {
+        page.add(tuningRow(bool("perf.low_end_mode", "Low-end mode", config.lowEndMode)));
+        page.add(tuningRow(bool("perf.dynamic_fps", "Dynamic FPS", config.dynamicFps)));
+        page.add(tuningRow(intSlider("perf.menu_fps", "Menu frame rate", config.menuFps, 5,
+                v -> v >= Tuning.MENU_FPS_OFF ? "Off (full speed)" : v + " FPS")));
+        page.add(tuningRow(bool("perf.hitch_guard", "Hitch guard", config.hitchGuard)));
+        page.add(tuningRow(intSlider("perf.entity_detail_distance", "Entity detail distance",
+                config.entityDetailDistance, 4,
+                v -> v >= Tuning.VANILLA_DETAIL ? "Vanilla (all details)" : v + " blocks")));
+        page.add(tuningRow(intSlider("perf.explosion_particles", "Explosion clouds per tick",
+                config.explosionParticles, 1,
+                v -> v >= Tuning.EXPLOSIONS_UNLIMITED ? "Unlimited" : v == 0 ? "Small puffs only" : String.valueOf(v))));
+        page.add(tuningRow(bool("perf.map_updates", "Throttle map updates", config.mapUpdates)));
+        page.add(tuningRow(intSlider("perf.redstone_particle_limit", "Redstone particles per tick",
+                config.redstoneParticleLimit, 4,
+                v -> v >= ParticleFilter.REDSTONE_UNLIMITED ? "Unlimited" : v == 0 ? "None" : String.valueOf(v))));
+        page.add(tuningRow(intSlider("perf.block_entity_limit", "Block entities per frame",
+                config.blockEntityLimit, 64,
+                v -> v >= Tuning.BLOCK_ENTITIES_UNLIMITED ? "Unlimited" : String.valueOf(v))));
+    }
+
+    private static Setting tuningRow(final Setting setting) {
+        final String key = setting.id;
+        return setting.availableWhen(() -> Capabilities.TUNING && TuningSupport.option(key), NOT_ON_THIS_VERSION);
     }
 
     // ------------------------------------------------------------------ Backend

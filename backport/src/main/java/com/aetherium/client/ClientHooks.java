@@ -13,7 +13,9 @@ import com.aetherium.perf.AdaptiveDistance;
 import com.aetherium.perf.BlockEntityCull;
 import com.aetherium.perf.FrameLimiter;
 import com.aetherium.perf.RenderToggles;
+import com.aetherium.perf.HitchGuard;
 import com.aetherium.perf.StutterRecorder;
+import com.aetherium.perf.Tuning;
 import com.aetherium.perf.UploadBudget;
 import com.aetherium.qol.ParticleFilter;
 import com.aetherium.qol.Scenery;
@@ -68,6 +70,11 @@ public final class ClientHooks {
         final long now = System.nanoTime();
         StutterRecorder.frame(now, null);
         UploadBudget.adapt(StutterRecorder.averageFrameNanos());
+        if (HitchGuard.frame(now, StutterRecorder.averageFrameNanos()) && Tuning.hitchGuard) {
+            UploadBudget.throttle();
+        }
+        // Per-frame budget of the block entity limit.
+        Tuning.newFrame();
         TerrainRenderer.onFrame();
         if (Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive()) {
             LIMITER.beforeFrame();
@@ -212,6 +219,8 @@ public final class ClientHooks {
                 return ParticleFilter.AMBIENT;
             case "totem":
                 return ParticleFilter.TOTEM;
+            case "reddust":
+                return ParticleFilter.REDSTONE;
             default:
                 return ParticleFilter.NONE;
         }
@@ -231,6 +240,8 @@ public final class ClientHooks {
             adaptiveWasOn = sub.config.adaptiveDistance.get().booleanValue();
             onSettingsApplied();
         }
+        ParticleFilter.newTick();
+        TuningBackport.tick();
         sub.store.tick();
         if (mc.world != lastLevel) {
             lastLevel = mc.world;
@@ -301,6 +312,11 @@ public final class ClientHooks {
         if (thermalCapped) {
             cap = cap == 0 ? THERMAL_CAP_FPS : Math.min(cap, THERMAL_CAP_FPS);
         }
+        // Background / minimized / open-menu caps (tuning options).
+        final int tuning = TuningBackport.frameCap(Minecraft.getMinecraft());
+        if (tuning > 0) {
+            cap = cap == 0 ? tuning : Math.min(cap, tuning);
+        }
         LIMITER.setCap(cap);
     }
 
@@ -335,6 +351,9 @@ public final class ClientHooks {
         configureScenery(config, active);
         FreelookHooks.configure(config);
         QolClient.configure(config, active);
+        QolHud.invalidate(); // re-trace the saturation outline (picks up a changed resource pack)
+        Tuning.configure(config, active && Capabilities.TUNING);
+        TuningBackport.configured(Minecraft.getMinecraft());
         final Minecraft mc = Minecraft.getMinecraft();
         if (mc != null && mc.gameDir != null) {
             StutterRecorder.configure(Capabilities.STUTTER_LOG && config.stutterLog.get().booleanValue(), mc.gameDir);
@@ -388,6 +407,7 @@ public final class ClientHooks {
         ParticleFilter.set(ParticleFilter.PORTALS, !scenery || config.particlesPortals.get().booleanValue());
         ParticleFilter.set(ParticleFilter.AMBIENT, !scenery || config.particlesAmbient.get().booleanValue());
         ParticleFilter.set(ParticleFilter.TOTEM, !scenery || config.particlesTotem.get().booleanValue());
+        ParticleFilter.set(ParticleFilter.REDSTONE, !scenery || config.particlesRedstone.get().booleanValue());
         ParticleFilter.setBlockBreaking(!scenery || config.particlesBlockBreak.get().booleanValue());
     }
 

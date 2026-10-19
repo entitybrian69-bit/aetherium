@@ -32,7 +32,7 @@ public final class SmokeTest {
 
     private static final int SETTLE_TICKS = 300;
     private static final int TAB_TICKS = 20;
-    private static final int TABS = 6;
+    private static final int TABS = 7;
 
     private final File dir;
     private final List<String> log = new ArrayList<String>();
