@@ -1,0 +1,541 @@
+Compiled from "MinecraftServer.java"
+public abstract class net.minecraft.server.MinecraftServer implements net.minecraft.command.ICommandSender,java.lang.Runnable,net.minecraft.util.IThreadListener,net.minecraft.profiler.ISnooperInfo {
+  private static final org.apache.logging.log4j.Logger LOGGER;
+    descriptor: Lorg/apache/logging/log4j/Logger;
+  public static final java.io.File USER_CACHE_FILE;
+    descriptor: Ljava/io/File;
+  private final net.minecraft.world.storage.ISaveFormat anvilConverterForAnvilFile;
+    descriptor: Lnet/minecraft/world/storage/ISaveFormat;
+  private final net.minecraft.profiler.Snooper usageSnooper;
+    descriptor: Lnet/minecraft/profiler/Snooper;
+  private final java.io.File anvilFile;
+    descriptor: Ljava/io/File;
+  private final java.util.List<net.minecraft.util.ITickable> tickables;
+    descriptor: Ljava/util/List;
+  public final net.minecraft.command.ICommandManager commandManager;
+    descriptor: Lnet/minecraft/command/ICommandManager;
+  public final net.minecraft.profiler.Profiler profiler;
+    descriptor: Lnet/minecraft/profiler/Profiler;
+  private final net.minecraft.network.NetworkSystem networkSystem;
+    descriptor: Lnet/minecraft/network/NetworkSystem;
+  private final net.minecraft.network.ServerStatusResponse statusResponse;
+    descriptor: Lnet/minecraft/network/ServerStatusResponse;
+  private final java.util.Random random;
+    descriptor: Ljava/util/Random;
+  private final net.minecraft.util.datafix.DataFixer dataFixer;
+    descriptor: Lnet/minecraft/util/datafix/DataFixer;
+  private java.lang.String hostname;
+    descriptor: Ljava/lang/String;
+  private int serverPort;
+    descriptor: I
+  public net.minecraft.world.WorldServer[] worlds;
+    descriptor: [Lnet/minecraft/world/WorldServer;
+  private net.minecraft.server.management.PlayerList playerList;
+    descriptor: Lnet/minecraft/server/management/PlayerList;
+  private boolean serverRunning;
+    descriptor: Z
+  private boolean serverStopped;
+    descriptor: Z
+  private int tickCounter;
+    descriptor: I
+  protected final java.net.Proxy serverProxy;
+    descriptor: Ljava/net/Proxy;
+  public java.lang.String currentTask;
+    descriptor: Ljava/lang/String;
+  public int percentDone;
+    descriptor: I
+  private boolean onlineMode;
+    descriptor: Z
+  private boolean preventProxyConnections;
+    descriptor: Z
+  private boolean canSpawnAnimals;
+    descriptor: Z
+  private boolean canSpawnNPCs;
+    descriptor: Z
+  private boolean pvpEnabled;
+    descriptor: Z
+  private boolean allowFlight;
+    descriptor: Z
+  private java.lang.String motd;
+    descriptor: Ljava/lang/String;
+  private int buildLimit;
+    descriptor: I
+  private int maxPlayerIdleMinutes;
+    descriptor: I
+  public final long[] tickTimeArray;
+    descriptor: [J
+  public java.util.Hashtable<java.lang.Integer, long[]> worldTickTimes;
+    descriptor: Ljava/util/Hashtable;
+  private java.security.KeyPair serverKeyPair;
+    descriptor: Ljava/security/KeyPair;
+  private java.lang.String serverOwner;
+    descriptor: Ljava/lang/String;
+  private java.lang.String folderName;
+    descriptor: Ljava/lang/String;
+  private java.lang.String worldName;
+    descriptor: Ljava/lang/String;
+  private boolean isDemo;
+    descriptor: Z
+  private boolean enableBonusChest;
+    descriptor: Z
+  private java.lang.String resourcePackUrl;
+    descriptor: Ljava/lang/String;
+  private java.lang.String resourcePackHash;
+    descriptor: Ljava/lang/String;
+  private boolean serverIsRunning;
+    descriptor: Z
+  private long timeOfLastWarning;
+    descriptor: J
+  private java.lang.String userMessage;
+    descriptor: Ljava/lang/String;
+  private boolean startProfiling;
+    descriptor: Z
+  private boolean isGamemodeForced;
+    descriptor: Z
+  private final com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService authService;
+    descriptor: Lcom/mojang/authlib/yggdrasil/YggdrasilAuthenticationService;
+  private final com.mojang.authlib.minecraft.MinecraftSessionService sessionService;
+    descriptor: Lcom/mojang/authlib/minecraft/MinecraftSessionService;
+  private final com.mojang.authlib.GameProfileRepository profileRepo;
+    descriptor: Lcom/mojang/authlib/GameProfileRepository;
+  private final net.minecraft.server.management.PlayerProfileCache profileCache;
+    descriptor: Lnet/minecraft/server/management/PlayerProfileCache;
+  private long nanoTimeSinceStatusRefresh;
+    descriptor: J
+  public final java.util.Queue<java.util.concurrent.FutureTask<?>> futureTaskQueue;
+    descriptor: Ljava/util/Queue;
+  private java.lang.Thread serverThread;
+    descriptor: Ljava/lang/Thread;
+  protected long currentTime;
+    descriptor: J
+  private boolean worldIconSet;
+    descriptor: Z
+  public net.minecraft.server.MinecraftServer(java.io.File, java.net.Proxy, net.minecraft.util.datafix.DataFixer, com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService, com.mojang.authlib.minecraft.MinecraftSessionService, com.mojang.authlib.GameProfileRepository, net.minecraft.server.management.PlayerProfileCache);
+    descriptor: (Ljava/io/File;Ljava/net/Proxy;Lnet/minecraft/util/datafix/DataFixer;Lcom/mojang/authlib/yggdrasil/YggdrasilAuthenticationService;Lcom/mojang/authlib/minecraft/MinecraftSessionService;Lcom/mojang/authlib/GameProfileRepository;Lnet/minecraft/server/management/PlayerProfileCache;)V
+
+  public net.minecraft.command.ServerCommandManager createCommandManager();
+    descriptor: ()Lnet/minecraft/command/ServerCommandManager;
+
+  public abstract boolean init() throws java.io.IOException;
+    descriptor: ()Z
+
+  public void convertMapIfNeeded(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  protected synchronized void setUserMessage(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public synchronized java.lang.String getUserMessage();
+    descriptor: ()Ljava/lang/String;
+
+  public void loadAllWorlds(java.lang.String, java.lang.String, long, net.minecraft.world.WorldType, java.lang.String);
+    descriptor: (Ljava/lang/String;Ljava/lang/String;JLnet/minecraft/world/WorldType;Ljava/lang/String;)V
+
+  public void initialWorldChunkLoad();
+    descriptor: ()V
+
+  public void setResourcePackFromWorld(java.lang.String, net.minecraft.world.storage.ISaveHandler);
+    descriptor: (Ljava/lang/String;Lnet/minecraft/world/storage/ISaveHandler;)V
+
+  public abstract boolean canStructuresSpawn();
+    descriptor: ()Z
+
+  public abstract net.minecraft.world.GameType getGameType();
+    descriptor: ()Lnet/minecraft/world/GameType;
+
+  public abstract net.minecraft.world.EnumDifficulty getDifficulty();
+    descriptor: ()Lnet/minecraft/world/EnumDifficulty;
+
+  public abstract boolean isHardcore();
+    descriptor: ()Z
+
+  public abstract int getOpPermissionLevel();
+    descriptor: ()I
+
+  public abstract boolean shouldBroadcastRconToOps();
+    descriptor: ()Z
+
+  public abstract boolean shouldBroadcastConsoleToOps();
+    descriptor: ()Z
+
+  protected void outputPercentRemaining(java.lang.String, int);
+    descriptor: (Ljava/lang/String;I)V
+
+  protected void clearCurrentTask();
+    descriptor: ()V
+
+  public void saveAllWorlds(boolean);
+    descriptor: (Z)V
+
+  public void stopServer();
+    descriptor: ()V
+
+  public boolean isServerRunning();
+    descriptor: ()Z
+
+  public void initiateShutdown();
+    descriptor: ()V
+
+  public void run();
+    descriptor: ()V
+
+  public void applyServerIconToResponse(net.minecraft.network.ServerStatusResponse);
+    descriptor: (Lnet/minecraft/network/ServerStatusResponse;)V
+
+  public boolean isWorldIconSet();
+    descriptor: ()Z
+
+  public java.io.File getWorldIconFile();
+    descriptor: ()Ljava/io/File;
+
+  public java.io.File getDataDirectory();
+    descriptor: ()Ljava/io/File;
+
+  public void finalTick(net.minecraft.crash.CrashReport);
+    descriptor: (Lnet/minecraft/crash/CrashReport;)V
+
+  public void systemExitNow();
+    descriptor: ()V
+
+  public void tick();
+    descriptor: ()V
+
+  public void updateTimeLightAndEntities();
+    descriptor: ()V
+
+  public boolean getAllowNether();
+    descriptor: ()Z
+
+  public void startServerThread();
+    descriptor: ()V
+
+  public java.io.File getFile(java.lang.String);
+    descriptor: (Ljava/lang/String;)Ljava/io/File;
+
+  public void logWarning(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public net.minecraft.world.WorldServer getWorld(int);
+    descriptor: (I)Lnet/minecraft/world/WorldServer;
+
+  public java.lang.String getMinecraftVersion();
+    descriptor: ()Ljava/lang/String;
+
+  public int getCurrentPlayerCount();
+    descriptor: ()I
+
+  public int getMaxPlayers();
+    descriptor: ()I
+
+  public java.lang.String[] getOnlinePlayerNames();
+    descriptor: ()[Ljava/lang/String;
+
+  public com.mojang.authlib.GameProfile[] getOnlinePlayerProfiles();
+    descriptor: ()[Lcom/mojang/authlib/GameProfile;
+
+  public java.lang.String getServerModName();
+    descriptor: ()Ljava/lang/String;
+
+  public net.minecraft.crash.CrashReport addServerInfoToCrashReport(net.minecraft.crash.CrashReport);
+    descriptor: (Lnet/minecraft/crash/CrashReport;)Lnet/minecraft/crash/CrashReport;
+
+  public java.util.List<java.lang.String> getTabCompletions(net.minecraft.command.ICommandSender, java.lang.String, net.minecraft.util.math.BlockPos, boolean);
+    descriptor: (Lnet/minecraft/command/ICommandSender;Ljava/lang/String;Lnet/minecraft/util/math/BlockPos;Z)Ljava/util/List;
+
+  public boolean isAnvilFileSet();
+    descriptor: ()Z
+
+  public java.lang.String getName();
+    descriptor: ()Ljava/lang/String;
+
+  public void sendMessage(net.minecraft.util.text.ITextComponent);
+    descriptor: (Lnet/minecraft/util/text/ITextComponent;)V
+
+  public boolean canUseCommand(int, java.lang.String);
+    descriptor: (ILjava/lang/String;)Z
+
+  public net.minecraft.command.ICommandManager getCommandManager();
+    descriptor: ()Lnet/minecraft/command/ICommandManager;
+
+  public java.security.KeyPair getKeyPair();
+    descriptor: ()Ljava/security/KeyPair;
+
+  public java.lang.String getServerOwner();
+    descriptor: ()Ljava/lang/String;
+
+  public void setServerOwner(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public boolean isSinglePlayer();
+    descriptor: ()Z
+
+  public java.lang.String getFolderName();
+    descriptor: ()Ljava/lang/String;
+
+  public void setFolderName(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public void setWorldName(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public java.lang.String getWorldName();
+    descriptor: ()Ljava/lang/String;
+
+  public void setKeyPair(java.security.KeyPair);
+    descriptor: (Ljava/security/KeyPair;)V
+
+  public void setDifficultyForAllWorlds(net.minecraft.world.EnumDifficulty);
+    descriptor: (Lnet/minecraft/world/EnumDifficulty;)V
+
+  public boolean allowSpawnMonsters();
+    descriptor: ()Z
+
+  public boolean isDemo();
+    descriptor: ()Z
+
+  public void setDemo(boolean);
+    descriptor: (Z)V
+
+  public void canCreateBonusChest(boolean);
+    descriptor: (Z)V
+
+  public net.minecraft.world.storage.ISaveFormat getActiveAnvilConverter();
+    descriptor: ()Lnet/minecraft/world/storage/ISaveFormat;
+
+  public java.lang.String getResourcePackUrl();
+    descriptor: ()Ljava/lang/String;
+
+  public java.lang.String getResourcePackHash();
+    descriptor: ()Ljava/lang/String;
+
+  public void setResourcePack(java.lang.String, java.lang.String);
+    descriptor: (Ljava/lang/String;Ljava/lang/String;)V
+
+  public void addServerStatsToSnooper(net.minecraft.profiler.Snooper);
+    descriptor: (Lnet/minecraft/profiler/Snooper;)V
+
+  public void addServerTypeToSnooper(net.minecraft.profiler.Snooper);
+    descriptor: (Lnet/minecraft/profiler/Snooper;)V
+
+  public boolean isSnooperEnabled();
+    descriptor: ()Z
+
+  public abstract boolean isDedicatedServer();
+    descriptor: ()Z
+
+  public boolean isServerInOnlineMode();
+    descriptor: ()Z
+
+  public void setOnlineMode(boolean);
+    descriptor: (Z)V
+
+  public boolean getPreventProxyConnections();
+    descriptor: ()Z
+
+  public boolean getCanSpawnAnimals();
+    descriptor: ()Z
+
+  public void setCanSpawnAnimals(boolean);
+    descriptor: (Z)V
+
+  public boolean getCanSpawnNPCs();
+    descriptor: ()Z
+
+  public abstract boolean shouldUseNativeTransport();
+    descriptor: ()Z
+
+  public void setCanSpawnNPCs(boolean);
+    descriptor: (Z)V
+
+  public boolean isPVPEnabled();
+    descriptor: ()Z
+
+  public void setAllowPvp(boolean);
+    descriptor: (Z)V
+
+  public boolean isFlightAllowed();
+    descriptor: ()Z
+
+  public void setAllowFlight(boolean);
+    descriptor: (Z)V
+
+  public abstract boolean isCommandBlockEnabled();
+    descriptor: ()Z
+
+  public java.lang.String getMOTD();
+    descriptor: ()Ljava/lang/String;
+
+  public void setMOTD(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public int getBuildLimit();
+    descriptor: ()I
+
+  public void setBuildLimit(int);
+    descriptor: (I)V
+
+  public boolean isServerStopped();
+    descriptor: ()Z
+
+  public net.minecraft.server.management.PlayerList getPlayerList();
+    descriptor: ()Lnet/minecraft/server/management/PlayerList;
+
+  public void setPlayerList(net.minecraft.server.management.PlayerList);
+    descriptor: (Lnet/minecraft/server/management/PlayerList;)V
+
+  public void setGameType(net.minecraft.world.GameType);
+    descriptor: (Lnet/minecraft/world/GameType;)V
+
+  public net.minecraft.network.NetworkSystem getNetworkSystem();
+    descriptor: ()Lnet/minecraft/network/NetworkSystem;
+
+  public boolean serverIsInRunLoop();
+    descriptor: ()Z
+
+  public boolean getGuiEnabled();
+    descriptor: ()Z
+
+  public abstract java.lang.String shareToLAN(net.minecraft.world.GameType, boolean);
+    descriptor: (Lnet/minecraft/world/GameType;Z)Ljava/lang/String;
+
+  public int getTickCounter();
+    descriptor: ()I
+
+  public void enableProfiling();
+    descriptor: ()V
+
+  public net.minecraft.profiler.Snooper getPlayerUsageSnooper();
+    descriptor: ()Lnet/minecraft/profiler/Snooper;
+
+  public net.minecraft.world.World getEntityWorld();
+    descriptor: ()Lnet/minecraft/world/World;
+
+  public boolean isBlockProtected(net.minecraft.world.World, net.minecraft.util.math.BlockPos, net.minecraft.entity.player.EntityPlayer);
+    descriptor: (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/EntityPlayer;)Z
+
+  public boolean getForceGamemode();
+    descriptor: ()Z
+
+  public java.net.Proxy getServerProxy();
+    descriptor: ()Ljava/net/Proxy;
+
+  public static long getCurrentTimeMillis();
+    descriptor: ()J
+
+  public int getMaxPlayerIdleMinutes();
+    descriptor: ()I
+
+  public void setPlayerIdleTimeout(int);
+    descriptor: (I)V
+
+  public com.mojang.authlib.minecraft.MinecraftSessionService getMinecraftSessionService();
+    descriptor: ()Lcom/mojang/authlib/minecraft/MinecraftSessionService;
+
+  public com.mojang.authlib.GameProfileRepository getGameProfileRepository();
+    descriptor: ()Lcom/mojang/authlib/GameProfileRepository;
+
+  public net.minecraft.server.management.PlayerProfileCache getPlayerProfileCache();
+    descriptor: ()Lnet/minecraft/server/management/PlayerProfileCache;
+
+  public net.minecraft.network.ServerStatusResponse getServerStatusResponse();
+    descriptor: ()Lnet/minecraft/network/ServerStatusResponse;
+
+  public void refreshStatusNextTick();
+    descriptor: ()V
+
+  public net.minecraft.entity.Entity getEntityFromUuid(java.util.UUID);
+    descriptor: (Ljava/util/UUID;)Lnet/minecraft/entity/Entity;
+
+  public boolean sendCommandFeedback();
+    descriptor: ()Z
+
+  public net.minecraft.server.MinecraftServer getServer();
+    descriptor: ()Lnet/minecraft/server/MinecraftServer;
+
+  public int getMaxWorldSize();
+    descriptor: ()I
+
+  public <V> com.google.common.util.concurrent.ListenableFuture<V> callFromMainThread(java.util.concurrent.Callable<V>);
+    descriptor: (Ljava/util/concurrent/Callable;)Lcom/google/common/util/concurrent/ListenableFuture;
+
+  public com.google.common.util.concurrent.ListenableFuture<java.lang.Object> addScheduledTask(java.lang.Runnable);
+    descriptor: (Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;
+
+  public boolean isCallingFromMinecraftThread();
+    descriptor: ()Z
+
+  public int getNetworkCompressionThreshold();
+    descriptor: ()I
+
+  public int getSpawnRadius(net.minecraft.world.WorldServer);
+    descriptor: (Lnet/minecraft/world/WorldServer;)I
+
+  public net.minecraft.advancements.AdvancementManager getAdvancementManager();
+    descriptor: ()Lnet/minecraft/advancements/AdvancementManager;
+
+  public net.minecraft.advancements.FunctionManager getFunctionManager();
+    descriptor: ()Lnet/minecraft/advancements/FunctionManager;
+
+  public void reload();
+    descriptor: ()V
+
+  public java.lang.String getServerHostname();
+    descriptor: ()Ljava/lang/String;
+
+  public void setHostname(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public void registerTickable(net.minecraft.util.ITickable);
+    descriptor: (Lnet/minecraft/util/ITickable;)V
+
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+
+  public void logInfo(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public boolean isDebuggingEnabled();
+    descriptor: ()Z
+
+  public void logSevere(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public void logDebug(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public int getServerPort();
+    descriptor: ()I
+
+  public void setServerPort(int);
+    descriptor: (I)V
+
+  public void setPreventProxyConnections(boolean);
+    descriptor: (Z)V
+
+  public int getSpawnProtectionSize();
+    descriptor: ()I
+
+  public void setForceGamemode(boolean);
+    descriptor: (Z)V
+
+  public long getCurrentTime();
+    descriptor: ()J
+
+  public java.lang.Thread getServerThread();
+    descriptor: ()Ljava/lang/Thread;
+
+  public net.minecraft.util.datafix.DataFixer getDataFixer();
+    descriptor: ()Lnet/minecraft/util/datafix/DataFixer;
+
+  private static java.lang.String lambda$updateTimeLightAndEntities$0(net.minecraft.world.WorldServer);
+    descriptor: (Lnet/minecraft/world/WorldServer;)Ljava/lang/String;
+
+  static org.apache.logging.log4j.Logger access$000();
+    descriptor: ()Lorg/apache/logging/log4j/Logger;
+
+  static net.minecraft.server.management.PlayerList access$100(net.minecraft.server.MinecraftServer);
+    descriptor: (Lnet/minecraft/server/MinecraftServer;)Lnet/minecraft/server/management/PlayerList;
+
+  static {};
+    descriptor: ()V
+}
