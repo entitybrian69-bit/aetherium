@@ -182,6 +182,21 @@ public final class PixelArt {
             "..##...",
             "...###.",
     });
+    /** Quality of life tab: a map pin. */
+    public static final Bitmap PIN = new Bitmap(new String[]{
+            "...######...",
+            "..########..",
+            ".####..####.",
+            ".###....###.",
+            ".###....###.",
+            ".####..####.",
+            "..########..",
+            "..########..",
+            "...######...",
+            "....####....",
+            ".....##.....",
+            ".....##.....",
+    });
     public static final Bitmap CHECK = new Bitmap(new String[]{
             "......#",
             ".....#.",

@@ -30,7 +30,23 @@ public final class FrameHud {
     private FrameHud() {
     }
 
+    /** Gui.render: the frame box, then the Quality of life HUD lines (which stack below it). */
     public static void render(final GuiCanvas canvas) {
+        renderFrame(canvas);
+        QolClient.renderHud(canvas);
+    }
+
+    /** Height taken in {@code corner} by the frame box (plus its margin), 0 when it is not shown there. */
+    static int heightIn(final String corner) {
+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
+        if (sub == null || !Aetherium.isActive() || !sub.config.showFrameHud.get().booleanValue()
+                || !corner.equals(sub.config.hudCorner.get())) {
+            return 0;
+        }
+        return PAD * 2 + 9 + 2 + 9 + 2;
+    }
+
+    private static void renderFrame(final GuiCanvas canvas) {
         final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
         if (sub == null || !Aetherium.isActive()) {
             return;

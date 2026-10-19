@@ -182,6 +182,9 @@ CURATED_EN = {
     "key.aetherium.zoom_in": "Zoom In",
     "key.aetherium.zoom_out": "Zoom Out",
     "key.aetherium.freelook": "Freelook",
+    "key.aetherium.add_waypoint": "Add waypoint",
+    "key.aetherium.waypoints": "Waypoints",
+    "key.aetherium.sort": "Sort inventory",
     "aetherium.option.quality.sky.sun_moon": "Sun and moon",
 }
 CURATED_PT = {
@@ -215,6 +218,9 @@ CURATED_PT = {
     "key.aetherium.zoom_in": "Aproximar zoom",
     "key.aetherium.zoom_out": "Afastar zoom",
     "key.aetherium.freelook": "Olhar livre",
+    "key.aetherium.add_waypoint": "Adicionar ponto",
+    "key.aetherium.waypoints": "Pontos de refer\u00eancia",
+    "key.aetherium.sort": "Organizar invent\u00e1rio",
     "aetherium.option.quality.sky.sun_moon": "Sol e lua",
 }
 
