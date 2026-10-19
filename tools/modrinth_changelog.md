@@ -3,6 +3,13 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.16.2
+**Visible hand (test build for Minecraft 1.16.5 only).**
+
+- New "Show hand with items" switch in QoL, right under Hand editor: your arm is drawn holding whatever you carry in first person, like Punchy and Hold My Items (vanilla only draws the arm when the hand is empty). The held item is lifted into view so the fist around it shows, and the arm follows every swing, eat, bow, block and equip animation. Works for the off hand too, uses your own skin and sleeves, and moves with the hand editor values.
+- Picking a hand preset or changing a hand value turns the visible hand on together with the editor, and it previews live while you adjust.
+- Much wider hand editor ranges: position up to 2 blocks either way (was half a block), tilt, turn and roll up to 180 degrees (was 90), size 10 to 300 percent (was 25 to 200).
+
 ## 1.16.1
 **Quality of life fixes (test build for Minecraft 1.16.5 only).**
 
