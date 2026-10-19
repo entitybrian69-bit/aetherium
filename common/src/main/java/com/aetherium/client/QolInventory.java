@@ -94,6 +94,12 @@ public final class QolInventory {
         return (Object) slot instanceof QolSlotAccess ? ((QolSlotAccess) (Object) slot).aetherium$containerSlot() : -1;
     }
 
+    /** The menu's slots as a List (NonNullList is one; the cast keeps every version's stubs happy). */
+    @SuppressWarnings("unchecked")
+    public static List<Slot> slots(final AbstractContainerMenu menu) {
+        return (List<Slot>) (Object) menu.slots;
+    }
+
     private static ItemStack carried(final Minecraft mc) {
     // @era:q-inv-begin c205|c261|t17
         return mc.player.containerMenu.getCarried();
@@ -172,7 +178,7 @@ public final class QolInventory {
             }
             moveOne(mc, menu, hovered, target);
         } else {
-            if (stack.getCount() >= Math.min(stack.getMaxStackSize(), hovered.getMaxStackSize(stack))) {
+            if (stack.getCount() >= hovered.getMaxStackSize(stack)) {
                 return true;
             }
             final Slot source = findSource(mc, menu, from, stack);
@@ -195,7 +201,7 @@ public final class QolInventory {
     /** A slot in another section that can take one more of {@code stack}: a matching stack first, else an empty slot. */
     private static Slot findTarget(final AbstractContainerMenu menu, final int from, final ItemStack stack) {
         Slot empty = null;
-        for (final Slot slot : menu.slots) {
+        for (final Slot slot : slots(menu)) {
             final int s = section(menu, slot);
             if (s == EXCLUDED || s == from || !slot.mayPlace(stack)) {
                 continue;
@@ -206,7 +212,7 @@ public final class QolInventory {
                     empty = slot;
                 }
             } else if (canMerge(there, stack)
-                    && there.getCount() < Math.min(there.getMaxStackSize(), slot.getMaxStackSize(there))) {
+                    && there.getCount() < slot.getMaxStackSize(there)) {
                 return slot;
             }
         }
@@ -216,7 +222,7 @@ public final class QolInventory {
     /** A slot in another section holding a stack that matches {@code stack}; the smallest such stack. */
     private static Slot findSource(final Minecraft mc, final AbstractContainerMenu menu, final int to, final ItemStack stack) {
         Slot best = null;
-        for (final Slot slot : menu.slots) {
+        for (final Slot slot : slots(menu)) {
             final int s = section(menu, slot);
             if (s == EXCLUDED || s == to || !canMerge(slot.getItem(), stack) || !slot.mayPickup(mc.player)) {
                 continue;
@@ -274,7 +280,7 @@ public final class QolInventory {
         }
         final AbstractContainerMenu menu = screen.getMenu();
         final List<Integer> slots = new ArrayList<Integer>();
-        for (final Slot slot : menu.slots) {
+        for (final Slot slot : slots(menu)) {
             final boolean inventory = slot.container instanceof Inventory;
             if (player) {
                 if (inventory && containerSlot(slot) >= 9 && containerSlot(slot) < 36) {
@@ -321,8 +327,8 @@ public final class QolInventory {
             return;
         }
         if (mc.player == null || mc.gameMode == null || mc.player.containerMenu != menu || !Qol.sortButton
-                || sortMoves >= MAX_MOVES || !(mc.screen instanceof AbstractContainerScreen)
-                || ((AbstractContainerScreen<?>) mc.screen).getMenu() != menu) {
+                || sortMoves >= MAX_MOVES || !(ClientHooks.currentScreen(mc) instanceof AbstractContainerScreen)
+                || ((AbstractContainerScreen<?>) ClientHooks.currentScreen(mc)).getMenu() != menu) {
             cancel();
             return;
         }
@@ -360,7 +366,7 @@ public final class QolInventory {
         }
 
         private Slot slot(final int i) {
-            return this.menu.slots.get(this.indices[i]);
+            return slots(this.menu).get(this.indices[i]);
         }
 
         private ItemStack stack(final int i) {
@@ -390,7 +396,7 @@ public final class QolInventory {
         @Override
         public int maxCount(final int i) {
             final ItemStack stack = stack(i);
-            return Math.min(stack.getMaxStackSize(), slot(i).getMaxStackSize(stack));
+            return slot(i).getMaxStackSize(stack);
         }
 
         @Override

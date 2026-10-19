@@ -29,7 +29,7 @@ public abstract class QolScrollMixin {
             return;
         }
         final Minecraft mc = Minecraft.getInstance();
-        final Screen screen = mc.screen;
+        final Screen screen = com.aetherium.client.ClientHooks.currentScreen(mc);
         if (screen instanceof AbstractContainerScreen && screen instanceof QolContainerAccess) {
             final Object hovered = ((QolContainerAccess) screen).aetherium$hoveredSlot();
             if (hovered instanceof Slot

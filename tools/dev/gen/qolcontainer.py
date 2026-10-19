@@ -158,7 +158,7 @@ MIDDLE = '''
         if (!Qol.sortButton || !QolInventory.supported(aetherium$self())) {
             return false;
         }
-        for (final Slot slot : aetherium$self().getMenu().slots) {
+        for (final Slot slot : QolInventory.slots(aetherium$self().getMenu())) {
             final int index = QolInventory.containerSlot(slot);
             if (slot.container instanceof Inventory && index >= 9 && index < 36) {
                 return true;
