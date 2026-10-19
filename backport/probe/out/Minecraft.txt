@@ -1,0 +1,585 @@
+Compiled from "Minecraft.java"
+public class net.minecraft.client.Minecraft implements net.minecraft.util.IThreadListener,net.minecraft.profiler.ISnooperInfo {
+  private static final org.apache.logging.log4j.Logger LOGGER;
+    descriptor: Lorg/apache/logging/log4j/Logger;
+  private static final net.minecraft.util.ResourceLocation LOCATION_MOJANG_PNG;
+    descriptor: Lnet/minecraft/util/ResourceLocation;
+  public static final boolean IS_RUNNING_ON_MAC;
+    descriptor: Z
+  public static byte[] memoryReserve;
+    descriptor: [B
+  private static final java.util.List<org.lwjgl.opengl.DisplayMode> MAC_DISPLAY_MODES;
+    descriptor: Ljava/util/List;
+  private final java.io.File fileResourcepacks;
+    descriptor: Ljava/io/File;
+  private final com.mojang.authlib.properties.PropertyMap twitchDetails;
+    descriptor: Lcom/mojang/authlib/properties/PropertyMap;
+  private final com.mojang.authlib.properties.PropertyMap profileProperties;
+    descriptor: Lcom/mojang/authlib/properties/PropertyMap;
+  private net.minecraft.client.multiplayer.ServerData currentServerData;
+    descriptor: Lnet/minecraft/client/multiplayer/ServerData;
+  public net.minecraft.client.renderer.texture.TextureManager renderEngine;
+    descriptor: Lnet/minecraft/client/renderer/texture/TextureManager;
+  private static net.minecraft.client.Minecraft instance;
+    descriptor: Lnet/minecraft/client/Minecraft;
+  private final net.minecraft.util.datafix.DataFixer dataFixer;
+    descriptor: Lnet/minecraft/util/datafix/DataFixer;
+  public net.minecraft.client.multiplayer.PlayerControllerMP playerController;
+    descriptor: Lnet/minecraft/client/multiplayer/PlayerControllerMP;
+  private boolean fullscreen;
+    descriptor: Z
+  private final boolean enableGLErrorChecking;
+    descriptor: Z
+  private boolean hasCrashed;
+    descriptor: Z
+  private net.minecraft.crash.CrashReport crashReporter;
+    descriptor: Lnet/minecraft/crash/CrashReport;
+  public int displayWidth;
+    descriptor: I
+  public int displayHeight;
+    descriptor: I
+  private boolean connectedToRealms;
+    descriptor: Z
+  private final net.minecraft.util.Timer timer;
+    descriptor: Lnet/minecraft/util/Timer;
+  private final net.minecraft.profiler.Snooper usageSnooper;
+    descriptor: Lnet/minecraft/profiler/Snooper;
+  public net.minecraft.client.multiplayer.WorldClient world;
+    descriptor: Lnet/minecraft/client/multiplayer/WorldClient;
+  public net.minecraft.client.renderer.RenderGlobal renderGlobal;
+    descriptor: Lnet/minecraft/client/renderer/RenderGlobal;
+  private net.minecraft.client.renderer.entity.RenderManager renderManager;
+    descriptor: Lnet/minecraft/client/renderer/entity/RenderManager;
+  private net.minecraft.client.renderer.RenderItem renderItem;
+    descriptor: Lnet/minecraft/client/renderer/RenderItem;
+  private net.minecraft.client.renderer.ItemRenderer itemRenderer;
+    descriptor: Lnet/minecraft/client/renderer/ItemRenderer;
+  public net.minecraft.client.entity.EntityPlayerSP player;
+    descriptor: Lnet/minecraft/client/entity/EntityPlayerSP;
+  private net.minecraft.entity.Entity renderViewEntity;
+    descriptor: Lnet/minecraft/entity/Entity;
+  public net.minecraft.entity.Entity pointedEntity;
+    descriptor: Lnet/minecraft/entity/Entity;
+  public net.minecraft.client.particle.ParticleManager effectRenderer;
+    descriptor: Lnet/minecraft/client/particle/ParticleManager;
+  private net.minecraft.client.util.SearchTreeManager searchTreeManager;
+    descriptor: Lnet/minecraft/client/util/SearchTreeManager;
+  private final net.minecraft.util.Session session;
+    descriptor: Lnet/minecraft/util/Session;
+  private boolean isGamePaused;
+    descriptor: Z
+  private float renderPartialTicksPaused;
+    descriptor: F
+  public net.minecraft.client.gui.FontRenderer fontRenderer;
+    descriptor: Lnet/minecraft/client/gui/FontRenderer;
+  public net.minecraft.client.gui.FontRenderer standardGalacticFontRenderer;
+    descriptor: Lnet/minecraft/client/gui/FontRenderer;
+  public net.minecraft.client.gui.GuiScreen currentScreen;
+    descriptor: Lnet/minecraft/client/gui/GuiScreen;
+  public net.minecraft.client.LoadingScreenRenderer loadingScreen;
+    descriptor: Lnet/minecraft/client/LoadingScreenRenderer;
+  public net.minecraft.client.renderer.EntityRenderer entityRenderer;
+    descriptor: Lnet/minecraft/client/renderer/EntityRenderer;
+  public net.minecraft.client.renderer.debug.DebugRenderer debugRenderer;
+    descriptor: Lnet/minecraft/client/renderer/debug/DebugRenderer;
+  private int leftClickCounter;
+    descriptor: I
+  private final int tempDisplayWidth;
+    descriptor: I
+  private final int tempDisplayHeight;
+    descriptor: I
+  private net.minecraft.server.integrated.IntegratedServer integratedServer;
+    descriptor: Lnet/minecraft/server/integrated/IntegratedServer;
+  public net.minecraft.client.gui.GuiIngame ingameGUI;
+    descriptor: Lnet/minecraft/client/gui/GuiIngame;
+  public boolean skipRenderWorld;
+    descriptor: Z
+  public net.minecraft.util.math.RayTraceResult objectMouseOver;
+    descriptor: Lnet/minecraft/util/math/RayTraceResult;
+  public net.minecraft.client.settings.GameSettings gameSettings;
+    descriptor: Lnet/minecraft/client/settings/GameSettings;
+  public net.minecraft.client.settings.CreativeSettings creativeSettings;
+    descriptor: Lnet/minecraft/client/settings/CreativeSettings;
+  public net.minecraft.util.MouseHelper mouseHelper;
+    descriptor: Lnet/minecraft/util/MouseHelper;
+  public final java.io.File gameDir;
+    descriptor: Ljava/io/File;
+  private final java.io.File fileAssets;
+    descriptor: Ljava/io/File;
+  private final java.lang.String launchedVersion;
+    descriptor: Ljava/lang/String;
+  private final java.lang.String versionType;
+    descriptor: Ljava/lang/String;
+  private final java.net.Proxy proxy;
+    descriptor: Ljava/net/Proxy;
+  private net.minecraft.world.storage.ISaveFormat saveLoader;
+    descriptor: Lnet/minecraft/world/storage/ISaveFormat;
+  private static int debugFPS;
+    descriptor: I
+  private int rightClickDelayTimer;
+    descriptor: I
+  private java.lang.String serverName;
+    descriptor: Ljava/lang/String;
+  private int serverPort;
+    descriptor: I
+  public boolean inGameHasFocus;
+    descriptor: Z
+  long systemTime;
+    descriptor: J
+  private int joinPlayerCounter;
+    descriptor: I
+  public final net.minecraft.util.FrameTimer frameTimer;
+    descriptor: Lnet/minecraft/util/FrameTimer;
+  long startNanoTime;
+    descriptor: J
+  private final boolean jvm64bit;
+    descriptor: Z
+  private final boolean isDemo;
+    descriptor: Z
+  private net.minecraft.network.NetworkManager networkManager;
+    descriptor: Lnet/minecraft/network/NetworkManager;
+  private boolean integratedServerIsRunning;
+    descriptor: Z
+  public final net.minecraft.profiler.Profiler profiler;
+    descriptor: Lnet/minecraft/profiler/Profiler;
+  private long debugCrashKeyPressTime;
+    descriptor: J
+  private net.minecraft.client.resources.IReloadableResourceManager resourceManager;
+    descriptor: Lnet/minecraft/client/resources/IReloadableResourceManager;
+  private final net.minecraft.client.resources.data.MetadataSerializer metadataSerializer;
+    descriptor: Lnet/minecraft/client/resources/data/MetadataSerializer;
+  private final java.util.List<net.minecraft.client.resources.IResourcePack> defaultResourcePacks;
+    descriptor: Ljava/util/List;
+  public final net.minecraft.client.resources.DefaultResourcePack defaultResourcePack;
+    descriptor: Lnet/minecraft/client/resources/DefaultResourcePack;
+  private net.minecraft.client.resources.ResourcePackRepository resourcePackRepository;
+    descriptor: Lnet/minecraft/client/resources/ResourcePackRepository;
+  private net.minecraft.client.resources.LanguageManager languageManager;
+    descriptor: Lnet/minecraft/client/resources/LanguageManager;
+  private net.minecraft.client.renderer.color.BlockColors blockColors;
+    descriptor: Lnet/minecraft/client/renderer/color/BlockColors;
+  private net.minecraft.client.renderer.color.ItemColors itemColors;
+    descriptor: Lnet/minecraft/client/renderer/color/ItemColors;
+  private net.minecraft.client.shader.Framebuffer framebuffer;
+    descriptor: Lnet/minecraft/client/shader/Framebuffer;
+  private net.minecraft.client.renderer.texture.TextureMap textureMapBlocks;
+    descriptor: Lnet/minecraft/client/renderer/texture/TextureMap;
+  private net.minecraft.client.audio.SoundHandler soundHandler;
+    descriptor: Lnet/minecraft/client/audio/SoundHandler;
+  private net.minecraft.client.audio.MusicTicker musicTicker;
+    descriptor: Lnet/minecraft/client/audio/MusicTicker;
+  private net.minecraft.util.ResourceLocation mojangLogo;
+    descriptor: Lnet/minecraft/util/ResourceLocation;
+  private final com.mojang.authlib.minecraft.MinecraftSessionService sessionService;
+    descriptor: Lcom/mojang/authlib/minecraft/MinecraftSessionService;
+  private net.minecraft.client.resources.SkinManager skinManager;
+    descriptor: Lnet/minecraft/client/resources/SkinManager;
+  private final java.util.Queue<java.util.concurrent.FutureTask<?>> scheduledTasks;
+    descriptor: Ljava/util/Queue;
+  private final java.lang.Thread thread;
+    descriptor: Ljava/lang/Thread;
+  private net.minecraft.client.renderer.block.model.ModelManager modelManager;
+    descriptor: Lnet/minecraft/client/renderer/block/model/ModelManager;
+  private net.minecraft.client.renderer.BlockRendererDispatcher blockRenderDispatcher;
+    descriptor: Lnet/minecraft/client/renderer/BlockRendererDispatcher;
+  private final net.minecraft.client.gui.toasts.GuiToast toastGui;
+    descriptor: Lnet/minecraft/client/gui/toasts/GuiToast;
+  volatile boolean running;
+    descriptor: Z
+  public java.lang.String debug;
+    descriptor: Ljava/lang/String;
+  public boolean renderChunksMany;
+    descriptor: Z
+  private long debugUpdateTime;
+    descriptor: J
+  private int fpsCounter;
+    descriptor: I
+  private boolean actionKeyF3;
+    descriptor: Z
+  private final net.minecraft.client.tutorial.Tutorial tutorial;
+    descriptor: Lnet/minecraft/client/tutorial/Tutorial;
+  long prevFrameTime;
+    descriptor: J
+  private java.lang.String debugProfilerName;
+    descriptor: Ljava/lang/String;
+  public net.minecraft.client.Minecraft(net.minecraft.client.main.GameConfiguration);
+    descriptor: (Lnet/minecraft/client/main/GameConfiguration;)V
+
+  public void run();
+    descriptor: ()V
+
+  private void init() throws org.lwjgl.LWJGLException, java.io.IOException;
+    descriptor: ()V
+
+  public void populateSearchTreeManager();
+    descriptor: ()V
+
+  private void registerMetadataSerializers();
+    descriptor: ()V
+
+  private void createDisplay() throws org.lwjgl.LWJGLException;
+    descriptor: ()V
+
+  private void setInitialDisplayMode() throws org.lwjgl.LWJGLException;
+    descriptor: ()V
+
+  private void setWindowIcon();
+    descriptor: ()V
+
+  private static boolean isJvm64bit();
+    descriptor: ()Z
+
+  public net.minecraft.client.shader.Framebuffer getFramebuffer();
+    descriptor: ()Lnet/minecraft/client/shader/Framebuffer;
+
+  public java.lang.String getVersion();
+    descriptor: ()Ljava/lang/String;
+
+  public java.lang.String getVersionType();
+    descriptor: ()Ljava/lang/String;
+
+  private void startTimerHackThread();
+    descriptor: ()V
+
+  public void crashed(net.minecraft.crash.CrashReport);
+    descriptor: (Lnet/minecraft/crash/CrashReport;)V
+
+  public void displayCrashReport(net.minecraft.crash.CrashReport);
+    descriptor: (Lnet/minecraft/crash/CrashReport;)V
+
+  public boolean isUnicode();
+    descriptor: ()Z
+
+  public void refreshResources();
+    descriptor: ()V
+
+  private java.nio.ByteBuffer readImageToBuffer(java.io.InputStream) throws java.io.IOException;
+    descriptor: (Ljava/io/InputStream;)Ljava/nio/ByteBuffer;
+
+  private void updateDisplayMode() throws org.lwjgl.LWJGLException;
+    descriptor: ()V
+
+  public void drawSplashScreen(net.minecraft.client.renderer.texture.TextureManager) throws org.lwjgl.LWJGLException;
+    descriptor: (Lnet/minecraft/client/renderer/texture/TextureManager;)V
+
+  public void draw(int, int, int, int, int, int, int, int, int, int);
+    descriptor: (IIIIIIIIII)V
+
+  public net.minecraft.world.storage.ISaveFormat getSaveLoader();
+    descriptor: ()Lnet/minecraft/world/storage/ISaveFormat;
+
+  public void displayGuiScreen(net.minecraft.client.gui.GuiScreen);
+    descriptor: (Lnet/minecraft/client/gui/GuiScreen;)V
+
+  private void checkGLError(java.lang.String);
+    descriptor: (Ljava/lang/String;)V
+
+  public void shutdownMinecraftApplet();
+    descriptor: ()V
+
+  private void runGameLoop() throws java.io.IOException;
+    descriptor: ()V
+
+  public void updateDisplay();
+    descriptor: ()V
+
+  protected void checkWindowResize();
+    descriptor: ()V
+
+  public int getLimitFramerate();
+    descriptor: ()I
+
+  public boolean isFramerateLimitBelowMax();
+    descriptor: ()Z
+
+  public void freeMemory();
+    descriptor: ()V
+
+  private void updateDebugProfilerName(int);
+    descriptor: (I)V
+
+  private void displayDebugInfo(long);
+    descriptor: (J)V
+
+  public void shutdown();
+    descriptor: ()V
+
+  public void setIngameFocus();
+    descriptor: ()V
+
+  public void setIngameNotInFocus();
+    descriptor: ()V
+
+  public void displayInGameMenu();
+    descriptor: ()V
+
+  private void sendClickBlockToController(boolean);
+    descriptor: (Z)V
+
+  private void clickMouse();
+    descriptor: ()V
+
+  private void rightClickMouse();
+    descriptor: ()V
+
+  public void toggleFullscreen();
+    descriptor: ()V
+
+  public void resize(int, int);
+    descriptor: (II)V
+
+  private void updateFramebufferSize();
+    descriptor: ()V
+
+  public net.minecraft.client.audio.MusicTicker getMusicTicker();
+    descriptor: ()Lnet/minecraft/client/audio/MusicTicker;
+
+  public void runTick() throws java.io.IOException;
+    descriptor: ()V
+
+  private void runTickKeyboard() throws java.io.IOException;
+    descriptor: ()V
+
+  private boolean processKeyF3(int);
+    descriptor: (I)Z
+
+  private void processKeyBinds();
+    descriptor: ()V
+
+  private void runTickMouse() throws java.io.IOException;
+    descriptor: ()V
+
+  private void debugFeedbackTranslated(java.lang.String, java.lang.Object...);
+    descriptor: (Ljava/lang/String;[Ljava/lang/Object;)V
+
+  public void launchIntegratedServer(java.lang.String, java.lang.String, net.minecraft.world.WorldSettings);
+    descriptor: (Ljava/lang/String;Ljava/lang/String;Lnet/minecraft/world/WorldSettings;)V
+
+  public void loadWorld(net.minecraft.client.multiplayer.WorldClient);
+    descriptor: (Lnet/minecraft/client/multiplayer/WorldClient;)V
+
+  public void loadWorld(net.minecraft.client.multiplayer.WorldClient, java.lang.String);
+    descriptor: (Lnet/minecraft/client/multiplayer/WorldClient;Ljava/lang/String;)V
+
+  public void setDimensionAndSpawnPlayer(int);
+    descriptor: (I)V
+
+  public final boolean isDemo();
+    descriptor: ()Z
+
+  public net.minecraft.client.network.NetHandlerPlayClient getConnection();
+    descriptor: ()Lnet/minecraft/client/network/NetHandlerPlayClient;
+
+  public static boolean isGuiEnabled();
+    descriptor: ()Z
+
+  public static boolean isFancyGraphicsEnabled();
+    descriptor: ()Z
+
+  public static boolean isAmbientOcclusionEnabled();
+    descriptor: ()Z
+
+  private void middleClickMouse();
+    descriptor: ()V
+
+  public net.minecraft.item.ItemStack storeTEInStack(net.minecraft.item.ItemStack, net.minecraft.tileentity.TileEntity);
+    descriptor: (Lnet/minecraft/item/ItemStack;Lnet/minecraft/tileentity/TileEntity;)Lnet/minecraft/item/ItemStack;
+
+  public net.minecraft.crash.CrashReport addGraphicsAndWorldToCrashReport(net.minecraft.crash.CrashReport);
+    descriptor: (Lnet/minecraft/crash/CrashReport;)Lnet/minecraft/crash/CrashReport;
+
+  public static net.minecraft.client.Minecraft getMinecraft();
+    descriptor: ()Lnet/minecraft/client/Minecraft;
+
+  public com.google.common.util.concurrent.ListenableFuture<java.lang.Object> scheduleResourcesRefresh();
+    descriptor: ()Lcom/google/common/util/concurrent/ListenableFuture;
+
+  public void addServerStatsToSnooper(net.minecraft.profiler.Snooper);
+    descriptor: (Lnet/minecraft/profiler/Snooper;)V
+
+  private java.lang.String getCurrentAction();
+    descriptor: ()Ljava/lang/String;
+
+  public void addServerTypeToSnooper(net.minecraft.profiler.Snooper);
+    descriptor: (Lnet/minecraft/profiler/Snooper;)V
+
+  public static int getGLMaximumTextureSize();
+    descriptor: ()I
+
+  public boolean isSnooperEnabled();
+    descriptor: ()Z
+
+  public void setServerData(net.minecraft.client.multiplayer.ServerData);
+    descriptor: (Lnet/minecraft/client/multiplayer/ServerData;)V
+
+  public net.minecraft.client.multiplayer.ServerData getCurrentServerData();
+    descriptor: ()Lnet/minecraft/client/multiplayer/ServerData;
+
+  public boolean isIntegratedServerRunning();
+    descriptor: ()Z
+
+  public boolean isSingleplayer();
+    descriptor: ()Z
+
+  public net.minecraft.server.integrated.IntegratedServer getIntegratedServer();
+    descriptor: ()Lnet/minecraft/server/integrated/IntegratedServer;
+
+  public static void stopIntegratedServer();
+    descriptor: ()V
+
+  public net.minecraft.profiler.Snooper getPlayerUsageSnooper();
+    descriptor: ()Lnet/minecraft/profiler/Snooper;
+
+  public static long getSystemTime();
+    descriptor: ()J
+
+  public boolean isFullScreen();
+    descriptor: ()Z
+
+  public net.minecraft.util.Session getSession();
+    descriptor: ()Lnet/minecraft/util/Session;
+
+  public com.mojang.authlib.properties.PropertyMap getProfileProperties();
+    descriptor: ()Lcom/mojang/authlib/properties/PropertyMap;
+
+  public java.net.Proxy getProxy();
+    descriptor: ()Ljava/net/Proxy;
+
+  public net.minecraft.client.renderer.texture.TextureManager getTextureManager();
+    descriptor: ()Lnet/minecraft/client/renderer/texture/TextureManager;
+
+  public net.minecraft.client.resources.IResourceManager getResourceManager();
+    descriptor: ()Lnet/minecraft/client/resources/IResourceManager;
+
+  public net.minecraft.client.resources.ResourcePackRepository getResourcePackRepository();
+    descriptor: ()Lnet/minecraft/client/resources/ResourcePackRepository;
+
+  public net.minecraft.client.resources.LanguageManager getLanguageManager();
+    descriptor: ()Lnet/minecraft/client/resources/LanguageManager;
+
+  public net.minecraft.client.renderer.texture.TextureMap getTextureMapBlocks();
+    descriptor: ()Lnet/minecraft/client/renderer/texture/TextureMap;
+
+  public boolean isJava64bit();
+    descriptor: ()Z
+
+  public boolean isGamePaused();
+    descriptor: ()Z
+
+  public net.minecraft.client.audio.SoundHandler getSoundHandler();
+    descriptor: ()Lnet/minecraft/client/audio/SoundHandler;
+
+  public net.minecraft.client.audio.MusicTicker$MusicType getAmbientMusicType();
+    descriptor: ()Lnet/minecraft/client/audio/MusicTicker$MusicType;
+
+  public void dispatchKeypresses();
+    descriptor: ()V
+
+  public com.mojang.authlib.minecraft.MinecraftSessionService getSessionService();
+    descriptor: ()Lcom/mojang/authlib/minecraft/MinecraftSessionService;
+
+  public net.minecraft.client.resources.SkinManager getSkinManager();
+    descriptor: ()Lnet/minecraft/client/resources/SkinManager;
+
+  public net.minecraft.entity.Entity getRenderViewEntity();
+    descriptor: ()Lnet/minecraft/entity/Entity;
+
+  public void setRenderViewEntity(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  public <V> com.google.common.util.concurrent.ListenableFuture<V> addScheduledTask(java.util.concurrent.Callable<V>);
+    descriptor: (Ljava/util/concurrent/Callable;)Lcom/google/common/util/concurrent/ListenableFuture;
+
+  public com.google.common.util.concurrent.ListenableFuture<java.lang.Object> addScheduledTask(java.lang.Runnable);
+    descriptor: (Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;
+
+  public boolean isCallingFromMinecraftThread();
+    descriptor: ()Z
+
+  public net.minecraft.client.renderer.BlockRendererDispatcher getBlockRendererDispatcher();
+    descriptor: ()Lnet/minecraft/client/renderer/BlockRendererDispatcher;
+
+  public net.minecraft.client.renderer.entity.RenderManager getRenderManager();
+    descriptor: ()Lnet/minecraft/client/renderer/entity/RenderManager;
+
+  public net.minecraft.client.renderer.RenderItem getRenderItem();
+    descriptor: ()Lnet/minecraft/client/renderer/RenderItem;
+
+  public net.minecraft.client.renderer.ItemRenderer getItemRenderer();
+    descriptor: ()Lnet/minecraft/client/renderer/ItemRenderer;
+
+  public <T> net.minecraft.client.util.ISearchTree<T> getSearchTree(net.minecraft.client.util.SearchTreeManager$Key<T>);
+    descriptor: (Lnet/minecraft/client/util/SearchTreeManager$Key;)Lnet/minecraft/client/util/ISearchTree;
+
+  public static int getDebugFPS();
+    descriptor: ()I
+
+  public net.minecraft.util.FrameTimer getFrameTimer();
+    descriptor: ()Lnet/minecraft/util/FrameTimer;
+
+  public boolean isConnectedToRealms();
+    descriptor: ()Z
+
+  public void setConnectedToRealms(boolean);
+    descriptor: (Z)V
+
+  public net.minecraft.util.datafix.DataFixer getDataFixer();
+    descriptor: ()Lnet/minecraft/util/datafix/DataFixer;
+
+  public float getRenderPartialTicks();
+    descriptor: ()F
+
+  public float getTickLength();
+    descriptor: ()F
+
+  public net.minecraft.client.renderer.color.BlockColors getBlockColors();
+    descriptor: ()Lnet/minecraft/client/renderer/color/BlockColors;
+
+  public net.minecraft.client.renderer.color.ItemColors getItemColors();
+    descriptor: ()Lnet/minecraft/client/renderer/color/ItemColors;
+
+  public boolean isReducedDebug();
+    descriptor: ()Z
+
+  public net.minecraft.client.gui.toasts.GuiToast getToastGui();
+    descriptor: ()Lnet/minecraft/client/gui/toasts/GuiToast;
+
+  public net.minecraft.client.tutorial.Tutorial getTutorial();
+    descriptor: ()Lnet/minecraft/client/tutorial/Tutorial;
+
+  public net.minecraft.client.util.SearchTreeManager getSearchTreeManager();
+    descriptor: ()Lnet/minecraft/client/util/SearchTreeManager;
+
+  private static java.lang.Iterable lambda$populateSearchTreeManager$7(net.minecraft.client.gui.recipebook.RecipeList);
+    descriptor: (Lnet/minecraft/client/gui/recipebook/RecipeList;)Ljava/lang/Iterable;
+
+  private static net.minecraft.util.ResourceLocation lambda$null$6(net.minecraft.item.crafting.IRecipe);
+    descriptor: (Lnet/minecraft/item/crafting/IRecipe;)Lnet/minecraft/util/ResourceLocation;
+
+  private static java.lang.Iterable lambda$populateSearchTreeManager$5(net.minecraft.client.gui.recipebook.RecipeList);
+    descriptor: (Lnet/minecraft/client/gui/recipebook/RecipeList;)Ljava/lang/Iterable;
+
+  private static boolean lambda$null$4(java.lang.String);
+    descriptor: (Ljava/lang/String;)Z
+
+  private static java.util.stream.Stream lambda$null$3(net.minecraft.item.crafting.IRecipe);
+    descriptor: (Lnet/minecraft/item/crafting/IRecipe;)Ljava/util/stream/Stream;
+
+  private static java.lang.Iterable lambda$populateSearchTreeManager$2(net.minecraft.item.ItemStack);
+    descriptor: (Lnet/minecraft/item/ItemStack;)Ljava/lang/Iterable;
+
+  private static java.lang.Iterable lambda$populateSearchTreeManager$1(net.minecraft.item.ItemStack);
+    descriptor: (Lnet/minecraft/item/ItemStack;)Ljava/lang/Iterable;
+
+  private static boolean lambda$null$0(java.lang.String);
+    descriptor: (Ljava/lang/String;)Z
+
+  static java.lang.String access$000(net.minecraft.client.Minecraft);
+    descriptor: (Lnet/minecraft/client/Minecraft;)Ljava/lang/String;
+
+  static net.minecraft.client.resources.LanguageManager access$100(net.minecraft.client.Minecraft);
+    descriptor: (Lnet/minecraft/client/Minecraft;)Lnet/minecraft/client/resources/LanguageManager;
+
+  static {};
+    descriptor: ()V
+}

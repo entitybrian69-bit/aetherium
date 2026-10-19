@@ -1,0 +1,258 @@
+Compiled from "EntityRenderer.java"
+public class net.minecraft.client.renderer.EntityRenderer implements net.minecraft.client.resources.IResourceManagerReloadListener {
+  private static final org.apache.logging.log4j.Logger LOGGER;
+    descriptor: Lorg/apache/logging/log4j/Logger;
+  private static final net.minecraft.util.ResourceLocation RAIN_TEXTURES;
+    descriptor: Lnet/minecraft/util/ResourceLocation;
+  private static final net.minecraft.util.ResourceLocation SNOW_TEXTURES;
+    descriptor: Lnet/minecraft/util/ResourceLocation;
+  public static boolean anaglyphEnable;
+    descriptor: Z
+  public static int anaglyphField;
+    descriptor: I
+  private final net.minecraft.client.Minecraft mc;
+    descriptor: Lnet/minecraft/client/Minecraft;
+  private final net.minecraft.client.resources.IResourceManager resourceManager;
+    descriptor: Lnet/minecraft/client/resources/IResourceManager;
+  private final java.util.Random random;
+    descriptor: Ljava/util/Random;
+  private float farPlaneDistance;
+    descriptor: F
+  public final net.minecraft.client.renderer.ItemRenderer itemRenderer;
+    descriptor: Lnet/minecraft/client/renderer/ItemRenderer;
+  private final net.minecraft.client.gui.MapItemRenderer mapItemRenderer;
+    descriptor: Lnet/minecraft/client/gui/MapItemRenderer;
+  private int rendererUpdateCount;
+    descriptor: I
+  private net.minecraft.entity.Entity pointedEntity;
+    descriptor: Lnet/minecraft/entity/Entity;
+  private final net.minecraft.util.MouseFilter mouseFilterXAxis;
+    descriptor: Lnet/minecraft/util/MouseFilter;
+  private final net.minecraft.util.MouseFilter mouseFilterYAxis;
+    descriptor: Lnet/minecraft/util/MouseFilter;
+  private final float thirdPersonDistance;
+    descriptor: F
+  private float thirdPersonDistancePrev;
+    descriptor: F
+  private float smoothCamYaw;
+    descriptor: F
+  private float smoothCamPitch;
+    descriptor: F
+  private float smoothCamFilterX;
+    descriptor: F
+  private float smoothCamFilterY;
+    descriptor: F
+  private float smoothCamPartialTicks;
+    descriptor: F
+  private float fovModifierHand;
+    descriptor: F
+  private float fovModifierHandPrev;
+    descriptor: F
+  private float bossColorModifier;
+    descriptor: F
+  private float bossColorModifierPrev;
+    descriptor: F
+  private boolean cloudFog;
+    descriptor: Z
+  private boolean renderHand;
+    descriptor: Z
+  private boolean drawBlockOutline;
+    descriptor: Z
+  private long timeWorldIcon;
+    descriptor: J
+  private long prevFrameTime;
+    descriptor: J
+  private long renderEndNanoTime;
+    descriptor: J
+  private final net.minecraft.client.renderer.texture.DynamicTexture lightmapTexture;
+    descriptor: Lnet/minecraft/client/renderer/texture/DynamicTexture;
+  private final int[] lightmapColors;
+    descriptor: [I
+  private final net.minecraft.util.ResourceLocation locationLightMap;
+    descriptor: Lnet/minecraft/util/ResourceLocation;
+  private boolean lightmapUpdateNeeded;
+    descriptor: Z
+  private float torchFlickerX;
+    descriptor: F
+  private float torchFlickerDX;
+    descriptor: F
+  private int rainSoundCounter;
+    descriptor: I
+  private final float[] rainXCoords;
+    descriptor: [F
+  private final float[] rainYCoords;
+    descriptor: [F
+  private final java.nio.FloatBuffer fogColorBuffer;
+    descriptor: Ljava/nio/FloatBuffer;
+  private float fogColorRed;
+    descriptor: F
+  private float fogColorGreen;
+    descriptor: F
+  private float fogColorBlue;
+    descriptor: F
+  private float fogColor2;
+    descriptor: F
+  private float fogColor1;
+    descriptor: F
+  private int debugViewDirection;
+    descriptor: I
+  private boolean debugView;
+    descriptor: Z
+  private double cameraZoom;
+    descriptor: D
+  private double cameraYaw;
+    descriptor: D
+  private double cameraPitch;
+    descriptor: D
+  private net.minecraft.item.ItemStack itemActivationItem;
+    descriptor: Lnet/minecraft/item/ItemStack;
+  private int itemActivationTicks;
+    descriptor: I
+  private float itemActivationOffX;
+    descriptor: F
+  private float itemActivationOffY;
+    descriptor: F
+  private net.minecraft.client.shader.ShaderGroup shaderGroup;
+    descriptor: Lnet/minecraft/client/shader/ShaderGroup;
+  private static final net.minecraft.util.ResourceLocation[] SHADERS_TEXTURES;
+    descriptor: [Lnet/minecraft/util/ResourceLocation;
+  public static final int SHADER_COUNT;
+    descriptor: I
+  private int shaderIndex;
+    descriptor: I
+  private boolean useShader;
+    descriptor: Z
+  private int frameCount;
+    descriptor: I
+  public net.minecraft.client.renderer.EntityRenderer(net.minecraft.client.Minecraft, net.minecraft.client.resources.IResourceManager);
+    descriptor: (Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/resources/IResourceManager;)V
+
+  public boolean isShaderActive();
+    descriptor: ()Z
+
+  public void stopUseShader();
+    descriptor: ()V
+
+  public void switchUseShader();
+    descriptor: ()V
+
+  public void loadEntityShader(net.minecraft.entity.Entity);
+    descriptor: (Lnet/minecraft/entity/Entity;)V
+
+  public void loadShader(net.minecraft.util.ResourceLocation);
+    descriptor: (Lnet/minecraft/util/ResourceLocation;)V
+
+  public void onResourceManagerReload(net.minecraft.client.resources.IResourceManager);
+    descriptor: (Lnet/minecraft/client/resources/IResourceManager;)V
+
+  public void updateRenderer();
+    descriptor: ()V
+
+  public net.minecraft.client.shader.ShaderGroup getShaderGroup();
+    descriptor: ()Lnet/minecraft/client/shader/ShaderGroup;
+
+  public void updateShaderGroupSize(int, int);
+    descriptor: (II)V
+
+  public void getMouseOver(float);
+    descriptor: (F)V
+
+  private void updateFovModifierHand();
+    descriptor: ()V
+
+  private float getFOVModifier(float, boolean);
+    descriptor: (FZ)F
+
+  private void hurtCameraEffect(float);
+    descriptor: (F)V
+
+  private void applyBobbing(float);
+    descriptor: (F)V
+
+  private void orientCamera(float);
+    descriptor: (F)V
+
+  private void setupCameraTransform(float, int);
+    descriptor: (FI)V
+
+  private void renderHand(float, int);
+    descriptor: (FI)V
+
+  public void disableLightmap();
+    descriptor: ()V
+
+  public void enableLightmap();
+    descriptor: ()V
+
+  private void updateTorchFlicker();
+    descriptor: ()V
+
+  private void updateLightmap(float);
+    descriptor: (F)V
+
+  private float getNightVisionBrightness(net.minecraft.entity.EntityLivingBase, float);
+    descriptor: (Lnet/minecraft/entity/EntityLivingBase;F)F
+
+  public void updateCameraAndRender(float, long);
+    descriptor: (FJ)V
+
+  private void createWorldIcon();
+    descriptor: ()V
+
+  public void renderStreamIndicator(float);
+    descriptor: (F)V
+
+  private boolean isDrawBlockOutline();
+    descriptor: ()Z
+
+  public void renderWorld(float, long);
+    descriptor: (FJ)V
+
+  private void renderWorldPass(int, float, long);
+    descriptor: (IFJ)V
+
+  private void renderCloudsCheck(net.minecraft.client.renderer.RenderGlobal, float, int, double, double, double);
+    descriptor: (Lnet/minecraft/client/renderer/RenderGlobal;FIDDD)V
+
+  private void addRainParticles();
+    descriptor: ()V
+
+  protected void renderRainSnow(float);
+    descriptor: (F)V
+
+  public void setupOverlayRendering();
+    descriptor: ()V
+
+  private void updateFogColor(float);
+    descriptor: (F)V
+
+  private void setupFog(int, float);
+    descriptor: (IF)V
+
+  public void setupFogColor(boolean);
+    descriptor: (Z)V
+
+  private java.nio.FloatBuffer setFogColorBuffer(float, float, float, float);
+    descriptor: (FFFF)Ljava/nio/FloatBuffer;
+
+  public void resetData();
+    descriptor: ()V
+
+  public net.minecraft.client.gui.MapItemRenderer getMapItemRenderer();
+    descriptor: ()Lnet/minecraft/client/gui/MapItemRenderer;
+
+  public static void drawNameplate(net.minecraft.client.gui.FontRenderer, java.lang.String, float, float, float, int, float, float, boolean, boolean);
+    descriptor: (Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;FFFIFFZZ)V
+
+  public void displayItemActivation(net.minecraft.item.ItemStack);
+    descriptor: (Lnet/minecraft/item/ItemStack;)V
+
+  private void renderItemActivation(int, int, float);
+    descriptor: (IIF)V
+
+  static net.minecraft.client.Minecraft access$000(net.minecraft.client.renderer.EntityRenderer);
+    descriptor: (Lnet/minecraft/client/renderer/EntityRenderer;)Lnet/minecraft/client/Minecraft;
+
+  static {};
+    descriptor: ()V
+}

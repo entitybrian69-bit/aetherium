@@ -1,0 +1,84 @@
+Compiled from "ChunkRenderDispatcher.java"
+public class net.minecraft.client.renderer.chunk.ChunkRenderDispatcher {
+  private static final org.apache.logging.log4j.Logger LOGGER;
+    descriptor: Lorg/apache/logging/log4j/Logger;
+  private static final java.util.concurrent.ThreadFactory THREAD_FACTORY;
+    descriptor: Ljava/util/concurrent/ThreadFactory;
+  private final int countRenderBuilders;
+    descriptor: I
+  private final java.util.List<java.lang.Thread> listWorkerThreads;
+    descriptor: Ljava/util/List;
+  private final java.util.List<net.minecraft.client.renderer.chunk.ChunkRenderWorker> listThreadedWorkers;
+    descriptor: Ljava/util/List;
+  private final java.util.concurrent.PriorityBlockingQueue<net.minecraft.client.renderer.chunk.ChunkCompileTaskGenerator> queueChunkUpdates;
+    descriptor: Ljava/util/concurrent/PriorityBlockingQueue;
+  private final java.util.concurrent.BlockingQueue<net.minecraft.client.renderer.RegionRenderCacheBuilder> queueFreeRenderBuilders;
+    descriptor: Ljava/util/concurrent/BlockingQueue;
+  private final net.minecraft.client.renderer.WorldVertexBufferUploader worldVertexUploader;
+    descriptor: Lnet/minecraft/client/renderer/WorldVertexBufferUploader;
+  private final net.minecraft.client.renderer.VertexBufferUploader vertexUploader;
+    descriptor: Lnet/minecraft/client/renderer/VertexBufferUploader;
+  private final java.util.Queue<net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$PendingUpload> queueChunkUploads;
+    descriptor: Ljava/util/Queue;
+  private final net.minecraft.client.renderer.chunk.ChunkRenderWorker renderWorker;
+    descriptor: Lnet/minecraft/client/renderer/chunk/ChunkRenderWorker;
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher();
+    descriptor: ()V
+
+  public net.minecraft.client.renderer.chunk.ChunkRenderDispatcher(int);
+    descriptor: (I)V
+
+  public java.lang.String getDebugInfo();
+    descriptor: ()Ljava/lang/String;
+
+  public boolean runChunkUploads(long);
+    descriptor: (J)Z
+
+  public boolean updateChunkLater(net.minecraft.client.renderer.chunk.RenderChunk);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/RenderChunk;)Z
+
+  public boolean updateChunkNow(net.minecraft.client.renderer.chunk.RenderChunk);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/RenderChunk;)Z
+
+  public void stopChunkUpdates();
+    descriptor: ()V
+
+  public void freeRenderBuilder(net.minecraft.client.renderer.RegionRenderCacheBuilder);
+    descriptor: (Lnet/minecraft/client/renderer/RegionRenderCacheBuilder;)V
+
+  public net.minecraft.client.renderer.RegionRenderCacheBuilder allocateRenderBuilder() throws java.lang.InterruptedException;
+    descriptor: ()Lnet/minecraft/client/renderer/RegionRenderCacheBuilder;
+
+  public net.minecraft.client.renderer.chunk.ChunkCompileTaskGenerator getNextChunkUpdate() throws java.lang.InterruptedException;
+    descriptor: ()Lnet/minecraft/client/renderer/chunk/ChunkCompileTaskGenerator;
+
+  public boolean updateTransparencyLater(net.minecraft.client.renderer.chunk.RenderChunk);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/RenderChunk;)Z
+
+  public com.google.common.util.concurrent.ListenableFuture<java.lang.Object> uploadChunk(net.minecraft.util.BlockRenderLayer, net.minecraft.client.renderer.BufferBuilder, net.minecraft.client.renderer.chunk.RenderChunk, net.minecraft.client.renderer.chunk.CompiledChunk, double);
+    descriptor: (Lnet/minecraft/util/BlockRenderLayer;Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/client/renderer/chunk/RenderChunk;Lnet/minecraft/client/renderer/chunk/CompiledChunk;D)Lcom/google/common/util/concurrent/ListenableFuture;
+
+  private void uploadDisplayList(net.minecraft.client.renderer.BufferBuilder, int, net.minecraft.client.renderer.chunk.RenderChunk);
+    descriptor: (Lnet/minecraft/client/renderer/BufferBuilder;ILnet/minecraft/client/renderer/chunk/RenderChunk;)V
+
+  private void uploadVertexBuffer(net.minecraft.client.renderer.BufferBuilder, net.minecraft.client.renderer.vertex.VertexBuffer);
+    descriptor: (Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/client/renderer/vertex/VertexBuffer;)V
+
+  public void clearChunkUpdates();
+    descriptor: ()V
+
+  public boolean hasNoChunkUpdates();
+    descriptor: ()Z
+
+  public void stopWorkerThreads();
+    descriptor: ()V
+
+  public boolean hasNoFreeRenderBuilders();
+    descriptor: ()Z
+
+  static java.util.concurrent.PriorityBlockingQueue access$100(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher);
+    descriptor: (Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;)Ljava/util/concurrent/PriorityBlockingQueue;
+
+  static {};
+    descriptor: ()V
+}
