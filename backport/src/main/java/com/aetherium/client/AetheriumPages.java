@@ -9,11 +9,14 @@ import com.aetherium.gui.AetheriumView;
 import com.aetherium.gui.Page;
 import com.aetherium.gui.PixelArt;
 import com.aetherium.perf.BlockEntityCull;
+import com.aetherium.qol.Qol;
+import com.aetherium.qol.QolSupport;
 import com.aetherium.perf.RenderToggles;
 import com.aetherium.gui.Setting;
 import com.aetherium.mixin.AetheriumMixinPlugin;
 
 import java.util.ArrayList;
+import net.minecraft.client.Minecraft;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -38,6 +41,9 @@ public final class AetheriumPages {
         void resetDefaults();
 
         void openVanillaVideo();
+
+        /** Opens the waypoint list (Quality of life). */
+        void openWaypoints();
     }
 
     static final String NOT_ON_THIS_VERSION = "Not available on this version";
@@ -80,6 +86,7 @@ public final class AetheriumPages {
     /** The view is created from {@link #build()}, so it is attached afterwards. */
     public void attach(final AetheriumView view) {
         this.view = view;
+        cacheHandRows();
     }
 
     public List<Page> build() {
@@ -89,6 +96,9 @@ public final class AetheriumPages {
         pages.add(performance());
         pages.add(backend());
         pages.add(effects());
+        if (QolSupport.ANY) {
+            pages.add(qol());
+        }
         pages.add(androidPage());
         return pages;
     }
@@ -309,7 +319,9 @@ public final class AetheriumPages {
     // ------------------------------------------------------------------ Effects
 
     private Page effects() {
-        final Page page = new Page("Effects", "Effects", "Dynamic lights, brightness, zoom and freelook", PixelArt.SUN);
+        final Page page = new Page("Effects", "Effects",
+                QolSupport.ANY ? "Dynamic lights and brightness" : "Dynamic lights, brightness, zoom and freelook",
+                PixelArt.SUN);
         page.add(Setting.choice("effects.dynamic_lights", Setting.Kind.SEGMENTED, "Dynamic lights",
                         config.dynamicLights.getComment(), LIGHTS,
                         () -> config.dynamicLights.get().ordinal(),
@@ -335,6 +347,14 @@ public final class AetheriumPages {
         page.add(bool("effects.fullbright", "Fullbright", config.fullbright));
         page.add(intSlider("effects.fullbright_strength", "Fullbright strength", config.fullbrightStrength, 5,
                 v -> v + "%"));
+        if (!QolSupport.ANY) {
+            addZoomAndFreelook(page);
+        }
+        return page;
+    }
+
+    /** Zoom and freelook rows: on the Quality of life tab where it exists, otherwise on Effects. */
+    private void addZoomAndFreelook(final Page page) {
         addZoom(page);
         page.add(Setting.info("effects.freelook_key", "Freelook key",
                 "Hold Freelook (Left Alt by default) to look around without turning your player; release to snap back. Rebind it in Options > Controls, category Aetherium.",
@@ -343,7 +363,6 @@ public final class AetheriumPages {
                 .availableWhen(() -> Capabilities.FREELOOK, NOT_ON_THIS_VERSION));
         page.add(bool("effects.freelook_third_person", "Freelook in third person", config.freelookThirdPerson)
                 .availableWhen(() -> Capabilities.FREELOOK, NOT_ON_THIS_VERSION));
-        return page;
     }
 
     private void addZoom(final Page page) {
@@ -368,6 +387,231 @@ public final class AetheriumPages {
 
     private static Setting zoomRow(final Setting setting) {
         return setting.availableWhen(() -> Capabilities.ZOOM, NOT_ON_THIS_VERSION);
+    }
+
+    // ------------------------------------------------------------------ Quality of life
+
+    private static final String[] CROSSHAIR_STYLES = {"Vanilla", "Cross", "Cross + dot", "Dot", "Circle", "Circle + dot", "T"};
+    private static final String[] CROSSHAIR_COLORS = {"White", "Red", "Green", "Cyan", "Yellow", "Magenta", "Black"};
+    private static final String[] HAND_PRESETS = {"Custom", "Default", "Lowered", "Centered", "Small", "Big"};
+    private static final String[] HAND_ROWS = {
+        "qol.hand.x", "qol.hand.y", "qol.hand.z", "qol.hand.pitch", "qol.hand.yaw", "qol.hand.roll", "qol.hand.scale",
+    };
+
+    private Page qol() {
+        final Page page = new Page("QoL", "Quality of life", "Client-side helpers that work on any server", PixelArt.PIN);
+        page.add(qolRow(bool("qol.accurate_placement", "Accurate placement", config.accuratePlacement), QolSupport.PLACEMENT));
+
+        page.add(qolRow(bool("qol.inventory.scroll_transfer", "Scroll to move items", config.scrollTransfer),
+                QolSupport.INVENTORY));
+        page.add(qolRow(bool("qol.inventory.shift_drag", "Shift-drag to move stacks", config.shiftDrag), QolSupport.INVENTORY));
+        page.add(qolRow(bool("qol.inventory.sort_button", "Sort buttons", config.sortButton), QolSupport.INVENTORY));
+
+        page.add(qolRow(bool("qol.food.tooltip", "Food values in tooltips", config.foodTooltip), QolSupport.FOOD));
+        page.add(qolRow(bool("qol.food.hud", "Saturation on the hunger bar", config.foodHud), QolSupport.HUD));
+
+        page.add(qolRow(bool("qol.waypoints", "Waypoints", config.waypoints), QolSupport.WORLD));
+        page.add(qolRow(bool("qol.waypoints.beams", "Waypoint beams", config.waypointBeams), QolSupport.WORLD));
+        page.add(qolRow(bool("qol.waypoints.cross_dimension", "Nether / Overworld waypoints", config.waypointsCrossDimension),
+                QolSupport.WORLD));
+        page.add(qolRow(bool("qol.death_point", "Death point", config.deathPoint), QolSupport.WORLD));
+        page.add(Setting.button("qol.waypoints.manage", "Manage waypoints",
+                        "Opens the waypoint list of the world you are in: rename, recolour, hide or delete waypoints, or add one where you stand.",
+                        "Open", actions::openWaypoints)
+                .availableWhen(() -> QolSupport.WORLD && Minecraft.getMinecraft().player != null,
+                        QolSupport.WORLD ? "Join a world to manage its waypoints" : NOT_ON_THIS_VERSION));
+        page.add(Setting.info("qol.keys", "Quality of life keys",
+                "Add waypoint (B), Waypoints (N) and Sort inventory (not bound). Rebind them in Options > Controls, category Aetherium.",
+                QolClient::describeKeys));
+
+        page.add(qolRow(bool("qol.dimension_coords", "Nether / Overworld coordinates", config.dimensionCoords), QolSupport.HUD));
+        page.add(qolRow(Setting.choice("qol.dimension_coords.corner", Setting.Kind.DROPDOWN, "Coordinates position",
+                        config.dimensionCoordsCorner.getComment(), CORNERS,
+                        () -> cornerIndex(config.dimensionCoordsCorner.get()),
+                        v -> config.dimensionCoordsCorner.set(CORNER_KEYS[clamp(v, 0, 3)]))
+                .withDefault(cornerIndex(config.dimensionCoordsCorner.getDefault())), QolSupport.HUD));
+
+        page.add(qolRow(intSlider("qol.fire_overlay", "Fire overlay height", config.fireOverlay, 5,
+                v -> v == 100 ? "Vanilla" : v == 0 ? "Hidden" : v + "%"), QolSupport.FIRE));
+        page.add(qolRow(intSlider("qol.shield_offset", "Lower raised shield", config.shieldOffset, 5,
+                v -> v == 0 ? "Vanilla" : v + "%"), QolSupport.HAND));
+
+        page.add(qolRow(bool("qol.damage_numbers", "Damage numbers", config.damageNumbers), QolSupport.WORLD));
+        page.add(qolRow(bool("qol.damage_numbers.heals", "Show healing too", config.damageNumbersHeals), QolSupport.WORLD));
+
+        page.add(qolRow(Setting.choice("qol.crosshair.style", Setting.Kind.DROPDOWN, "Crosshair",
+                        config.crosshairStyle.getComment(), CROSSHAIR_STYLES,
+                        () -> config.crosshairStyle.get().ordinal(),
+                        v -> config.crosshairStyle.set(AetheriumConfig.CrosshairStyle.values()[clamp(v, 0, CROSSHAIR_STYLES.length - 1)]))
+                .withDefault(config.crosshairStyle.getDefault().ordinal()), QolSupport.HUD));
+        page.add(qolRow(Setting.choice("qol.crosshair.color", Setting.Kind.DROPDOWN, "Crosshair colour",
+                        config.crosshairColor.getComment(), CROSSHAIR_COLORS,
+                        () -> config.crosshairColor.get().ordinal(),
+                        v -> config.crosshairColor.set(AetheriumConfig.CrosshairColor.values()[clamp(v, 0, CROSSHAIR_COLORS.length - 1)]))
+                .withDefault(config.crosshairColor.getDefault().ordinal()), QolSupport.HUD));
+        page.add(qolRow(intSlider("qol.crosshair.size", "Crosshair size", config.crosshairSize, 1, v -> v + " px"), QolSupport.HUD));
+        page.add(qolRow(intSlider("qol.crosshair.thickness", "Crosshair thickness", config.crosshairThickness, 1,
+                v -> v + " px"), QolSupport.HUD));
+        page.add(qolRow(intSlider("qol.crosshair.gap", "Crosshair gap", config.crosshairGap, 1, v -> v + " px"), QolSupport.HUD));
+        page.add(qolRow(intSlider("qol.crosshair.opacity", "Crosshair opacity", config.crosshairOpacity, 5, v -> v + "%"),
+                QolSupport.HUD));
+        page.add(qolRow(bool("qol.crosshair.outline", "Crosshair outline", config.crosshairOutline), QolSupport.HUD));
+        page.add(qolRow(bool("qol.crosshair.target_color", "Red on mobs", config.crosshairTargetColor), QolSupport.HUD));
+
+        page.add(qolRow(bool("qol.hand.enabled", "Hand editor", config.handEditor), QolSupport.HAND).livePreview());
+        page.add(qolRow(bool("qol.hand.visible", "Show hand with items", config.handVisible), QolSupport.HAND).livePreview());
+        page.add(qolRow(Setting.choice("qol.hand.preset", Setting.Kind.DROPDOWN, "Hand preset",
+                        "Moves your hand to a ready-made position (and turns the hand editor on). In a world the menu fades for a moment so you can see the result; adjust the values below afterwards as you like.",
+                        HAND_PRESETS,
+                        () -> config.handPreset.get().ordinal(),
+                        v -> config.handPreset.set(AetheriumConfig.HandPreset.values()[clamp(v, 0, HAND_PRESETS.length - 1)]))
+                .withDefault(config.handPreset.getDefault().ordinal())
+                .onPick(this::stageHandPreset), QolSupport.HAND).livePreview());
+        page.add(handRow(intSlider("qol.hand.x", "Hand sideways", config.handX, 1, AetheriumPages::hundredths)));
+        page.add(handRow(intSlider("qol.hand.y", "Hand height", config.handY, 1, AetheriumPages::hundredths)));
+        page.add(handRow(intSlider("qol.hand.z", "Hand depth", config.handZ, 1, AetheriumPages::hundredths)));
+        page.add(handRow(intSlider("qol.hand.pitch", "Hand tilt", config.handPitch, 1, v -> v + "\u00b0")));
+        page.add(handRow(intSlider("qol.hand.yaw", "Hand turn", config.handYaw, 1, v -> v + "\u00b0")));
+        page.add(handRow(intSlider("qol.hand.roll", "Hand roll", config.handRoll, 1, v -> v + "\u00b0")));
+        page.add(handRow(intSlider("qol.hand.scale", "Hand size", config.handScale, 5, v -> v + "%")));
+        page.add(qolRow(bool("qol.hand.mirror", "Same for off hand", config.handMirror), QolSupport.HAND).livePreview());
+        page.add(armRow(bool("qol.arm.both", "Show both hands", config.armBoth)));
+        page.add(armRow(intSlider("qol.arm.x", "Arms sideways", config.armX, 1, AetheriumPages::hundredths)));
+        page.add(armRow(intSlider("qol.arm.y", "Arms height", config.armY, 1, AetheriumPages::hundredths)));
+        page.add(armRow(intSlider("qol.arm.z", "Arms distance", config.armZ, 1, AetheriumPages::hundredths)));
+        page.add(armRow(intSlider("qol.arm.scale", "Arms size", config.armScale, 5, v -> v + "%")));
+
+        addZoomAndFreelook(page);
+        return page;
+    }
+
+    private static Setting qolRow(final Setting setting, final boolean supported) {
+        return setting.availableWhen(() -> supported, NOT_ON_THIS_VERSION);
+    }
+
+    /**
+     * A hand value: available with the hand editor, shown live while dragged (the rest of the
+     * screen fades away), and editing it turns the preset back into Custom and the editor on.
+     */
+    private Setting handRow(final Setting setting) {
+        return qolRow(setting, QolSupport.HAND).livePreview().onPick(v -> {
+            if (this.view != null) {
+                final Setting preset = this.view.find("qol.hand.preset");
+                if (preset != null) {
+                    preset.stage(0);
+                }
+                enableHandEditor();
+            }
+        });
+    }
+
+    /**
+     * Punchy's arm sculpt: moves both arms (and what they hold) together, with or without an item.
+     * Like Punchy, touching it shows both hands with whatever they hold, so the change is visible.
+     */
+    private Setting armRow(final Setting setting) {
+        return qolRow(setting, QolSupport.HAND).livePreview().onPick(v -> {
+            if (this.view != null) {
+                stageOn("qol.hand.visible", "qol.arm.both");
+            }
+        });
+    }
+
+    private void stageOn(final String... ids) {
+        for (final String id : ids) {
+            final Setting row = this.view.find(id);
+            if (row != null && row.isEditable()) {
+                row.stage(1);
+            }
+        }
+    }
+
+    private void stageHandPreset(final int index) {
+        if (this.view == null || index < 1 || index > Qol.HAND_PRESETS.length) {
+            return;
+        }
+        final int[] values = Qol.HAND_PRESETS[index - 1];
+        for (int i = 0; i < HAND_ROWS.length; i++) {
+            final Setting row = this.view.find(HAND_ROWS[i]);
+            if (row != null && row.isEditable()) {
+                row.stage(values[i]);
+            }
+        }
+        enableHandEditor();
+    }
+
+    /**
+     * A preset or a hand value only shows with the editor on, and the hand itself only with
+     * "Show hand with items" (vanilla hides the arm while you hold something), so picking one
+     * turns both on, the way Punchy's hand editor always shows the arm.
+     */
+    private void enableHandEditor() {
+        stageOn("qol.hand.enabled", "qol.hand.visible");
+    }
+
+    // ------------------------------------------------------------------ hand live preview
+
+    /** The rows of {@link Qol#HAND_KEYS}, in that order; null when the page has none. */
+    private Setting[] handRows;
+    private boolean handPreviewing;
+    /** Reused every previewed frame (no per-frame garbage). */
+    private final int[] handValues = new int[Qol.HAND_KEYS.length];
+
+    private void cacheHandRows() {
+        final Setting[] rows = new Setting[Qol.HAND_KEYS.length];
+        for (int i = 0; i < rows.length; i++) {
+            rows[i] = this.view.find(Qol.HAND_KEYS[i]);
+        }
+        for (final Setting row : rows) {
+            if (row == null || !row.isEditable()) {
+                this.handRows = null;
+                return;
+            }
+        }
+        this.handRows = rows;
+    }
+
+    /**
+     * Every frame while the screen is open: staged (not yet applied) hand values are shown on the
+     * real hand at once, so a preset or a dragged slider can be judged before Apply.
+     */
+    public void previewFrame() {
+        final Setting[] rows = this.handRows;
+        if (rows == null) {
+            return;
+        }
+        boolean dirty = false;
+        for (final Setting row : rows) {
+            if (row.isDirty()) {
+                dirty = true;
+                break;
+            }
+        }
+        if (dirty) {
+            final int[] values = this.handValues;
+            for (int i = 0; i < rows.length; i++) {
+                values[i] = rows[i].pending();
+            }
+            Qol.previewHand(values);
+            this.handPreviewing = true;
+        } else if (this.handPreviewing) {
+            endPreview();
+        }
+    }
+
+    /** The screen closed: back to the applied hand values. */
+    public void endPreview() {
+        if (this.handPreviewing) {
+            this.handPreviewing = false;
+            Qol.endHandPreview(this.config);
+        }
+    }
+
+    /** 12 -> "0.12 blocks". */
+    private static String hundredths(final int v) {
+        final String sign = v < 0 ? "-" : "";
+        final int a = Math.abs(v);
+        return sign + (a / 100) + "." + (a % 100 < 10 ? "0" : "") + (a % 100) + " blocks";
     }
 
     // ------------------------------------------------------------------ Android

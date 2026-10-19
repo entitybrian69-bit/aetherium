@@ -34,6 +34,7 @@ public final class AetheriumScreen extends GuiScreen implements ScreenHost, Aeth
 
     private final GuiScreen parent;
     private AetheriumView view;
+    private AetheriumPages pages;
     private boolean childOpened;
     private int pressedButton = -1;
 
@@ -54,6 +55,7 @@ public final class AetheriumScreen extends GuiScreen implements ScreenHost, Aeth
             final AetheriumPages pages = new AetheriumPages(sub, this);
             this.view = new AetheriumView(pages.build(), this, lastPage);
             pages.attach(this.view);
+            this.pages = pages;
         } else if (this.childOpened) {
             this.view.reload();
         }
@@ -154,6 +156,22 @@ public final class AetheriumScreen extends GuiScreen implements ScreenHost, Aeth
             this.view.onClose();
             lastPage = this.view.selectedPage();
         }
+        if (this.pages != null) {
+            this.pages.endPreview();
+        }
+    }
+
+    @Override
+    public void beforeFrame() {
+        if (this.pages != null) {
+            this.pages.previewFrame();
+        }
+    }
+
+    /** In a world the level is drawn behind this screen, so the hand editor can preview live. */
+    @Override
+    public boolean livePreviewAvailable() {
+        return this.mc != null && this.mc.world != null;
     }
 
     // ------------------------------------------------------------------ ScreenHost
@@ -244,6 +262,11 @@ public final class AetheriumScreen extends GuiScreen implements ScreenHost, Aeth
         if (this.view != null) {
             this.view.resetDefaults();
         }
+    }
+
+    @Override
+    public void openWaypoints() {
+        QolClient.openWaypoints(this.mc, this);
     }
 
     @Override
