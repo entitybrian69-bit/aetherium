@@ -43,8 +43,6 @@ public final class QolClient {
     private static KeyMapping waypointsKey;
     private static KeyMapping sortKey;
     private static boolean wasDead;
-    /** Where the player last died, for the death screen line; null before the first death. */
-    private static String deathLine;
 
     private QolClient() {
     }
@@ -171,16 +169,19 @@ public final class QolClient {
         final int y = floor(mc.player.getY());
         final int z = floor(mc.player.getZ());
         final String dim = dimension(mc);
-        deathLine = "You died at " + x + ", " + y + ", " + z + " (" + Waypoints.dimensionName(dim) + ")";
         final Waypoints store = waypoints();
         store.selectWorld(worldKey(mc));
         store.setDeath(x, y, z, dim);
-        LOGGER.info("Death point saved: {}", deathLine);
+        LOGGER.info("Death point saved at {}, {}, {} in {}", x, y, z, dim);
     }
 
-    /** "You died at x, y, z (Overworld)" for the death screen, or null. */
-    public static String deathLine() {
-        return Qol.deathPoint ? deathLine : null;
+    /** "You died at x, y, z (Overworld)" for the death screen (the body stays where it fell), or null. */
+    public static String deathLine(final Minecraft mc) {
+        if (!Qol.deathPoint || mc.player == null || mc.level == null) {
+            return null;
+        }
+        return "You died at " + floor(mc.player.getX()) + ", " + floor(mc.player.getY()) + ", "
+                + floor(mc.player.getZ()) + " (" + Waypoints.dimensionName(dimension(mc)) + ")";
     }
 
     private static void tickDamage(final Minecraft mc) {
@@ -268,6 +269,16 @@ public final class QolClient {
         return mc.options.renderDebug;
     }
 
+    /** "B / N / Not bound" (Add waypoint, Waypoints, Sort) for the settings screen. */
+    public static String describeKeys() {
+        if (addWaypointKey == null) {
+            return "Not registered";
+        }
+        return addWaypointKey.getTranslatedKeyMessage().getString() + " / "
+                + waypointsKey.getTranslatedKeyMessage().getString() + " / "
+                + sortKey.getTranslatedKeyMessage().getString();
+    }
+
     /** Opens the waypoint list over {@code parent} (null = the game). */
     public static void openWaypoints(final Minecraft mc, final net.minecraft.client.gui.screens.Screen parent) {
         if (mc.player == null) {
@@ -287,6 +298,10 @@ public final class QolClient {
 
     //~ private static boolean debugScreenShown(final Minecraft mc) {
         //~ return true;
+    //~ }
+
+    //~ public static String describeKeys() {
+        //~ return "Not available on this version";
     //~ }
 
     //~ public static void openWaypoints(final Minecraft mc, final net.minecraft.client.gui.screens.Screen parent) {

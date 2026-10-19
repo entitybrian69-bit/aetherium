@@ -287,4 +287,9 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
         this.childOpened = true;
         ClientHooks.openVanillaVideoSettings(this.minecraft, this);
     }
+
+    @Override
+    public void openWaypoints() {
+        QolClient.openWaypoints(this.minecraft, this);
+    }
 }

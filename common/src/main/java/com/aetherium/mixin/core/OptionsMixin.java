@@ -37,6 +37,7 @@ public abstract class OptionsMixin {
     private void aetherium$zoomKeys(final CallbackInfo ci) {
         this.keyMappings = ZoomKeys.append(this.keyMappings);
         this.keyMappings = com.aetherium.client.FreelookHooks.appendKeys(this.keyMappings);
+        this.keyMappings = com.aetherium.client.QolClient.appendKeys(this.keyMappings);
     }
     // @era:zoom-else none
     // @era:zoom-end

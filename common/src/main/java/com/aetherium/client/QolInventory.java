@@ -53,6 +53,7 @@ public final class QolInventory {
     private static int sortMoves;
     private static int sortStalls;
     private static Slot lastDragSlot;
+    private static double scrollRemainder;
 
     /** Joining or leaving a world: forget the running sort. */
     public static void cancel() {
@@ -120,6 +121,15 @@ public final class QolInventory {
         if (from == EXCLUDED || stack.isEmpty()) {
             return false;
         }
+        // Touchpads send fractions of a notch: one item per whole notch, in the latest direction.
+        if (scrollRemainder != 0.0 && Math.signum(scrollRemainder) != Math.signum(amount)) {
+            scrollRemainder = 0.0;
+        }
+        scrollRemainder += amount;
+        if (Math.abs(scrollRemainder) < 1.0) {
+            return true;
+        }
+        scrollRemainder = 0.0;
         if (amount < 0.0) {
             final Slot target = findTarget(menu, from, stack);
             if (target == null || !hovered.mayPickup(mc.player)) {
@@ -185,9 +195,9 @@ public final class QolInventory {
 
     // ------------------------------------------------------------------ shift-drag
 
-    /** Left button pressed: a new drag starts. */
-    public static void dragStart() {
-        lastDragSlot = null;
+    /** Left button pressed on {@code slot} (vanilla handles that first slot itself): a new drag starts. */
+    public static void dragStart(final Slot slot) {
+        lastDragSlot = slot;
     }
 
     /**

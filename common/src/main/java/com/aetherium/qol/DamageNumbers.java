@@ -32,6 +32,11 @@ public final class DamageNumbers {
         public long born;
         boolean live;
 
+        /** True while the popup is shown. */
+        public boolean isLive() {
+            return this.live;
+        }
+
         /** 0 at birth, 1 when it disappears. */
         public float age(final long now) {
             return Math.max(0f, Math.min(1f, (now - this.born) / (float) LIFETIME_MS));

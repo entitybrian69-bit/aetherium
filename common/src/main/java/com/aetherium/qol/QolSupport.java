@@ -61,6 +61,7 @@ public final class QolSupport {
             case "QolPlacementMixin":
                 return PLACEMENT;
             case "QolContainerScreenMixin":
+            case "QolScrollMixin":
                 return INVENTORY;
             case "QolTooltipMixin":
                 return FOOD;

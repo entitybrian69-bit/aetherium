@@ -238,9 +238,11 @@ public final class ClientHooks {
             tracker.reset();
             ZoomKeys.reset();
             QolHooks.onLevelChange();
+            QolClient.onLevelChange();
             TuningClient.levelChanged();
             ADAPTIVE.reset();
         }
+        QolClient.onClientTick(mc);
 
         final boolean active = Aetherium.isActive() && AetheriumMixinPlugin.isMixinActive();
         if (mc.level == null || mc.player == null) {
@@ -362,6 +364,7 @@ public final class ClientHooks {
         ZoomKeys.configure(config);
         NearBuild.configure(config);
         QolHooks.configure(config);
+        QolClient.configure(config, active);
         Tuning.configure(config, active && Capabilities.TUNING);
         TuningClient.configured(Minecraft.getInstance());
 
