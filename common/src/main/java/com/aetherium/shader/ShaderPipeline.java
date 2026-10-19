@@ -859,6 +859,27 @@ public final class ShaderPipeline {
         if (this.finalProgram != null) {
             all.add(this.finalProgram);
         }
+        sb.append("FOLDER '").append(this.set.folder).append("' programs ").append(this.set.defined.keySet()).append('\n');
+        final java.util.TreeSet<String> programFiles = new java.util.TreeSet<>();
+        for (final String f : this.pack.source.files()) {
+            if (f.endsWith(".fsh") || f.endsWith(".vsh") || f.endsWith(".gsh")) {
+                programFiles.add(f);
+            }
+        }
+        sb.append("FILES ").append(programFiles.size()).append(' ')
+                .append(String.join(" ", programFiles.size() > 120
+                        ? new ArrayList<>(programFiles).subList(0, 120) : programFiles)).append('\n');
+        for (final String f : programFiles) {
+            if (f.startsWith(this.set.folder) && f.endsWith(".fsh") && f.indexOf('/', this.set.folder.length()) < 0) {
+                final String n = f.substring(this.set.folder.length(), f.length() - 4);
+                if (!this.set.defined.containsKey(n)) {
+                    sb.append("SKIPPED ").append(n).append(programFiles.contains(this.set.folder + n + ".vsh")
+                            ? (this.pack.enabled(n, this.set.folder) ? " (not loaded)" : " (disabled)") : " (no .vsh)")
+                            .append('\n');
+                }
+            }
+        }
+        sb.append("PROGRAM-PROPS ").append(this.pack.properties.programEnabled).append('\n');
         for (final GlProgram p : all) {
             sb.append("PASS ").append(p.name).append(" buffers ").append(java.util.Arrays.toString(this.drawBuffers(p)));
             if (p.source != null && p.source.fragDataSlots != null) {
