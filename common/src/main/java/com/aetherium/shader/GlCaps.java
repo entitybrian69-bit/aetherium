@@ -146,7 +146,7 @@ public final class GlCaps {
         if (translator != null && translator.contains("GL4ES")) {
             int attribs = 16;
             try {
-                attribs = GL11.glGetInteger(GL20.GL_MAX_VERTEX_ATTRIBS);
+                attribs = GL11.glGetInteger(0x8869); // GL_MAX_VERTEX_ATTRIBS
             } catch (final RuntimeException ignored) {
                 // keep 16
             }

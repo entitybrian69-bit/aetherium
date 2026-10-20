@@ -368,6 +368,12 @@ public final class ShaderBridge {
     public static List<String> available() {
         final List<String> out = new ArrayList<>();
         out.add(LITE);
+        out.addAll(externalPacks());
+        return out;
+    }
+
+    /** Downloaded packs only (folders and zips in the pack folders), sorted: the External Shaders page. */
+    public static List<String> externalPacks() {
         final List<String> found = new ArrayList<>();
         for (final Path dir : packDirs()) {
             if (!Files.isDirectory(dir)) {
@@ -387,8 +393,7 @@ public final class ShaderBridge {
             }
         }
         Collections.sort(found, String.CASE_INSENSITIVE_ORDER);
-        out.addAll(found);
-        return out;
+        return found;
     }
 
     /** Where a pack's option values are saved (OptiFine's shaderpacks/&lt;pack&gt;.txt). */

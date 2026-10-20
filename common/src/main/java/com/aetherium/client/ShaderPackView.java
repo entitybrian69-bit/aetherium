@@ -79,9 +79,10 @@ public final class ShaderPackView {
 
     public ShaderPackView(final Host host, final String currentPack) {
         this.host = host;
-        this.packs = ShaderBridge.available();
+        // downloaded packs only: the bundled Aetherium Lite lives on the Shaders tab
+        this.packs = ShaderBridge.externalPacks();
         this.applied = currentPack == null ? "" : currentPack.trim();
-        this.enabled = !this.applied.isEmpty();
+        this.enabled = isExternal(this.applied);
         this.selected = this.enabled ? this.applied : (this.packs.isEmpty() ? "" : this.packs.get(0));
     }
 
@@ -160,7 +161,7 @@ public final class ShaderPackView {
         drawScrollbar(c, total);
         if (!this.folderHint.isEmpty()) {
             centered(c, ellipsize(c, this.folderHint, this.width - 10), this.width / 2, 20, GREY);
-        } else if (this.packs.size() <= 1) {
+        } else if (this.packs.isEmpty()) {
             centered(c, "Put shader pack .zip files in the shaderpacks folder", this.width / 2, 20, GREY);
         }
 
@@ -620,9 +621,14 @@ public final class ShaderPackView {
         this.folderHint = dir == null ? "" : "Folder: " + dir.toAbsolutePath().normalize();
     }
 
+    private static boolean isExternal(final String name) {
+        return !name.isEmpty() && ShaderBridge.bundledRoot(name) == null;
+    }
+
     private boolean apply() {
         final String target = this.enabled ? this.selected : "";
-        final boolean packChange = !target.equals(currentApplied());
+        // "Disabled" here turns off a downloaded pack; it leaves the Shaders tab's Lite alone
+        final boolean packChange = !target.equals(currentApplied()) && (isExternal(target) || isExternal(currentApplied()));
         final boolean optionsFor = this.pack != null && this.pack.name.equals(this.selected);
         if (optionsFor && this.enabled && (!this.edits.isEmpty() || this.pickedProfile != null || this.resetAll)) {
             if (this.resetAll) {

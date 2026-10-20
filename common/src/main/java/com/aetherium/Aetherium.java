@@ -242,31 +242,66 @@ public final class Aetherium {
             return declared;
         }
         // Loader jars carry no Implementation-Version; the mod metadata has the build's mod_version.
-        final String fromMeta = versionFrom("/fabric.mod.json", "\"version\"\\s*:\\s*\"([^\"$]+)\"");
+        // getResourceAsStream("/fabric.mod.json") answers with whichever mod's file the loader finds
+        // first, so ours is read next to this class, else picked out by its id.
+        final String json = metadata("fabric.mod.json", "\"id\"\\s*:\\s*\"aetherium\"");
+        final String fromMeta = json == null ? null : first(json, "\"version\"\\s*:\\s*\"([^\"$]+)\"");
         if (fromMeta != null) {
             return fromMeta;
         }
-        final String fromToml = versionFrom("/META-INF/neoforge.mods.toml", "(?m)^\\s*version\\s*=\\s*\"([^\"$]+)\"");
+        final String toml = metadata("META-INF/neoforge.mods.toml", "modId\\s*=\\s*\"aetherium\"");
+        final String fromToml = toml == null ? null : first(toml, "(?m)^\\s*version\\s*=\\s*\"([^\"$]+)\"");
         return fromToml != null ? fromToml : "unknown";
     }
 
-    private static String versionFrom(final String resource, final String regex) {
-        try (java.io.InputStream in = Aetherium.class.getResourceAsStream(resource)) {
-            if (in == null) {
-                return null;
+    /** Aetherium's own copy of a metadata file: {@code idPattern} must match in it. */
+    private static String metadata(final String resource, final String idPattern) {
+        final java.util.regex.Pattern id = java.util.regex.Pattern.compile(idPattern);
+        try {
+            final java.net.URL self = Aetherium.class.getResource("Aetherium.class");
+            final String suffix = "com/aetherium/Aetherium.class";
+            if (self != null && self.toString().endsWith(suffix)) {
+                final String base = self.toString().substring(0, self.toString().length() - suffix.length());
+                final String text = read(new java.net.URL(base + resource));
+                if (text != null && id.matcher(text).find()) {
+                    return text;
+                }
             }
+        } catch (final java.io.IOException | RuntimeException ignored) {
+            // not a plain jar or folder: search below
+        }
+        try {
+            final ClassLoader loader = Aetherium.class.getClassLoader();
+            final java.util.Enumeration<java.net.URL> all = loader == null ? null : loader.getResources(resource);
+            while (all != null && all.hasMoreElements()) {
+                final String text = read(all.nextElement());
+                if (text != null && id.matcher(text).find()) {
+                    return text;
+                }
+            }
+        } catch (final java.io.IOException | RuntimeException ignored) {
+            // no metadata reachable
+        }
+        return null;
+    }
+
+    private static String read(final java.net.URL url) {
+        try (java.io.InputStream in = url.openStream()) {
             final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
             final byte[] buf = new byte[4096];
             int n;
             while ((n = in.read(buf)) > 0) {
                 out.write(buf, 0, n);
             }
-            final java.util.regex.Matcher m = java.util.regex.Pattern.compile(regex)
-                    .matcher(new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8));
-            return m.find() ? m.group(1) : null;
+            return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (final java.io.IOException | RuntimeException e) {
             return null;
         }
+    }
+
+    private static String first(final String text, final String regex) {
+        final java.util.regex.Matcher m = java.util.regex.Pattern.compile(regex).matcher(text);
+        return m.find() ? m.group(1) : null;
     }
 
     public static String describeRuntime() {
