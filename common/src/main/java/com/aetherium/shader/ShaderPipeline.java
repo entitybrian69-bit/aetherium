@@ -376,6 +376,9 @@ public final class ShaderPipeline {
         // full-screen passes draw no vanilla geometry: units 0-2 are free there (reset afterwards),
         // which matters on GL translators that only have 8 units
         int next = stage == STAGE_COMPOSITE ? 0 : 3;
+        // names that always resolve to the same texture share a unit (shadowtex0/1, gaux1/colortex4,
+        // unknown samplers on the white texture): 8-unit translators run out otherwise
+        final Map<String, Integer> byTexture = new HashMap<>();
         for (final GlProgram.Uniform u : p.samplers) {
             final String n = u.name;
             int unit;
@@ -384,7 +387,14 @@ public final class ShaderPipeline {
             } else if (stage != STAGE_COMPOSITE && n.equals("lightmap")) {
                 unit = 2;
             } else {
-                unit = next++;
+                final String key = this.textureKey(n, stage);
+                final Integer shared = byTexture.get(key);
+                if (shared != null) {
+                    unit = shared;
+                } else {
+                    unit = next++;
+                    byTexture.put(key, unit);
+                }
             }
             if (unit >= Math.min(this.caps.maxTextureUnits, 32) - 1) {
                 this.warnings.add(p.name + ": out of texture units for " + n);
@@ -538,6 +548,41 @@ public final class ShaderPipeline {
                 return this.specularTex;
             default:
                 return this.whiteTex;
+        }
+    }
+
+    /** Identity of the texture {@link #textureFor} binds for a sampler name (stable for the program's life). */
+    private String textureKey(final String name, final int stage) {
+        if (this.pack.properties.textures.containsKey(stageName(stage) + "." + name)) {
+            return "custom:" + name; // declared texture.<stage>.<name> (loaded after the programs)
+        }
+        if (stage == STAGE_COMPOSITE && (name.equals("texture") || name.equals("tex") || name.equals("gtexture"))) {
+            return "color0";
+        }
+        if (BUFFER_NAME.matcher(name).matches()) {
+            return "color" + bufferIndex(name);
+        }
+        switch (name) {
+            case "depthtex0":
+                return stage == STAGE_COMPOSITE ? "depth0" : "depthCopy";
+            case "depthtex1":
+            case "depthtex2":
+                return "depthCopy";
+            case "shadow":
+            case "watershadow":
+            case "shadowtex0":
+            case "shadowtex1":
+                return "shadow0";
+            case "shadowcolor":
+            case "shadowcolor0":
+                return "shadowColor0";
+            case "shadowcolor1":
+            case "noisetex":
+            case "normals":
+            case "specular":
+                return name;
+            default:
+                return "white";
         }
     }
 
