@@ -3,6 +3,14 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.18.1
+**Shader fixes for Android GL translators (test build for Minecraft 1.16.5 only).**
+
+- Fixed the world drawing as flat fog colour with a black hand on Krypton and gl4es: these translators accept fewer texture units than they report, so pack textures landed on Minecraft's block atlas and lightmap. Aetherium now tests how many units really work and keeps everything inside that limit.
+- Fixed all text disappearing after switching a pack, profile or option: Minecraft is now told to re-bind its own textures after a pack loads and after every full-screen pass.
+- Full-screen passes can use 3 more texture units, and sampler names that point to the same texture share one unit, so packs fit better on 8-unit devices. A pack that still needs more lists what was dropped under Problems in the Shaders tab.
+- The device line in the Shaders tab (and logs/aetherium-shaders.log) now shows the usable texture units.
+
 ## 1.18.0
 **Shader packs (test build for Minecraft 1.16.5 only).** Aetherium now loads OptiFine/Iris-format shader packs by itself, without OptiFine, Iris or Sodium.
 
