@@ -177,7 +177,7 @@ public final class ShaderRuntime {
             macros.put("MC_HAND_DEPTH", "0.125");
             macros.put("AETHERIUM", "1");
             source = ShaderBridge.LITE.equals(name) ? liteSource()
-                    : PackSource.open(ShaderBridge.shaderpacksDir().resolve(name));
+                    : PackSource.open(ShaderBridge.packPath(name));
             if (source == null) {
                 throw new IllegalStateException("no shaders folder in " + name);
             }
@@ -246,7 +246,7 @@ public final class ShaderRuntime {
         macros.put("MC_HAND_DEPTH", "0.125");
         macros.put("AETHERIUM", "1");
         final PackSource source = ShaderBridge.LITE.equals(name) ? liteSource()
-                : PackSource.open(ShaderBridge.shaderpacksDir().resolve(name));
+                : PackSource.open(ShaderBridge.packPath(name));
         if (source == null) {
             throw new IllegalStateException("no shaders folder in " + name);
         }

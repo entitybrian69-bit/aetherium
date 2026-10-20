@@ -85,8 +85,8 @@ public abstract class PackSource implements Closeable {
     /** Opens a pack folder or zip. Returns null when it has no {@code shaders/} folder. */
     public static PackSource open(final Path path) throws IOException {
         if (Files.isDirectory(path)) {
-            final Path shaders = path.resolve("shaders");
-            return Files.isDirectory(shaders) ? new Dir(shaders) : null;
+            final Path shaders = shadersFolder(path);
+            return shaders != null ? new Dir(shaders) : null;
         }
         if (Files.isRegularFile(path) && path.getFileName().toString().toLowerCase().endsWith(".zip")) {
             final Map<String, byte[]> all = new HashMap<>();
@@ -103,6 +103,27 @@ public abstract class PackSource implements Closeable {
                 }
             }
             return Memory.fromZip(all);
+        }
+        return null;
+    }
+
+    /**
+     * A folder pack's shaders folder: directly inside, or one folder deeper (a zip extracted into a
+     * folder of the same name: BSL/BSL/shaders). Null when there is none.
+     */
+    public static Path shadersFolder(final Path packDir) {
+        final Path direct = packDir.resolve("shaders");
+        if (Files.isDirectory(direct)) {
+            return direct;
+        }
+        try (java.nio.file.DirectoryStream<Path> stream = Files.newDirectoryStream(packDir)) {
+            for (final Path child : stream) {
+                if (Files.isDirectory(child) && Files.isDirectory(child.resolve("shaders"))) {
+                    return child.resolve("shaders");
+                }
+            }
+        } catch (final IOException | RuntimeException ignored) {
+            // unreadable: not a pack
         }
         return null;
     }

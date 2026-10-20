@@ -444,7 +444,8 @@ public final class AetheriumPages {
             packNames[i + 1] = packs.get(i);
         }
         page.add(Setting.choice("shaders.pack", Setting.Kind.DROPDOWN, "Shader pack",
-                        config.shaderPack.getComment() + " Put packs in " + packsFolder() + ".", packNames,
+                        config.shaderPack.getComment() + " Put pack .zip files (or folders) in " + packsFolder()
+                                + ", then reopen this screen.", packNames,
                         () -> {
                             final String cur = config.shaderPack.get().trim();
                             final int i = packs.indexOf(cur);
@@ -480,8 +481,13 @@ public final class AetheriumPages {
         page.add(Setting.button("shaders.reload", "Reload pack",
                 "Re-reads the pack files from disk (after editing or replacing them) and recompiles it.", "Reload",
                 ShaderBridge::requestReload));
-        page.add(Setting.info("shaders.folder", "Pack folder", "Folders and .zip files here appear in the list above.",
-                AetheriumPages::packsFolder));
+        final int external = packs.size() - 1;
+        page.add(Setting.info("shaders.folder", "Pack folder",
+                "Shader pack .zip files (or unzipped folders) here appear in the Shader pack list after you reopen"
+                        + " this screen. Aetherium also looks in shaderpacks folders above the game folder, up to"
+                        + " .minecraft, for launchers that give each version its own folder.",
+                () -> (external == 0 ? "No packs found - " : external + (external == 1 ? " pack in " : " packs in "))
+                        + packsFolder()));
 
         final ShaderPack pack = ShaderBridge.pack();
         if (pack == null || !pack.name.equals(ShaderBridge.selected())) {
@@ -526,8 +532,15 @@ public final class AetheriumPages {
     }
 
     private static String packsFolder() {
-        final java.nio.file.Path dir = ShaderBridge.shaderpacksDir();
-        return dir == null ? ".minecraft/shaderpacks" : dir.toString();
+        final List<java.nio.file.Path> dirs = ShaderBridge.packDirs();
+        if (dirs.isEmpty()) {
+            return ".minecraft/shaderpacks";
+        }
+        final StringBuilder sb = new StringBuilder();
+        for (final java.nio.file.Path d : dirs) {
+            sb.append(sb.length() == 0 ? "" : " or ").append(d.toAbsolutePath().normalize());
+        }
+        return sb.toString();
     }
 
     /** Flattens an OptiFine option screen (and its sub screens, as headed sections) into rows. */

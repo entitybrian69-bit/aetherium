@@ -204,24 +204,70 @@ public final class ShaderBridge {
         status = "Stopped: " + message;
     }
 
-    /** Pack names for the settings page: the bundled one, then folders and zips in shaderpacks/. */
+    /**
+     * Folders searched for packs: the game folder's shaderpacks first (created when missing), then
+     * shaderpacks folders above it up to .minecraft. Android launchers often give each version its
+     * own game folder (.minecraft/versions/1.16.5-fabric) while packs sit in .minecraft/shaderpacks.
+     */
+    public static List<Path> packDirs() {
+        final List<Path> out = new ArrayList<>();
+        final Path own = shaderpacksDir();
+        if (own == null) {
+            return out;
+        }
+        try {
+            Files.createDirectories(own);
+        } catch (final IOException | RuntimeException ignored) {
+            // read-only storage: still list what exists
+        }
+        out.add(own);
+        Path up = gameDir.toAbsolutePath().normalize().getParent();
+        for (int i = 0; up != null && i < 4; i++, up = up.getParent()) {
+            final Path dir = up.resolve("shaderpacks");
+            if (Files.isDirectory(dir) && !out.contains(dir)) {
+                out.add(dir);
+            }
+            final Path name = up.getFileName();
+            if (name != null && name.toString().equals(".minecraft")) {
+                break;
+            }
+        }
+        return out;
+    }
+
+    /** The pack file or folder for a listed name (first folder of {@link #packDirs} that has it). */
+    public static Path packPath(final String name) {
+        for (final Path dir : packDirs()) {
+            final Path p = dir.resolve(name);
+            if (Files.exists(p)) {
+                return p;
+            }
+        }
+        final Path own = shaderpacksDir();
+        return own == null ? null : own.resolve(name);
+    }
+
+    /** Pack names for the settings page: the bundled one, then folders and zips in the pack folders. */
     public static List<String> available() {
         final List<String> out = new ArrayList<>();
         out.add(LITE);
-        final Path dir = shaderpacksDir();
-        if (dir == null || !Files.isDirectory(dir)) {
-            return out;
-        }
         final List<String> found = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
-            for (final Path p : stream) {
-                final String n = p.getFileName().toString();
-                if (Files.isDirectory(p) || n.toLowerCase(Locale.ROOT).endsWith(".zip")) {
-                    found.add(n);
-                }
+        for (final Path dir : packDirs()) {
+            if (!Files.isDirectory(dir)) {
+                continue;
             }
-        } catch (final IOException ignored) {
-            // unreadable folder: only the bundled pack
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+                for (final Path p : stream) {
+                    final String n = p.getFileName().toString();
+                    final boolean pack = Files.isDirectory(p) ? PackSource.shadersFolder(p) != null
+                            : n.toLowerCase(Locale.ROOT).endsWith(".zip");
+                    if (pack && !found.contains(n)) {
+                        found.add(n);
+                    }
+                }
+            } catch (final IOException | RuntimeException ignored) {
+                // unreadable folder: skip it
+            }
         }
         Collections.sort(found, String.CASE_INSENSITIVE_ORDER);
         out.addAll(found);
@@ -237,7 +283,8 @@ public final class ShaderBridge {
         if (LITE.equals(name)) {
             return gameDir.resolve("config").resolve("aetherium-lite-shader.txt");
         }
-        return dir.resolve(name + ".txt");
+        final Path pack = packPath(name);
+        return (pack == null || pack.getParent() == null ? dir : pack.getParent()).resolve(name + ".txt");
     }
 
     /** Whether compat (GL translator) mode applies for the detected translator. */
