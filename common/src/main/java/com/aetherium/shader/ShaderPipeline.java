@@ -106,6 +106,10 @@ public final class ShaderPipeline {
     private static final String[] LEGACY = {"gcolor", "gdepth", "gnormal", "composite", "gaux1", "gaux2", "gaux3",
             "gaux4"};
 
+    /** Packed-id mode (GL translators): see ShaderVertex#packed. */
+    public final boolean packed;
+    private final float[] packedTable;
+
     public ShaderPipeline(final ShaderPack pack, final String worldFolder, final GlCaps caps,
                           final TextureLoader loader, final boolean liteProfile) {
         this.pack = pack;
@@ -116,6 +120,10 @@ public final class ShaderPipeline {
         for (int i = 0; i < this.boundUnit.length; i++) {
             this.boundUnit[i] = -1;
         }
+        // GL translators: block ids ride in the vertex colour's alpha instead of extra texture
+        // coordinate arrays (those corrupt the vanilla ones there); see ShaderVertex#packed
+        this.packed = caps.translator && this.set.needsExtendedVertex();
+        this.packedTable = this.packed ? (pack.blocks == null ? new float[128] : pack.blocks.packedTable()) : null;
         final PackProperties props = pack.properties;
         this.oldLighting = props.flag("oldLighting", false);
         this.clouds = props.get("clouds", "");
@@ -335,7 +343,8 @@ public final class ShaderPipeline {
         final Map<String, String> macros = this.macros();
         final boolean compat = this.caps.translator;
         final int max = this.caps.glslVersion;
-        final String vs = GlslPatcher.patch(src.vertex.text, GlslPatcher.VERTEX, macros, compat, max);
+        final String vs = GlslPatcher.patch(src.vertex.text, GlslPatcher.VERTEX, macros, compat, max,
+                this.packed && stage != STAGE_COMPOSITE);
         final String frag = src.remapFragData(src.fragment.text);
         final String fs = GlslPatcher.patch(stage == STAGE_COMPOSITE ? frag : GlslPatcher.injectAlphaTest(frag),
                 GlslPatcher.FRAGMENT, macros, compat, max);
@@ -351,6 +360,17 @@ public final class ShaderPipeline {
         } catch (final RuntimeException e) {
             this.errors.add(name + ": " + e);
             return null;
+        }
+        if (this.packed && p.has(GlslPatcher.PACKED_IDS)) {
+            final float[] t = this.packedTable;
+            GL20.glUseProgram(p.id);
+            for (int i = 0; i < 32; i++) {
+                final int loc = GL20.glGetUniformLocation(p.id, GlslPatcher.PACKED_IDS + "[" + i + "]");
+                if (loc >= 0) {
+                    GL20.glUniform4f(loc, t[i * 4], t[i * 4 + 1], t[i * 4 + 2], t[i * 4 + 3]);
+                }
+            }
+            GL20.glUseProgram(0);
         }
         if (src.drawBuffers != null && src.drawBuffers.length > this.caps.maxDrawBuffers) {
             this.warnings.add(name + " writes " + src.drawBuffers.length + " buffers but this device allows "
@@ -794,6 +814,19 @@ public final class ShaderPipeline {
         }
     }
 
+    /** Packed-id mode: whether the coming draw is chunk geometry (ids in the colour alpha). */
+    public void applyPacked(final boolean chunkGeometry) {
+        final GlProgram p = this.current;
+        if (this.packed && p != null && p.has(GlslPatcher.PACKED_UNIFORM)) {
+            p.set(GlslPatcher.PACKED_UNIFORM, chunkGeometry ? 1.0F : 0.0F);
+        }
+    }
+
+    /** The table ShaderVertex packs indices of (null unless packed). */
+    public float[] packedTable() {
+        return this.packedTable;
+    }
+
     /** The injected alpha test of the bound pack program (see GlslPatcher#injectAlphaTest). */
     public void applyAlphaTest(final float ref) {
         final GlProgram p = this.current;
@@ -917,6 +950,7 @@ public final class ShaderPipeline {
         GL20.glUseProgram(0);
         this.current = null;
         this.currentStage = -1;
+        this.vanillaUnitsDirty = true; // always: the GUI draws next and must find its textures
         this.resetVanillaUnits();
     }
 

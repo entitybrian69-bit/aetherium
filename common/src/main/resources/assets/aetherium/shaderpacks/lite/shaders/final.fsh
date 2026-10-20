@@ -6,8 +6,13 @@ varying vec2 texcoord;
 
 void main() {
     vec3 c = texture2D(colortex0, texcoord).rgb * (EXPOSURE * 1.1);
+#ifdef FILMIC
     // filmic curve (ACES fit): richer midtones and contrast, highlights roll off instead of clipping
     c = clamp((c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14), 0.0, 1.0);
+#else
+    c = c / 1.1;
+#endif
+    c = clamp((c - 0.5) * CONTRAST + 0.5, 0.0, 1.0);
     float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
     c = max(mix(vec3(l), c, SATURATION), 0.0);
     // split toning: cool shadows, warm highlights
@@ -15,7 +20,7 @@ void main() {
     c *= mix(vec3(1.0), tone, clamp(WARMTH, 0.0, 1.5));
 #ifdef VIGNETTE
     float v = smoothstep(0.95, 0.3, length(texcoord - 0.5));
-    c *= mix(1.0, v, 0.45);
+    c *= mix(1.0, v, VIGNETTE_STRENGTH);
 #endif
     gl_FragColor = vec4(c, 1.0);
 }

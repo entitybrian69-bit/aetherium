@@ -20,7 +20,7 @@ import java.util.Map;
 public final class ShaderBridge {
     /** Name of the pack bundled in the jar (assets/aetherium/shaderpacks/lite). */
     public static final String LITE = "Aetherium Lite";
-    /** Bundled test pack (assets/aetherium/shaderpacks/diagnostic): block ids, normals, shadow map. */
+    /** Bundled test pack for the CI smoke test only (not listed): block ids, normals, shadow map. */
     public static final String DIAGNOSTIC = "Aetherium Diagnostic";
 
     /** The jar folder of a bundled pack, or null for packs on disk. */
@@ -114,6 +114,110 @@ public final class ShaderBridge {
 
     public static Path shaderpacksDir() {
         return gameDir == null ? null : gameDir.resolve("shaderpacks");
+    }
+
+    /** Opens a pack: bundled ones from the jar (through their files.txt index), others from disk. */
+    public static PackSource openSource(final String name) throws IOException {
+        final String root = bundledRoot(name);
+        if (root == null) {
+            final Path path = packPath(name);
+            return path == null ? null : PackSource.open(path);
+        }
+        final byte[] index = resource(root + "files.txt");
+        if (index == null) {
+            return null;
+        }
+        final Map<String, byte[]> files = new java.util.HashMap<>();
+        for (final String line : new String(index, java.nio.charset.StandardCharsets.UTF_8).split("\n")) {
+            final String f = line.trim();
+            if (!f.isEmpty()) {
+                final byte[] data = resource(root + "shaders/" + f);
+                if (data != null) {
+                    files.put(f, data);
+                }
+            }
+        }
+        return new PackSource.Memory(files);
+    }
+
+    private static byte[] resource(final String path) throws IOException {
+        try (java.io.InputStream in = ShaderBridge.class.getResourceAsStream(path)) {
+            if (in == null) {
+                return null;
+            }
+            final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            final byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) > 0) {
+                out.write(buf, 0, n);
+            }
+            return out.toByteArray();
+        }
+    }
+
+    private static volatile ShaderPack preview;
+    private static volatile String previewKey = "";
+
+    /**
+     * The pack whose options the settings page shows: the loaded one, or (selected but not loaded
+     * yet, e.g. on the title screen) one read from its files without touching the GPU.
+     */
+    public static ShaderPack optionsPack(final String name) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        final ShaderPack loaded = pack;
+        if (loaded != null && loaded.name.equals(name)) {
+            return loaded;
+        }
+        final Path file = bundledRoot(name) == null ? packPath(name) : null;
+        long stamp = 0;
+        try {
+            stamp = file == null ? 0 : Files.getLastModifiedTime(file).toMillis();
+        } catch (final IOException ignored) {
+            // read below anyway
+        }
+        final String key = name + "|" + stamp;
+        if (preview != null && key.equals(previewKey)) {
+            return preview;
+        }
+        try (PackSource source = openSource(name)) {
+            if (source == null) {
+                return null;
+            }
+            final Map<String, String> macros = new java.util.TreeMap<>();
+            macros.put("MC_VERSION", "11605");
+            macros.put("MC_GL_VERSION", "300");
+            macros.put("MC_GLSL_VERSION", "130");
+            macros.put("MC_RENDER_QUALITY", "1.0");
+            macros.put("MC_SHADOW_QUALITY", "1.0");
+            macros.put("MC_HAND_DEPTH", "0.125");
+            macros.put("AETHERIUM", "1");
+            final ShaderPack p = ShaderPack.load(name, source, macros, optionsFile(name), null);
+            preview = p;
+            previewKey = key;
+            return p;
+        } catch (final Throwable t) {
+            return null;
+        }
+    }
+
+    /** What the settings page shows for an option: the staged edit, else the pack's value. */
+    public static String optionValue(final String option, final String fallback) {
+        synchronized (PENDING) {
+            final String v = PENDING.get(option);
+            if (v != null) {
+                return v;
+            }
+        }
+        final ShaderPack p = pack;
+        if (p != null && p.name.equals(selected)) {
+            final ShaderOptions.Option o = p.options.get(option);
+            if (o != null) {
+                return o.value();
+            }
+        }
+        return fallback;
     }
 
     /** Settings page: an option value staged for the next reload. */
@@ -264,7 +368,6 @@ public final class ShaderBridge {
     public static List<String> available() {
         final List<String> out = new ArrayList<>();
         out.add(LITE);
-        out.add(DIAGNOSTIC);
         final List<String> found = new ArrayList<>();
         for (final Path dir : packDirs()) {
             if (!Files.isDirectory(dir)) {

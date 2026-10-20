@@ -52,6 +52,9 @@ public final class AetheriumPages {
 
         /** Opens the waypoint list (Quality of life). */
         void openWaypoints();
+
+        /** Shaders tab pack list: switches to the pack (empty = off) right away and rebuilds the pages. */
+        void selectShaderPack(String name);
     }
 
     static final String NOT_ON_THIS_VERSION = "Not available on this version";
@@ -437,22 +440,31 @@ public final class AetheriumPages {
         if (Aetherium.platform() != null) {
             ShaderBridge.setGameDir(Aetherium.platform().gameDirectory());
         }
+        // Iris-style: the packs you have, tap one to use it (applies right away), settings below
         final List<String> packs = ShaderBridge.available();
-        final String[] packNames = new String[packs.size() + 1];
-        packNames[0] = "Off";
+        final String selected = config.shaderPack.get().trim();
+        page.add(Setting.info("shaders.list", "SHADER PACKS",
+                "Shader packs found on this device. Download OptiFine/Iris format packs (.zip) and put them in "
+                        + packsFolder() + ", then reopen this screen.",
+                () -> packs.size() + (packs.size() == 1 ? " pack" : " packs")));
+        page.add(Setting.button("shaders.use.off", "Off", "No shader pack: Minecraft's own rendering.",
+                selected.isEmpty() ? "Active" : "Use", () -> this.actions.selectShaderPack("")));
         for (int i = 0; i < packs.size(); i++) {
-            packNames[i + 1] = packs.get(i);
+            final String name = packs.get(i);
+            final String description = ShaderBridge.LITE.equals(name)
+                    ? "Bundled with Aetherium. Fast and made for phones, with Low / Medium / High profiles."
+                    : "Shader pack " + name + ". Heavy packs can be slow on phones; pick a low profile in its settings.";
+            page.add(Setting.button("shaders.use." + i, name, description,
+                    name.equals(selected) ? "Active" : "Use", () -> this.actions.selectShaderPack(name)));
         }
-        page.add(Setting.choice("shaders.pack", Setting.Kind.DROPDOWN, "Shader pack",
-                        config.shaderPack.getComment() + " Put pack .zip files (or folders) in " + packsFolder()
-                                + ", then reopen this screen.", packNames,
-                        () -> {
-                            final String cur = config.shaderPack.get().trim();
-                            final int i = packs.indexOf(cur);
-                            return cur.isEmpty() ? 0 : i < 0 ? 0 : i + 1;
-                        },
-                        v -> config.shaderPack.set(v <= 0 || v > packs.size() ? "" : packs.get(v - 1)))
-                .withDefault(0));
+        final int external = packs.size() - 1; // minus the bundled Lite
+        page.add(Setting.info("shaders.folder", "Pack folder",
+                "Shader pack .zip files (or unzipped folders) here appear in the list after you reopen this screen."
+                        + " Aetherium also looks in shaderpacks folders above the game folder, up to .minecraft,"
+                        + " for launchers that give each version its own folder.",
+                () -> (external == 0 ? "No packs found - " : external + (external == 1 ? " pack in " : " packs in "))
+                        + packsFolder()));
+        page.add(Setting.info("shaders.engine", "ENGINE", "How the selected pack runs on this device.", () -> ""));
         final String[] compatNames = {"Auto", "On", "Off"};
         page.add(Setting.choice("shaders.compat", Setting.Kind.SEGMENTED, "Compatibility mode",
                         config.shaderCompat.getComment(), compatNames,
@@ -481,21 +493,16 @@ public final class AetheriumPages {
         page.add(Setting.button("shaders.reload", "Reload pack",
                 "Re-reads the pack files from disk (after editing or replacing them) and recompiles it.", "Reload",
                 ShaderBridge::requestReload));
-        final int external = packs.size() - 2; // minus the bundled Lite and Diagnostic
-        page.add(Setting.info("shaders.folder", "Pack folder",
-                "Shader pack .zip files (or unzipped folders) here appear in the Shader pack list after you reopen"
-                        + " this screen. Aetherium also looks in shaderpacks folders above the game folder, up to"
-                        + " .minecraft, for launchers that give each version its own folder.",
-                () -> (external == 0 ? "No packs found - " : external + (external == 1 ? " pack in " : " packs in "))
-                        + packsFolder()));
 
-        final ShaderPack pack = ShaderBridge.pack();
-        if (pack == null || !pack.name.equals(ShaderBridge.selected())) {
-            page.add(Setting.info("shaders.options_hint", "Pack options",
-                    "Options of the selected pack appear here once it has loaded.",
-                    () -> ShaderBridge.wantsPack() ? "Apply, enter a world, then reopen this screen" : "No pack selected"));
+        final ShaderPack pack = ShaderBridge.optionsPack(selected);
+        if (pack == null) {
+            page.add(Setting.info("shaders.options_hint", "Pack settings",
+                    "Settings of the selected pack appear here.",
+                    () -> selected.isEmpty() ? "No pack selected" : "Could not read the pack's settings"));
             return page;
         }
+        page.add(Setting.info("shaders.settings", (pack.name + " settings").toUpperCase(java.util.Locale.ROOT),
+                "The pack's own options. Changes apply when you press Apply.", () -> ""));
         final Map<String, String> profiles = pack.layout.profiles;
         if (!profiles.isEmpty()) {
             final List<String> names = new ArrayList<String>(profiles.keySet());
@@ -504,13 +511,16 @@ public final class AetheriumPages {
             for (int i = 0; i < names.size(); i++) {
                 labels[i + 1] = pack.label("profile." + names.get(i), names.get(i));
             }
-            final String current = pack.options.currentProfile(profiles);
-            final int currentIndex = current == null ? 0 : names.indexOf(current) + 1;
+            final java.util.function.IntSupplier currentIndex = () -> {
+                final ShaderPack now = ShaderBridge.optionsPack(selected);
+                final String current = (now == null ? pack : now).options.currentProfile(profiles);
+                return current == null ? 0 : names.indexOf(current) + 1;
+            };
             page.add(Setting.choice("shaders.profile", Setting.Kind.DROPDOWN, "Profile",
                     pack.label("profile.comment", "Preset of the pack's own options."), labels,
-                    () -> currentIndex,
+                    currentIndex,
                     v -> {
-                        if (v > 0 && v != currentIndex && v <= names.size()) {
+                        if (v > 0 && v != currentIndex.getAsInt() && v <= names.size()) {
                             ShaderBridge.stageProfile(names.get(v - 1));
                         }
                     }));
@@ -599,9 +609,9 @@ public final class AetheriumPages {
         if (o.toggle) {
             final boolean def = "true".equals(o.defaultValue);
             return Setting.toggle(id, label, description,
-                            () -> o.isOn() ? 1 : 0,
+                            () -> "true".equals(ShaderBridge.optionValue(o.name, o.value())) ? 1 : 0,
                             v -> {
-                                if ((v != 0) != o.isOn()) {
+                                if ((v != 0) != "true".equals(ShaderBridge.optionValue(o.name, o.value()))) {
                                     ShaderBridge.stageOption(o.name, v != 0 ? "true" : "false");
                                 }
                             })
@@ -612,10 +622,10 @@ public final class AetheriumPages {
         for (int i = 0; i < labels.length; i++) {
             labels[i] = pack.label("value." + o.name + "." + values.get(i), values.get(i));
         }
-        final IntSupplier reader = () -> Math.max(0, values.indexOf(o.value()));
+        final IntSupplier reader = () -> Math.max(0, values.indexOf(ShaderBridge.optionValue(o.name, o.value())));
         final IntConsumer writer = v -> {
             final int i = clamp(v, 0, values.size() - 1);
-            if (!values.get(i).equals(o.value())) {
+            if (!values.get(i).equals(ShaderBridge.optionValue(o.name, o.value()))) {
                 ShaderBridge.stageOption(o.name, values.get(i));
             }
         };

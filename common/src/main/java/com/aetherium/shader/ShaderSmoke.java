@@ -78,7 +78,7 @@ public final class ShaderSmoke {
         //~ int configs = 0;
         //~ int clean = 0;
         //~ int unusable = 0;
-        //~ for (final String name : ShaderBridge.available()) {
+        //~ for (final String name : testPacks()) {
             //~ for (final boolean compat : new boolean[] {false, true}) {
                 //~ configs++;
                 //~ detail.append("=== ").append(name).append(compat ? " [compat forced]" : " [native]").append('\n');
@@ -121,6 +121,13 @@ public final class ShaderSmoke {
                 //~ + " (device: " + safeDevice() + ")";
     //~ }
 
+    //~ /** Every listed pack plus the unlisted Diagnostic pack (it proves block ids reach the shaders). */
+    //~ private static List<String> testPacks() {
+        //~ final List<String> names = new java.util.ArrayList<>(ShaderBridge.available());
+        //~ names.add(Math.min(1, names.size()), ShaderBridge.DIAGNOSTIC);
+        //~ return names;
+    //~ }
+
     //~ private static String safeDevice() {
         //~ try {
             //~ return GlCaps.read(false, false).describe();
@@ -133,7 +140,7 @@ public final class ShaderSmoke {
     //~ public static boolean startWorld(final File out) {
         //~ dir = out;
         //~ STAGES.add(new String[] {"", "auto"});
-        //~ for (final String name : ShaderBridge.available()) {
+        //~ for (final String name : testPacks()) {
             //~ STAGES.add(new String[] {name, "off"});
             //~ STAGES.add(new String[] {name, "on"});
         //~ }

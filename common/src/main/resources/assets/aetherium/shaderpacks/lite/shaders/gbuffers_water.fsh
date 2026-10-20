@@ -27,8 +27,8 @@ void main() {
         float t = frameTimeCounter * WAVE_SPEED;
         vec2 p = worldPos.xz;
         // two crossing wave trains perturb the surface normal (in world space, then to view space)
-        float dx = cos(p.x * 1.3 + t * 1.6) * 0.06 + cos((p.x + p.y) * 2.1 + t * 2.3) * 0.04;
-        float dz = cos(p.y * 1.1 - t * 1.4) * 0.06 + cos((p.x - p.y) * 1.9 + t * 2.0) * 0.04;
+        float dx = (cos(p.x * 1.3 + t * 1.6) * 0.06 + cos((p.x + p.y) * 2.1 + t * 2.3) * 0.04) * WATER_WAVES;
+        float dz = (cos(p.y * 1.1 - t * 1.4) * 0.06 + cos((p.x - p.y) * 1.9 + t * 2.0) * 0.04) * WATER_WAVES;
         vec3 n = normalize(mat3(gbufferModelView) * normalize(vec3(-dx, 1.0, -dz)));
         if (dot(n, normal) < 0.2) {
             n = normal;
@@ -37,11 +37,19 @@ void main() {
         float fresnel = pow(1.0 - clamp(dot(-v, n), 0.0, 1.0), 4.0);
         float skyLight = clamp((lmcoord.y - 0.03125) * 1.07, 0.0, 1.0);
         vec3 reflection = mix(skyColor * 0.6, skyColor * 1.2, fresnel) * skyLight;
-        color.rgb = mix(color.rgb * light.rgb, reflection, fresnel * 0.75);
+        vec3 base = color.rgb;
+#if WATER_TINT == 1
+        base = mix(base, vec3(0.08, 0.24, 0.48), 0.65);
+#elif WATER_TINT == 2
+        base = mix(base, vec3(0.10, 0.55, 0.62), 0.65);
+#endif
+        color.rgb = mix(base * light.rgb, reflection, fresnel * WATER_REFLECTIONS);
+#ifdef WATER_SUN_GLINT
         vec3 r = reflect(v, n);
         float spec = pow(max(dot(r, normalize(shadowLightPosition)), 0.0), 120.0) * (1.0 - rainStrength);
         color.rgb += vec3(1.0, 0.92, 0.75) * spec * 2.0 * skyLight;
-        color.a = mix(0.62, 0.95, fresnel);
+#endif
+        color.a = mix(WATER_CLARITY, 0.95, fresnel);
     } else {
         color *= light;
     }

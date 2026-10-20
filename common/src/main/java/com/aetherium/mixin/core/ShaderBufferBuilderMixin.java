@@ -3,6 +3,7 @@ package com.aetherium.mixin.core;
 // @era:shader-begin none
 // @era:shader-else v16
 //~ import com.aetherium.shader.ShaderVertex;
+//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 //~ import com.mojang.blaze3d.vertex.VertexFormat;
 //~ import com.mojang.blaze3d.vertex.VertexFormatElement;
 //~ import java.nio.ByteBuffer;
@@ -50,6 +51,9 @@ public abstract class ShaderBufferBuilderMixin {
     //~ @Inject(method = "endVertex", at = @At("HEAD"), require = 0)
     //~ private void aetherium$shaderVertex(final CallbackInfo ci) {
         //~ if (!ShaderVertex.isExtended(this.format) || this.elementIndex != 6) {
+            //~ if (this.elementIndex == 0 && this.format == DefaultVertexFormat.BLOCK && ShaderVertex.packed()) {
+                //~ ShaderVertex.pack(this.buffer, this.nextElementByte - 32, this.vertices, this.mode == 7);
+            //~ }
             //~ return;
         //~ }
         //~ ShaderVertex.fill(this.buffer, this.nextElementByte, this.vertices, this.mode == 7);

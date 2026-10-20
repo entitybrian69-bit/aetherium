@@ -47,7 +47,7 @@ void main() {
         // shafts fall off quickly away from the light and stay subtle (the sky must not wash out)
         float near = exp(-length((texcoord - light) * vec2(viewWidth / viewHeight, 1.0)) * 3.0);
         vec3 tint = day ? vec3(1.0, 0.86, 0.62) : vec3(0.45, 0.55, 0.8) * 0.4;
-        c += tint * (sky / 16.0) * near * fade * 0.18 * (1.0 - rainStrength);
+        c += tint * (sky / 16.0) * near * fade * 0.18 * GODRAY_STRENGTH * (1.0 - rainStrength);
     }
 #endif
 /* DRAWBUFFERS:0 */

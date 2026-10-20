@@ -41,6 +41,15 @@ public final class ShaderVertex {
     //~ private static volatile int extraElements;
     //~ private static volatile Map<BlockState, Integer> ids = new IdentityHashMap<>();
     //~ private static final ThreadLocal<int[]> CURRENT = ThreadLocal.withInitial(() -> new int[] {-1});
+    //~ /**
+     //~ * GL translators (gl4es, Krypton): extra texture coordinate arrays corrupt the vanilla ones there,
+     //~ * so the chunk format stays vanilla's BLOCK and the block id travels in the vertex colour's alpha
+     //~ * (always opaque for blocks): alpha = 255 - code, code = id index (1-127, 0 = none) + 128 for the
+     //~ * vertices on the upper half of their quad (mc_midTexCoord's job in waving shaders). The patched
+     //~ * vertex shaders decode it and give the pack an opaque gl_Color (GlslPatcher, packed mode).
+     //~ */
+    //~ private static volatile boolean packed;
+    //~ private static volatile Map<BlockState, Integer> codes = new IdentityHashMap<>();
 
     //~ private ShaderVertex() {
     //~ }
@@ -114,6 +123,74 @@ public final class ShaderVertex {
         //~ return extended;
     //~ }
 
+    //~ /**
+     //~ * Render thread, before the chunks are rebuilt: packed-alpha ids (see {@link #packed}).
+     //~ * {@code table[i]} is the block.properties id of index i (1-127).
+     //~ */
+    //~ public static void configurePacked(final boolean on, final float[] table, final IdMap blocks) {
+        //~ if (!on || table == null) {
+            //~ packed = false;
+            //~ codes = new IdentityHashMap<>();
+            //~ return;
+        //~ }
+        //~ final Map<Integer, Integer> index = new HashMap<>();
+        //~ for (int i = 1; i < table.length; i++) {
+            //~ if (table[i] != 0) {
+                //~ index.put((int) table[i], i);
+            //~ }
+        //~ }
+        //~ final Map<BlockState, Integer> out = new IdentityHashMap<>();
+        //~ for (final Map.Entry<BlockState, Integer> e : buildIds(blocks).entrySet()) {
+            //~ final Integer i = index.get(e.getValue());
+            //~ if (i != null) {
+                //~ out.put(e.getKey(), i);
+            //~ }
+        //~ }
+        //~ codes = out;
+        //~ packed = true;
+    //~ }
+
+    //~ public static boolean packed() {
+        //~ return packed;
+    //~ }
+
+    //~ /** Mesher thread, after a block / fluid is meshed: vertices outside a block carry no id. */
+    //~ public static void clearBlock() {
+        //~ if (extended || packed) {
+            //~ CURRENT.get()[0] = -1;
+        //~ }
+    //~ }
+
+    //~ /**
+     //~ * BufferBuilder.endVertex on a vanilla BLOCK buffer while ids are packed: {@code start} is the
+     //~ * vertex's first byte (colour alpha at +15, v at +20); the fourth vertex of a quad marks the
+     //~ * upper ones.
+     //~ */
+    //~ public static void pack(final ByteBuffer buffer, final int start, final int vertexIndex, final boolean quads) {
+        //~ final int code = CURRENT.get()[0];
+        //~ if (code < 0 || start < 0) {
+            //~ return;
+        //~ }
+        //~ buffer.put(start + 15, (byte) (255 - code));
+        //~ if (!quads || (vertexIndex & 3) != 3) {
+            //~ return;
+        //~ }
+        //~ final int base = start - 3 * BASE;
+        //~ if (base < 0) {
+            //~ return;
+        //~ }
+        //~ float v = 0;
+        //~ for (int i = 0; i < 4; i++) {
+            //~ v += buffer.getFloat(base + i * BASE + 20);
+        //~ }
+        //~ v *= 0.25f;
+        //~ for (int i = 0; i < 4; i++) {
+            //~ final int at = base + i * BASE;
+            //~ buffer.put(at + 15, (byte) (255 - (buffer.getFloat(at + 20) < v ? code | 128 : code)));
+        //~ }
+    //~ }
+
+
     //~ /** The format chunk buffers use: extended while a pack needs it, else vanilla's BLOCK. */
     //~ public static VertexFormat chunkFormat() {
         //~ final VertexFormat f = format;
@@ -132,6 +209,11 @@ public final class ShaderVertex {
 
     //~ /** Mesher thread: the block (or fluid's legacy block) being meshed. */
     //~ public static void setBlock(final BlockState state) {
+        //~ if (packed) {
+            //~ final Integer code = codes.get(state);
+            //~ CURRENT.get()[0] = code == null ? 0 : code;
+            //~ return;
+        //~ }
         //~ if (!extended) {
             //~ return;
         //~ }

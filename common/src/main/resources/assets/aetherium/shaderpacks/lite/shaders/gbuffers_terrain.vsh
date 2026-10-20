@@ -31,6 +31,12 @@ void main() {
     if (id > 10000.5 && id < 10003.5) {
         bool top = texcoord.y < mc_midTexCoord.y;
         float strength = id > 10002.5 ? 0.05 : (id > 10001.5 || top ? 0.12 : 0.0);
+#ifndef WAVING_LEAVES
+        if (id > 10002.5) {
+            strength = 0.0;
+        }
+#endif
+        strength *= WAVING_STRENGTH;
         if (strength > 0.0) {
             vec3 world = playerPos.xyz + cameraPosition;
             float t = frameTimeCounter * WAVE_SPEED;

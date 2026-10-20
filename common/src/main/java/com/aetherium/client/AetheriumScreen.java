@@ -193,9 +193,35 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
 
     @Override
     public void beforeFrame() {
+        if (this.rebuildPages) {
+            this.rebuildPages = false;
+            final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
+            if (sub != null && this.view != null) {
+                final int page = this.view.selectedPage();
+                final AetheriumPages pages = new AetheriumPages(sub, this);
+                this.view = new AetheriumView(pages.build(), this, page);
+                pages.attach(this.view);
+                this.pages = pages;
+                this.view.resize(this.width, this.height);
+            }
+        }
         if (this.pages != null) {
             this.pages.previewFrame();
         }
+    }
+
+    private boolean rebuildPages;
+
+    @Override
+    public void selectShaderPack(final String name) {
+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
+        if (sub == null) {
+            return;
+        }
+        sub.config.shaderPack.set(name == null ? "" : name);
+        sub.store.requestSave();
+        ClientHooks.onSettingsApplied();
+        this.rebuildPages = true;
     }
 
     /** In a world the level is drawn behind this screen, so the hand editor can preview live. */

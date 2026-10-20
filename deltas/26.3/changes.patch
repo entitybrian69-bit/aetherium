@@ -246,7 +246,7 @@ index ceddf8a..d38baba 100644
  
      /** Fast mob/block-entity models (1.16.5..1.20.6, while BufferBuilder writes a plain ByteBuffer). */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-index bf639c3..8003012 100644
+index ba77451..1ede371 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 +++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 @@ -9,18 +9,18 @@ import com.aetherium.util.AetheriumLog;
@@ -11079,7 +11079,7 @@ index 36c40a0..6b5b9fa 100644
  
      // @era:q-fire-begin v16|f17|f214|f219|f262
 diff --git a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
-index 96a5f24..709f9c6 100644
+index bfa51ee..97c4fdd 100644
 --- a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 +++ b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 @@ -1,55 +1,55 @@
@@ -11188,7 +11188,7 @@ index 96a5f24..709f9c6 100644
  // @era:shader-end
  
  /**
-@@ -63,732 +63,732 @@ import org.lwjgl.opengl.GL13;
+@@ -63,709 +63,709 @@ import org.lwjgl.opengl.GL13;
   * the hand) runs composite and final into the main framebuffer.</p>
   */
  public final class ShaderRuntime {
@@ -11216,6 +11216,8 @@ index 96a5f24..709f9c6 100644
 -    private static boolean texture0 = true;
 -    /** Vanilla's alpha-test state (GlStateManager), applied by the pack shaders: -1 = no test. */
 -    private static boolean alphaOn;
+-    /** The current RenderType draws block geometry (chunk layers, moving blocks). */
+-    private static boolean typeBlock;
 -    private static float alphaRef = 0.1F;
 -    private static int boundTex0;
 -    private static int sunTex = -1;
@@ -11253,6 +11255,8 @@ index 96a5f24..709f9c6 100644
 +    //~ private static boolean texture0 = true;
 +    //~ /** Vanilla's alpha-test state (GlStateManager), applied by the pack shaders: -1 = no test. */
 +    //~ private static boolean alphaOn;
++    //~ /** The current RenderType draws block geometry (chunk layers, moving blocks). */
++    //~ private static boolean typeBlock;
 +    //~ private static float alphaRef = 0.1F;
 +    //~ private static int boundTex0;
 +    //~ private static int sunTex = -1;
@@ -11343,7 +11347,7 @@ index 96a5f24..709f9c6 100644
 +    //~ }
  
 -    private static void reloadPack(final Minecraft mc) {
--        final boolean wasRunning = pipe != null || ShaderVertex.extended();
+-        final boolean wasRunning = pipe != null || ShaderVertex.extended() || ShaderVertex.packed();
 -        if (pipe != null) {
 -            try {
 -                pipe.delete();
@@ -11358,6 +11362,7 @@ index 96a5f24..709f9c6 100644
 -        final String name = ShaderBridge.selected();
 -        if (!ShaderBridge.supported() || name.isEmpty()) {
 -            ShaderVertex.configure(false, false, false, null);
+-            ShaderVertex.configurePacked(false, null, null);
 -            ShaderBridge.off();
 -            if (wasRunning && mc.level != null) {
 -                mc.levelRenderer.allChanged();
@@ -11373,8 +11378,7 @@ index 96a5f24..709f9c6 100644
 -            macros.put("MC_SHADOW_QUALITY", "1.0");
 -            macros.put("MC_HAND_DEPTH", "0.125");
 -            macros.put("AETHERIUM", "1");
--            source = ShaderBridge.bundledRoot(name) != null ? bundledSource(ShaderBridge.bundledRoot(name))
--                    : PackSource.open(ShaderBridge.packPath(name));
+-            source = ShaderBridge.openSource(name);
 -            if (source == null) {
 -                throw new IllegalStateException("no shaders folder in " + name);
 -            }
@@ -11393,6 +11397,7 @@ index 96a5f24..709f9c6 100644
 -                pl.delete();
 -                ShaderBridge.failed(name + ": no program could be built (see logs/aetherium-shaders.log)", pl.errors);
 -                ShaderVertex.configure(false, false, false, null);
+-                ShaderVertex.configurePacked(false, null, null);
 -                return;
 -            }
 -            boolean mid = false;
@@ -11401,7 +11406,11 @@ index 96a5f24..709f9c6 100644
 -                mid |= p.usesMidTexCoord;
 -                tangent |= p.usesTangent;
 -            }
--            ShaderVertex.configure(pl.set.needsExtendedVertex(), mid, tangent, pack.blocks);
+-            // packed ids need pack programs on every chunk layer (fixed function would show the alpha)
+-            final boolean packedIds = pl.packed && pl.program("gbuffers_terrain") != null
+-                    && pl.program("gbuffers_water") != null;
+-            ShaderVertex.configure(pl.set.needsExtendedVertex() && !pl.packed, mid, tangent, pack.blocks);
+-            ShaderVertex.configurePacked(packedIds, pl.packedTable(), pack.blocks);
 -            pipe = pl;
 -            loadedFolder = folder;
 -            sunTex = textureId(mc, SUN);
@@ -11418,6 +11427,7 @@ index 96a5f24..709f9c6 100644
 -            LOG.warn("Shader pack " + name + " failed to load", t);
 -            pipe = null;
 -            ShaderVertex.configure(false, false, false, null);
+-            ShaderVertex.configurePacked(false, null, null);
 -            ShaderBridge.failed("Could not load " + name + ": " + t.getMessage(), null);
 -            if (wasRunning && mc.level != null) {
 -                mc.levelRenderer.allChanged();
@@ -11457,8 +11467,7 @@ index 96a5f24..709f9c6 100644
 -        macros.put("MC_SHADOW_QUALITY", "1.0");
 -        macros.put("MC_HAND_DEPTH", "0.125");
 -        macros.put("AETHERIUM", "1");
--        final PackSource source = ShaderBridge.bundledRoot(name) != null ? bundledSource(ShaderBridge.bundledRoot(name))
--                : PackSource.open(ShaderBridge.packPath(name));
+-        final PackSource source = ShaderBridge.openSource(name);
 -        if (source == null) {
 -            throw new IllegalStateException("no shaders folder in " + name);
 -        }
@@ -11470,7 +11479,7 @@ index 96a5f24..709f9c6 100644
 -        }
 -    }
 +    //~ private static void reloadPack(final Minecraft mc) {
-+        //~ final boolean wasRunning = pipe != null || ShaderVertex.extended();
++        //~ final boolean wasRunning = pipe != null || ShaderVertex.extended() || ShaderVertex.packed();
 +        //~ if (pipe != null) {
 +            //~ try {
 +                //~ pipe.delete();
@@ -11485,6 +11494,7 @@ index 96a5f24..709f9c6 100644
 +        //~ final String name = ShaderBridge.selected();
 +        //~ if (!ShaderBridge.supported() || name.isEmpty()) {
 +            //~ ShaderVertex.configure(false, false, false, null);
++            //~ ShaderVertex.configurePacked(false, null, null);
 +            //~ ShaderBridge.off();
 +            //~ if (wasRunning && mc.level != null) {
 +                //~ mc.levelRenderer.allChanged();
@@ -11500,8 +11510,7 @@ index 96a5f24..709f9c6 100644
 +            //~ macros.put("MC_SHADOW_QUALITY", "1.0");
 +            //~ macros.put("MC_HAND_DEPTH", "0.125");
 +            //~ macros.put("AETHERIUM", "1");
-+            //~ source = ShaderBridge.bundledRoot(name) != null ? bundledSource(ShaderBridge.bundledRoot(name))
-+                    //~ : PackSource.open(ShaderBridge.packPath(name));
++            //~ source = ShaderBridge.openSource(name);
 +            //~ if (source == null) {
 +                //~ throw new IllegalStateException("no shaders folder in " + name);
 +            //~ }
@@ -11520,6 +11529,7 @@ index 96a5f24..709f9c6 100644
 +                //~ pl.delete();
 +                //~ ShaderBridge.failed(name + ": no program could be built (see logs/aetherium-shaders.log)", pl.errors);
 +                //~ ShaderVertex.configure(false, false, false, null);
++                //~ ShaderVertex.configurePacked(false, null, null);
 +                //~ return;
 +            //~ }
 +            //~ boolean mid = false;
@@ -11528,7 +11538,11 @@ index 96a5f24..709f9c6 100644
 +                //~ mid |= p.usesMidTexCoord;
 +                //~ tangent |= p.usesTangent;
 +            //~ }
-+            //~ ShaderVertex.configure(pl.set.needsExtendedVertex(), mid, tangent, pack.blocks);
++            //~ // packed ids need pack programs on every chunk layer (fixed function would show the alpha)
++            //~ final boolean packedIds = pl.packed && pl.program("gbuffers_terrain") != null
++                    //~ && pl.program("gbuffers_water") != null;
++            //~ ShaderVertex.configure(pl.set.needsExtendedVertex() && !pl.packed, mid, tangent, pack.blocks);
++            //~ ShaderVertex.configurePacked(packedIds, pl.packedTable(), pack.blocks);
 +            //~ pipe = pl;
 +            //~ loadedFolder = folder;
 +            //~ sunTex = textureId(mc, SUN);
@@ -11545,6 +11559,7 @@ index 96a5f24..709f9c6 100644
 +            //~ LOG.warn("Shader pack " + name + " failed to load", t);
 +            //~ pipe = null;
 +            //~ ShaderVertex.configure(false, false, false, null);
++            //~ ShaderVertex.configurePacked(false, null, null);
 +            //~ ShaderBridge.failed("Could not load " + name + ": " + t.getMessage(), null);
 +            //~ if (wasRunning && mc.level != null) {
 +                //~ mc.levelRenderer.allChanged();
@@ -11577,8 +11592,7 @@ index 96a5f24..709f9c6 100644
 +        //~ macros.put("MC_SHADOW_QUALITY", "1.0");
 +        //~ macros.put("MC_HAND_DEPTH", "0.125");
 +        //~ macros.put("AETHERIUM", "1");
-+        //~ final PackSource source = ShaderBridge.bundledRoot(name) != null ? bundledSource(ShaderBridge.bundledRoot(name))
-+                //~ : PackSource.open(ShaderBridge.packPath(name));
++        //~ final PackSource source = ShaderBridge.openSource(name);
 +        //~ if (source == null) {
 +            //~ throw new IllegalStateException("no shaders folder in " + name);
 +        //~ }
@@ -11588,68 +11602,6 @@ index 96a5f24..709f9c6 100644
 +        //~ } finally {
 +            //~ source.close();
 +        //~ }
-+    //~ }
- 
--    /** A bundled pack, read from the jar through its file index. */
--    private static PackSource bundledSource(final String root) throws Exception {
--        final Map<String, byte[]> files = new HashMap<>();
--        final byte[] index = resource(root + "files.txt");
--        if (index == null) {
--            return null;
--        }
--        for (final String line : new String(index, StandardCharsets.UTF_8).split("\n")) {
--            final String f = line.trim();
--            if (f.isEmpty()) {
--                continue;
--            }
--            final byte[] data = resource(root + "shaders/" + f);
--            if (data != null) {
--                files.put(f, data);
--            }
--        }
--        return new PackSource.Memory(files);
--    }
-+    //~ private static int textureId(final Minecraft mc, final ResourceLocation loc) {
-+        //~ try {
-+            //~ mc.getTextureManager().bind(loc);
-+            //~ return mc.getTextureManager().getTexture(loc).getId();
-+        //~ } catch (final Throwable t) {
-+            //~ return -1;
-+        //~ }
-+    //~ }
- 
--    private static byte[] resource(final String path) throws Exception {
--        try (InputStream in = ShaderRuntime.class.getResourceAsStream(path)) {
--            if (in == null) {
--                return null;
--            }
--            final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
--            final byte[] buf = new byte[8192];
--            int n;
--            while ((n = in.read(buf)) > 0) {
--                out.write(buf, 0, n);
--            }
--            return out.toByteArray();
--        }
--    }
-+    //~ /** A bundled pack, read from the jar through its file index. */
-+    //~ private static PackSource bundledSource(final String root) throws Exception {
-+        //~ final Map<String, byte[]> files = new HashMap<>();
-+        //~ final byte[] index = resource(root + "files.txt");
-+        //~ if (index == null) {
-+            //~ return null;
-+        //~ }
-+        //~ for (final String line : new String(index, StandardCharsets.UTF_8).split("\n")) {
-+            //~ final String f = line.trim();
-+            //~ if (f.isEmpty()) {
-+                //~ continue;
-+            //~ }
-+            //~ final byte[] data = resource(root + "shaders/" + f);
-+            //~ if (data != null) {
-+                //~ files.put(f, data);
-+            //~ }
-+        //~ }
-+        //~ return new PackSource.Memory(files);
 +    //~ }
  
 -    private static int loadTexture(final byte[] png, final boolean blur, final boolean clamp) {
@@ -11678,18 +11630,12 @@ index 96a5f24..709f9c6 100644
 -            return 0;
 -        }
 -    }
-+    //~ private static byte[] resource(final String path) throws Exception {
-+        //~ try (InputStream in = ShaderRuntime.class.getResourceAsStream(path)) {
-+            //~ if (in == null) {
-+                //~ return null;
-+            //~ }
-+            //~ final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-+            //~ final byte[] buf = new byte[8192];
-+            //~ int n;
-+            //~ while ((n = in.read(buf)) > 0) {
-+                //~ out.write(buf, 0, n);
-+            //~ }
-+            //~ return out.toByteArray();
++    //~ private static int textureId(final Minecraft mc, final ResourceLocation loc) {
++        //~ try {
++            //~ mc.getTextureManager().bind(loc);
++            //~ return mc.getTextureManager().getTexture(loc).getId();
++        //~ } catch (final Throwable t) {
++            //~ return -1;
 +        //~ }
 +    //~ }
  
@@ -11757,6 +11703,7 @@ index 96a5f24..709f9c6 100644
 -            }
 -        }
 -        ShaderVertex.configure(false, false, false, null);
+-        ShaderVertex.configurePacked(false, null, null);
 -        ShaderBridge.broken(String.valueOf(t));
 -        final Minecraft mc = Minecraft.getInstance();
 -        if (mc.level != null) {
@@ -11831,6 +11778,7 @@ index 96a5f24..709f9c6 100644
 +            //~ }
 +        //~ }
 +        //~ ShaderVertex.configure(false, false, false, null);
++        //~ ShaderVertex.configurePacked(false, null, null);
 +        //~ ShaderBridge.broken(String.valueOf(t));
 +        //~ final Minecraft mc = Minecraft.getInstance();
 +        //~ if (mc.level != null) {
@@ -12185,6 +12133,7 @@ index 96a5f24..709f9c6 100644
 -            if (phase == PHASE_SHADOW) {
 -                p.beforeShadowDraw();
 -                p.applyAlphaTest(alphaReference());
+-                p.applyPacked(true);
 -                return false;
 -            }
 -            if (phase == PHASE_SKY && texture0 && boundTex0 > 0
@@ -12193,6 +12142,7 @@ index 96a5f24..709f9c6 100644
 -            }
 -            p.beforeDraw(programName());
 -            p.applyAlphaTest(alphaReference());
+-            p.applyPacked(typeBlock);
 -        } catch (final Throwable t) {
 -            fail(t);
 -        }
@@ -12251,6 +12201,7 @@ index 96a5f24..709f9c6 100644
 +            //~ if (phase == PHASE_SHADOW) {
 +                //~ p.beforeShadowDraw();
 +                //~ p.applyAlphaTest(alphaReference());
++                //~ p.applyPacked(true);
 +                //~ return false;
 +            //~ }
 +            //~ if (phase == PHASE_SKY && texture0 && boundTex0 > 0
@@ -12259,6 +12210,7 @@ index 96a5f24..709f9c6 100644
 +            //~ }
 +            //~ p.beforeDraw(programName());
 +            //~ p.applyAlphaTest(alphaReference());
++            //~ p.applyPacked(typeBlock);
 +        //~ } catch (final Throwable t) {
 +            //~ fail(t);
 +        //~ }
@@ -12277,6 +12229,7 @@ index 96a5f24..709f9c6 100644
 -        }
 -        typeProgram = programs[0];
 -        typeHandProgram = programs[1];
+-        typeBlock = "gbuffers_terrain".equals(programs[0]) || "gbuffers_water".equals(programs[0]);
 -    }
 +    //~ private static String programName() {
 +        //~ if (typeProgram != null) {
@@ -12303,6 +12256,7 @@ index 96a5f24..709f9c6 100644
 -    public static void typeClear() {
 -        typeProgram = null;
 -        typeHandProgram = null;
+-        typeBlock = false;
 -    }
 +    //~ /** RenderStateShard.setupRenderState of a RenderType. */
 +    //~ public static void typeSetup(final String name) {
@@ -12316,6 +12270,7 @@ index 96a5f24..709f9c6 100644
 +        //~ }
 +        //~ typeProgram = programs[0];
 +        //~ typeHandProgram = programs[1];
++        //~ typeBlock = "gbuffers_terrain".equals(programs[0]) || "gbuffers_water".equals(programs[0]);
 +    //~ }
  
 -    /** {gbuffers program, program inside the hand pass}; nulls = fixed function. */
@@ -12364,6 +12319,7 @@ index 96a5f24..709f9c6 100644
 +    //~ public static void typeClear() {
 +        //~ typeProgram = null;
 +        //~ typeHandProgram = null;
++        //~ typeBlock = false;
 +    //~ }
  
 -    public static void setPhase(final int newPhase) {

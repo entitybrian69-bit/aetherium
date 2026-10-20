@@ -110,6 +110,28 @@ public final class IdMap {
     }
 
     /** The id for a name and its state properties, or {@code missing}. */
+    /**
+     * Packed-id mode (GL translators): the distinct ids, lowest first, by index (0 unused, at most
+     * 127 ids; the vertex colour's alpha carries the index).
+     */
+    public float[] packedTable() {
+        final float[] table = new float[128];
+        final java.util.TreeSet<Integer> ids = new java.util.TreeSet<>();
+        for (final List<Entry> l : this.byName.values()) {
+            for (final Entry e : l) {
+                ids.add(e.id);
+            }
+        }
+        int i = 1;
+        for (final int id : ids) {
+            if (i >= 128) {
+                break;
+            }
+            table[i++] = id;
+        }
+        return table;
+    }
+
     public int lookup(final String name, final Map<String, String> state, final int missing) {
         final List<Entry> l = this.byName.get(name);
         if (l == null) {

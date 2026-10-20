@@ -49,6 +49,41 @@ public final class GlslPatcher {
      */
     public static String patch(final String source, final int stage, final Map<String, String> macros,
                                final boolean compat, final int maxGlsl) {
+        return patch(source, stage, macros, compat, maxGlsl, false);
+    }
+
+    /** Uniforms of packed-id mode (see ShaderVertex#packed): 1 while chunk geometry draws; id table. */
+    public static final String PACKED_UNIFORM = "aetherium_packed";
+    public static final String PACKED_IDS = "aetherium_ids";
+    private static final Pattern GL_COLOR = Pattern.compile("\\bgl_Color\\b");
+    /** Decoders for packed mode, put in the header of world vertex shaders. */
+    static final String PACKED_FUNCTIONS = "uniform float " + PACKED_UNIFORM + ";\n"
+            + "uniform vec4 " + PACKED_IDS + "[32];\n"
+            + "float aetherium_code() {\n"
+            + "    return " + PACKED_UNIFORM + " > 0.5 ? floor((1.0 - gl_Color.a) * 255.0 + 0.5) : 0.0;\n}\n"
+            + "vec4 aetherium_color() {\n"
+            + "    return " + PACKED_UNIFORM + " > 0.5 ? vec4(gl_Color.rgb, 1.0) : gl_Color;\n}\n"
+            + "float aetherium_entity() {\n"
+            + "    float c = aetherium_code();\n"
+            + "    float i = c > 127.5 ? c - 128.0 : c;\n"
+            + "    if (i < 0.5) return -1.0;\n"
+            + "    int k = int(i + 0.5);\n"
+            + "    int q = k / 4;\n"
+            + "    int r = k - q * 4;\n"
+            + "    vec4 v = " + PACKED_IDS + "[q];\n"
+            + "    return r == 0 ? v.x : (r == 1 ? v.y : (r == 2 ? v.z : v.w));\n}\n"
+            + "vec4 aetherium_mid() {\n"
+            + "    return vec4(gl_MultiTexCoord0.s, gl_MultiTexCoord0.t + (aetherium_code() > 127.5 ? 0.0001 : -0.0001), 0.0, 1.0);\n}\n"
+            + "vec4 aetherium_tangent() {\n"
+            + "    vec3 n = gl_Normal;\n"
+            + "    return vec4(abs(n.y) > 0.5 ? vec3(1.0, 0.0, 0.0) : normalize(vec3(-n.z, 0.0, n.x) + vec3(0.0001)), 1.0);\n}\n";
+
+    /**
+     * @param packed world vertex shader in packed-id mode: attributes decode the vertex colour's
+     *               alpha, and gl_Color reads opaque
+     */
+    public static String patch(final String source, final int stage, final Map<String, String> macros,
+                               final boolean compat, final int maxGlsl, final boolean packed) {
         String body = source;
         int version = 120;
         String profile = "";
@@ -82,11 +117,16 @@ public final class GlslPatcher {
             final StringBuffer sb = new StringBuffer();
             while (am.find()) {
                 attributeDefines.append("#define ").append(am.group(2)).append(' ')
-                        .append(attributeSource(am.group(2), am.group(1))).append('\n');
+                        .append(packed ? packedSource(am.group(2), am.group(1)) : attributeSource(am.group(2), am.group(1)))
+                        .append('\n');
                 am.appendReplacement(sb, ""); // the line stays (empty) so line numbers hold
             }
             am.appendTail(sb);
             body = sb.toString();
+        }
+        final boolean packedVertex = packed && stage == VERTEX;
+        if (packedVertex && body.indexOf("gl_Color") >= 0) {
+            body = GL_COLOR.matcher(body).replaceAll("aetherium_color()");
         }
         if (body.indexOf("gl_TextureMatrix") >= 0) {
             body = TEXMAT1.matcher(body).replaceAll("gl_TextureMatrix[2]");
@@ -129,6 +169,9 @@ public final class GlslPatcher {
                 out.append(' ').append(e.getValue());
             }
             out.append('\n');
+        }
+        if (packedVertex) {
+            out.append(PACKED_FUNCTIONS);
         }
         out.append(attributeDefines);
         // no #line: drivers disagree on whether "#line 1" numbers the next line 1 or 2 (GLSL < 3.30),
@@ -227,6 +270,26 @@ public final class GlslPatcher {
         return fragment.substring(0, mm.start()) + "void aetherium_main()" + fragment.substring(mm.end())
                 + "\nuniform float " + ALPHA_UNIFORM + ";\nvoid main() {\n    aetherium_main();\n    if ("
                 + output + ".a <= " + ALPHA_UNIFORM + ") discard;\n}\n";
+    }
+
+    /** {@link #attributeSource} for packed-id mode. */
+    static String packedSource(final String name, final String type) {
+        final String src;
+        switch (name) {
+            case "mc_Entity": src = "vec4(aetherium_entity(), -1.0, 0.0, 0.0)"; break;
+            case "mc_midTexCoord": src = "aetherium_mid()"; break;
+            case "at_tangent": src = "aetherium_tangent()"; break;
+            default: return attributeSource(name, type);
+        }
+        switch (type) {
+            case "float": return "(" + src + ".x)";
+            case "vec2": return "(" + src + ".xy)";
+            case "vec3": return "(" + src + ".xyz)";
+            case "vec4": return "(" + src + ")";
+            case "ivec2": return "ivec2(" + src + ".xy)";
+            case "ivec3": return "ivec3(" + src + ".xyz)";
+            default: return "ivec4(" + src + ")";
+        }
     }
 
     /** Number of lines {@link #patch} puts before the source's line 1. */

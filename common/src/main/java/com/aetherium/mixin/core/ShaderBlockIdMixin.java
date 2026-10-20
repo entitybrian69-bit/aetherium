@@ -42,9 +42,22 @@ public abstract class ShaderBlockIdMixin {
     //~ @Inject(method = "renderLiquid", at = @At("HEAD"), require = 0)
     //~ private void aetherium$fluidId(final BlockPos pos, final BlockAndTintGetter level, final VertexConsumer consumer,
                                    //~ final FluidState fluid, final CallbackInfoReturnable<Boolean> cir) {
-        //~ if (ShaderVertex.extended()) {
+        //~ if (ShaderVertex.extended() || ShaderVertex.packed()) {
             //~ ShaderVertex.setBlock(fluid.createLegacyBlock());
         //~ }
+    //~ }
+
+    //~ @Inject(method = "renderBatched", at = @At("RETURN"), require = 0)
+    //~ private void aetherium$blockDone(final BlockState state, final BlockPos pos, final BlockAndTintGetter level,
+                                     //~ final PoseStack poseStack, final VertexConsumer consumer, final boolean cull,
+                                     //~ final Random random, final CallbackInfoReturnable<Boolean> cir) {
+        //~ ShaderVertex.clearBlock();
+    //~ }
+
+    //~ @Inject(method = "renderLiquid", at = @At("RETURN"), require = 0)
+    //~ private void aetherium$fluidDone(final BlockPos pos, final BlockAndTintGetter level, final VertexConsumer consumer,
+                                     //~ final FluidState fluid, final CallbackInfoReturnable<Boolean> cir) {
+        //~ ShaderVertex.clearBlock();
     //~ }
     // @era:shader-end
 }
