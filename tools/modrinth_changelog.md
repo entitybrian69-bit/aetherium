@@ -3,6 +3,17 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.18.5
+**Shader crash and vegetation fixes for phones, a new shader pack screen, a better looking Aetherium Lite and real Mouse Tweaks (test build for Minecraft 1.16.5 only).**
+
+- Should fix the crash when loading or using shader packs on Krypton (and other gl4es-based translators): Minecraft's old alpha test stays off while a shader pack draws (Aetherium does the alpha test inside the pack's shaders), so the translator no longer rebuilds the pack's shaders mid-frame. That rebuild was also where the plant, leaf and water ids got lost, the most likely reason waving plants did not move on phones.
+- Packs that need more textures than a phone allows (Krypton gives 4) keep the important ones: the shadow map and the pack's own buffers come first, and nothing samples the block atlas by mistake any more. This should fix the atlas pattern on the ground with shadows.
+- Packs whose first lines are code, and packs that declare outputs with layout(location = N), now compile on Krypton.
+- Aetherium Lite rewritten to look like a shader: a real sky gradient with sun glow and horizon haze, fog that melts into that sky instead of ending at a hard band (no longer relies on the translator's fog, which Krypton never fills in), richer colors and cleaner clouds.
+- New External Shaders button at the top of the Aetherium screen, next to the theme switcher. It opens a shader pack screen laid out like Iris: your packs in a list over the world, Shaders Enabled/Disabled, Open Shader Pack Folder, Shader Pack Settings (pages, sliders, profiles; click for next, right-click for previous, Shift-click for default) and Done / Apply / Cancel. The Shaders tab is less crowded and links to it.
+- Mouse Tweaks now works like the Mouse Tweaks mod: right-drag with a stack puts one item in every slot you pass over, left-drag with a stack collects the same item (Shift moves those stacks to the other inventory), Shift + left-drag with an empty hand shift-clicks everything you pass over, and the wheel pushes (down) or pulls (up) items, including crafted batches.
+- The log and the screen footer show the real Aetherium version again.
+
 ## 1.18.4
 **Shader fixes for phones and an Iris-style shader screen (test build for Minecraft 1.16.5 only).**
 

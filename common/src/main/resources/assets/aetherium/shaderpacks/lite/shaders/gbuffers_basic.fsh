@@ -1,4 +1,5 @@
 #version 120
+#include "/settings.glsl"
 #include "/lib/fog.glsl"
 varying vec4 glcolor;
 void main() {
