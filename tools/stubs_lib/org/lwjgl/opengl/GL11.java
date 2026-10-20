@@ -15,6 +15,11 @@ public class GL11 {
     public static void glViewport(int x, int y, int w, int h) { }
     public static void glEnableClientState(int cap) { }
     public static void glDisableClientState(int cap) { }
+    public static void glVertexPointer(int size, int type, int stride, long pointer) { }
+    public static void glColorPointer(int size, int type, int stride, long pointer) { }
+    public static void glTexCoordPointer(int size, int type, int stride, long pointer) { }
+    public static void glNormalPointer(int type, int stride, long pointer) { }
+    public static void glPixelStorei(int pname, int param) { }
     public static int glGenTextures() { return 0; }
     public static void glDeleteTextures(int texture) { }
     public static void glBindTexture(int target, int texture) { }

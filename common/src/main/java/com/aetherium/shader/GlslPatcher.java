@@ -289,6 +289,49 @@ public final class GlslPatcher {
         return renamed.substring(0, at) + decl + renamed.substring(at);
     }
 
+    /** Aetherium's stand-in for {@code gl_TextureMatrix[k]} on GL translators (set by ShaderPipeline). */
+    public static final String TEXTURE_MATRIX = "aetherium_TextureMatrix";
+    private static final Pattern TEXMAT_INDEXED = Pattern.compile("\\bgl_TextureMatrix\\s*\\[\\s*([0-7])\\s*\\]");
+
+    /**
+     * GL translators: {@code gl_TextureMatrix[k]} with a literal index becomes a plain uniform
+     * mat4 Aetherium uploads itself, so the texture coordinates of a pack never depend on the
+     * translator filling its own texture-matrix uniforms. Left alone when an index is not a
+     * literal (it would still need the built-in). Input: a {@link #patch} output.
+     */
+    public static String ownTextureMatrices(final String source) {
+        if (source.indexOf("gl_TextureMatrix") < 0 || !source.startsWith("#version")) {
+            return source;
+        }
+        final boolean[] used = new boolean[8];
+        final Matcher m = TEXMAT_INDEXED.matcher(source);
+        final StringBuffer sb = new StringBuffer(source.length());
+        while (m.find()) {
+            final int k = m.group(1).charAt(0) - '0';
+            used[k] = true;
+            m.appendReplacement(sb, TEXTURE_MATRIX + k);
+        }
+        m.appendTail(sb);
+        final String renamed = sb.toString();
+        if (renamed.contains("gl_TextureMatrix")) {
+            return source;
+        }
+        final StringBuilder decl = new StringBuilder();
+        for (int k = 0; k < used.length; k++) {
+            if (used[k]) {
+                decl.append("uniform mat4 ").append(TEXTURE_MATRIX).append(k).append(";\n");
+            }
+        }
+        int at = renamed.indexOf('\n') + 1;
+        while (at > 0 && renamed.startsWith("#extension", at)) {
+            at = renamed.indexOf('\n', at) + 1;
+        }
+        if (at <= 0) {
+            return source;
+        }
+        return renamed.substring(0, at) + decl + renamed.substring(at);
+    }
+
     private static final Pattern LAYOUT_OUT = Pattern.compile(
             "layout\\s*\\(\\s*location\\s*=\\s*\\d+\\s*\\)\\s*((?:flat\\s+)?out\\s)");
 

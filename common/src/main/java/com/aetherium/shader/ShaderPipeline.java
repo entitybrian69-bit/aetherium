@@ -108,6 +108,16 @@ public final class ShaderPipeline {
 
     /** Packed-id mode (GL translators): see ShaderVertex#packed. */
     public final boolean packed;
+    /** Vertex input numbering programs are built with (GlslPatcher#pinAttributes), from the self-test. */
+    private final int attribLayout;
+    /** GL translators: gl_TextureMatrix[k] replaced by uniforms set here (GlslPatcher#ownTextureMatrices). */
+    private final boolean ownTexMat;
+    private final FloatBuffer texMatRead = BufferUtils.createFloatBuffer(16);
+
+    static final float[] IDENTITY = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    /** Minecraft 1.16.5's lightmap texture matrix (LightTexture#turnOnLightLayer): scale 1/256, translate 8. */
+    static final float[] LIGHTMAP_MATRIX = {1 / 256F, 0, 0, 0, 0, 1 / 256F, 0, 0, 0, 0, 1 / 256F, 0,
+        8 / 256F, 8 / 256F, 8 / 256F, 1};
     private final float[] packedTable;
 
     public ShaderPipeline(final ShaderPack pack, final String worldFolder, final GlCaps caps,
@@ -170,6 +180,11 @@ public final class ShaderPipeline {
                 Targets.configureSize(c, size);
             }
         }
+
+        // ---- what this device really does with vertex data and texture matrices (translators only)
+        final ShaderProbe.Result probe = caps.translator ? ShaderProbe.get(caps, this.macros()) : null;
+        this.attribLayout = probe != null && probe.ran ? probe.layout : caps.vertexAttribLayout;
+        this.ownTexMat = caps.translator && !(probe != null && probe.ran && probe.texMatOk && !probe.ownTexMatOk);
 
         // ---- programs
         for (final Map.Entry<String, ProgramSource> e : this.set.defined.entrySet()) {
@@ -350,7 +365,11 @@ public final class ShaderPipeline {
                 GlslPatcher.FRAGMENT, macros, compat, max);
         final String gs = src.geometry == null ? null
                 : GlslPatcher.patch(src.geometry.text, GlslPatcher.GEOMETRY, macros, compat, max);
-        vs = GlslPatcher.pinAttributes(vs, this.caps.vertexAttribLayout);
+        vs = GlslPatcher.pinAttributes(vs, this.attribLayout);
+        if (this.ownTexMat && gs == null) {
+            vs = GlslPatcher.ownTextureMatrices(vs);
+            fs = GlslPatcher.ownTextureMatrices(fs);
+        }
         if (compat && gs == null) {
             // translators link varyings by declaration order, not by name: same list, same order
             final VaryingAligner.Result aligned = VaryingAligner.align(vs, fs);
@@ -387,12 +406,58 @@ public final class ShaderPipeline {
                     + this.caps.maxDrawBuffers + "; extra outputs are dropped");
         }
         this.assignUnits(p, stage);
+        this.initTextureMatrices(p);
         return p;
+    }
+
+    /** Own texture matrices: which ones the program reads, set to Minecraft's values. */
+    private void initTextureMatrices(final GlProgram p) {
+        if (!this.ownTexMat) {
+            return;
+        }
+        int mask = 0;
+        for (int k = 0; k < 8; k++) {
+            if (p.has(GlslPatcher.TEXTURE_MATRIX + k)) {
+                mask |= 1 << k;
+            }
+        }
+        p.textureMatrices = mask;
+        if (mask == 0) {
+            return;
+        }
+        GL20.glUseProgram(p.id);
+        for (int k = 0; k < 8; k++) {
+            if ((mask & (1 << k)) != 0) {
+                p.setMat4(GlslPatcher.TEXTURE_MATRIX + k, k == 2 ? LIGHTMAP_MATRIX : IDENTITY);
+            }
+        }
+        GL20.glUseProgram(0);
+    }
+
+    /**
+     * Before a world draw with own texture matrices: unit 0's is the identity for everything but
+     * the enchantment glint, which scrolls its texture with it (read from GL for those draws only).
+     */
+    private void textureMatrices(final GlProgram p, final String requested) {
+        if ((p.textureMatrices & 1) == 0) {
+            return;
+        }
+        if ("gbuffers_armor_glint".equals(requested)) {
+            GL13.glActiveTexture(GL13.GL_TEXTURE0);
+            this.texMatRead.clear();
+            GL11.glGetFloatv(0x0BA8, this.texMatRead); // GL_TEXTURE_MATRIX
+            GL13.glActiveTexture(vanillaActiveTexture);
+            final float[] m = new float[16];
+            this.texMatRead.get(m);
+            p.setMat4(GlslPatcher.TEXTURE_MATRIX + 0, m);
+        } else {
+            p.setMat4(GlslPatcher.TEXTURE_MATRIX + 0, IDENTITY);
+        }
     }
 
     private GlProgram internal(final String name, final String fragment) {
         try {
-            final GlProgram p = GlProgram.build(name, GlslPatcher.pinAttributes(COPY_VSH, this.caps.vertexAttribLayout),
+            final GlProgram p = GlProgram.build(name, GlslPatcher.pinAttributes(COPY_VSH, this.attribLayout),
                     fragment, null, null, false, 0);
             this.assignUnits(p, STAGE_COMPOSITE);
             return p;
@@ -848,6 +913,9 @@ public final class ShaderPipeline {
             if (this.frame.frameCounter != p.uploadedFrame) {
                 this.frame.upload(p);
             }
+            if (p.textureMatrices != 0) {
+                this.textureMatrices(p, name);
+            }
             if (this.samplersDirty) {
                 this.samplersDirty = false;
                 this.bindSamplers(p, STAGE_GBUFFERS);
@@ -864,6 +932,9 @@ public final class ShaderPipeline {
             this.currentStage = STAGE_GBUFFERS;
         } else {
             this.use(p, STAGE_GBUFFERS);
+            if (p.textureMatrices != 0) {
+                this.textureMatrices(p, name);
+            }
         }
     }
 

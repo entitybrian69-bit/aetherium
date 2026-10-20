@@ -47,6 +47,8 @@ public final class GlProgram {
     /** Sampler uniforms in declaration order. */
     public final List<Uniform> samplers = new ArrayList<>();
     public final ProgramSource source;
+    /** Bit k: reads Aetherium's texture matrix k (GlslPatcher#ownTextureMatrices). */
+    public int textureMatrices;
     /** Frame counter of the last full uniform upload. */
     public int uploadedFrame = -1;
     /** Texture unit per sampler name (assigned by the runtime). */

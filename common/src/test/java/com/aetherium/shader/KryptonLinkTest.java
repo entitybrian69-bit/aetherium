@@ -138,6 +138,24 @@ final class KryptonLinkTest {
     }
 
     @Test
+    @DisplayName("texture matrices become Aetherium uniforms, lightmap one on unit 2")
+    void ownTextureMatrices() {
+        final String v = GlslPatcher.ownTextureMatrices(GlslPatcher.pinAttributes(vertex(VSH), GlslPatcher.ATTRIB_ARB));
+        assertFalse(v.contains("gl_TextureMatrix"));
+        assertTrue(v.contains("uniform mat4 aetherium_TextureMatrix0;"));
+        assertTrue(v.contains("aetherium_TextureMatrix0 * _gl4es_MultiTexCoord0"));
+        final String lm = GlslPatcher.ownTextureMatrices(vertex(
+                VSH.replace("vec3 n =", "vec2 lm = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;\n    vec3 n =")));
+        assertTrue(lm.contains("uniform mat4 aetherium_TextureMatrix2;"));
+        assertTrue(lm.contains("aetherium_TextureMatrix2 * gl_MultiTexCoord2"));
+        // a computed index still needs the built-in: left alone
+        final String dyn = vertex(VSH.replace("gl_TextureMatrix[0]", "gl_TextureMatrix[int(frameTimeCounter)]"));
+        assertEquals(dyn, GlslPatcher.ownTextureMatrices(dyn));
+        assertEquals(GlslPatcher.headerLines(v) + VSH.split("\n", -1).length,
+                v.split("\n", -1).length, "the body keeps its line count");
+    }
+
+    @Test
     @DisplayName("an active clash leaves the program as the pack wrote it")
     void refusesClash() {
         final String vs = "#version 120\nvarying vec2 uv;\nvoid main() { uv = vec2(0.0); gl_Position = ftransform(); }\n";
