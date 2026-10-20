@@ -3,6 +3,16 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.18.3
+**Better looking Aetherium Lite and shader fixes for Android (test build for Minecraft 1.16.5 only).**
+
+- Cutout blocks (leaves, grass, flowers) no longer draw black or dotted on Android GL translators: OpenGL ES has no alpha test, so Aetherium now adds one to every shader pack, driven by Minecraft's own alpha settings.
+- Shadow maps are sampled the way OpenGL ES allows (nearest filtering without hardware compare), so they no longer read as fully shadowed on translators.
+- Aetherium Lite reworked so every profile looks different from vanilla: a filmic tone curve, warm sunlight and torchlight with cool shadows on all profiles (new Warmth slider); Medium adds a sky glow (brighter horizon, soft halo around the sun) plus water effects and bloom; High adds god rays and shadows.
+- Bloom only catches real highlights now, and god rays stay narrow and subtle: the sky and clouds no longer wash out on High.
+- Plants sway a bit more, and water effects also find water by its biome tint.
+- New bundled pack Aetherium Diagnostic: it shows what your device actually delivers to shaders (waving plants and leaves red, water blue, other blocks coloured by their facing; Shadow View shows the shadow map). Useful for bug reports.
+
 ## 1.18.2
 **Finding your shader packs (test build for Minecraft 1.16.5 only).**
 
