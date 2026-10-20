@@ -3,6 +3,12 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.18.7
+**Shader self-test for phones: another fix for flat, untextured blocks on Krypton (test build for Minecraft 1.16.5 only).**
+
+- Shader packs no longer depend on the translator's texture matrices: on Krypton and other GL translators, Aetherium passes Minecraft's texture and lightmap matrices to the pack itself (the enchantment glint keeps its scrolling). This was the remaining difference between the full-screen passes, which looked right, and blocks, items and the hand, which came out as flat colors.
+- New self-test when a shader pack loads on a phone: Aetherium draws one hidden test quad the way Minecraft draws chunks and checks what the shader really received (vertex colors, texture and light coordinates, normals, texture matrices, texture units). It picks the vertex input numbering that works on your device instead of guessing, and writes every result to the game log (lines starting with "Shader self-test").
+
 ## 1.18.6
 **Fixes the flat, untextured blocks and still plants with shaders on Krypton (test build for Minecraft 1.16.5 only).**
 
