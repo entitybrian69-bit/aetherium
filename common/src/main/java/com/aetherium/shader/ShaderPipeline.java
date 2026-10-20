@@ -41,6 +41,12 @@ public final class ShaderPipeline {
 
     /** GL_TEXTUREi vanilla last made active (tracked from GlStateManager by the runtime). */
     public static volatile int vanillaActiveTexture = GL13.GL_TEXTURE0;
+    /**
+     * Set by the runtime: tells Minecraft's texture-binding cache that units 0-2 hold nothing, so
+     * vanilla really re-binds its atlas, overlay, lightmap and font after a full-screen pass used
+     * those units (or after anything else touched them). Null: raw unbind only.
+     */
+    public static volatile Runnable vanillaTextureReset;
 
     public final ShaderPack pack;
     public final ShaderPack.ProgramSet set;
@@ -367,7 +373,9 @@ public final class ShaderPipeline {
     /** Texture units per sampler: the atlas on 0, the lightmap on 2, everything else from 3 up. */
     private void assignUnits(final GlProgram p, final int stage) {
         GL20.glUseProgram(p.id);
-        int next = 3;
+        // full-screen passes draw no vanilla geometry: units 0-2 are free there (reset afterwards),
+        // which matters on GL translators that only have 8 units
+        int next = stage == STAGE_COMPOSITE ? 0 : 3;
         for (final GlProgram.Uniform u : p.samplers) {
             final String n = u.name;
             int unit;
@@ -550,10 +558,14 @@ public final class ShaderPipeline {
         boolean changed = false;
         for (final Map.Entry<String, Integer> e : p.units.entrySet()) {
             final int unit = e.getValue();
-            if (unit < 3) {
+            if (unit < 3 && stage != STAGE_COMPOSITE) {
                 continue;
             }
             final int tex = this.textureFor(e.getKey(), stage);
+            if (unit < 3) {
+                this.vanillaUnitsDirty = true;
+                this.boundUnit[unit] = -1; // vanilla rebinds these between passes: never trust the cache
+            }
             if (this.boundUnit[unit] != tex) {
                 GL13.glActiveTexture(GL13.GL_TEXTURE0 + unit);
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, tex);
@@ -817,11 +829,13 @@ public final class ShaderPipeline {
         if (unit != null) {
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + unit);
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.targets.depth0);
-            this.boundUnit[unit] = this.targets.depth0;
+            this.boundUnit[unit] = unit < 3 ? -1 : this.targets.depth0;
+            this.vanillaUnitsDirty |= unit < 3;
             this.restoreActive();
         }
         drawQuad();
         GL11.glPopAttrib();
+        this.resetVanillaUnits();
         this.depthCopyMode = 1;
     }
 
@@ -849,6 +863,7 @@ public final class ShaderPipeline {
         GL20.glUseProgram(0);
         this.current = null;
         this.currentStage = -1;
+        this.resetVanillaUnits();
     }
 
     /** CI smoke diagnostics: full-screen passes with their draw buffers and active uniforms. */
@@ -1002,6 +1017,32 @@ public final class ShaderPipeline {
         GL20.glUseProgram(0);
         this.current = null;
         this.currentStage = -1;
+        this.resetVanillaUnits();
+    }
+
+    private boolean vanillaUnitsDirty;
+
+    /** After a full-screen pass bound pack textures on units 0-2: hand them back to vanilla. */
+    private void resetVanillaUnits() {
+        if (!this.vanillaUnitsDirty) {
+            return;
+        }
+        this.vanillaUnitsDirty = false;
+        resetVanillaTextures();
+    }
+
+    /** Units 0-2 unbound, in GL and in Minecraft's binding cache; the active unit restored. */
+    public static void resetVanillaTextures() {
+        final Runnable hook = vanillaTextureReset;
+        if (hook != null) {
+            hook.run();
+            return;
+        }
+        for (int u = 0; u < 3; u++) {
+            GL13.glActiveTexture(GL13.GL_TEXTURE0 + u);
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        }
+        GL13.glActiveTexture(vanillaActiveTexture);
     }
 
     private static void drawQuad() {

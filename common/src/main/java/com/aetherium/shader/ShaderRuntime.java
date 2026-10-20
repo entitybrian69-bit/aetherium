@@ -5,6 +5,7 @@ import com.aetherium.client.FogTracker;
 import com.aetherium.client.VertexBufferAccess;
 import com.aetherium.util.AetheriumLog;
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -119,6 +120,32 @@ public final class ShaderRuntime {
     }
 
     private static void reload(final Minecraft mc) {
+        ShaderPipeline.vanillaTextureReset = ShaderRuntime::resetVanillaTextures;
+        try {
+            reloadPack(mc);
+        } finally {
+            // building a pack creates textures; whatever ended up bound, vanilla rebinds its own
+            ShaderPipeline.resetVanillaTextures();
+        }
+    }
+
+    /**
+     * Units 0-2 unbound in GL and in GlStateManager's cache, so the next vanilla bind of the atlas,
+     * overlay, lightmap or font really happens; then the active unit vanilla expects.
+     */
+    private static void resetVanillaTextures() {
+        final int active = ShaderPipeline.vanillaActiveTexture;
+        for (int u = 0; u < 3; u++) {
+            GL13.glActiveTexture(GL13.GL_TEXTURE0 + u);
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+            GlStateManager._activeTexture(GL13.GL_TEXTURE0 + u);
+            GlStateManager._bindTexture(0);
+        }
+        GL13.glActiveTexture(active);
+        GlStateManager._activeTexture(active);
+    }
+
+    private static void reloadPack(final Minecraft mc) {
         final boolean wasRunning = pipe != null || ShaderVertex.extended();
         if (pipe != null) {
             try {

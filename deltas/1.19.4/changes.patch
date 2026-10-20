@@ -4178,10 +4178,10 @@ index 6d8b564..dbf7781 100644
  
      // @era:t-shadow-begin s17|s212|s219|v16
 diff --git a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
-index 0774565..41a2f41 100644
+index 2c2575c..72d2b5c 100644
 --- a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 +++ b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
-@@ -1,54 +1,54 @@
+@@ -1,55 +1,55 @@
  package com.aetherium.shader;
  
 -// @era:shader-begin v16
@@ -4189,6 +4189,7 @@ index 0774565..41a2f41 100644
 -import com.aetherium.client.VertexBufferAccess;
 -import com.aetherium.util.AetheriumLog;
 -import com.mojang.blaze3d.pipeline.RenderTarget;
+-import com.mojang.blaze3d.platform.GlStateManager;
 -import com.mojang.blaze3d.platform.NativeImage;
 -import com.mojang.blaze3d.systems.RenderSystem;
 -import com.mojang.blaze3d.vertex.PoseStack;
@@ -4239,6 +4240,7 @@ index 0774565..41a2f41 100644
 +//~ import com.aetherium.client.VertexBufferAccess;
 +//~ import com.aetherium.util.AetheriumLog;
 +//~ import com.mojang.blaze3d.pipeline.RenderTarget;
++//~ import com.mojang.blaze3d.platform.GlStateManager;
 +//~ import com.mojang.blaze3d.platform.NativeImage;
 +//~ import com.mojang.blaze3d.systems.RenderSystem;
 +//~ import com.mojang.blaze3d.vertex.PoseStack;
@@ -4285,7 +4287,7 @@ index 0774565..41a2f41 100644
  // @era:shader-end
  
  /**
-@@ -62,689 +62,689 @@ import org.lwjgl.opengl.GL13;
+@@ -63,715 +63,715 @@ import org.lwjgl.opengl.GL13;
   * the hand) runs composite and final into the main framebuffer.</p>
   */
  public final class ShaderRuntime {
@@ -4382,6 +4384,58 @@ index 0774565..41a2f41 100644
 +    //~ }
  
 -    private static void reload(final Minecraft mc) {
+-        ShaderPipeline.vanillaTextureReset = ShaderRuntime::resetVanillaTextures;
+-        try {
+-            reloadPack(mc);
+-        } finally {
+-            // building a pack creates textures; whatever ended up bound, vanilla rebinds its own
+-            ShaderPipeline.resetVanillaTextures();
+-        }
+-    }
++    //~ /** World frames finished since start (with or without a pack); read by the CI smoke test. */
++    //~ public static volatile int frames;
++
++    //~ // ================================================================== loading
++
++    //~ private static String worldFolder(final ClientLevel level) {
++        //~ if (level == null) {
++            //~ return "world0";
++        //~ }
++        //~ if (level.dimension() == Level.NETHER) {
++            //~ return "world-1";
++        //~ }
++        //~ if (level.dimension() == Level.END) {
++            //~ return "world1";
++        //~ }
++        //~ return "world0";
++    //~ }
+ 
+-    /**
+-     * Units 0-2 unbound in GL and in GlStateManager's cache, so the next vanilla bind of the atlas,
+-     * overlay, lightmap or font really happens; then the active unit vanilla expects.
+-     */
+-    private static void resetVanillaTextures() {
+-        final int active = ShaderPipeline.vanillaActiveTexture;
+-        for (int u = 0; u < 3; u++) {
+-            GL13.glActiveTexture(GL13.GL_TEXTURE0 + u);
+-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+-            GlStateManager._activeTexture(GL13.GL_TEXTURE0 + u);
+-            GlStateManager._bindTexture(0);
+-        }
+-        GL13.glActiveTexture(active);
+-        GlStateManager._activeTexture(active);
+-    }
++    //~ private static void reload(final Minecraft mc) {
++        //~ ShaderPipeline.vanillaTextureReset = ShaderRuntime::resetVanillaTextures;
++        //~ try {
++            //~ reloadPack(mc);
++        //~ } finally {
++            //~ // building a pack creates textures; whatever ended up bound, vanilla rebinds its own
++            //~ ShaderPipeline.resetVanillaTextures();
++        //~ }
++    //~ }
+ 
+-    private static void reloadPack(final Minecraft mc) {
 -        final boolean wasRunning = pipe != null || ShaderVertex.extended();
 -        if (pipe != null) {
 -            try {
@@ -4471,22 +4525,20 @@ index 0774565..41a2f41 100644
 -            }
 -        }
 -    }
-+    //~ /** World frames finished since start (with or without a pack); read by the CI smoke test. */
-+    //~ public static volatile int frames;
-+
-+    //~ // ================================================================== loading
-+
-+    //~ private static String worldFolder(final ClientLevel level) {
-+        //~ if (level == null) {
-+            //~ return "world0";
++    //~ /**
++     //~ * Units 0-2 unbound in GL and in GlStateManager's cache, so the next vanilla bind of the atlas,
++     //~ * overlay, lightmap or font really happens; then the active unit vanilla expects.
++     //~ */
++    //~ private static void resetVanillaTextures() {
++        //~ final int active = ShaderPipeline.vanillaActiveTexture;
++        //~ for (int u = 0; u < 3; u++) {
++            //~ GL13.glActiveTexture(GL13.GL_TEXTURE0 + u);
++            //~ GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
++            //~ GlStateManager._activeTexture(GL13.GL_TEXTURE0 + u);
++            //~ GlStateManager._bindTexture(0);
 +        //~ }
-+        //~ if (level.dimension() == Level.NETHER) {
-+            //~ return "world-1";
-+        //~ }
-+        //~ if (level.dimension() == Level.END) {
-+            //~ return "world1";
-+        //~ }
-+        //~ return "world0";
++        //~ GL13.glActiveTexture(active);
++        //~ GlStateManager._activeTexture(active);
 +    //~ }
  
 -    /** CI smoke test: builds a pack without installing it ({@code compat}: forced, else disabled). */
@@ -4510,7 +4562,7 @@ index 0774565..41a2f41 100644
 -            source.close();
 -        }
 -    }
-+    //~ private static void reload(final Minecraft mc) {
++    //~ private static void reloadPack(final Minecraft mc) {
 +        //~ final boolean wasRunning = pipe != null || ShaderVertex.extended();
 +        //~ if (pipe != null) {
 +            //~ try {

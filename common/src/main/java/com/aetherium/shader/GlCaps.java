@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GLCapabilities;
@@ -108,6 +109,7 @@ public final class GlCaps {
         } catch (final RuntimeException ignored) {
             // keep 8
         }
+        units = usableUnits(units, translator != null);
         drawBuffers = Math.min(Math.min(drawBuffers, attachments), 8);
         final boolean floats = gl30 || caps.GL_ARB_texture_float;
         final boolean geometry = (caps.OpenGL32 || caps.GL_ARB_geometry_shader4) && translator == null;
@@ -142,6 +144,39 @@ public final class GlCaps {
     }
 
     /** "4.6.0 NVIDIA 535" to 460, "2.1 gl4es wrapper" to 210, "OpenGL ES 3.2" to 320. */
+    /**
+     * Texture units glActiveTexture really accepts. GL translators (gl4es, Krypton) report the GLES
+     * image unit count but reject units above their own fixed-function limit (often 8): a bind there
+     * lands on whatever unit is active, i.e. on Minecraft's atlas, font or lightmap. Probed by
+     * activating the top unit and reading it back.
+     */
+    private static int usableUnits(final int reported, final boolean translator) {
+        int units = Math.min(reported, 32);
+        try {
+            if (translator) {
+                final int fixed = GL11.glGetInteger(0x84E2); // GL_MAX_TEXTURE_UNITS (fixed function)
+                if (fixed >= 4) {
+                    units = Math.min(units, fixed);
+                }
+            }
+            final int previous = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+            while (units > 4) {
+                GL13.glActiveTexture(GL13.GL_TEXTURE0 + units - 1);
+                if (GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE) == GL13.GL_TEXTURE0 + units - 1) {
+                    break;
+                }
+                units--;
+            }
+            GL13.glActiveTexture(previous);
+            while (GL11.glGetError() != 0) { // GL_NO_ERROR
+                // drop the probe's GL_INVALID_ENUMs so nobody else reports them
+            }
+        } catch (final RuntimeException ignored) {
+            // keep what was reported
+        }
+        return units;
+    }
+
     static int parseVersion(final String s) {
         final java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)\\.(\\d+)").matcher(s);
         if (!m.find()) {
@@ -193,6 +228,7 @@ public final class GlCaps {
 
     public String describe() {
         return this.renderer + " / " + this.version + (this.translator ? " [" + this.translatorName + "]" : "")
-                + ", draw buffers " + this.maxDrawBuffers + ", GLSL " + this.glslVersion;
+                + ", draw buffers " + this.maxDrawBuffers + ", texture units " + this.maxTextureUnits
+                + ", GLSL " + this.glslVersion;
     }
 }
