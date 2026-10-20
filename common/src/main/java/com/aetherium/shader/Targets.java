@@ -248,8 +248,10 @@ public final class Targets {
         this.shadowRes = res;
         this.shadowDepth0 = this.depthTexture(res, res);
         this.shadowDepth1 = this.depthTexture(res, res);
-        shadowFilter(this.shadowDepth0, hardwareFilter0, nearest0);
-        shadowFilter(this.shadowDepth1, hardwareFilter1, nearest1);
+        // GL ES: a depth texture is only filterable with compare mode on; LINEAR without it leaves the
+        // texture incomplete (reads as 0 = everything in shadow), so translators sample it NEAREST
+        shadowFilter(this.shadowDepth0, hardwareFilter0, nearest0 || (this.compat && !hardwareFilter0));
+        shadowFilter(this.shadowDepth1, hardwareFilter1, nearest1 || (this.compat && !hardwareFilter1));
         for (int i = 0; i < colors && i < 2; i++) {
             final Color tmp = new Color(-1, this.format(formats[i]));
             tmp.width = res;

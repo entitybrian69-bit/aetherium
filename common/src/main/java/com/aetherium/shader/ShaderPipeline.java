@@ -336,8 +336,9 @@ public final class ShaderPipeline {
         final boolean compat = this.caps.translator;
         final int max = this.caps.glslVersion;
         final String vs = GlslPatcher.patch(src.vertex.text, GlslPatcher.VERTEX, macros, compat, max);
-        final String fs = GlslPatcher.patch(src.remapFragData(src.fragment.text), GlslPatcher.FRAGMENT, macros,
-                compat, max);
+        final String frag = src.remapFragData(src.fragment.text);
+        final String fs = GlslPatcher.patch(stage == STAGE_COMPOSITE ? frag : GlslPatcher.injectAlphaTest(frag),
+                GlslPatcher.FRAGMENT, macros, compat, max);
         final String gs = src.geometry == null ? null
                 : GlslPatcher.patch(src.geometry.text, GlslPatcher.GEOMETRY, macros, compat, max);
         final GlProgram p;
@@ -790,6 +791,14 @@ public final class ShaderPipeline {
             this.currentStage = STAGE_GBUFFERS;
         } else {
             this.use(p, STAGE_GBUFFERS);
+        }
+    }
+
+    /** The injected alpha test of the bound pack program (see GlslPatcher#injectAlphaTest). */
+    public void applyAlphaTest(final float ref) {
+        final GlProgram p = this.current;
+        if (p != null && p.has(GlslPatcher.ALPHA_UNIFORM)) {
+            p.set(GlslPatcher.ALPHA_UNIFORM, ref);
         }
     }
 

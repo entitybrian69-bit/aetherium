@@ -1,6 +1,7 @@
 #version 120
 #include "/settings.glsl"
 #include "/lib/fog.glsl"
+#include "/lib/light.glsl"
 
 uniform sampler2D texture;
 uniform sampler2D lightmap;
@@ -20,7 +21,7 @@ varying float isWater;
 
 void main() {
     vec4 color = texture2D(texture, texcoord) * glcolor;
-    vec4 light = texture2D(lightmap, lmcoord);
+    vec4 light = vec4(liteLight(texture2D(lightmap, lmcoord).rgb, lmcoord), 1.0);
 #ifdef WATER_FX
     if (isWater > 0.5) {
         float t = frameTimeCounter * WAVE_SPEED;

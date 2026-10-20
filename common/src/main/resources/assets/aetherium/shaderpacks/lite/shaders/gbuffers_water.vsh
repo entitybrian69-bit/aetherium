@@ -22,7 +22,8 @@ void main() {
     viewPos = vp.xyz;
     worldPos = (gbufferModelViewInverse * vp).xyz + cameraPosition;
     normal = normalize(gl_NormalMatrix * gl_Normal);
-    isWater = abs(mc_Entity.x - 10008.0) < 0.5 ? 1.0 : 0.0;
+    // block id 10008, or (without an id) the blue biome tint only water gets in the translucent layer
+    isWater = abs(mc_Entity.x - 10008.0) < 0.5 || (mc_Entity.x < 0.5 && gl_Color.b > gl_Color.r + 0.15) ? 1.0 : 0.0;
     gl_Position = gl_ProjectionMatrix * vp;
     gl_FogFragCoord = length(vp.xyz);
 }

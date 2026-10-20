@@ -5,7 +5,7 @@
 # apply:  git apply --whitespace=nowarn deltas/1.21/changes.patch
 # undo:   git apply -R --whitespace=nowarn deltas/1.21/changes.patch
 diff --git a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
-index db805fc..c635d2c 100644
+index 96a5f24..709f9c6 100644
 --- a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 +++ b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 @@ -1,55 +1,55 @@
@@ -114,7 +114,7 @@ index db805fc..c635d2c 100644
  // @era:shader-end
  
  /**
-@@ -63,715 +63,715 @@ import org.lwjgl.opengl.GL13;
+@@ -63,732 +63,732 @@ import org.lwjgl.opengl.GL13;
   * the hand) runs composite and final into the main framebuffer.</p>
   */
  public final class ShaderRuntime {
@@ -140,6 +140,9 @@ index db805fc..c635d2c 100644
 -    private static int mainFbo = -1;
 -    private static int activeUnit = GL13.GL_TEXTURE0;
 -    private static boolean texture0 = true;
+-    /** Vanilla's alpha-test state (GlStateManager), applied by the pack shaders: -1 = no test. */
+-    private static boolean alphaOn;
+-    private static float alphaRef = 0.1F;
 -    private static int boundTex0;
 -    private static int sunTex = -1;
 -    private static int moonTex = -1;
@@ -174,6 +177,9 @@ index db805fc..c635d2c 100644
 +    //~ private static int mainFbo = -1;
 +    //~ private static int activeUnit = GL13.GL_TEXTURE0;
 +    //~ private static boolean texture0 = true;
++    //~ /** Vanilla's alpha-test state (GlStateManager), applied by the pack shaders: -1 = no test. */
++    //~ private static boolean alphaOn;
++    //~ private static float alphaRef = 0.1F;
 +    //~ private static int boundTex0;
 +    //~ private static int sunTex = -1;
 +    //~ private static int moonTex = -1;
@@ -293,7 +299,7 @@ index db805fc..c635d2c 100644
 -            macros.put("MC_SHADOW_QUALITY", "1.0");
 -            macros.put("MC_HAND_DEPTH", "0.125");
 -            macros.put("AETHERIUM", "1");
--            source = ShaderBridge.LITE.equals(name) ? liteSource()
+-            source = ShaderBridge.bundledRoot(name) != null ? bundledSource(ShaderBridge.bundledRoot(name))
 -                    : PackSource.open(ShaderBridge.packPath(name));
 -            if (source == null) {
 -                throw new IllegalStateException("no shaders folder in " + name);
@@ -377,7 +383,7 @@ index db805fc..c635d2c 100644
 -        macros.put("MC_SHADOW_QUALITY", "1.0");
 -        macros.put("MC_HAND_DEPTH", "0.125");
 -        macros.put("AETHERIUM", "1");
--        final PackSource source = ShaderBridge.LITE.equals(name) ? liteSource()
+-        final PackSource source = ShaderBridge.bundledRoot(name) != null ? bundledSource(ShaderBridge.bundledRoot(name))
 -                : PackSource.open(ShaderBridge.packPath(name));
 -        if (source == null) {
 -            throw new IllegalStateException("no shaders folder in " + name);
@@ -420,7 +426,7 @@ index db805fc..c635d2c 100644
 +            //~ macros.put("MC_SHADOW_QUALITY", "1.0");
 +            //~ macros.put("MC_HAND_DEPTH", "0.125");
 +            //~ macros.put("AETHERIUM", "1");
-+            //~ source = ShaderBridge.LITE.equals(name) ? liteSource()
++            //~ source = ShaderBridge.bundledRoot(name) != null ? bundledSource(ShaderBridge.bundledRoot(name))
 +                    //~ : PackSource.open(ShaderBridge.packPath(name));
 +            //~ if (source == null) {
 +                //~ throw new IllegalStateException("no shaders folder in " + name);
@@ -497,7 +503,7 @@ index db805fc..c635d2c 100644
 +        //~ macros.put("MC_SHADOW_QUALITY", "1.0");
 +        //~ macros.put("MC_HAND_DEPTH", "0.125");
 +        //~ macros.put("AETHERIUM", "1");
-+        //~ final PackSource source = ShaderBridge.LITE.equals(name) ? liteSource()
++        //~ final PackSource source = ShaderBridge.bundledRoot(name) != null ? bundledSource(ShaderBridge.bundledRoot(name))
 +                //~ : PackSource.open(ShaderBridge.packPath(name));
 +        //~ if (source == null) {
 +            //~ throw new IllegalStateException("no shaders folder in " + name);
@@ -510,9 +516,8 @@ index db805fc..c635d2c 100644
 +        //~ }
 +    //~ }
  
--    /** The bundled pack, read from the jar through its file index. */
--    private static PackSource liteSource() throws Exception {
--        final String root = "/assets/aetherium/shaderpacks/lite/";
+-    /** A bundled pack, read from the jar through its file index. */
+-    private static PackSource bundledSource(final String root) throws Exception {
 -        final Map<String, byte[]> files = new HashMap<>();
 -        final byte[] index = resource(root + "files.txt");
 -        if (index == null) {
@@ -553,9 +558,8 @@ index db805fc..c635d2c 100644
 -            return out.toByteArray();
 -        }
 -    }
-+    //~ /** The bundled pack, read from the jar through its file index. */
-+    //~ private static PackSource liteSource() throws Exception {
-+        //~ final String root = "/assets/aetherium/shaderpacks/lite/";
++    //~ /** A bundled pack, read from the jar through its file index. */
++    //~ private static PackSource bundledSource(final String root) throws Exception {
 +        //~ final Map<String, byte[]> files = new HashMap<>();
 +        //~ final byte[] index = resource(root + "files.txt");
 +        //~ if (index == null) {
@@ -1106,6 +1110,7 @@ index db805fc..c635d2c 100644
 -        try {
 -            if (phase == PHASE_SHADOW) {
 -                p.beforeShadowDraw();
+-                p.applyAlphaTest(alphaReference());
 -                return false;
 -            }
 -            if (phase == PHASE_SKY && texture0 && boundTex0 > 0
@@ -1113,6 +1118,7 @@ index db805fc..c635d2c 100644
 -                return true;
 -            }
 -            p.beforeDraw(programName());
+-            p.applyAlphaTest(alphaReference());
 -        } catch (final Throwable t) {
 -            fail(t);
 -        }
@@ -1170,6 +1176,7 @@ index db805fc..c635d2c 100644
 +        //~ try {
 +            //~ if (phase == PHASE_SHADOW) {
 +                //~ p.beforeShadowDraw();
++                //~ p.applyAlphaTest(alphaReference());
 +                //~ return false;
 +            //~ }
 +            //~ if (phase == PHASE_SKY && texture0 && boundTex0 > 0
@@ -1177,6 +1184,7 @@ index db805fc..c635d2c 100644
 +                //~ return true;
 +            //~ }
 +            //~ p.beforeDraw(programName());
++            //~ p.applyAlphaTest(alphaReference());
 +        //~ } catch (final Throwable t) {
 +            //~ fail(t);
 +        //~ }
@@ -1480,6 +1488,31 @@ index db805fc..c635d2c 100644
 +        //~ }
 +    //~ }
  
+-    public static void alphaTest(final boolean on) {
+-        alphaOn = on;
+-    }
++    //~ public static void textureEnabled(final boolean on) {
++        //~ if (activeUnit == GL13.GL_TEXTURE0) {
++            //~ texture0 = on;
++        //~ }
++    //~ }
+ 
+-    public static void alphaFunc(final int func, final float ref) {
+-        // GL_GREATER is all 1.16.5 uses; GL_ALWAYS turns the test off, others are close enough.
+-        alphaRef = func == 0x0207 ? -1.0F : func == 0x0206 || func == 0x0203 ? ref - 0.002F : ref;
+-    }
++    //~ public static void alphaTest(final boolean on) {
++        //~ alphaOn = on;
++    //~ }
+ 
+-    static float alphaReference() {
+-        return alphaOn ? alphaRef : -1.0F;
+-    }
++    //~ public static void alphaFunc(final int func, final float ref) {
++        //~ // GL_GREATER is all 1.16.5 uses; GL_ALWAYS turns the test off, others are close enough.
++        //~ alphaRef = func == 0x0207 ? -1.0F : func == 0x0206 || func == 0x0203 ? ref - 0.002F : ref;
++    //~ }
+ 
 -    /** ClientLevel.getShade: OptiFine's oldLighting=false (the default with shaders) drops face shading. */
 -    public static boolean flatShading() {
 -        final ShaderPipeline p = pipe;
@@ -1487,10 +1520,8 @@ index db805fc..c635d2c 100644
 -    }
 -    // @era:shader-else none
 -    //~ private ShaderRuntime() {
-+    //~ public static void textureEnabled(final boolean on) {
-+        //~ if (activeUnit == GL13.GL_TEXTURE0) {
-+            //~ texture0 = on;
-+        //~ }
++    //~ static float alphaReference() {
++        //~ return alphaOn ? alphaRef : -1.0F;
 +    //~ }
 +
 +    //~ /** ClientLevel.getShade: OptiFine's oldLighting=false (the default with shaders) drops face shading. */

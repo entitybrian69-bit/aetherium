@@ -20,6 +20,19 @@ import java.util.Map;
 public final class ShaderBridge {
     /** Name of the pack bundled in the jar (assets/aetherium/shaderpacks/lite). */
     public static final String LITE = "Aetherium Lite";
+    /** Bundled test pack (assets/aetherium/shaderpacks/diagnostic): block ids, normals, shadow map. */
+    public static final String DIAGNOSTIC = "Aetherium Diagnostic";
+
+    /** The jar folder of a bundled pack, or null for packs on disk. */
+    public static String bundledRoot(final String name) {
+        if (LITE.equals(name)) {
+            return "/assets/aetherium/shaderpacks/lite/";
+        }
+        if (DIAGNOSTIC.equals(name)) {
+            return "/assets/aetherium/shaderpacks/diagnostic/";
+        }
+        return null;
+    }
     public static final String OFF = "";
     public static final String[] COMPAT_MODES = {"auto", "on", "off"};
 
@@ -251,6 +264,7 @@ public final class ShaderBridge {
     public static List<String> available() {
         final List<String> out = new ArrayList<>();
         out.add(LITE);
+        out.add(DIAGNOSTIC);
         final List<String> found = new ArrayList<>();
         for (final Path dir : packDirs()) {
             if (!Files.isDirectory(dir)) {
@@ -282,6 +296,9 @@ public final class ShaderBridge {
         }
         if (LITE.equals(name)) {
             return gameDir.resolve("config").resolve("aetherium-lite-shader.txt");
+        }
+        if (DIAGNOSTIC.equals(name)) {
+            return gameDir.resolve("config").resolve("aetherium-diagnostic-shader.txt");
         }
         final Path pack = packPath(name);
         return (pack == null || pack.getParent() == null ? dir : pack.getParent()).resolve(name + ".txt");

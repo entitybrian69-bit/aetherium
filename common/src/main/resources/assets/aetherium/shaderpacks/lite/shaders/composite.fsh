@@ -16,15 +16,18 @@ varying vec2 texcoord;
 void main() {
     vec3 c = texture2D(colortex0, texcoord).rgb;
 #ifdef BLOOM
+    // only real highlights glow (lamps, lava, the sun, sunlit snow): the daytime sky stays below the knee
     vec2 px = 1.0 / vec2(viewWidth, viewHeight);
     vec3 glow = vec3(0.0);
     for (int i = 0; i < 12; i++) {
         float a = float(i) * 0.5236;
         vec2 o = vec2(cos(a), sin(a));
-        glow += max(texture2D(colortex0, texcoord + o * px * 5.0).rgb - 0.65, 0.0);
-        glow += max(texture2D(colortex0, texcoord + o * px * 12.0).rgb - 0.65, 0.0) * 0.6;
+        vec3 s1 = texture2D(colortex0, texcoord + o * px * 5.0).rgb;
+        vec3 s2 = texture2D(colortex0, texcoord + o * px * 12.0).rgb;
+        glow += s1 * smoothstep(0.78, 1.0, dot(s1, vec3(0.2126, 0.7152, 0.0722)));
+        glow += s2 * smoothstep(0.78, 1.0, dot(s2, vec3(0.2126, 0.7152, 0.0722))) * 0.6;
     }
-    c += glow * (BLOOM_STRENGTH / 14.0);
+    c += glow * (BLOOM_STRENGTH / 24.0);
 #endif
 #ifdef GODRAYS
     vec4 sp = gbufferProjection * vec4(shadowLightPosition, 1.0);
@@ -41,8 +44,10 @@ void main() {
         }
         bool day = dot(normalize(sunPosition), normalize(shadowLightPosition)) > 0.5;
         float fade = clamp(1.0 - length((light - 0.5) * vec2(viewWidth / viewHeight, 1.0)) * 0.9, 0.0, 1.0);
+        // shafts fall off quickly away from the light and stay subtle (the sky must not wash out)
+        float near = exp(-length((texcoord - light) * vec2(viewWidth / viewHeight, 1.0)) * 3.0);
         vec3 tint = day ? vec3(1.0, 0.86, 0.62) : vec3(0.45, 0.55, 0.8) * 0.4;
-        c += tint * (sky / 16.0) * fade * 0.35 * (1.0 - rainStrength);
+        c += tint * (sky / 16.0) * near * fade * 0.18 * (1.0 - rainStrength);
     }
 #endif
 /* DRAWBUFFERS:0 */

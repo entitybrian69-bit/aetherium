@@ -264,6 +264,9 @@ public final class ShaderSmoke {
             //~ final BufferedImage img = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_RGB);
             //~ long sum = 0;
             //~ long sumSq = 0;
+            //~ long red = 0;
+            //~ long yellow = 0;
+            //~ long blue = 0;
             //~ for (int y = 0; y < sh; y++) {
                 //~ for (int x = 0; x < sw; x++) {
                     //~ final int i = ((h - 1 - y * 2) * w + x * 2) * 4;
@@ -271,6 +274,15 @@ public final class ShaderSmoke {
                     //~ final int g = px.get(i + 1) & 255;
                     //~ final int b = px.get(i + 2) & 255;
                     //~ img.setRGB(x, y, (r << 16) | (g << 8) | b);
+                    //~ if (r > 200 && b < 60) {
+                        //~ if (g < 60) {
+                            //~ red++;
+                        //~ } else if (g > 200) {
+                            //~ yellow++;
+                        //~ }
+                    //~ } else if (b > 120 && r < 50 && g < 50) {
+                        //~ blue++;
+                    //~ }
                     //~ final int l = (r * 3 + g * 6 + b) / 10;
                     //~ sum += l;
                     //~ sumSq += (long) l * l;
@@ -280,7 +292,8 @@ public final class ShaderSmoke {
             //~ final double n = (double) sw * sh;
             //~ final double mean = sum / n;
             //~ final double spread = Math.sqrt(Math.max(0.0, sumSq / n - mean * mean));
-            //~ return String.format(java.util.Locale.ROOT, "luma mean %.0f spread %.0f", mean, spread);
+            //~ return String.format(java.util.Locale.ROOT, "luma mean %.0f spread %.0f red %.2f%% yellow %.2f%% blue %.2f%%",
+                    //~ mean, spread, red * 100.0 / n, yellow * 100.0 / n, blue * 100.0 / n);
         //~ } catch (final Throwable t) {
             //~ return "FAILED " + t;
         //~ }

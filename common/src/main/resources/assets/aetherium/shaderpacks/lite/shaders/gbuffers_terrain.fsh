@@ -1,6 +1,7 @@
 #version 120
 #include "/settings.glsl"
 #include "/lib/fog.glsl"
+#include "/lib/light.glsl"
 #ifdef SHADOWS
 #include "/lib/shadow.glsl"
 uniform sampler2D shadowtex0;
@@ -17,6 +18,9 @@ varying vec4 glcolor;
 
 void main() {
     vec4 color = texture2D(texture, texcoord) * glcolor;
+    if (color.a < 0.1) {
+        discard; // cutout leaves and plants (GL ES has no fixed-function alpha test)
+    }
     vec2 lm = lmcoord;
 #ifdef SHADOWS
     float lit = 1.0;
@@ -32,7 +36,7 @@ void main() {
     lm.y = mix(lm.y * SHADOW_DARKNESS, lm.y, lit);
     lm.y = max(lm.y, 0.03125);
 #endif
-    color *= texture2D(lightmap, lm);
+    color.rgb *= liteLight(texture2D(lightmap, lm).rgb, lm);
     color.rgb = applyFog(color.rgb);
 /* DRAWBUFFERS:0 */
     gl_FragData[0] = color;

@@ -481,7 +481,7 @@ public final class AetheriumPages {
         page.add(Setting.button("shaders.reload", "Reload pack",
                 "Re-reads the pack files from disk (after editing or replacing them) and recompiles it.", "Reload",
                 ShaderBridge::requestReload));
-        final int external = packs.size() - 1;
+        final int external = packs.size() - 2; // minus the bundled Lite and Diagnostic
         page.add(Setting.info("shaders.folder", "Pack folder",
                 "Shader pack .zip files (or unzipped folders) here appear in the Shader pack list after you reopen"
                         + " this screen. Aetherium also looks in shaderpacks folders above the game folder, up to"

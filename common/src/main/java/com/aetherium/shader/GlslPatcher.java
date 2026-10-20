@@ -177,6 +177,58 @@ public final class GlslPatcher {
         }
     }
 
+    /** Uniform of the injected alpha test: vanilla's reference value, -1 while vanilla has it off. */
+    public static final String ALPHA_UNIFORM = "aetherium_alphaRef";
+    private static final Pattern MAIN = Pattern.compile("\\bvoid\\s+main\\s*\\(\\s*(?:void\\s*)?\\)");
+    private static final Pattern OUT_VEC4 = Pattern.compile(
+            "(?:layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s*)?\\bout\\s+(?:(?:highp|mediump|lowp)\\s+)?vec4\\s+(\\w+)\\s*;");
+
+    /**
+     * Fixed-function alpha test for GL ES, which has none (gl4es / Krypton draw cutout leaves and
+     * grass as opaque black otherwise): {@code main} becomes {@code aetherium_main}, and a new
+     * {@code main} calls it, then discards when the first colour output's alpha fails vanilla's
+     * test (GL_GREATER ref). Appended, so line numbers hold. Unchanged when no output is found.
+     */
+    public static String injectAlphaTest(final String fragment) {
+        final Matcher mm = MAIN.matcher(fragment);
+        if (!mm.find()) {
+            return fragment;
+        }
+        final int second = mm.end();
+        if (MAIN.matcher(fragment).region(second, fragment.length()).find()) {
+            return fragment; // a prototype plus a definition, or two mains behind #ifdefs: leave it
+        }
+        String output = null;
+        String first = null;
+        final Matcher om = OUT_VEC4.matcher(fragment);
+        while (om.find()) {
+            final String name = om.group(2);
+            if ("0".equals(om.group(1)) || (om.group(1) == null && "outColor0".equals(name))) {
+                output = name;
+                break;
+            }
+            if (first == null && om.group(1) == null) {
+                first = name;
+            }
+        }
+        if (output == null) {
+            output = first;
+        }
+        if (output == null) {
+            if (fragment.indexOf("gl_FragData") >= 0) {
+                output = "gl_FragData[0]";
+            } else if (fragment.indexOf("gl_FragColor") >= 0) {
+                output = "gl_FragColor";
+            }
+        }
+        if (output == null) {
+            return fragment;
+        }
+        return fragment.substring(0, mm.start()) + "void aetherium_main()" + fragment.substring(mm.end())
+                + "\nuniform float " + ALPHA_UNIFORM + ";\nvoid main() {\n    aetherium_main();\n    if ("
+                + output + ".a <= " + ALPHA_UNIFORM + ") discard;\n}\n";
+    }
+
     /** Number of lines {@link #patch} puts before the source's line 1. */
     public static int headerLines(final String patched) {
         final int end = patched.indexOf(HEADER_END);

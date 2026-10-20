@@ -10190,7 +10190,7 @@ index a5a8541..d266efc 100644
      // @era:shader-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java b/common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java
-index ca7659d..b3ea723 100644
+index 9b868ea..c656c87 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ShaderGlMixin.java
 @@ -1,12 +1,12 @@
@@ -10213,7 +10213,7 @@ index ca7659d..b3ea723 100644
  // @era:shader-end
  import org.spongepowered.asm.mixin.Mixin;
  
-@@ -19,43 +19,43 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -19,59 +19,59 @@ import org.spongepowered.asm.mixin.Mixin;
  @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
  public abstract class ShaderGlMixin {
  
@@ -10225,36 +10225,6 @@ index ca7659d..b3ea723 100644
 -            //~ ci.cancel();
 -        //~ }
 -    //~ }
--
--    //~ @Inject(method = "_glUseProgram", at = @At("HEAD"), require = 0)
--    //~ private static void aetherium$useProgram(final int program, final CallbackInfo ci) {
--        //~ ShaderRuntime.useProgram(program);
--    //~ }
--
--    //~ @ModifyVariable(method = "_glBindFramebuffer", at = @At("HEAD"), argsOnly = true, ordinal = 1, require = 0)
--    //~ private static int aetherium$framebuffer(final int framebuffer) {
--        //~ return ShaderRuntime.redirectFramebuffer(framebuffer);
--    //~ }
--
--    //~ @Inject(method = "_activeTexture", at = @At("HEAD"), require = 0)
--    //~ private static void aetherium$activeTexture(final int unit, final CallbackInfo ci) {
--        //~ ShaderRuntime.activeTexture(unit);
--    //~ }
--
--    //~ @Inject(method = "_bindTexture", at = @At("HEAD"), require = 0)
--    //~ private static void aetherium$bindTexture(final int id, final CallbackInfo ci) {
--        //~ ShaderRuntime.bindTexture(id);
--    //~ }
--
--    //~ @Inject(method = "_enableTexture", at = @At("HEAD"), require = 0)
--    //~ private static void aetherium$enableTexture(final CallbackInfo ci) {
--        //~ ShaderRuntime.textureEnabled(true);
--    //~ }
--
--    //~ @Inject(method = "_disableTexture", at = @At("HEAD"), require = 0)
--    //~ private static void aetherium$disableTexture(final CallbackInfo ci) {
--        //~ ShaderRuntime.textureEnabled(false);
--    //~ }
 +    // @era:shader-begin v16
 +    @Inject(method = "_drawArrays", at = @At("HEAD"), cancellable = true, require = 0)
 +    private static void aetherium$draw(final int mode, final int first, final int count, final CallbackInfo ci) {
@@ -10262,35 +10232,88 @@ index ca7659d..b3ea723 100644
 +            ci.cancel();
 +        }
 +    }
-+
+ 
+-    //~ @Inject(method = "_glUseProgram", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$useProgram(final int program, final CallbackInfo ci) {
+-        //~ ShaderRuntime.useProgram(program);
+-    //~ }
 +    @Inject(method = "_glUseProgram", at = @At("HEAD"), require = 0)
 +    private static void aetherium$useProgram(final int program, final CallbackInfo ci) {
 +        ShaderRuntime.useProgram(program);
 +    }
-+
+ 
+-    //~ @ModifyVariable(method = "_glBindFramebuffer", at = @At("HEAD"), argsOnly = true, ordinal = 1, require = 0)
+-    //~ private static int aetherium$framebuffer(final int framebuffer) {
+-        //~ return ShaderRuntime.redirectFramebuffer(framebuffer);
+-    //~ }
 +    @ModifyVariable(method = "_glBindFramebuffer", at = @At("HEAD"), argsOnly = true, ordinal = 1, require = 0)
 +    private static int aetherium$framebuffer(final int framebuffer) {
 +        return ShaderRuntime.redirectFramebuffer(framebuffer);
 +    }
-+
+ 
+-    //~ @Inject(method = "_activeTexture", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$activeTexture(final int unit, final CallbackInfo ci) {
+-        //~ ShaderRuntime.activeTexture(unit);
+-    //~ }
 +    @Inject(method = "_activeTexture", at = @At("HEAD"), require = 0)
 +    private static void aetherium$activeTexture(final int unit, final CallbackInfo ci) {
 +        ShaderRuntime.activeTexture(unit);
 +    }
-+
+ 
+-    //~ @Inject(method = "_bindTexture", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$bindTexture(final int id, final CallbackInfo ci) {
+-        //~ ShaderRuntime.bindTexture(id);
+-    //~ }
 +    @Inject(method = "_bindTexture", at = @At("HEAD"), require = 0)
 +    private static void aetherium$bindTexture(final int id, final CallbackInfo ci) {
 +        ShaderRuntime.bindTexture(id);
 +    }
-+
+ 
+-    //~ @Inject(method = "_enableTexture", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$enableTexture(final CallbackInfo ci) {
+-        //~ ShaderRuntime.textureEnabled(true);
+-    //~ }
 +    @Inject(method = "_enableTexture", at = @At("HEAD"), require = 0)
 +    private static void aetherium$enableTexture(final CallbackInfo ci) {
 +        ShaderRuntime.textureEnabled(true);
 +    }
-+
+ 
+-    //~ @Inject(method = "_disableTexture", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$disableTexture(final CallbackInfo ci) {
+-        //~ ShaderRuntime.textureEnabled(false);
+-    //~ }
 +    @Inject(method = "_disableTexture", at = @At("HEAD"), require = 0)
 +    private static void aetherium$disableTexture(final CallbackInfo ci) {
 +        ShaderRuntime.textureEnabled(false);
++    }
+ 
+-    //~ // GLES has no fixed-function alpha test: the pack shaders discard against this tracked state.
+-    //~ @Inject(method = "_enableAlphaTest", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$enableAlpha(final CallbackInfo ci) {
+-        //~ ShaderRuntime.alphaTest(true);
+-    //~ }
++    // GLES has no fixed-function alpha test: the pack shaders discard against this tracked state.
++    @Inject(method = "_enableAlphaTest", at = @At("HEAD"), require = 0)
++    private static void aetherium$enableAlpha(final CallbackInfo ci) {
++        ShaderRuntime.alphaTest(true);
++    }
+ 
+-    //~ @Inject(method = "_disableAlphaTest", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$disableAlpha(final CallbackInfo ci) {
+-        //~ ShaderRuntime.alphaTest(false);
+-    //~ }
++    @Inject(method = "_disableAlphaTest", at = @At("HEAD"), require = 0)
++    private static void aetherium$disableAlpha(final CallbackInfo ci) {
++        ShaderRuntime.alphaTest(false);
++    }
+ 
+-    //~ @Inject(method = "_alphaFunc", at = @At("HEAD"), require = 0)
+-    //~ private static void aetherium$alphaFunc(final int func, final float ref, final CallbackInfo ci) {
+-        //~ ShaderRuntime.alphaFunc(func, ref);
+-    //~ }
++    @Inject(method = "_alphaFunc", at = @At("HEAD"), require = 0)
++    private static void aetherium$alphaFunc(final int func, final float ref, final CallbackInfo ci) {
++        ShaderRuntime.alphaFunc(func, ref);
 +    }
 +    // @era:shader-else none
      // @era:shader-end
@@ -15399,7 +15422,7 @@ index 36c40a0..74897e3 100644
  
      // @era:q-hand-begin v16|t17|d194|d215|s219|s262
 diff --git a/common/src/main/java/com/aetherium/shader/ShaderSmoke.java b/common/src/main/java/com/aetherium/shader/ShaderSmoke.java
-index 41cebde..84a295f 100644
+index 8779c30..ea7a417 100644
 --- a/common/src/main/java/com/aetherium/shader/ShaderSmoke.java
 +++ b/common/src/main/java/com/aetherium/shader/ShaderSmoke.java
 @@ -1,33 +1,33 @@
@@ -15463,7 +15486,7 @@ index 41cebde..84a295f 100644
  // @era:shader-end
  
  /**
-@@ -42,277 +42,277 @@ public final class ShaderSmoke {
+@@ -42,290 +42,290 @@ public final class ShaderSmoke {
      private ShaderSmoke() {
      }
  
@@ -15843,6 +15866,9 @@ index 41cebde..84a295f 100644
 +            final BufferedImage img = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_RGB);
 +            long sum = 0;
 +            long sumSq = 0;
++            long red = 0;
++            long yellow = 0;
++            long blue = 0;
 +            for (int y = 0; y < sh; y++) {
 +                for (int x = 0; x < sw; x++) {
 +                    final int i = ((h - 1 - y * 2) * w + x * 2) * 4;
@@ -15850,6 +15876,15 @@ index 41cebde..84a295f 100644
 +                    final int g = px.get(i + 1) & 255;
 +                    final int b = px.get(i + 2) & 255;
 +                    img.setRGB(x, y, (r << 16) | (g << 8) | b);
++                    if (r > 200 && b < 60) {
++                        if (g < 60) {
++                            red++;
++                        } else if (g > 200) {
++                            yellow++;
++                        }
++                    } else if (b > 120 && r < 50 && g < 50) {
++                        blue++;
++                    }
 +                    final int l = (r * 3 + g * 6 + b) / 10;
 +                    sum += l;
 +                    sumSq += (long) l * l;
@@ -15859,7 +15894,8 @@ index 41cebde..84a295f 100644
 +            final double n = (double) sw * sh;
 +            final double mean = sum / n;
 +            final double spread = Math.sqrt(Math.max(0.0, sumSq / n - mean * mean));
-+            return String.format(java.util.Locale.ROOT, "luma mean %.0f spread %.0f", mean, spread);
++            return String.format(java.util.Locale.ROOT, "luma mean %.0f spread %.0f red %.2f%% yellow %.2f%% blue %.2f%%",
++                    mean, spread, red * 100.0 / n, yellow * 100.0 / n, blue * 100.0 / n);
 +        } catch (final Throwable t) {
 +            return "FAILED " + t;
 +        }
@@ -15929,6 +15965,9 @@ index 41cebde..84a295f 100644
 -            //~ final BufferedImage img = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_RGB);
 -            //~ long sum = 0;
 -            //~ long sumSq = 0;
+-            //~ long red = 0;
+-            //~ long yellow = 0;
+-            //~ long blue = 0;
 -            //~ for (int y = 0; y < sh; y++) {
 -                //~ for (int x = 0; x < sw; x++) {
 -                    //~ final int i = ((h - 1 - y * 2) * w + x * 2) * 4;
@@ -15936,6 +15975,15 @@ index 41cebde..84a295f 100644
 -                    //~ final int g = px.get(i + 1) & 255;
 -                    //~ final int b = px.get(i + 2) & 255;
 -                    //~ img.setRGB(x, y, (r << 16) | (g << 8) | b);
+-                    //~ if (r > 200 && b < 60) {
+-                        //~ if (g < 60) {
+-                            //~ red++;
+-                        //~ } else if (g > 200) {
+-                            //~ yellow++;
+-                        //~ }
+-                    //~ } else if (b > 120 && r < 50 && g < 50) {
+-                        //~ blue++;
+-                    //~ }
 -                    //~ final int l = (r * 3 + g * 6 + b) / 10;
 -                    //~ sum += l;
 -                    //~ sumSq += (long) l * l;
@@ -15945,7 +15993,8 @@ index 41cebde..84a295f 100644
 -            //~ final double n = (double) sw * sh;
 -            //~ final double mean = sum / n;
 -            //~ final double spread = Math.sqrt(Math.max(0.0, sumSq / n - mean * mean));
--            //~ return String.format(java.util.Locale.ROOT, "luma mean %.0f spread %.0f", mean, spread);
+-            //~ return String.format(java.util.Locale.ROOT, "luma mean %.0f spread %.0f red %.2f%% yellow %.2f%% blue %.2f%%",
+-                    //~ mean, spread, red * 100.0 / n, yellow * 100.0 / n, blue * 100.0 / n);
 -        //~ } catch (final Throwable t) {
 -            //~ return "FAILED " + t;
 -        //~ }

@@ -57,5 +57,21 @@ public abstract class ShaderGlMixin {
     //~ private static void aetherium$disableTexture(final CallbackInfo ci) {
         //~ ShaderRuntime.textureEnabled(false);
     //~ }
+
+    //~ // GLES has no fixed-function alpha test: the pack shaders discard against this tracked state.
+    //~ @Inject(method = "_enableAlphaTest", at = @At("HEAD"), require = 0)
+    //~ private static void aetherium$enableAlpha(final CallbackInfo ci) {
+        //~ ShaderRuntime.alphaTest(true);
+    //~ }
+
+    //~ @Inject(method = "_disableAlphaTest", at = @At("HEAD"), require = 0)
+    //~ private static void aetherium$disableAlpha(final CallbackInfo ci) {
+        //~ ShaderRuntime.alphaTest(false);
+    //~ }
+
+    //~ @Inject(method = "_alphaFunc", at = @At("HEAD"), require = 0)
+    //~ private static void aetherium$alphaFunc(final int func, final float ref, final CallbackInfo ci) {
+        //~ ShaderRuntime.alphaFunc(func, ref);
+    //~ }
     // @era:shader-end
 }
