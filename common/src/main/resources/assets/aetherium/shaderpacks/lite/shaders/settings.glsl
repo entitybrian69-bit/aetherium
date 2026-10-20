@@ -16,8 +16,10 @@
 #define WATER_TINT 0 // Water color. [0 1 2]
 
 // ---- Sky
-#define SKY_FX // Brighter horizon and a soft glow around the sun.
+#define SKY_FX // Shader sky: deep blue overhead, bright horizon, sunsets and a glow around the sun.
 #define HORIZON_GLOW 0.45 // Brightness of the band above the horizon. [0.00 0.25 0.45 0.70 1.00]
+#define FOG_START 0.55 // Where distance fog begins, as a share of the render distance. [0.30 0.45 0.55 0.70 0.85]
+#define ATMOSPHERE 0.30 // Blue haze over distant land in daylight. [0.00 0.15 0.30 0.45 0.60]
 #define SUN_GLOW 1.00 // Size and strength of the glow around the sun. [0.00 0.50 1.00 1.50 2.00]
 //#define GODRAYS // Light shafts from the sun and moon. Costs a full-screen pass.
 #define GODRAY_STRENGTH 1.00 // How bright the light shafts are. [0.50 1.00 1.50 2.00]
@@ -32,8 +34,8 @@
 // ---- Color
 #define FILMIC // Filmic tone curve: richer colors, soft highlights. Off is closer to vanilla.
 #define EXPOSURE 1.00 // Overall brightness. [0.80 0.90 1.00 1.10 1.20]
-#define SATURATION 1.15 // Color saturation. [0.80 0.90 1.00 1.10 1.15 1.20 1.30]
-#define CONTRAST 1.00 // Contrast. [0.90 1.00 1.10 1.20]
+#define SATURATION 1.20 // Color saturation. [0.80 0.90 1.00 1.10 1.15 1.20 1.30 1.40]
+#define CONTRAST 1.05 // Contrast. [0.90 1.00 1.05 1.10 1.20]
 #define BLOOM // Soft glow around bright lights.
 #define BLOOM_STRENGTH 0.50 // How strong the glow is. [0.25 0.35 0.50 0.70 1.00]
 #define VIGNETTE // Darkens the screen corners slightly.

@@ -51,14 +51,11 @@ public final class QolInventory {
     private static int[] sortSlots;
     private static int sortMoves;
     private static int sortStalls;
-    private static Slot lastDragSlot;
-    private static double scrollRemainder;
 
     /** Joining or leaving a world: forget the running sort. */
     public static void cancel() {
         sortMenu = null;
         sortSlots = null;
-        lastDragSlot = null;
     }
 
     // ------------------------------------------------------------------ sections
@@ -100,7 +97,7 @@ public final class QolInventory {
         return (List<Slot>) (Object) menu.slots;
     }
 
-    private static ItemStack carried(final Minecraft mc) {
+    static ItemStack carried(final Minecraft mc) {
     // @era:q-inv-begin c205|c261|t17
         return mc.player.containerMenu.getCarried();
     // @era:q-inv-else v16
@@ -113,7 +110,7 @@ public final class QolInventory {
     }
 
     /** One inventory click through vanilla's own method: a pick up / place, or a Shift-click. */
-    private static void send(final Minecraft mc, final int containerId, final int slot, final int button,
+    static void send(final Minecraft mc, final int containerId, final int slot, final int button,
                              final boolean quickMove) {
     // @era:q-inv-begin c205|t17|v16
         mc.gameMode.handleInventoryMouseClick(containerId, slot, button,
@@ -124,7 +121,7 @@ public final class QolInventory {
     // @era:q-inv-end
     }
 
-    private static boolean canMerge(final ItemStack a, final ItemStack b) {
+    static boolean canMerge(final ItemStack a, final ItemStack b) {
     // @era:q-inv-begin c205|c261
         return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
     // @era:q-inv-else t17
@@ -141,123 +138,6 @@ public final class QolInventory {
     // @era:q-inv-else t17|v16
         //~ return String.valueOf(stack.getTag()).hashCode();
     // @era:q-inv-end
-    }
-
-    // ------------------------------------------------------------------ scroll transfer
-
-    /**
-     * Mouse wheel over a slot. Down (amount below 0) moves one item of the hovered stack to the
-     * other part of the screen; up pulls one matching item from the other part into the hovered
-     * stack. Returns true when the wheel was used.
-     */
-    public static boolean scroll(final Minecraft mc, final AbstractContainerScreen<?> screen, final Slot hovered,
-                                 final double amount) {
-        if (!Qol.scrollTransfer || amount == 0.0 || hovered == null || mc.player == null || mc.gameMode == null
-                || !supported(screen) || !carried(mc).isEmpty() || sortMenu != null) {
-            return false;
-        }
-        final AbstractContainerMenu menu = screen.getMenu();
-        final int from = section(menu, hovered);
-        final ItemStack stack = hovered.getItem();
-        if (from == EXCLUDED || stack.isEmpty()) {
-            return false;
-        }
-        // Touchpads send fractions of a notch: one item per whole notch, in the latest direction.
-        if (scrollRemainder != 0.0 && Math.signum(scrollRemainder) != Math.signum(amount)) {
-            scrollRemainder = 0.0;
-        }
-        scrollRemainder += amount;
-        if (Math.abs(scrollRemainder) < 1.0) {
-            return true;
-        }
-        scrollRemainder = 0.0;
-        if (amount < 0.0) {
-            final Slot target = findTarget(menu, from, stack);
-            if (target == null || !hovered.mayPickup(mc.player)) {
-                return true;
-            }
-            moveOne(mc, menu, hovered, target);
-        } else {
-            if (stack.getCount() >= hovered.getMaxStackSize(stack)) {
-                return true;
-            }
-            final Slot source = findSource(mc, menu, from, stack);
-            if (source != null) {
-                moveOne(mc, menu, source, hovered);
-            }
-        }
-        return true;
-    }
-
-    /** Pick up the source stack, place one item on the target with a right click, put the rest back. */
-    private static void moveOne(final Minecraft mc, final AbstractContainerMenu menu, final Slot source, final Slot target) {
-        click(mc, menu, source.index, 0);
-        click(mc, menu, target.index, 1);
-        if (!carried(mc).isEmpty()) {
-            click(mc, menu, source.index, 0);
-        }
-    }
-
-    /** A slot in another section that can take one more of {@code stack}: a matching stack first, else an empty slot. */
-    private static Slot findTarget(final AbstractContainerMenu menu, final int from, final ItemStack stack) {
-        Slot empty = null;
-        for (final Slot slot : slots(menu)) {
-            final int s = section(menu, slot);
-            if (s == EXCLUDED || s == from || !slot.mayPlace(stack)) {
-                continue;
-            }
-            final ItemStack there = slot.getItem();
-            if (there.isEmpty()) {
-                if (empty == null) {
-                    empty = slot;
-                }
-            } else if (canMerge(there, stack)
-                    && there.getCount() < slot.getMaxStackSize(there)) {
-                return slot;
-            }
-        }
-        return empty;
-    }
-
-    /** A slot in another section holding a stack that matches {@code stack}; the smallest such stack. */
-    private static Slot findSource(final Minecraft mc, final AbstractContainerMenu menu, final int to, final ItemStack stack) {
-        Slot best = null;
-        for (final Slot slot : slots(menu)) {
-            final int s = section(menu, slot);
-            if (s == EXCLUDED || s == to || !canMerge(slot.getItem(), stack) || !slot.mayPickup(mc.player)) {
-                continue;
-            }
-            if (best == null || slot.getItem().getCount() < best.getItem().getCount()) {
-                best = slot;
-            }
-        }
-        return best;
-    }
-
-    // ------------------------------------------------------------------ shift-drag
-
-    /** Left button pressed on {@code slot} (vanilla handles that first slot itself): a new drag starts. */
-    public static void dragStart(final Slot slot) {
-        lastDragSlot = slot;
-    }
-
-    /**
-     * Left-button drag with Shift held and nothing on the cursor: every stack passed over is
-     * quick-moved like a shift-click. Returns true when the drag was used.
-     */
-    public static boolean shiftDrag(final Minecraft mc, final AbstractContainerScreen<?> screen, final Slot slot) {
-        if (!Qol.shiftDrag || slot == null || mc.player == null || mc.gameMode == null || !supported(screen)
-                || !carried(mc).isEmpty() || sortMenu != null) {
-            return false;
-        }
-        if (slot == lastDragSlot) {
-            return true;
-        }
-        lastDragSlot = slot;
-        if (slot.hasItem() && slot.mayPickup(mc.player)) {
-            send(mc, screen.getMenu().containerId, slot.index, 0, true);
-        }
-        return true;
     }
 
     // ------------------------------------------------------------------ sort

@@ -19,14 +19,9 @@ import com.aetherium.qol.QolSupport;
 import com.aetherium.gui.Setting;
 import com.aetherium.mixin.AetheriumMixinPlugin;
 import com.aetherium.shader.ShaderBridge;
-import com.aetherium.shader.ShaderOptions;
-import com.aetherium.shader.ShaderPack;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
@@ -55,6 +50,10 @@ public final class AetheriumPages {
 
         /** Shaders tab pack list: switches to the pack (empty = off) right away and rebuilds the pages. */
         void selectShaderPack(String name);
+
+        /** Opens the Iris-style shader pack page (also the header's External Shaders button). */
+        default void openShaderPage() {
+        }
     }
 
     static final String NOT_ON_THIS_VERSION = "Not available on this version";
@@ -440,26 +439,19 @@ public final class AetheriumPages {
         if (Aetherium.platform() != null) {
             ShaderBridge.setGameDir(Aetherium.platform().gameDirectory());
         }
-        // Iris-style: the packs you have, tap one to use it (applies right away), settings below
+        // The pack list and pack settings live on their own Iris-style page (External Shaders in the
+        // header, or the button here); this tab keeps the engine controls
         final List<String> packs = ShaderBridge.available();
         final String selected = config.shaderPack.get().trim();
-        page.add(Setting.info("shaders.list", "SHADER PACKS",
-                "Shader packs found on this device. Download OptiFine/Iris format packs (.zip) and put them in "
-                        + packsFolder() + ", then reopen this screen.",
-                () -> packs.size() + (packs.size() == 1 ? " pack" : " packs")));
-        page.add(Setting.button("shaders.use.off", "Off", "No shader pack: Minecraft's own rendering.",
-                selected.isEmpty() ? "Active" : "Use", () -> this.actions.selectShaderPack("")));
-        for (int i = 0; i < packs.size(); i++) {
-            final String name = packs.get(i);
-            final String description = ShaderBridge.LITE.equals(name)
-                    ? "Bundled with Aetherium. Fast and made for phones, with Low / Medium / High profiles."
-                    : "Shader pack " + name + ". Heavy packs can be slow on phones; pick a low profile in its settings.";
-            page.add(Setting.button("shaders.use." + i, name, description,
-                    name.equals(selected) ? "Active" : "Use", () -> this.actions.selectShaderPack(name)));
-        }
+        page.add(Setting.button("shaders.open", "Shader packs",
+                "Opens the shader pack screen, laid out like Iris: your installed packs (tap one, then Apply or Done),"
+                        + " Open Shader Pack Folder and Shader Pack Settings. Also the External Shaders button at the top.",
+                "Open", this.actions::openShaderPage));
+        page.add(Setting.info("shaders.current", "Active pack", "The shader pack in use now.",
+                () -> selected.isEmpty() ? "Off" : selected));
         final int external = packs.size() - 1; // minus the bundled Lite
         page.add(Setting.info("shaders.folder", "Pack folder",
-                "Shader pack .zip files (or unzipped folders) here appear in the list after you reopen this screen."
+                "Shader pack .zip files (or unzipped folders) here appear in the list."
                         + " Aetherium also looks in shaderpacks folders above the game folder, up to .minecraft,"
                         + " for launchers that give each version its own folder.",
                 () -> (external == 0 ? "No packs found - " : external + (external == 1 ? " pack in " : " packs in "))
@@ -494,50 +486,6 @@ public final class AetheriumPages {
                 "Re-reads the pack files from disk (after editing or replacing them) and recompiles it.", "Reload",
                 ShaderBridge::requestReload));
 
-        final ShaderPack pack = ShaderBridge.optionsPack(selected);
-        if (pack == null) {
-            page.add(Setting.info("shaders.options_hint", "Pack settings",
-                    "Settings of the selected pack appear here.",
-                    () -> selected.isEmpty() ? "No pack selected" : "Could not read the pack's settings"));
-            return page;
-        }
-        page.add(Setting.info("shaders.settings", (pack.name + " settings").toUpperCase(java.util.Locale.ROOT),
-                "The pack's own options. Changes apply when you press Apply.", () -> ""));
-        final Map<String, String> profiles = pack.layout.profiles;
-        if (!profiles.isEmpty()) {
-            final List<String> names = new ArrayList<String>(profiles.keySet());
-            final String[] labels = new String[names.size() + 1];
-            labels[0] = "Custom";
-            for (int i = 0; i < names.size(); i++) {
-                labels[i + 1] = pack.label("profile." + names.get(i), names.get(i));
-            }
-            final java.util.function.IntSupplier currentIndex = () -> {
-                final ShaderPack now = ShaderBridge.optionsPack(selected);
-                final String current = (now == null ? pack : now).options.currentProfile(profiles);
-                return current == null ? 0 : names.indexOf(current) + 1;
-            };
-            page.add(Setting.choice("shaders.profile", Setting.Kind.DROPDOWN, "Profile",
-                    pack.label("profile.comment", "Preset of the pack's own options."), labels,
-                    currentIndex,
-                    v -> {
-                        if (v > 0 && v != currentIndex.getAsInt() && v <= names.size()) {
-                            ShaderBridge.stageProfile(names.get(v - 1));
-                        }
-                    }));
-        }
-        page.add(Setting.button("shaders.reset", "Reset pack options", "Every option of this pack back to its default.",
-                "Reset", ShaderBridge::stageResetOptions));
-        final Set<String> shown = new HashSet<String>();
-        final Set<String> sliders = new HashSet<String>(pack.layout.sliders);
-        if (pack.layout.screens.containsKey("screen")) {
-            addScreen(page, pack, "screen", sliders, shown, new HashSet<String>(), 0);
-        }
-        for (final ShaderOptions.Option o : pack.options.all().values()) {
-            if (!shown.contains(o.name) && o.listed && o.changeable() && !pack.layout.screens.containsKey("screen")) {
-                page.add(optionRow(pack, o, sliders));
-                shown.add(o.name);
-            }
-        }
         return page;
     }
 
@@ -551,91 +499,6 @@ public final class AetheriumPages {
             sb.append(sb.length() == 0 ? "" : " or ").append(d.toAbsolutePath().normalize());
         }
         return sb.toString();
-    }
-
-    /** Flattens an OptiFine option screen (and its sub screens, as headed sections) into rows. */
-    private void addScreen(final Page page, final ShaderPack pack, final String key, final Set<String> sliders,
-                           final Set<String> shown, final Set<String> visited, final int depth) {
-        if (depth > 8 || !visited.add(key)) {
-            return;
-        }
-        final String layout = pack.layout.screens.get(key);
-        if (layout == null) {
-            return;
-        }
-        final List<String> subs = new ArrayList<String>();
-        for (final String token : layout.trim().split("\\s+")) {
-            if (token.isEmpty() || token.equals("<empty>") || token.equals("<profile>")) {
-                continue;
-            }
-            if (token.startsWith("[") && token.endsWith("]")) {
-                subs.add(token.substring(1, token.length() - 1));
-                continue;
-            }
-            if (token.equals("*")) {
-                for (final ShaderOptions.Option o : pack.options.all().values()) {
-                    if (!shown.contains(o.name) && o.listed && o.changeable()) {
-                        page.add(optionRow(pack, o, sliders));
-                        shown.add(o.name);
-                    }
-                }
-                continue;
-            }
-            final ShaderOptions.Option o = pack.options.get(token);
-            if (o != null && !shown.contains(o.name) && o.changeable()) {
-                page.add(optionRow(pack, o, sliders));
-                shown.add(o.name);
-            }
-        }
-        for (final String sub : subs) {
-            final String subKey = "screen." + sub;
-            if (!pack.layout.screens.containsKey(subKey) || visited.contains(subKey)) {
-                continue;
-            }
-            final String title = pack.label(subKey, sub);
-            page.add(Setting.info("shaders.screen." + sub, title.toUpperCase(java.util.Locale.ROOT),
-                    pack.label(subKey + ".comment", "Options of the pack's " + title + " screen."), () -> ""));
-            addScreen(page, pack, subKey, sliders, shown, visited, depth + 1);
-        }
-    }
-
-    private static Setting optionRow(final ShaderPack pack, final ShaderOptions.Option o, final Set<String> sliders) {
-        final String id = "shaders.opt." + o.name;
-        final String label = pack.label("option." + o.name, o.name);
-        String description = pack.label("option." + o.name + ".comment", o.comment == null ? "" : o.comment.trim());
-        if (description.isEmpty()) {
-            description = "Pack option " + o.name + ".";
-        }
-        if (o.toggle) {
-            final boolean def = "true".equals(o.defaultValue);
-            return Setting.toggle(id, label, description,
-                            () -> "true".equals(ShaderBridge.optionValue(o.name, o.value())) ? 1 : 0,
-                            v -> {
-                                if ((v != 0) != "true".equals(ShaderBridge.optionValue(o.name, o.value()))) {
-                                    ShaderBridge.stageOption(o.name, v != 0 ? "true" : "false");
-                                }
-                            })
-                    .withDefault(def ? 1 : 0);
-        }
-        final List<String> values = o.values;
-        final String[] labels = new String[values.size()];
-        for (int i = 0; i < labels.length; i++) {
-            labels[i] = pack.label("value." + o.name + "." + values.get(i), values.get(i));
-        }
-        final IntSupplier reader = () -> Math.max(0, values.indexOf(ShaderBridge.optionValue(o.name, o.value())));
-        final IntConsumer writer = v -> {
-            final int i = clamp(v, 0, values.size() - 1);
-            if (!values.get(i).equals(ShaderBridge.optionValue(o.name, o.value()))) {
-                ShaderBridge.stageOption(o.name, values.get(i));
-            }
-        };
-        final int def = Math.max(0, values.indexOf(o.defaultValue));
-        if (sliders.contains(o.name)) {
-            return Setting.slider(id, label, description, 0, values.size() - 1, 1,
-                    v -> labels[clamp(v, 0, labels.length - 1)], reader, writer).withDefault(def);
-        }
-        return Setting.choice(id, labels.length <= 3 ? Setting.Kind.SEGMENTED : Setting.Kind.DROPDOWN, label,
-                description, labels, reader, writer).withDefault(def);
     }
 
     // ------------------------------------------------------------------ Effects
@@ -724,9 +587,9 @@ public final class AetheriumPages {
         final Page page = new Page("QoL", "Quality of life", "Client-side helpers that work on any server", PixelArt.PIN);
         page.add(qolRow(bool("qol.accurate_placement", "Accurate placement", config.accuratePlacement), QolSupport.PLACEMENT));
 
-        page.add(qolRow(bool("qol.inventory.scroll_transfer", "Scroll to move items", config.scrollTransfer),
+        page.add(qolRow(bool("qol.inventory.scroll_transfer", "Mouse Tweaks: wheel", config.scrollTransfer),
                 QolSupport.INVENTORY));
-        page.add(qolRow(bool("qol.inventory.shift_drag", "Shift-drag to move stacks", config.shiftDrag), QolSupport.INVENTORY));
+        page.add(qolRow(bool("qol.inventory.shift_drag", "Mouse Tweaks: drag", config.shiftDrag), QolSupport.INVENTORY));
         page.add(qolRow(bool("qol.inventory.sort_button", "Sort buttons", config.sortButton), QolSupport.INVENTORY));
 
         page.add(qolRow(bool("qol.food.tooltip", "Food values in tooltips", config.foodTooltip), QolSupport.FOOD));

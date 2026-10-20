@@ -154,6 +154,7 @@ public final class ShaderRuntime {
         final boolean wasRunning = pipe != null || ShaderVertex.extended() || ShaderVertex.packed();
         if (pipe != null) {
             try {
+                pipe.restoreFixedAlpha(alphaOn);
                 pipe.delete();
             } catch (final Throwable ignored) {
                 // context trouble: the textures go with it
@@ -336,6 +337,7 @@ public final class ShaderRuntime {
         phase = PHASE_NONE;
         if (p != null) {
             try {
+                p.restoreFixedAlpha(alphaOn);
                 p.delete();
             } catch (final Throwable ignored) {
                 // nothing more to do
@@ -541,6 +543,7 @@ public final class ShaderRuntime {
         }
         try {
             p.endWorld(mainFbo);
+            p.restoreFixedAlpha(alphaOn);
         } catch (final Throwable t) {
             fail(t);
         }
@@ -557,6 +560,7 @@ public final class ShaderRuntime {
         try {
             if (phase == PHASE_SHADOW) {
                 p.beforeShadowDraw();
+                p.syncFixedAlpha(alphaOn);
                 p.applyAlphaTest(alphaReference());
                 p.applyPacked(true);
                 return false;
@@ -566,6 +570,7 @@ public final class ShaderRuntime {
                 return true;
             }
             p.beforeDraw(programName());
+            p.syncFixedAlpha(alphaOn);
             p.applyAlphaTest(alphaReference());
             p.applyPacked(typeBlock);
         } catch (final Throwable t) {
@@ -748,6 +753,10 @@ public final class ShaderRuntime {
 
     public static void alphaTest(final boolean on) {
         alphaOn = on;
+        final ShaderPipeline p = pipe;
+        if (p != null) {
+            p.alphaStateChanged();
+        }
     }
 
     public static void alphaFunc(final int func, final float ref) {

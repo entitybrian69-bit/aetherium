@@ -73,7 +73,7 @@ public final class GlslPatcher {
             + "    vec4 v = " + PACKED_IDS + "[q];\n"
             + "    return r == 0 ? v.x : (r == 1 ? v.y : (r == 2 ? v.z : v.w));\n}\n"
             + "vec4 aetherium_mid() {\n"
-            + "    return vec4(gl_MultiTexCoord0.s, gl_MultiTexCoord0.t + (aetherium_code() > 127.5 ? 0.0001 : -0.0001), 0.0, 1.0);\n}\n"
+            + "    return vec4(gl_MultiTexCoord0.s, gl_MultiTexCoord0.t + (aetherium_code() > 127.5 ? 0.001 : -0.001), 0.0, 1.0);\n}\n"
             + "vec4 aetherium_tangent() {\n"
             + "    vec3 n = gl_Normal;\n"
             + "    return vec4(abs(n.y) > 0.5 ? vec3(1.0, 0.0, 0.0) : normalize(vec3(-n.z, 0.0, n.x) + vec3(0.0001)), 1.0);\n}\n";
@@ -123,6 +123,17 @@ public final class GlslPatcher {
             }
             am.appendTail(sb);
             body = sb.toString();
+        }
+        if (stage == FRAGMENT && version < 330 && body.indexOf("layout") >= 0) {
+            // OptiFine-era packs write layout(location = N) out under #version 130: lenient desktop
+            // drivers take it, strict ones (Mesa, glslang behind Krypton) reject the shader. The
+            // location is bound by name instead (ProgramSource#fragOutputs).
+            body = LAYOUT_OUT.matcher(body).replaceAll("$1");
+        }
+        if (compat) {
+            // GL translators copy and re-convert sources internally (Krypton crashed doing so on
+            // large packs): comments go, line numbers stay
+            body = stripComments(body);
         }
         final boolean packedVertex = packed && stage == VERTEX;
         if (packedVertex && body.indexOf("gl_Color") >= 0) {
@@ -178,6 +189,50 @@ public final class GlslPatcher {
         // and some translators mishandle it; errors subtract the header length instead
         out.append(HEADER_END).append('\n');
         out.append(body);
+        return out.toString();
+    }
+
+    private static final Pattern LAYOUT_OUT = Pattern.compile(
+            "layout\\s*\\(\\s*location\\s*=\\s*\\d+\\s*\\)\\s*((?:flat\\s+)?out\\s)");
+
+    /** Comments removed and trailing blanks trimmed; every newline kept so line numbers hold. */
+    static String stripComments(final String src) {
+        final StringBuilder out = new StringBuilder(src.length());
+        final int n = src.length();
+        int i = 0;
+        while (i < n) {
+            final char c = src.charAt(i);
+            if (c == '/' && i + 1 < n && src.charAt(i + 1) == '/') {
+                while (i < n && src.charAt(i) != '\n') {
+                    if (src.charAt(i) == '\\' && i + 1 < n && src.charAt(i + 1) == '\n') {
+                        break; // a line-continued comment: leave it (rare) by stopping here
+                    }
+                    i++;
+                }
+                continue;
+            }
+            if (c == '/' && i + 1 < n && src.charAt(i + 1) == '*') {
+                final int end = src.indexOf("*/", i + 2);
+                final int stop = end < 0 ? n : end + 2;
+                for (int k = i; k < stop; k++) {
+                    if (src.charAt(k) == '\n') {
+                        out.append('\n');
+                    }
+                }
+                out.append(' ');
+                i = stop;
+                continue;
+            }
+            if (c == '\n') {
+                int t = out.length();
+                while (t > 0 && (out.charAt(t - 1) == ' ' || out.charAt(t - 1) == '\t' || out.charAt(t - 1) == '\r')) {
+                    t--;
+                }
+                out.setLength(t);
+            }
+            out.append(c);
+            i++;
+        }
         return out.toString();
     }
 

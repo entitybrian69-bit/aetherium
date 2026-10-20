@@ -130,8 +130,10 @@ public final class ProgramSource {
                         } else {
                             index = implicitIndex;
                         }
-                        this.fragOutputs.put(name, index);
                     }
+                    // explicit ones too: GlslPatcher drops layout(location) below GLSL 3.30
+                    // (strict compilers reject it there) and the name binding keeps the slot
+                    this.fragOutputs.put(name, index);
                     implicitIndex++;
                     outLoc.add(index);
                 }

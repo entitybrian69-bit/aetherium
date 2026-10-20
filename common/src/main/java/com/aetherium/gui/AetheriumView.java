@@ -136,6 +136,12 @@ public final class AetheriumView {
     private int themeY2;
 
     private static final int THEME_W = 30;
+    private final Anim shaderHover = new Anim(0f, 18f);
+    private int shaderX1 = -1;
+    private int shaderY1;
+    private int shaderX2 = -1;
+    private int shaderY2;
+    private int titleRight;
     private static final int THEME_H = 14;
     private static final float FLING_FRICTION = 5.0f;
     private static final float FLING_MIN = 40f;
@@ -403,6 +409,8 @@ public final class AetheriumView {
         this.themeAnim.tick(dt);
         this.themeHover.setTarget(this.themeX1 >= 0 && inside(mouseX, mouseY, this.themeX1, this.themeY1, this.themeX2, this.themeY2) ? 1f : 0f);
         this.themeHover.tick(dt);
+        this.shaderHover.setTarget(this.shaderX1 >= 0 && inside(mouseX, mouseY, this.shaderX1, this.shaderY1, this.shaderX2, this.shaderY2) ? 1f : 0f);
+        this.shaderHover.tick(dt);
         this.scrollbarHover.setTarget(this.thumbDragging || (this.maxScroll > 0 && overScrollbar(mouseX, mouseY)) ? 1f : 0f);
         this.scrollbarHover.tick(dt);
         if (this.scrollVelocity != 0f && !this.scrollDragging && !this.thumbDragging) {
@@ -543,6 +551,7 @@ public final class AetheriumView {
         final int titleX = this.margin + 2;
         PixelArt.drawText(canvas, "AETHERIUM", titleX + scale, titleY + scale, scale, TITLE_SHADOW);
         PixelArt.drawText(canvas, "AETHERIUM", titleX, titleY, scale, INK);
+        this.titleRight = titleX + PixelArt.textWidth("AETHERIUM", scale) + 6;
 
         final String fpsText = "FPS: " + this.fpsShown;
         final int badgeW = canvas.textWidth(fpsText) + 14;
@@ -556,6 +565,40 @@ public final class AetheriumView {
         canvas.fill(x1 + 4, y1 + 6, x1 + 6, y1 + 8, fade(0xFFFFFFFF, pulse));
         canvas.text(fpsText, x1 + 9, y1 + 3, 0xFFFFFFFF);
         drawThemeSwitch(canvas, x1 - 6);
+        this.shaderX1 = -1;
+        if (this.host.shaderPageAvailable()) {
+            drawShaderButton(canvas, this.themeX1 - 6);
+        }
+    }
+
+    /** "External Shaders", left of the theme switch: opens the Iris-style shader pack page. */
+    private void drawShaderButton(final GuiCanvas canvas, final int right) {
+        final String label = "External Shaders";
+        int w = canvas.textWidth(label) + 24;
+        boolean iconOnly = false;
+        if (right - w < this.titleRight) {
+            w = 18; // narrow screens: the prism alone
+            iconOnly = true;
+        }
+        final int x2 = right;
+        final int x1 = x2 - w;
+        final int h = THEME_H;
+        final int y1 = this.headerY + (this.headerH - h) / 2;
+        final int y2 = y1 + h;
+        if (x1 < this.titleRight) {
+            return;
+        }
+        this.shaderX1 = x1;
+        this.shaderY1 = y1;
+        this.shaderX2 = x2;
+        this.shaderY2 = y2;
+        final float hover = this.shaderHover.get();
+        roundRect(canvas, x1, y1, x2, y2, mix(SURFACE_BORDER, CONTROL_TRACK_EDGE, hover));
+        roundRect(canvas, x1 + 1, y1 + 1, x2 - 1, y2 - 1, mix(TAB_IDLE, TAB_HOVER, hover));
+        PixelArt.PRISM_SMALL.draw(canvas, x1 + 4, y1 + 3, 1, INK);
+        if (!iconOnly) {
+            canvas.text(label, x1 + 17, y1 + 3, INK);
+        }
     }
 
     /** Light/dark switch left of the FPS badge: the knob slides and carries a sun or a moon. */
@@ -1074,6 +1117,11 @@ public final class AetheriumView {
         }
         if (this.themeX1 >= 0 && inside(x, y, this.themeX1, this.themeY1, this.themeX2, this.themeY2)) {
             toggleTheme();
+            return true;
+        }
+        if (this.shaderX1 >= 0 && inside(x, y, this.shaderX1, this.shaderY1, this.shaderX2, this.shaderY2)) {
+            sound(UiSound.CLICK);
+            this.host.openShaderPage();
             return true;
         }
         for (int i = 0; i < this.pages.size(); i++) {

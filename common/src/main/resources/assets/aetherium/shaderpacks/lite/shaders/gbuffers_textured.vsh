@@ -1,4 +1,5 @@
 #version 120
+#include "/lib/fogv.glsl"
 varying vec2 texcoord;
 varying vec2 lmcoord;
 varying vec4 glcolor;
@@ -9,5 +10,5 @@ void main() {
     glcolor = gl_Color;
     vec4 vp = gl_ModelViewMatrix * gl_Vertex;
     gl_Position = gl_ProjectionMatrix * vp;
-    gl_FogFragCoord = length(vp.xyz);
+    liteViewPos = vp.xyz;
 }

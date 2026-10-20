@@ -211,6 +211,17 @@ public final class PixelArt {
             "....####....",
             ".....##.....",
     });
+    /** 8x8 prism for the External Shaders header button. */
+    public static final Bitmap PRISM_SMALL = new Bitmap(new String[]{
+            "...##...",
+            "..####..",
+            ".##..##.",
+            "##.##.##",
+            "##.##.##",
+            ".##..##.",
+            "..####..",
+            "...##...",
+    });
     public static final Bitmap CHECK = new Bitmap(new String[]{
             "......#",
             ".....#.",

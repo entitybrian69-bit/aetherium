@@ -2052,7 +2052,7 @@ index df6c58d..98d2889 100644
      // @era:zoom-cam-else align
      //~ @ModifyArg(method = "alignWithEntity", at = @At(value = "INVOKE",
 diff --git a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
-index bfa51ee..97c4fdd 100644
+index b69177a..44f6eca 100644
 --- a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 +++ b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 @@ -1,55 +1,55 @@
@@ -2161,7 +2161,7 @@ index bfa51ee..97c4fdd 100644
  // @era:shader-end
  
  /**
-@@ -63,709 +63,709 @@ import org.lwjgl.opengl.GL13;
+@@ -63,718 +63,718 @@ import org.lwjgl.opengl.GL13;
   * the hand) runs composite and final into the main framebuffer.</p>
   */
  public final class ShaderRuntime {
@@ -2323,6 +2323,7 @@ index bfa51ee..97c4fdd 100644
 -        final boolean wasRunning = pipe != null || ShaderVertex.extended() || ShaderVertex.packed();
 -        if (pipe != null) {
 -            try {
+-                pipe.restoreFixedAlpha(alphaOn);
 -                pipe.delete();
 -            } catch (final Throwable ignored) {
 -                // context trouble: the textures go with it
@@ -2455,6 +2456,7 @@ index bfa51ee..97c4fdd 100644
 +        //~ final boolean wasRunning = pipe != null || ShaderVertex.extended() || ShaderVertex.packed();
 +        //~ if (pipe != null) {
 +            //~ try {
++                //~ pipe.restoreFixedAlpha(alphaOn);
 +                //~ pipe.delete();
 +            //~ } catch (final Throwable ignored) {
 +                //~ // context trouble: the textures go with it
@@ -2670,6 +2672,7 @@ index bfa51ee..97c4fdd 100644
 -        phase = PHASE_NONE;
 -        if (p != null) {
 -            try {
+-                p.restoreFixedAlpha(alphaOn);
 -                p.delete();
 -            } catch (final Throwable ignored) {
 -                // nothing more to do
@@ -2745,6 +2748,7 @@ index bfa51ee..97c4fdd 100644
 +        //~ phase = PHASE_NONE;
 +        //~ if (p != null) {
 +            //~ try {
++                //~ p.restoreFixedAlpha(alphaOn);
 +                //~ p.delete();
 +            //~ } catch (final Throwable ignored) {
 +                //~ // nothing more to do
@@ -3052,6 +3056,7 @@ index bfa51ee..97c4fdd 100644
 -        }
 -        try {
 -            p.endWorld(mainFbo);
+-            p.restoreFixedAlpha(alphaOn);
 -        } catch (final Throwable t) {
 -            fail(t);
 -        }
@@ -3105,6 +3110,7 @@ index bfa51ee..97c4fdd 100644
 -        try {
 -            if (phase == PHASE_SHADOW) {
 -                p.beforeShadowDraw();
+-                p.syncFixedAlpha(alphaOn);
 -                p.applyAlphaTest(alphaReference());
 -                p.applyPacked(true);
 -                return false;
@@ -3114,6 +3120,7 @@ index bfa51ee..97c4fdd 100644
 -                return true;
 -            }
 -            p.beforeDraw(programName());
+-            p.syncFixedAlpha(alphaOn);
 -            p.applyAlphaTest(alphaReference());
 -            p.applyPacked(typeBlock);
 -        } catch (final Throwable t) {
@@ -3136,6 +3143,7 @@ index bfa51ee..97c4fdd 100644
 +        //~ }
 +        //~ try {
 +            //~ p.endWorld(mainFbo);
++            //~ p.restoreFixedAlpha(alphaOn);
 +        //~ } catch (final Throwable t) {
 +            //~ fail(t);
 +        //~ }
@@ -3173,6 +3181,7 @@ index bfa51ee..97c4fdd 100644
 +        //~ try {
 +            //~ if (phase == PHASE_SHADOW) {
 +                //~ p.beforeShadowDraw();
++                //~ p.syncFixedAlpha(alphaOn);
 +                //~ p.applyAlphaTest(alphaReference());
 +                //~ p.applyPacked(true);
 +                //~ return false;
@@ -3182,6 +3191,7 @@ index bfa51ee..97c4fdd 100644
 +                //~ return true;
 +            //~ }
 +            //~ p.beforeDraw(programName());
++            //~ p.syncFixedAlpha(alphaOn);
 +            //~ p.applyAlphaTest(alphaReference());
 +            //~ p.applyPacked(typeBlock);
 +        //~ } catch (final Throwable t) {
@@ -3493,6 +3503,10 @@ index bfa51ee..97c4fdd 100644
  
 -    public static void alphaTest(final boolean on) {
 -        alphaOn = on;
+-        final ShaderPipeline p = pipe;
+-        if (p != null) {
+-            p.alphaStateChanged();
+-        }
 -    }
 +    //~ public static void textureEnabled(final boolean on) {
 +        //~ if (activeUnit == GL13.GL_TEXTURE0) {
@@ -3506,6 +3520,10 @@ index bfa51ee..97c4fdd 100644
 -    }
 +    //~ public static void alphaTest(final boolean on) {
 +        //~ alphaOn = on;
++        //~ final ShaderPipeline p = pipe;
++        //~ if (p != null) {
++            //~ p.alphaStateChanged();
++        //~ }
 +    //~ }
  
 -    static float alphaReference() {

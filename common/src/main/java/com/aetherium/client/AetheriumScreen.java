@@ -1,6 +1,7 @@
 package com.aetherium.client;
 
 import com.aetherium.Aetherium;
+import com.aetherium.Capabilities;
 import com.aetherium.gui.AetheriumView;
 import com.aetherium.gui.ScreenHost;
 import com.aetherium.gui.Setting;
@@ -30,7 +31,7 @@ import net.minecraft.network.chat.Component;
  * {@link AetheriumView}; this class only adapts Minecraft's render and input
  * callbacks to it.
  */
-public final class AetheriumScreen extends Screen implements ScreenHost, AetheriumPages.Actions {
+public final class AetheriumScreen extends Screen implements ScreenHost, AetheriumPages.Actions, ShaderPackView.Host {
 
     private static final AetheriumLog LOGGER = AetheriumLog.of(AetheriumScreen.class);
 
@@ -39,6 +40,8 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
 
     private final Screen parent;
     private AetheriumView view;
+    /** The Iris-style shader pack page, while it is open (drawn instead of the settings view). */
+    private ShaderPackView shaderView;
     private AetheriumPages pages;
     /** A child screen (vanilla video settings) may change live values; re-read them on return. */
     private boolean childOpened;
@@ -66,6 +69,9 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
         }
         this.childOpened = false;
         this.view.resize(this.width, this.height);
+        if (this.shaderView != null) {
+            this.shaderView.resize(this.width, this.height);
+        }
     }
 
     // ------------------------------------------------------------------ rendering
@@ -73,14 +79,18 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     // @era:gui-begin graphics
     @Override
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
-        if (this.view != null) {
+        if (this.shaderView != null) {
+            this.shaderView.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
+        } else if (this.view != null) {
             this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
         }
     }
     // @era:gui-else stack
     //~ @Override
     //~ public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
-        //~ if (this.view != null) {
+        //~ if (this.shaderView != null) {
+            //~ this.shaderView.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
+        //~ } else if (this.view != null) {
             //~ this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
         //~ }
     //~ }
@@ -88,7 +98,9 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     //~ @Override
     //~ public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
                                    //~ final float partialTick) {
-        //~ if (this.view != null) {
+        //~ if (this.shaderView != null) {
+            //~ this.shaderView.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
+        //~ } else if (this.view != null) {
             //~ this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
         //~ }
     //~ }
@@ -112,12 +124,19 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     // @era:input-begin doubles
     @Override
     public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        if (this.shaderView != null) {
+            this.shaderView.shiftDown = shiftHeld();
+            return this.shaderView.mouseClicked(mouseX, mouseY, button);
+        }
         return this.view != null && this.view.mouseClicked(mouseX, mouseY, button)
                 || super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
+        if (this.shaderView != null) {
+            return this.shaderView.mouseReleased(mouseX, mouseY, button);
+        }
         return this.view != null && this.view.mouseReleased(mouseX, mouseY, button)
                 || super.mouseReleased(mouseX, mouseY, button);
     }
@@ -125,35 +144,54 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     @Override
     public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double dragX,
                                 final double dragY) {
+        if (this.shaderView != null) {
+            return this.shaderView.mouseDragged(mouseX, mouseY, button);
+        }
         return this.view != null && this.view.mouseDragged(mouseX, mouseY, button)
                 || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
     public boolean keyPressed(final int key, final int scanCode, final int modifiers) {
+        if (this.shaderView != null) {
+            return this.shaderView.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
+        }
         return this.view != null && this.view.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
     }
     // @era:input-else events
     //~ @Override
     //~ public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+        //~ if (this.shaderView != null) {
+            //~ this.shaderView.shiftDown = shiftHeld();
+            //~ return this.shaderView.mouseClicked(event.x(), event.y(), event.button());
+        //~ }
         //~ return this.view != null && this.view.mouseClicked(event.x(), event.y(), event.button())
                 //~ || super.mouseClicked(event, doubleClick);
     //~ }
 
     //~ @Override
     //~ public boolean mouseReleased(final MouseButtonEvent event) {
+        //~ if (this.shaderView != null) {
+            //~ return this.shaderView.mouseReleased(event.x(), event.y(), event.button());
+        //~ }
         //~ return this.view != null && this.view.mouseReleased(event.x(), event.y(), event.button())
                 //~ || super.mouseReleased(event);
     //~ }
 
     //~ @Override
     //~ public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
+        //~ if (this.shaderView != null) {
+            //~ return this.shaderView.mouseDragged(event.x(), event.y(), event.button());
+        //~ }
         //~ return this.view != null && this.view.mouseDragged(event.x(), event.y(), event.button())
                 //~ || super.mouseDragged(event, dragX, dragY);
     //~ }
 
     //~ @Override
     //~ public boolean keyPressed(final KeyEvent event) {
+        //~ if (this.shaderView != null) {
+            //~ return this.shaderView.keyPressed(event.key()) || super.keyPressed(event);
+        //~ }
         //~ return this.view != null && this.view.keyPressed(event.key()) || super.keyPressed(event);
     //~ }
     // @era:input-end
@@ -161,12 +199,18 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
     // @era:scroll-begin four
     @Override
     public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
+        if (this.shaderView != null) {
+            return this.shaderView.mouseScrolled(mouseX, mouseY, scrollY);
+        }
         return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
                 || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
     // @era:scroll-else three
     //~ @Override
     //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
+        //~ if (this.shaderView != null) {
+            //~ return this.shaderView.mouseScrolled(mouseX, mouseY, amount);
+        //~ }
         //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
                 //~ || super.mouseScrolled(mouseX, mouseY, amount);
     //~ }
@@ -176,7 +220,81 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
 
     @Override
     public void onClose() {
+        if (this.shaderView != null) {
+            closeShaderPage();
+            return;
+        }
         ClientHooks.setScreen(this.minecraft, this.parent);
+    }
+
+    // ------------------------------------------------------------------ shader pack page
+
+    @Override
+    public boolean shaderPageAvailable() {
+        return Capabilities.SHADERS;
+    }
+
+    @Override
+    public void openShaderPage() {
+        final Aetherium.Subsystems sub = Aetherium.subsystemsOrNull();
+        if (sub == null || !Capabilities.SHADERS) {
+            return;
+        }
+        if (Aetherium.platform() != null) {
+            com.aetherium.shader.ShaderBridge.setGameDir(Aetherium.platform().gameDirectory());
+        }
+        this.shaderView = new ShaderPackView(this, sub.config.shaderPack.get());
+        this.shaderView.resize(this.width, this.height);
+    }
+
+    @Override
+    public void closeShaderPage() {
+        this.shaderView = null;
+        this.rebuildPages = true; // the Shaders tab shows the pack that is active now
+    }
+
+    @Override
+    public void applyShaderPack(final String name) {
+        selectShaderPack(name);
+    }
+
+    @Override
+    public void clickSound() {
+        playSound(UiSound.CLICK);
+    }
+
+    @Override
+    public boolean worldBehind() {
+        return this.minecraft != null && this.minecraft.level != null;
+    }
+
+    @Override
+    public void openShaderFolder() {
+        final java.nio.file.Path dir = com.aetherium.shader.ShaderBridge.shaderpacksDir();
+        if (dir == null) {
+            return;
+        }
+        try {
+            java.nio.file.Files.createDirectories(dir);
+        } catch (final java.io.IOException | RuntimeException ignored) {
+            // shown on the page anyway
+        }
+        // @era:shader-begin none
+        // @era:shader-else v16
+        //~ try {
+            //~ net.minecraft.Util.getPlatform().openFile(dir.toFile());
+        //~ } catch (final RuntimeException | LinkageError e) {
+            //~ LOGGER.warn("Could not open {}: {}", dir, e.toString());
+        //~ }
+        // @era:shader-end
+    }
+
+    private static boolean shiftHeld() {
+        // @era:shader-begin none
+        return false;
+        // @era:shader-else v16
+        //~ return Screen.hasShiftDown();
+        // @era:shader-end
     }
 
     /** Runs whenever this screen is replaced (closed or a child opened): staged edits are applied, never lost. */

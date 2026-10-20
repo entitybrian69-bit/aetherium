@@ -239,10 +239,10 @@ index ceddf8a..5acc351 100644
      //~ public static final boolean FAST_MODELS = true;
      //~ public static final boolean FAST_MODELS_MOJANG = false;
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-index ba77451..98449f1 100644
+index ff034f8..0f50915 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 +++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-@@ -9,10 +9,10 @@ import com.aetherium.util.AetheriumLog;
+@@ -10,10 +10,10 @@ import com.aetherium.util.AetheriumLog;
  
  import java.util.List;
  
@@ -257,7 +257,7 @@ index ba77451..98449f1 100644
  // @era:gui-else extractor
  //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
  // @era:gui-end
-@@ -70,18 +70,18 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -76,22 +76,22 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
  
      // ------------------------------------------------------------------ rendering
  
@@ -266,7 +266,10 @@ index ba77451..98449f1 100644
      @Override
 -    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
 +    public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
-         if (this.view != null) {
+         if (this.shaderView != null) {
+-            this.shaderView.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
++            this.shaderView.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
+         } else if (this.view != null) {
 -            this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
 +            this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
          }
@@ -276,13 +279,16 @@ index ba77451..98449f1 100644
      //~ @Override
 -    //~ public void render(final PoseStack pose, final int mouseX, final int mouseY, final float partialTick) {
 +    //~ public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
-         //~ if (this.view != null) {
+         //~ if (this.shaderView != null) {
+-            //~ this.shaderView.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
++            //~ this.shaderView.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
+         //~ } else if (this.view != null) {
 -            //~ this.view.render(McCanvas.INSTANCE.begin(pose), mouseX, mouseY);
 +            //~ this.view.render(McCanvas.INSTANCE.begin(graphics), mouseX, mouseY);
          //~ }
      //~ }
      // @era:gui-else extractor
-@@ -95,11 +95,11 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -107,11 +107,11 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
      // @era:gui-end
  
      // The view paints an opaque background, so vanilla's (a blur pass on 1.21+) is skipped.
@@ -299,7 +305,7 @@ index ba77451..98449f1 100644
      // @era:background-else extract
      //~ @Override
      //~ public void extractBackground(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY,
-@@ -158,17 +158,17 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -196,23 +196,23 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
      //~ }
      // @era:input-end
  
@@ -307,9 +313,13 @@ index ba77451..98449f1 100644
 +    // @era:scroll-begin three
      @Override
 -    public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
++    public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
+         if (this.shaderView != null) {
+-            return this.shaderView.mouseScrolled(mouseX, mouseY, scrollY);
++            return this.shaderView.mouseScrolled(mouseX, mouseY, amount);
+         }
 -        return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
 -                || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-+    public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
 +        return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
 +                || super.mouseScrolled(mouseX, mouseY, amount);
      }
@@ -317,13 +327,50 @@ index ba77451..98449f1 100644
 +    // @era:scroll-else four
      //~ @Override
 -    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double amount) {
++    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
+         //~ if (this.shaderView != null) {
+-            //~ return this.shaderView.mouseScrolled(mouseX, mouseY, amount);
++            //~ return this.shaderView.mouseScrolled(mouseX, mouseY, scrollY);
+         //~ }
 -        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, amount)
 -                //~ || super.mouseScrolled(mouseX, mouseY, amount);
-+    //~ public boolean mouseScrolled(final double mouseX, final double mouseY, final double scrollX, final double scrollY) {
 +        //~ return this.view != null && this.view.mouseScrolled(mouseX, mouseY, scrollY)
 +                //~ || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
      //~ }
      // @era:scroll-end
+ 
+@@ -279,21 +279,21 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+         } catch (final java.io.IOException | RuntimeException ignored) {
+             // shown on the page anyway
+         }
+-        // @era:shader-begin none
+-        // @era:shader-else v16
+-        //~ try {
+-            //~ net.minecraft.Util.getPlatform().openFile(dir.toFile());
+-        //~ } catch (final RuntimeException | LinkageError e) {
+-            //~ LOGGER.warn("Could not open {}: {}", dir, e.toString());
+-        //~ }
++        // @era:shader-begin v16
++        try {
++            net.minecraft.Util.getPlatform().openFile(dir.toFile());
++        } catch (final RuntimeException | LinkageError e) {
++            LOGGER.warn("Could not open {}: {}", dir, e.toString());
++        }
++        // @era:shader-else none
+         // @era:shader-end
+     }
+ 
+     private static boolean shiftHeld() {
+-        // @era:shader-begin none
+-        return false;
+-        // @era:shader-else v16
+-        //~ return Screen.hasShiftDown();
++        // @era:shader-begin v16
++        return Screen.hasShiftDown();
++        // @era:shader-else none
++        //~ return false;
+         // @era:shader-end
+     }
  
 diff --git a/common/src/main/java/com/aetherium/client/AutoBench.java b/common/src/main/java/com/aetherium/client/AutoBench.java
 index b52e5ad..dcc73b2 100644
@@ -3800,13 +3847,13 @@ index 23bb322..da65eaf 100644
          // @era:q-hud-else s17|s194
          //~ com.mojang.blaze3d.vertex.Tesselator.getInstance().end();
 diff --git a/common/src/main/java/com/aetherium/client/QolInventory.java b/common/src/main/java/com/aetherium/client/QolInventory.java
-index db0a696..38aa5a4 100644
+index 5459585..6848409 100644
 --- a/common/src/main/java/com/aetherium/client/QolInventory.java
 +++ b/common/src/main/java/com/aetherium/client/QolInventory.java
-@@ -101,10 +101,10 @@ public final class QolInventory {
+@@ -98,10 +98,10 @@ public final class QolInventory {
      }
  
-     private static ItemStack carried(final Minecraft mc) {
+     static ItemStack carried(final Minecraft mc) {
 -    // @era:q-inv-begin c205|c261|t17
 -        return mc.player.containerMenu.getCarried();
 -    // @era:q-inv-else v16
@@ -3818,10 +3865,10 @@ index db0a696..38aa5a4 100644
      // @era:q-inv-end
      }
  
-@@ -125,21 +125,21 @@ public final class QolInventory {
+@@ -122,21 +122,21 @@ public final class QolInventory {
      }
  
-     private static boolean canMerge(final ItemStack a, final ItemStack b) {
+     static boolean canMerge(final ItemStack a, final ItemStack b) {
 -    // @era:q-inv-begin c205|c261
 -        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
 +    // @era:q-inv-begin v16
@@ -8791,10 +8838,10 @@ index 0bb9134..70f6233 100644
  //~ }
  // @era:options-end
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
-index 9f042ad..2fab682 100644
+index 0939cdf..e5b40dc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
-@@ -127,17 +127,17 @@ public abstract class QolContainerScreenMixin implements QolContainerAccess {
+@@ -128,17 +128,17 @@ public abstract class QolContainerScreenMixin implements QolContainerAccess, Mou
          return mx >= x && mx < x + SIZE && my >= y && my < y + SIZE;
      }
  

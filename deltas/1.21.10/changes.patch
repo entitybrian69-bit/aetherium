@@ -107,10 +107,10 @@ index ceddf8a..6930a63 100644
  
      /** Fast mob/block-entity models (1.16.5..1.20.6, while BufferBuilder writes a plain ByteBuffer). */
 diff --git a/common/src/main/java/com/aetherium/client/AetheriumScreen.java b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-index ba77451..24aa1d6 100644
+index ff034f8..169672d 100644
 --- a/common/src/main/java/com/aetherium/client/AetheriumScreen.java
 +++ b/common/src/main/java/com/aetherium/client/AetheriumScreen.java
-@@ -17,10 +17,10 @@ import net.minecraft.client.gui.GuiGraphics;
+@@ -18,10 +18,10 @@ import net.minecraft.client.gui.GuiGraphics;
  //~ import net.minecraft.client.gui.GuiGraphicsExtractor;
  // @era:gui-end
  import net.minecraft.client.gui.screens.Screen;
@@ -125,7 +125,7 @@ index ba77451..24aa1d6 100644
  // @era:input-end
  import net.minecraft.network.chat.Component;
  
-@@ -109,52 +109,52 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
+@@ -121,78 +121,78 @@ public final class AetheriumScreen extends Screen implements ScreenHost, Aetheri
  
      // ------------------------------------------------------------------ input
  
@@ -133,18 +133,27 @@ index ba77451..24aa1d6 100644
 +    // @era:input-begin events
      @Override
 -    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
++    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+         if (this.shaderView != null) {
+             this.shaderView.shiftDown = shiftHeld();
+-            return this.shaderView.mouseClicked(mouseX, mouseY, button);
++            return this.shaderView.mouseClicked(event.x(), event.y(), event.button());
+         }
 -        return this.view != null && this.view.mouseClicked(mouseX, mouseY, button)
 -                || super.mouseClicked(mouseX, mouseY, button);
-+    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
 +        return this.view != null && this.view.mouseClicked(event.x(), event.y(), event.button())
 +                || super.mouseClicked(event, doubleClick);
      }
  
      @Override
 -    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
++    public boolean mouseReleased(final MouseButtonEvent event) {
+         if (this.shaderView != null) {
+-            return this.shaderView.mouseReleased(mouseX, mouseY, button);
++            return this.shaderView.mouseReleased(event.x(), event.y(), event.button());
+         }
 -        return this.view != null && this.view.mouseReleased(mouseX, mouseY, button)
 -                || super.mouseReleased(mouseX, mouseY, button);
-+    public boolean mouseReleased(final MouseButtonEvent event) {
 +        return this.view != null && this.view.mouseReleased(event.x(), event.y(), event.button())
 +                || super.mouseReleased(event);
      }
@@ -152,53 +161,78 @@ index ba77451..24aa1d6 100644
      @Override
 -    public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double dragX,
 -                                final double dragY) {
++    public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
+         if (this.shaderView != null) {
+-            return this.shaderView.mouseDragged(mouseX, mouseY, button);
++            return this.shaderView.mouseDragged(event.x(), event.y(), event.button());
+         }
 -        return this.view != null && this.view.mouseDragged(mouseX, mouseY, button)
 -                || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-+    public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
 +        return this.view != null && this.view.mouseDragged(event.x(), event.y(), event.button())
 +                || super.mouseDragged(event, dragX, dragY);
      }
  
      @Override
 -    public boolean keyPressed(final int key, final int scanCode, final int modifiers) {
--        return this.view != null && this.view.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
 +    public boolean keyPressed(final KeyEvent event) {
+         if (this.shaderView != null) {
+-            return this.shaderView.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
++            return this.shaderView.keyPressed(event.key()) || super.keyPressed(event);
+         }
+-        return this.view != null && this.view.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
 +        return this.view != null && this.view.keyPressed(event.key()) || super.keyPressed(event);
      }
 -    // @era:input-else events
 +    // @era:input-else doubles
      //~ @Override
 -    //~ public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
++    //~ public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+         //~ if (this.shaderView != null) {
+             //~ this.shaderView.shiftDown = shiftHeld();
+-            //~ return this.shaderView.mouseClicked(event.x(), event.y(), event.button());
++            //~ return this.shaderView.mouseClicked(mouseX, mouseY, button);
+         //~ }
 -        //~ return this.view != null && this.view.mouseClicked(event.x(), event.y(), event.button())
 -                //~ || super.mouseClicked(event, doubleClick);
-+    //~ public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
 +        //~ return this.view != null && this.view.mouseClicked(mouseX, mouseY, button)
 +                //~ || super.mouseClicked(mouseX, mouseY, button);
      //~ }
  
      //~ @Override
 -    //~ public boolean mouseReleased(final MouseButtonEvent event) {
++    //~ public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
+         //~ if (this.shaderView != null) {
+-            //~ return this.shaderView.mouseReleased(event.x(), event.y(), event.button());
++            //~ return this.shaderView.mouseReleased(mouseX, mouseY, button);
+         //~ }
 -        //~ return this.view != null && this.view.mouseReleased(event.x(), event.y(), event.button())
 -                //~ || super.mouseReleased(event);
-+    //~ public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
 +        //~ return this.view != null && this.view.mouseReleased(mouseX, mouseY, button)
 +                //~ || super.mouseReleased(mouseX, mouseY, button);
      //~ }
  
      //~ @Override
 -    //~ public boolean mouseDragged(final MouseButtonEvent event, final double dragX, final double dragY) {
--        //~ return this.view != null && this.view.mouseDragged(event.x(), event.y(), event.button())
--                //~ || super.mouseDragged(event, dragX, dragY);
 +    //~ public boolean mouseDragged(final double mouseX, final double mouseY, final int button, final double dragX,
 +                                //~ final double dragY) {
+         //~ if (this.shaderView != null) {
+-            //~ return this.shaderView.mouseDragged(event.x(), event.y(), event.button());
++            //~ return this.shaderView.mouseDragged(mouseX, mouseY, button);
+         //~ }
+-        //~ return this.view != null && this.view.mouseDragged(event.x(), event.y(), event.button())
+-                //~ || super.mouseDragged(event, dragX, dragY);
 +        //~ return this.view != null && this.view.mouseDragged(mouseX, mouseY, button)
 +                //~ || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
      //~ }
  
      //~ @Override
 -    //~ public boolean keyPressed(final KeyEvent event) {
--        //~ return this.view != null && this.view.keyPressed(event.key()) || super.keyPressed(event);
 +    //~ public boolean keyPressed(final int key, final int scanCode, final int modifiers) {
+         //~ if (this.shaderView != null) {
+-            //~ return this.shaderView.keyPressed(event.key()) || super.keyPressed(event);
++            //~ return this.shaderView.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
+         //~ }
+-        //~ return this.view != null && this.view.keyPressed(event.key()) || super.keyPressed(event);
 +        //~ return this.view != null && this.view.keyPressed(key) || super.keyPressed(key, scanCode, modifiers);
      //~ }
      // @era:input-end
@@ -2529,10 +2563,10 @@ index 1544ef9..d04d9a6 100644
      // @era:mesh-exec-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java b/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
-index 9f042ad..26cc875 100644
+index 0939cdf..cf67bd0 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/QolContainerScreenMixin.java
-@@ -10,10 +10,10 @@ import net.minecraft.client.KeyMapping;
+@@ -11,10 +11,10 @@ import net.minecraft.client.KeyMapping;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.screens.Screen;
  import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -2547,7 +2581,7 @@ index 9f042ad..26cc875 100644
  // @era:input-end
  import net.minecraft.world.entity.player.Inventory;
  import net.minecraft.world.inventory.AbstractContainerMenu;
-@@ -59,23 +59,23 @@ public abstract class QolContainerScreenMixin implements QolContainerAccess {
+@@ -60,23 +60,23 @@ public abstract class QolContainerScreenMixin implements QolContainerAccess, Mou
      @Shadow
      protected Slot hoveredSlot;
  
@@ -2577,7 +2611,7 @@ index 9f042ad..26cc875 100644
      //~ }
      // @era:slot-find-end
  
-@@ -216,53 +216,53 @@ public abstract class QolContainerScreenMixin implements QolContainerAccess {
+@@ -231,64 +231,64 @@ public abstract class QolContainerScreenMixin implements QolContainerAccess, Mou
  
      // ------------------------------------------------------------------ input (version signatures)
  
@@ -2603,6 +2637,14 @@ index 9f042ad..26cc875 100644
 +        if (aetherium$onDrag(event.x(), event.y(), event.button(), (event.modifiers() & 1) != 0)) {
              cir.setReturnValue(Boolean.TRUE);
          }
+     }
+ 
+     @Inject(method = "mouseReleased", at = @At("HEAD"), require = 0)
+-    private void aetherium$released(final double mouseX, final double mouseY, final int button,
+-                                    final CallbackInfoReturnable<Boolean> cir) {
+-        MouseTweaks.released(aetherium$self(), button);
++    private void aetherium$released(final MouseButtonEvent event, final CallbackInfoReturnable<Boolean> cir) {
++        MouseTweaks.released(aetherium$self(), event.button());
      }
  
      @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true, require = 0)
@@ -2637,6 +2679,14 @@ index 9f042ad..26cc875 100644
 +        //~ if (aetherium$onDrag(mouseX, mouseY, button, Screen.hasShiftDown())) {
              //~ cir.setReturnValue(Boolean.TRUE);
          //~ }
+     //~ }
+ 
+     //~ @Inject(method = "mouseReleased", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$released(final MouseButtonEvent event, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ MouseTweaks.released(aetherium$self(), event.button());
++    //~ private void aetherium$released(final double mouseX, final double mouseY, final int button,
++                                    //~ final CallbackInfoReturnable<Boolean> cir) {
++        //~ MouseTweaks.released(aetherium$self(), button);
      //~ }
  
      //~ @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true, require = 0)
@@ -7847,7 +7897,7 @@ index 6d8b564..a4ba5d0 100644
  
      // @era:t-view-areaacc-begin none
 diff --git a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
-index bfa51ee..97c4fdd 100644
+index b69177a..44f6eca 100644
 --- a/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 +++ b/common/src/main/java/com/aetherium/shader/ShaderRuntime.java
 @@ -1,55 +1,55 @@
@@ -7956,7 +8006,7 @@ index bfa51ee..97c4fdd 100644
  // @era:shader-end
  
  /**
-@@ -63,709 +63,709 @@ import org.lwjgl.opengl.GL13;
+@@ -63,718 +63,718 @@ import org.lwjgl.opengl.GL13;
   * the hand) runs composite and final into the main framebuffer.</p>
   */
  public final class ShaderRuntime {
@@ -8118,6 +8168,7 @@ index bfa51ee..97c4fdd 100644
 -        final boolean wasRunning = pipe != null || ShaderVertex.extended() || ShaderVertex.packed();
 -        if (pipe != null) {
 -            try {
+-                pipe.restoreFixedAlpha(alphaOn);
 -                pipe.delete();
 -            } catch (final Throwable ignored) {
 -                // context trouble: the textures go with it
@@ -8250,6 +8301,7 @@ index bfa51ee..97c4fdd 100644
 +        //~ final boolean wasRunning = pipe != null || ShaderVertex.extended() || ShaderVertex.packed();
 +        //~ if (pipe != null) {
 +            //~ try {
++                //~ pipe.restoreFixedAlpha(alphaOn);
 +                //~ pipe.delete();
 +            //~ } catch (final Throwable ignored) {
 +                //~ // context trouble: the textures go with it
@@ -8465,6 +8517,7 @@ index bfa51ee..97c4fdd 100644
 -        phase = PHASE_NONE;
 -        if (p != null) {
 -            try {
+-                p.restoreFixedAlpha(alphaOn);
 -                p.delete();
 -            } catch (final Throwable ignored) {
 -                // nothing more to do
@@ -8540,6 +8593,7 @@ index bfa51ee..97c4fdd 100644
 +        //~ phase = PHASE_NONE;
 +        //~ if (p != null) {
 +            //~ try {
++                //~ p.restoreFixedAlpha(alphaOn);
 +                //~ p.delete();
 +            //~ } catch (final Throwable ignored) {
 +                //~ // nothing more to do
@@ -8847,6 +8901,7 @@ index bfa51ee..97c4fdd 100644
 -        }
 -        try {
 -            p.endWorld(mainFbo);
+-            p.restoreFixedAlpha(alphaOn);
 -        } catch (final Throwable t) {
 -            fail(t);
 -        }
@@ -8900,6 +8955,7 @@ index bfa51ee..97c4fdd 100644
 -        try {
 -            if (phase == PHASE_SHADOW) {
 -                p.beforeShadowDraw();
+-                p.syncFixedAlpha(alphaOn);
 -                p.applyAlphaTest(alphaReference());
 -                p.applyPacked(true);
 -                return false;
@@ -8909,6 +8965,7 @@ index bfa51ee..97c4fdd 100644
 -                return true;
 -            }
 -            p.beforeDraw(programName());
+-            p.syncFixedAlpha(alphaOn);
 -            p.applyAlphaTest(alphaReference());
 -            p.applyPacked(typeBlock);
 -        } catch (final Throwable t) {
@@ -8931,6 +8988,7 @@ index bfa51ee..97c4fdd 100644
 +        //~ }
 +        //~ try {
 +            //~ p.endWorld(mainFbo);
++            //~ p.restoreFixedAlpha(alphaOn);
 +        //~ } catch (final Throwable t) {
 +            //~ fail(t);
 +        //~ }
@@ -8968,6 +9026,7 @@ index bfa51ee..97c4fdd 100644
 +        //~ try {
 +            //~ if (phase == PHASE_SHADOW) {
 +                //~ p.beforeShadowDraw();
++                //~ p.syncFixedAlpha(alphaOn);
 +                //~ p.applyAlphaTest(alphaReference());
 +                //~ p.applyPacked(true);
 +                //~ return false;
@@ -8977,6 +9036,7 @@ index bfa51ee..97c4fdd 100644
 +                //~ return true;
 +            //~ }
 +            //~ p.beforeDraw(programName());
++            //~ p.syncFixedAlpha(alphaOn);
 +            //~ p.applyAlphaTest(alphaReference());
 +            //~ p.applyPacked(typeBlock);
 +        //~ } catch (final Throwable t) {
@@ -9288,6 +9348,10 @@ index bfa51ee..97c4fdd 100644
  
 -    public static void alphaTest(final boolean on) {
 -        alphaOn = on;
+-        final ShaderPipeline p = pipe;
+-        if (p != null) {
+-            p.alphaStateChanged();
+-        }
 -    }
 +    //~ public static void textureEnabled(final boolean on) {
 +        //~ if (activeUnit == GL13.GL_TEXTURE0) {
@@ -9301,6 +9365,10 @@ index bfa51ee..97c4fdd 100644
 -    }
 +    //~ public static void alphaTest(final boolean on) {
 +        //~ alphaOn = on;
++        //~ final ShaderPipeline p = pipe;
++        //~ if (p != null) {
++            //~ p.alphaStateChanged();
++        //~ }
 +    //~ }
  
 -    static float alphaReference() {

@@ -6,5 +6,4 @@ void main() {
     vec4 vp = gl_ModelViewMatrix * gl_Vertex;
     viewPos = vp.xyz;
     gl_Position = gl_ProjectionMatrix * vp;
-    gl_FogFragCoord = length(vp.xyz);
 }

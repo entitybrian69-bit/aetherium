@@ -238,7 +238,35 @@ public final class Aetherium {
     private static String versionFromManifest() {
         final Package pack = Aetherium.class.getPackage();
         final String declared = pack == null ? null : pack.getImplementationVersion();
-        return declared == null || declared.isEmpty() ? "1.8.2" : declared;
+        if (declared != null && !declared.isEmpty()) {
+            return declared;
+        }
+        // Loader jars carry no Implementation-Version; the mod metadata has the build's mod_version.
+        final String fromMeta = versionFrom("/fabric.mod.json", "\"version\"\\s*:\\s*\"([^\"$]+)\"");
+        if (fromMeta != null) {
+            return fromMeta;
+        }
+        final String fromToml = versionFrom("/META-INF/neoforge.mods.toml", "(?m)^\\s*version\\s*=\\s*\"([^\"$]+)\"");
+        return fromToml != null ? fromToml : "unknown";
+    }
+
+    private static String versionFrom(final String resource, final String regex) {
+        try (java.io.InputStream in = Aetherium.class.getResourceAsStream(resource)) {
+            if (in == null) {
+                return null;
+            }
+            final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            final byte[] buf = new byte[4096];
+            int n;
+            while ((n = in.read(buf)) > 0) {
+                out.write(buf, 0, n);
+            }
+            final java.util.regex.Matcher m = java.util.regex.Pattern.compile(regex)
+                    .matcher(new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8));
+            return m.find() ? m.group(1) : null;
+        } catch (final java.io.IOException | RuntimeException e) {
+            return null;
+        }
     }
 
     public static String describeRuntime() {

@@ -400,7 +400,11 @@ public final class ShaderPipeline {
         // names that always resolve to the same texture share a unit (shadowtex0/1, gaux1/colortex4,
         // unknown samplers on the white texture): 8-unit translators run out otherwise
         final Map<String, Integer> byTexture = new HashMap<>();
-        for (final GlProgram.Uniform u : p.samplers) {
+        // GL translators can have as few as 4 units (gl4es caps them at 4 on many phones): the
+        // samplers that matter most get the free ones first
+        final List<GlProgram.Uniform> ordered = new ArrayList<>(p.samplers);
+        java.util.Collections.sort(ordered, (a, b) -> unitPriority(a.name, stage) - unitPriority(b.name, stage));
+        for (final GlProgram.Uniform u : ordered) {
             final String n = u.name;
             int unit;
             if (stage != STAGE_COMPOSITE && (n.equals("texture") || n.equals("tex") || n.equals("gtexture"))) {
@@ -417,13 +421,43 @@ public final class ShaderPipeline {
                     byTexture.put(key, unit);
                 }
             }
-            if (unit >= Math.min(this.caps.maxTextureUnits, 32) - 1) {
+            if (unit >= Math.min(this.caps.maxTextureUnits, 32)) {
+                // left on its default (unit 0 = the block atlas in the world) it would sample
+                // atlas sprites as shadows or noise: park it on the lightmap / last unit instead
                 this.warnings.add(p.name + ": out of texture units for " + n);
+                final int park = stage == STAGE_COMPOSITE ? Math.min(this.caps.maxTextureUnits, 32) - 1 : 2;
+                GL20.glUniform1i(u.location, park);
                 continue;
             }
             p.units.put(n, unit);
             GL20.glUniform1i(u.location, unit);
         }
+    }
+
+    /** Lower first: what a pack cannot look right without. */
+    private static int unitPriority(final String n, final int stage) {
+        if (n.equals("texture") || n.equals("tex") || n.equals("gtexture") || n.equals("lightmap")) {
+            return 0;
+        }
+        if (stage == STAGE_COMPOSITE) {
+            if (n.equals("colortex0") || n.equals("gcolor")) {
+                return 1;
+            }
+            if (n.equals("depthtex0") || n.equals("gdepthtex")) {
+                return 2;
+            }
+        }
+        if (n.equals("shadowtex0") || n.equals("shadow") || n.equals("shadowtex1") || n.equals("watershadow")) {
+            return 3;
+        }
+        if (n.startsWith("colortex") || n.startsWith("gaux") || n.equals("gdepth") || n.equals("gnormal")
+                || n.equals("composite") || n.startsWith("depthtex")) {
+            return 4;
+        }
+        if (n.startsWith("shadowcolor")) {
+            return 5;
+        }
+        return 6; // noisetex, custom textures, specular / normals
     }
 
     private List<GlProgram> allPrograms() {
@@ -647,7 +681,10 @@ public final class ShaderPipeline {
     private void scratch() {
         GL13.glActiveTexture(GL13.GL_TEXTURE0 + this.scratchUnit);
         this.boundUnit[this.scratchUnit] = -1;
+        this.samplersDirty = true; // the scratch unit can hold a sampler (4-unit translators)
     }
+
+    private boolean samplersDirty;
 
     private void restoreActive() {
         GL13.glActiveTexture(vanillaActiveTexture);
@@ -784,6 +821,7 @@ public final class ShaderPipeline {
         }
         GL20.glUseProgram(p.id);
         this.frame.upload(p);
+        this.samplersDirty = false;
         this.bindSamplers(p, stage);
         this.current = p;
         this.currentStage = stage;
@@ -798,6 +836,10 @@ public final class ShaderPipeline {
         if (p == this.current && this.currentStage == STAGE_GBUFFERS && p != null) {
             if (this.frame.frameCounter != p.uploadedFrame) {
                 this.frame.upload(p);
+            }
+            if (this.samplersDirty) {
+                this.samplersDirty = false;
+                this.bindSamplers(p, STAGE_GBUFFERS);
             }
             return;
         }
@@ -820,6 +862,51 @@ public final class ShaderPipeline {
         if (this.packed && p != null && p.has(GlslPatcher.PACKED_UNIFORM)) {
             p.set(GlslPatcher.PACKED_UNIFORM, chunkGeometry ? 1.0F : 0.0F);
         }
+    }
+
+    /** GL's own alpha test as last set here: -1 unknown (vanilla toggled it since), 0 off, 1 on. */
+    private int glAlpha = -1;
+
+    /** Vanilla enabled or disabled the alpha test: GL's state is unknown until the next sync. */
+    public void alphaStateChanged() {
+        this.glAlpha = -1;
+    }
+
+    /**
+     * GL translators (gl4es / Krypton): fixed-function state still enabled under a shader program
+     * makes gl4es compile a hidden variant of that program per state (alpha test is the one
+     * vanilla's world draws leave on, for every cutout layer). That variant is where uniforms went
+     * missing (block ids, so no waving plants) and where big packs crashed gl4es. The injected
+     * shader alpha test already does the work, so GL's stays off while a pack program draws, and
+     * follows vanilla for fixed-function draws.
+     */
+    public void syncFixedAlpha(final boolean vanillaOn) {
+        if (!this.caps.translator) {
+            return;
+        }
+        final GlProgram p = this.current;
+        final int want = vanillaOn && (p == null || !p.has(GlslPatcher.ALPHA_UNIFORM)) ? 1 : 0;
+        if (this.glAlpha != want) {
+            if (want == 1) {
+                GL11.glEnable(GL11.GL_ALPHA_TEST);
+            } else {
+                GL11.glDisable(GL11.GL_ALPHA_TEST);
+            }
+            this.glAlpha = want;
+        }
+    }
+
+    /** End of the world pass: GL's alpha test back to what vanilla's state cache believes. */
+    public void restoreFixedAlpha(final boolean vanillaOn) {
+        if (!this.caps.translator) {
+            return;
+        }
+        if (vanillaOn) {
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
+        } else {
+            GL11.glDisable(GL11.GL_ALPHA_TEST);
+        }
+        this.glAlpha = -1;
     }
 
     /** The table ShaderVertex packs indices of (null unless packed). */
@@ -1185,10 +1272,14 @@ public final class ShaderPipeline {
                 + (this.errors.isEmpty() ? "" : ", " + this.errors.size() + " failed");
     }
 
-    private static final String COPY_VSH = "#version 120\nvarying vec2 texcoord;\nvoid main() {\n"
+    // gl4es inserts its own declarations a fixed number of lines below #version (shaderconv.c,
+    // "headline"): with code that early they land inside main() and the shader fails (it did on
+    // Krypton, so packs without a final pass showed nothing). The blank lines take them.
+    private static final String GL4ES_ROOM = "\n\n\n\n\n\n\n\n";
+    private static final String COPY_VSH = "#version 120\n" + GL4ES_ROOM + "varying vec2 texcoord;\nvoid main() {\n"
             + "    texcoord = gl_MultiTexCoord0.xy;\n    gl_Position = ftransform();\n}\n";
-    private static final String COPY_FSH = "#version 120\nuniform sampler2D colortex0;\nvarying vec2 texcoord;\n"
+    private static final String COPY_FSH = "#version 120\n" + GL4ES_ROOM + "uniform sampler2D colortex0;\nvarying vec2 texcoord;\n"
             + "void main() {\n    gl_FragColor = vec4(texture2D(colortex0, texcoord).rgb, 1.0);\n}\n";
-    private static final String DEPTH_COPY_FSH = "#version 120\nuniform sampler2D depthtex0;\nvarying vec2 texcoord;\n"
+    private static final String DEPTH_COPY_FSH = "#version 120\n" + GL4ES_ROOM + "uniform sampler2D depthtex0;\nvarying vec2 texcoord;\n"
             + "void main() {\n    gl_FragDepth = texture2D(depthtex0, texcoord).r;\n    gl_FragColor = vec4(0.0);\n}\n";
 }

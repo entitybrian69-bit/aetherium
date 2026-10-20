@@ -1,4 +1,5 @@
 #version 120
+#include "/lib/fogv.glsl"
 #include "/settings.glsl"
 
 attribute vec4 mc_Entity;
@@ -38,5 +39,5 @@ void main() {
 #endif
     viewPos = vp.xyz;
     gl_Position = gl_ProjectionMatrix * vp;
-    gl_FogFragCoord = length(vp.xyz);
+    liteViewPos = vp.xyz;
 }

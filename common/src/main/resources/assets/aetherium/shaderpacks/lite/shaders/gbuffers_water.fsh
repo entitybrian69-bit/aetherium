@@ -5,10 +5,8 @@
 
 uniform sampler2D texture;
 uniform sampler2D lightmap;
-uniform vec3 skyColor;
 uniform vec3 shadowLightPosition;
 uniform float frameTimeCounter;
-uniform float rainStrength;
 uniform mat4 gbufferModelView;
 
 varying vec2 texcoord;

@@ -1,5 +1,6 @@
 #version 120
 #include "/settings.glsl"
+#include "/lib/fogv.glsl"
 
 attribute vec4 mc_Entity;
 attribute vec4 mc_midTexCoord;
@@ -47,7 +48,7 @@ void main() {
     }
 #endif
     gl_Position = gl_ProjectionMatrix * viewPos;
-    gl_FogFragCoord = length(viewPos.xyz);
+    liteViewPos = viewPos.xyz;
 #ifdef SHADOWS
     vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
     lightFacing = dot(normal, normalize(shadowLightPosition));
