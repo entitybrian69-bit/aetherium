@@ -192,6 +192,103 @@ public final class GlslPatcher {
         return out.toString();
     }
 
+    /** gl4es attribute numbering with more than 8 vertex attributes (buffers.h ARB_*). */
+    public static final int ATTRIB_ARB = 1;
+    /** gl4es attribute numbering with 8 or fewer (buffers.h COMP_*). */
+    public static final int ATTRIB_COMP = 2;
+    private static final Pattern BUILTIN_ATTRIB = Pattern.compile(
+            "\\bgl_(Vertex|Normal|Color|SecondaryColor|FogCoord|MultiTexCoord(1[0-5]|[0-9]))\\b");
+
+    private static final Pattern VERTEX_ID = Pattern.compile("\\bgl_VertexID\\b");
+    private static final Pattern FTRANSFORM = Pattern.compile("\\bftransform\\s*\\(\\s*\\)");
+
+    private static int attribIndex(final String name, final int layout) {
+        final boolean arb = layout == ATTRIB_ARB;
+        switch (name) {
+            case "Vertex": return 0;
+            case "Normal": return 2;
+            case "Color": return 3;
+            case "SecondaryColor": return 4;
+            case "FogCoord": return arb ? 5 : 1;
+            default: return (arb ? 8 : 5) + Integer.parseInt(name.substring("MultiTexCoord".length()));
+        }
+    }
+
+    /**
+     * gl4es family (Krypton): pins the fixed-function vertex inputs to the indices gl4es streams
+     * them to. Krypton turns every shader into SPIR-V with glslang and automatic locations, which
+     * numbers vertex inputs 0, 1, 2... in declaration order, and the explicit locations that come
+     * out override the glBindAttribLocation calls gl4es relies on (it always feeds gl_Color's array
+     * to index 3 or 1, gl_MultiTexCoord0's to 8 or 5, and so on). A shader using gl_Vertex,
+     * gl_Color and gl_MultiTexCoord0 then read its texture coordinates from the normals: one flat
+     * colour per face, no block ids (vanilla's alpha test used to hide it, by sending every draw
+     * through gl4es' own converter, which binds by name).
+     *
+     * <p>The built-ins become the names gl4es itself gives them ({@code _gl4es_Color}...), declared
+     * in index order with unused fillers in the gaps, so glslang's numbering lands exactly on
+     * gl4es' indices, and gl4es' name-based binding still finds them on its other paths. Declared
+     * under #version / #extension, inside the header of a {@link #patch} output (line numbers hold).
+     */
+    public static String pinAttributes(final String source, final int layout) {
+        if (layout != ATTRIB_ARB && layout != ATTRIB_COMP || source.indexOf("gl_") < 0) {
+            return source;
+        }
+        // gl4es pastes its own ftransform() using gl_Vertex, which it would declare a second time
+        final String vertex = source.indexOf("ftransform") < 0 ? source
+                : FTRANSFORM.matcher(source).replaceAll("(gl_ModelViewProjectionMatrix * gl_Vertex)");
+        final java.util.TreeMap<Integer, String> used = new java.util.TreeMap<>();
+        final Matcher m = BUILTIN_ATTRIB.matcher(vertex);
+        while (m.find()) {
+            used.put(attribIndex(m.group(1), layout), m.group(1));
+        }
+        // gl4es finds built-ins with strstr: "gl_Normal" inside gl_NormalMatrix would make it
+        // declare a second _gl4es_Normal (or an unpinned one ahead of these); the matrix gets its
+        // gl4es name too (uploaded by that name, fpe.c builtin_CheckUniform)
+        if (used.isEmpty() || vertex.contains("_gl4es_") || vertex.contains("gl_NormalScale")) {
+            return source;
+        }
+        final Matcher vm = VERSION.matcher(vertex);
+        final int version = vm.find() ? Integer.parseInt(vm.group(1)) : 120;
+        final String keyword = version >= 130 ? "in " : "attribute ";
+        final StringBuilder decl = new StringBuilder();
+        for (int i = 0; i <= used.lastKey(); i++) {
+            final String name = used.get(i);
+            if (name == null) {
+                decl.append(keyword).append("vec4 aetherium_unusedAttrib").append(i).append(";\n");
+            } else {
+                decl.append(keyword).append("Normal".equals(name) ? "vec3" : "FogCoord".equals(name) ? "float" : "vec4")
+                        .append(" _gl4es_").append(name).append(";\n");
+            }
+        }
+        String renamed = BUILTIN_ATTRIB.matcher(vertex).replaceAll("_gl4es_$1");
+        if (renamed.contains("gl_VertexID")) {
+            // same for gl_VertexID, even in code that is #if'd out: pasted back by the compiler
+            renamed = VERTEX_ID.matcher(renamed).replaceAll("aetherium_VertexID");
+            decl.append("#define aetherium_VertexID gl_Ver##texID\n");
+        }
+        if (renamed.contains("gl_NormalMatrix")) {
+            renamed = renamed.replace("gl_NormalMatrix", "_gl4es_NormalMatrix");
+            decl.append("uniform mat3 _gl4es_NormalMatrix;\n");
+        }
+        if (renamed.contains("gl_Normal") || renamed.contains("gl_Vertex") || renamed.contains("gl_Color")
+                || renamed.contains("gl_MultiTexCoord") || renamed.contains("gl_SecondaryColor")
+                || renamed.contains("gl_FogCoord")) {
+            return source; // something gl4es would still match
+        }
+        // under #version and the #extension lines, above the header code that reads them
+        if (!renamed.startsWith("#version")) {
+            return source;
+        }
+        int at = renamed.indexOf('\n') + 1;
+        while (at > 0 && renamed.startsWith("#extension", at)) {
+            at = renamed.indexOf('\n', at) + 1;
+        }
+        if (at <= 0) {
+            return source;
+        }
+        return renamed.substring(0, at) + decl + renamed.substring(at);
+    }
+
     private static final Pattern LAYOUT_OUT = Pattern.compile(
             "layout\\s*\\(\\s*location\\s*=\\s*\\d+\\s*\\)\\s*((?:flat\\s+)?out\\s)");
 

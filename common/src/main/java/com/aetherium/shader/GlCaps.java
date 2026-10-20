@@ -35,12 +35,18 @@ public final class GlCaps {
     public final boolean blit;
     public final boolean fragDataLocation;
     public final Set<String> extensions;
+    /**
+     * gl4es family (Krypton / NG-GL4ES, GL4ES): where it streams the fixed-function vertex arrays
+     * ({@link GlslPatcher#ATTRIB_ARB} when it reports more than 8 vertex attributes, else
+     * {@link GlslPatcher#ATTRIB_COMP}); 0 elsewhere. See GlslPatcher#pinAttributes.
+     */
+    public final int vertexAttribLayout;
 
     private GlCaps(final String vendor, final String renderer, final String version, final int glVersion,
                    final int glslVersion, final String translatorName, final int maxDrawBuffers,
                    final int maxColorAttachments, final int maxTextureUnits, final boolean floatTextures,
                    final boolean geometryShaders, final boolean blit, final boolean fragDataLocation,
-                   final Set<String> extensions) {
+                   final Set<String> extensions, final int vertexAttribLayout) {
         this.vendor = vendor;
         this.renderer = renderer;
         this.version = version;
@@ -56,6 +62,7 @@ public final class GlCaps {
         this.blit = blit;
         this.fragDataLocation = fragDataLocation;
         this.extensions = extensions;
+        this.vertexAttribLayout = vertexAttribLayout;
     }
 
     /** Reads the current context. {@code forceCompat}: treat as a translator (testing on desktop). */
@@ -135,8 +142,18 @@ public final class GlCaps {
                 // none
             }
         }
+        int attribLayout = 0;
+        if (translator != null && translator.contains("GL4ES")) {
+            int attribs = 16;
+            try {
+                attribs = GL11.glGetInteger(GL20.GL_MAX_VERTEX_ATTRIBS);
+            } catch (final RuntimeException ignored) {
+                // keep 16
+            }
+            attribLayout = attribs > 8 ? GlslPatcher.ATTRIB_ARB : GlslPatcher.ATTRIB_COMP;
+        }
         return new GlCaps(vendor, renderer, version, glVersion, glslVersion, translator, drawBuffers, attachments,
-                units, floats, geometry, blit, gl30, ext);
+                units, floats, geometry, blit, gl30, ext, attribLayout);
     }
 
     private static String str(final String s) {

@@ -29,11 +29,44 @@ public final class Preprocessor {
     /** The lines that are active, with directive lines removed and defines applied in order. */
     public List<String> activeLines(final String text) {
         final List<String> out = new ArrayList<>();
-        final String[] lines = joinContinuations(text).split("\n", -1);
+        this.walk(joinContinuations(text).split("\n", -1), out, null);
+        return out;
+    }
+
+    /**
+     * Per line of {@code text} (split on newlines, nothing joined): true for code lines that are
+     * active, false for directives and lines in inactive branches.
+     */
+    public boolean[] activeMask(final String text) {
+        final String[] lines = text.split("\n", -1);
+        final String[] joined = new String[lines.length];
+        for (int i = 0; i < lines.length; i++) {
+            if (!lines[i].trim().startsWith("#")) {
+                joined[i] = lines[i];
+                continue;
+            }
+            // a directive continued with backslashes is evaluated whole; its other lines are an
+            // empty directive (inactive, no effect)
+            final int first = i;
+            final StringBuilder d = new StringBuilder(lines[i]);
+            while (d.length() > 0 && d.charAt(d.length() - 1) == '\\' && i + 1 < lines.length) {
+                d.setLength(d.length() - 1);
+                d.append(' ').append(lines[++i]);
+                joined[i] = "#";
+            }
+            joined[first] = d.toString();
+        }
+        final boolean[] mask = new boolean[lines.length];
+        this.walk(joined, null, mask);
+        return mask;
+    }
+
+    private void walk(final String[] lines, final List<String> out, final boolean[] mask) {
         // Each frame: [active, anyBranchTaken, parentActive]
         final List<boolean[]> stack = new ArrayList<>();
         boolean active = true;
-        for (final String raw : lines) {
+        for (int index = 0; index < lines.length; index++) {
+            final String raw = lines[index];
             final String line = raw.trim();
             if (line.startsWith("#")) {
                 final String d = line.substring(1).trim();
@@ -98,17 +131,21 @@ public final class Preprocessor {
                         }
                         continue;
                     default:
-                        if (active) {
+                        if (active && out != null) {
                             out.add(raw); // #version, #extension, #include (already expanded), #line ...
                         }
                         continue;
                 }
             }
             if (active) {
-                out.add(raw);
+                if (out != null) {
+                    out.add(raw);
+                }
+                if (mask != null) {
+                    mask[index] = true;
+                }
             }
         }
-        return out;
     }
 
     private void define(final String rest) {

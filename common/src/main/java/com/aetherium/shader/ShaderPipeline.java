@@ -343,13 +343,23 @@ public final class ShaderPipeline {
         final Map<String, String> macros = this.macros();
         final boolean compat = this.caps.translator;
         final int max = this.caps.glslVersion;
-        final String vs = GlslPatcher.patch(src.vertex.text, GlslPatcher.VERTEX, macros, compat, max,
+        String vs = GlslPatcher.patch(src.vertex.text, GlslPatcher.VERTEX, macros, compat, max,
                 this.packed && stage != STAGE_COMPOSITE);
         final String frag = src.remapFragData(src.fragment.text);
-        final String fs = GlslPatcher.patch(stage == STAGE_COMPOSITE ? frag : GlslPatcher.injectAlphaTest(frag),
+        String fs = GlslPatcher.patch(stage == STAGE_COMPOSITE ? frag : GlslPatcher.injectAlphaTest(frag),
                 GlslPatcher.FRAGMENT, macros, compat, max);
         final String gs = src.geometry == null ? null
                 : GlslPatcher.patch(src.geometry.text, GlslPatcher.GEOMETRY, macros, compat, max);
+        vs = GlslPatcher.pinAttributes(vs, this.caps.vertexAttribLayout);
+        if (compat && gs == null) {
+            // translators link varyings by declaration order, not by name: same list, same order
+            final VaryingAligner.Result aligned = VaryingAligner.align(vs, fs);
+            vs = aligned.vertex;
+            fs = aligned.fragment;
+            if (aligned.skipped != null && !"no varyings".equals(aligned.skipped)) {
+                this.warnings.add(name + ": varyings left in pack order (" + aligned.skipped + ")");
+            }
+        }
         final GlProgram p;
         try {
             p = GlProgram.build(name, vs, fs, gs, src, this.caps.fragDataLocation,
@@ -382,7 +392,8 @@ public final class ShaderPipeline {
 
     private GlProgram internal(final String name, final String fragment) {
         try {
-            final GlProgram p = GlProgram.build(name, COPY_VSH, fragment, null, null, false, 0);
+            final GlProgram p = GlProgram.build(name, GlslPatcher.pinAttributes(COPY_VSH, this.caps.vertexAttribLayout),
+                    fragment, null, null, false, 0);
             this.assignUnits(p, STAGE_COMPOSITE);
             return p;
         } catch (final GlProgram.BuildException e) {
