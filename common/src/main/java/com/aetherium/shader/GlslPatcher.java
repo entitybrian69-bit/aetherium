@@ -108,6 +108,12 @@ public final class GlslPatcher {
             em.appendTail(sb);
             body = sb.toString();
         }
+        if (stage == FRAGMENT && version < 130 && extensions.indexOf("GL_ARB_shader_texture_lod") < 0
+                && LOD_SAMPLING.matcher(body).find()) {
+            // explicit-LOD sampling in a 1.20 fragment shader needs this extension; lenient drivers
+            // enable it silently ("enable" only warns where it is missing)
+            extensions.append("#extension GL_ARB_shader_texture_lod : enable\n");
+        }
         final StringBuilder out = new StringBuilder(body.length() + 2048);
         out.append("#version ").append(version);
         if (version >= 150 && !compat && version != 300) {
@@ -135,6 +141,8 @@ public final class GlslPatcher {
     private static final Pattern NEEDS_130 = Pattern.compile(
             "\\bflat\\s+(?:varying|in|out)\\b|\\b(?:texture|texelFetch|textureLod|textureSize|textureGrad)\\s*\\("
                     + "|\\bgl_VertexID\\b|\\bgl_InstanceID\\b|\\b(?:uint|uvec[234])\\b");
+    private static final Pattern LOD_SAMPLING = Pattern.compile(
+            "\\b(?:texture(?:1D|2D|3D|Cube|2DRect|1DShadow|2DShadow)(?:Proj)?(?:Lod|Grad(?:ARB)?)|shadow2D(?:Proj)?Lod)\\s*\\(");
     private static final Pattern FLAT_VARYING = Pattern.compile("\\bflat\\s+varying\\b");
     private static final Pattern TEXTURE_VARIABLE = Pattern.compile(
             "\\b(?:sampler2D|sampler2DShadow|float|vec[234]|int)\\s+texture\\s*[;=,\\[]");
