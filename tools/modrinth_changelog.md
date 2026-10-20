@@ -3,6 +3,15 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.18.4
+**Shader fixes for phones and an Iris-style shader screen (test build for Minecraft 1.16.5 only).**
+
+- Fixed scrambled block textures and patchy lighting with shaders on Android GL translators (Krypton, gl4es): the extra vertex data shader packs need no longer goes through texture coordinate slots that these translators mix up. Plant, leaf and water ids now travel in a part of the vertex that is always unused for blocks, so waving plants and water effects can work on phones too.
+- Iris-style Shaders tab: your shader packs are listed at the top; tap Use on one and it switches right away. The selected pack's settings appear right below, even from the title screen (no need to enter a world and reopen the screen first), and changed values show immediately.
+- Aetherium Lite has many more settings, grouped into Plants, Water, Sky and sun, Lighting and Color: waving strength and leaves on/off, ripple size, a moving water surface, reflections, water opacity, sun glint and water color, horizon glow, sun glow, god ray strength, cloud brightness, sunlight and torchlight warmth, shadow quality and distance, filmic colors, contrast and vignette strength.
+- The Aetherium Diagnostic pack is no longer listed.
+- The game's textures are always handed back after the shader frame, so menu text and hotbar items cannot vanish.
+
 ## 1.18.3
 **Better looking Aetherium Lite and shader fixes for Android (test build for Minecraft 1.16.5 only).**
 
