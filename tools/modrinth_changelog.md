@@ -3,6 +3,14 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.18.2
+**Finding your shader packs (test build for Minecraft 1.16.5 only).**
+
+- Packs in .minecraft/shaderpacks now show up even when your launcher gives each version its own game folder (common on Android launchers): Aetherium looks in the game folder's shaderpacks and in every shaderpacks folder above it, up to .minecraft.
+- The shaderpacks folder is created for you if it does not exist yet.
+- Unzipped packs with an extra folder level (BSL/BSL/shaders) now load.
+- The Pack folder row in the Shaders tab shows every folder Aetherium searches and how many packs it found there. New packs appear in the list after you reopen the settings screen.
+
 ## 1.18.1
 **Shader fixes for Android GL translators (test build for Minecraft 1.16.5 only).**
 
