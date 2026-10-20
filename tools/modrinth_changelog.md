@@ -3,6 +3,18 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.18.0
+**Shader packs (test build for Minecraft 1.16.5 only).** Aetherium now loads OptiFine/Iris-format shader packs by itself, without OptiFine, Iris or Sodium.
+
+- Put a pack (folder or .zip) into the shaderpacks folder and pick it in the new Shaders tab. Aetherium Lite, a light built-in pack made for phones, is always there.
+- The Shaders tab shows the pack's own option screens, sliders and profiles, a status line with problems, your device, Reload and Reset. Options are saved per pack.
+- Full pipeline: shadow map, gbuffers, deferred, composite and final passes, colortex0-15 with formats, clears and ping-pong, custom noise texture, block and item IDs (block.properties, item.properties), mc_Entity, mc_midTexCoord and at_tangent, OptiFine uniforms and custom uniforms, world folders (world-1, world1).
+- Modern OpenGL mode on PC: packs compile as GLSL up to 4.50 compatibility, and packs written for lenient drivers (GLSL 1.30 code under version 120, late extension lines, missing DRAWBUFFERS) are fixed up so they also run on strict drivers.
+- Compatibility mode for Android GL translators (gl4es, Krypton): automatic, or forced on or off in the Shaders tab. It targets GLSL 1.20 and halves the shadow map.
+- Tested in CI on Mesa llvmpipe: BSL 10.1.8, Complementary Reimagined r5.9.3, MakeUp Ultra Fast 9.6, Sildur's Vibrant 2.02 and Aetherium Lite all compile with no errors in both modes and render the world.
+- While a pack is on, the Aetherium renderer, render scale, far terrain, shader presets and the GL state cache step aside.
+- Not supported yet: shadowcomp passes, normal and specular maps, resource-pack textures in packs, buffer scale and flip overrides, custom blend and alpha overrides.
+
 ## 1.17.0
 **Quality of life on every version.** The QoL tab, tested on Minecraft 1.16.5 in the 1.16.x GitHub test builds, now works on every version from 1.16.5 to 26.3. Every feature is off by default, runs only on your client, and works on any server, including servers without Aetherium.
 
