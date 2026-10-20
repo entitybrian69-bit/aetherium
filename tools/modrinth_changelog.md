@@ -3,6 +3,16 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.18.6
+**Fixes the flat, untextured blocks and still plants with shaders on Krypton (test build for Minecraft 1.16.5 only).**
+
+- Fixed blocks, items and the hand drawing as flat single colors (and everything drowning in grey fog) with shaders on Krypton. Krypton numbers a shader's inputs in the order they are written, but feeds Minecraft's vertex data (position, color, texture coordinates, normal) to fixed slots, so packs read their texture coordinates from the block normals. 1.18.4 only looked right because Minecraft's alpha test was sending every draw down a slower path; the 1.18.5 crash fix turned that off and exposed it. Aetherium now places each input in exactly the slot Krypton fills, for every shader pack.
+- The same mix-up fed the plant, leaf and water ids from the wrong slot, so waving plants and leaves should finally move on phones.
+- Values passed from a pack's vertex to its fragment shader are now declared in the same order in both, so packs that declare them differently per stage no longer get them crossed on Krypton.
+- The Shaders tab has all its settings back: Off, Aetherium Lite, and the full settings of the active pack (profiles, every option page) right on the tab.
+- The External Shaders screen lists only shader packs you downloaded; Aetherium Lite stays on the Shaders tab, and Disabled on that screen no longer turns Lite off.
+- The log and the screen footer show the real Aetherium version (the Fabric build could pick up another mod's version).
+
 ## 1.18.5
 **Shader crash and vegetation fixes for phones, a new shader pack screen, a better looking Aetherium Lite and real Mouse Tweaks (test build for Minecraft 1.16.5 only).**
 
