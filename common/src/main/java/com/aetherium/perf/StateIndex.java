@@ -138,6 +138,37 @@ public final class StateIndex {
         return this.states[index + (v - current) * stride];
     }
 
+    /** Receives (property, value, state) for {@link #forEachNeighbour}. */
+    public interface NeighbourVisitor {
+        void accept(Object property, Object value, Object state);
+    }
+
+    /**
+     * Every (property, value) of this block with the state at {@code index} changed to it, the
+     * state's own values included (as the state itself); properties in index order.
+     */
+    public void forEachNeighbour(final int index, final NeighbourVisitor visitor) {
+        if (index < 0 || index >= this.states.length) {
+            return;
+        }
+        for (int p = 0; p < this.properties.length; p++) {
+            final int stride = this.strides[p];
+            final int current = index / stride % this.sizes[p];
+            for (int v = 0; v < this.sizes[p]; v++) {
+                visitor.accept(this.properties[p], this.values[p][v], this.states[index + (v - current) * stride]);
+            }
+        }
+    }
+
+    /** Entries of vanilla's per-state table: every other value of every property. */
+    public int neighbourCount() {
+        int count = 0;
+        for (final int size : this.sizes) {
+            count += size - 1;
+        }
+        return count;
+    }
+
     /** The state stored at {@code index} (tests and the self-test). */
     public Object state(final int index) {
         return index >= 0 && index < this.states.length ? this.states[index] : null;

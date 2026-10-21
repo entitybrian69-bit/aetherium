@@ -292,6 +292,13 @@ public final class TuningSupport {
     //~ public static final boolean SIGN = false;
     // @era:t-sign-end
 
+    // 1.17.2 performance work (Minecraft 1.16.5 only).
+    // @era:boost16-begin none
+    public static final boolean BOOST = false;
+    // @era:boost16-else v16
+    //~ public static final boolean BOOST = true;
+    // @era:boost16-end
+
     // @era:t-skin-begin v16
     public static final boolean SKIN = true;
     // @era:t-skin-else none
@@ -409,6 +416,28 @@ public final class TuningSupport {
                 return SIGN;
             case "TuningSkinMixin":
                 return SKIN;
+            case "TuningStateMixin":
+            case "TuningFluidCacheMixin":
+            case "TuningSearchMixin":
+            case "TuningSearchTreeMixin":
+            case "TuningHudMixin":
+            case "TuningHudFrameMixin":
+            case "TuningHudBlendMixin":
+            case "TuningEntityTickMixin":
+            case "TuningLerpAccessor":
+            case "TuningSnapshotMixin":
+            case "TuningGoalMixin":
+            case "TuningEntityDataMixin":
+            case "TuningFrameDecoderMixin":
+            case "TuningInflateMixin":
+            case "TuningChestBakeMixin":
+            case "TuningCompiledAccessor":
+            case "TuningChestPartsAccessor":
+            case "TuningChestLidMixin":
+            case "TuningEnderLidMixin":
+            case "TuningChestAtlasMixin":
+            case "TuningDestroyMixin":
+                return BOOST;
             case "TuningSkullMixin":
                 return SKULL;
             case "TuningSkyMixin":
@@ -467,6 +496,19 @@ public final class TuningSupport {
             "perf.lightmap_rate",
             "perf.ao_cache",
             "perf.async_skins",
+            "perf.compact_block_states",
+            "perf.fast_block_data",
+            "perf.lazy_search",
+            "perf.hud_fps",
+            "perf.entity_tick_culling",
+            "perf.fast_section_snapshots",
+            "perf.fast_mob_ai",
+            "perf.fast_entity_data",
+            "perf.fast_network",
+            "perf.multi_draw",
+            "perf.batched_chests",
+            "perf.packed_terrain",
+            "perf.occlusion_queries",
             "quality.far_terrain",
             "quality.shader_preset",
             "quality.cloud_distance",
@@ -549,6 +591,22 @@ public final class TuningSupport {
                 return AO_CACHE;
             case "perf.async_skins":
                 return SKIN;
+            case "perf.compact_block_states":
+            case "perf.fast_block_data":
+            case "perf.lazy_search":
+            case "perf.hud_fps":
+            case "perf.entity_tick_culling":
+            case "perf.fast_section_snapshots":
+            case "perf.fast_mob_ai":
+            case "perf.fast_entity_data":
+            case "perf.fast_network":
+            case "perf.batched_chests":
+                return BOOST;
+            case "perf.multi_draw":
+            case "perf.packed_terrain":
+            case "perf.occlusion_queries":
+                // Drawn by the Aetherium pipeline's batched path.
+                return BOOST && com.aetherium.Capabilities.AETHERIUM_RENDERER;
             case "quality.far_terrain":
                 return FAR_TERRAIN && FAR_DRAW && LIGHT && (LEVEL || !LEVEL_DRAWS_FAR)
                         && com.aetherium.client.FarTerrain.available();
