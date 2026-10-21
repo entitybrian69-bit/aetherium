@@ -41,6 +41,8 @@ public final class HudRate {
     private static long stateKey = Long.MIN_VALUE;
     private static int refreshes;
     private static int reuses;
+    /** The HUD is being drawn into the picture (render thread): live parts skip themselves. */
+    private static boolean capturing;
 
     private HudRate() {
     }
@@ -100,6 +102,35 @@ public final class HudRate {
         return REFRESH;
     }
 
+    /** True while the HUD is drawn into the picture: the crosshair, vignette and labels wait. */
+    public static boolean capturing() {
+        return capturing;
+    }
+
+    public static void setCapturing(final boolean value) {
+        capturing = value;
+    }
+
+    /**
+     * Alpha blend factors that keep the picture's alpha channel right while it is drawn over a
+     * transparent background: a normal blend accumulates coverage (one, one minus source alpha),
+     * an additive one ({@code dstRgb == GL_ONE}) leaves it as it is. Colour factors are untouched,
+     * so colours land premultiplied, and the picture is laid over the world with (one, one minus
+     * source alpha).
+     *
+     * @return {@code srcAlpha << 16 | dstAlpha}
+     */
+    public static int alphaFactorsFor(final int dstRgb) {
+        return dstRgb == GL_ONE ? PACKED_ADDITIVE : PACKED_COVER;
+    }
+
+    public static final int GL_ZERO = 0;
+    public static final int GL_ONE = 1;
+    public static final int GL_ONE_MINUS_SRC_ALPHA = 0x0303;
+    /** srcAlpha << 16 | dstAlpha. */
+    static final int PACKED_COVER = GL_ONE << 16 | GL_ONE_MINUS_SRC_ALPHA;
+    static final int PACKED_ADDITIVE = GL_ZERO << 16 | GL_ONE;
+
     /** The refresh failed (no picture): draw directly until the next decision. */
     public static void refreshFailed() {
         valid = false;
@@ -125,5 +156,6 @@ public final class HudRate {
         stateKey = Long.MIN_VALUE;
         refreshes = 0;
         reuses = 0;
+        capturing = false;
     }
 }

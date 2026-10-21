@@ -32,7 +32,11 @@ public final class FrameHud {
 
     /** Gui.render: waypoint and damage overlays, the frame box, then the Quality of life HUD lines. */
     public static void render(final GuiCanvas canvas) {
-        QolOverlay.render(canvas); // world-anchored labels first, under the HUD boxes
+        if (!com.aetherium.perf.HudRate.capturing()) {
+            // World-anchored labels first, under the HUD boxes; with the HUD refresh rate they are
+            // drawn live every frame instead of into the cached HUD picture.
+            QolOverlay.render(canvas);
+        }
         renderFrame(canvas);
         QolClient.renderHud(canvas);
     }
