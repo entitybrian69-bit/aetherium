@@ -298,9 +298,17 @@ public final class AutoBench {
                 //~ if (s.fly == 0) {
                     //~ holdAtBase(mc);
                 //~ }
+                //~ // The debug screen is shown for the screenshot so the HUD (and the HUD refresh rate's
+                //~ // reused picture) can be compared between scenarios.
+                //~ if (phaseTicks == 24 && s.reported && s.fly == 0) {
+                    //~ mc.options.renderDebug = true;
+                //~ }
                 //~ if (phaseTicks == 30 && s.reported && s.fly == 0) {
                     //~ Screenshot.grab(mc.gameDirectory, "bench-" + s.id + ".png", mc.getWindow().getWidth(),
                             //~ mc.getWindow().getHeight(), mc.getMainRenderTarget(), message -> { });
+                //~ }
+                //~ if (phaseTicks == 31) {
+                    //~ mc.options.renderDebug = false;
                 //~ }
                 //~ if (phaseTicks > 40) {
                     //~ scenario++;
