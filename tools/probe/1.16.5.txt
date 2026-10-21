@@ -69979,6 +69979,1572 @@ Code:
 253: goto          23
 256: return
 
+=== method net.minecraft.client.renderer.chunk.RenderChunkRegion :: RenderChunkRegion[(]
+##   public net.minecraft.client.renderer.chunk.RenderChunkRegion(net.minecraft.world.level.Level, int, int, net.minecraft.world.level.chunk.LevelChunk[][], net.minecraft.core.BlockPos, net.minecraft.core.BlockPos);
+Code:
+0: aload_0
+1: invokespecial #87                 // Method java/lang/Object."<init>":()V
+4: aload_0
+5: aload_1
+6: putfield      #89                 // Field level:Lnet/minecraft/world/level/Level;
+9: aload_0
+10: iload_2
+11: putfield      #91                 // Field centerX:I
+14: aload_0
+15: iload_3
+16: putfield      #93                 // Field centerZ:I
+19: aload_0
+20: aload         4
+22: putfield      #95                 // Field chunks:[[Lnet/minecraft/world/level/chunk/LevelChunk;
+25: aload_0
+26: aload         5
+28: putfield      #97                 // Field start:Lnet/minecraft/core/BlockPos;
+31: aload_0
+32: aload         6
+34: invokevirtual #44                 // Method net/minecraft/core/BlockPos.getX:()I
+37: aload         5
+39: invokevirtual #44                 // Method net/minecraft/core/BlockPos.getX:()I
+42: isub
+43: iconst_1
+44: iadd
+45: putfield      #99                 // Field xLength:I
+48: aload_0
+49: aload         6
+51: invokevirtual #78                 // Method net/minecraft/core/BlockPos.getY:()I
+54: aload         5
+56: invokevirtual #78                 // Method net/minecraft/core/BlockPos.getY:()I
+59: isub
+60: iconst_1
+61: iadd
+62: putfield      #101                // Field yLength:I
+65: aload_0
+66: aload         6
+68: invokevirtual #47                 // Method net/minecraft/core/BlockPos.getZ:()I
+71: aload         5
+73: invokevirtual #47                 // Method net/minecraft/core/BlockPos.getZ:()I
+76: isub
+77: iconst_1
+78: iadd
+79: putfield      #103                // Field zLength:I
+82: aload_0
+83: aload_0
+84: getfield      #99                 // Field xLength:I
+87: aload_0
+88: getfield      #101                // Field yLength:I
+91: imul
+92: aload_0
+93: getfield      #103                // Field zLength:I
+96: imul
+97: anewarray     #105                // class net/minecraft/world/level/block/state/BlockState
+100: putfield      #107                // Field blockStates:[Lnet/minecraft/world/level/block/state/BlockState;
+103: aload_0
+104: aload_0
+105: getfield      #99                 // Field xLength:I
+108: aload_0
+109: getfield      #101                // Field yLength:I
+112: imul
+113: aload_0
+114: getfield      #103                // Field zLength:I
+117: imul
+118: anewarray     #109                // class net/minecraft/world/level/material/FluidState
+121: putfield      #111                // Field fluidStates:[Lnet/minecraft/world/level/material/FluidState;
+124: aload         5
+126: aload         6
+128: invokestatic  #115                // Method net/minecraft/core/BlockPos.betweenClosed:(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Ljava/lang/Iterable;
+131: invokeinterface #121,  1          // InterfaceMethod java/lang/Iterable.iterator:()Ljava/util/Iterator;
+136: astore        7
+138: aload         7
+140: invokeinterface #127,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+145: ifeq          231
+148: aload         7
+150: invokeinterface #131,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+155: checkcast     #40                 // class net/minecraft/core/BlockPos
+158: astore        8
+160: aload         8
+162: invokevirtual #44                 // Method net/minecraft/core/BlockPos.getX:()I
+165: iconst_4
+166: ishr
+167: iload_2
+168: isub
+169: istore        9
+171: aload         8
+173: invokevirtual #47                 // Method net/minecraft/core/BlockPos.getZ:()I
+176: iconst_4
+177: ishr
+178: iload_3
+179: isub
+180: istore        10
+182: aload         4
+184: iload         9
+186: aaload
+187: iload         10
+189: aaload
+190: astore        11
+192: aload_0
+193: aload         8
+195: invokevirtual #135                // Method index:(Lnet/minecraft/core/BlockPos;)I
+198: istore        12
+200: aload_0
+201: getfield      #107                // Field blockStates:[Lnet/minecraft/world/level/block/state/BlockState;
+204: iload         12
+206: aload         11
+208: aload         8
+210: invokevirtual #139                // Method net/minecraft/world/level/chunk/LevelChunk.getBlockState:(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;
+213: aastore
+214: aload_0
+215: getfield      #111                // Field fluidStates:[Lnet/minecraft/world/level/material/FluidState;
+218: iload         12
+220: aload         11
+222: aload         8
+224: invokevirtual #143                // Method net/minecraft/world/level/chunk/LevelChunk.getFluidState:(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/material/FluidState;
+227: aastore
+228: goto          138
+231: return
+
+=== method net.minecraft.network.CompressionDecoder :: .
+##   private final java.util.zip.Inflater inflater;
+
+##   private int threshold;
+
+##   public net.minecraft.network.CompressionDecoder(int);
+Code:
+0: aload_0
+1: invokespecial #15                 // Method io/netty/handler/codec/ByteToMessageDecoder."<init>":()V
+4: aload_0
+5: iload_1
+6: putfield      #17                 // Field threshold:I
+9: aload_0
+10: new           #19                 // class java/util/zip/Inflater
+13: dup
+14: invokespecial #20                 // Method java/util/zip/Inflater."<init>":()V
+17: putfield      #22                 // Field inflater:Ljava/util/zip/Inflater;
+20: return
+
+##   protected void decode(io.netty.channel.ChannelHandlerContext, io.netty.buffer.ByteBuf, java.util.List<java.lang.Object>) throws java.lang.Exception;
+Code:
+0: aload_2
+1: invokevirtual #38                 // Method io/netty/buffer/ByteBuf.readableBytes:()I
+4: ifne          8
+7: return
+8: new           #42                 // class net/minecraft/network/FriendlyByteBuf
+11: dup
+12: aload_2
+13: invokespecial #45                 // Method net/minecraft/network/FriendlyByteBuf."<init>":(Lio/netty/buffer/ByteBuf;)V
+16: astore        4
+18: aload         4
+20: invokevirtual #48                 // Method net/minecraft/network/FriendlyByteBuf.readVarInt:()I
+23: istore        5
+25: iload         5
+27: ifne          50
+30: aload_3
+31: aload         4
+33: aload         4
+35: invokevirtual #49                 // Method net/minecraft/network/FriendlyByteBuf.readableBytes:()I
+38: invokevirtual #53                 // Method net/minecraft/network/FriendlyByteBuf.readBytes:(I)Lio/netty/buffer/ByteBuf;
+41: invokeinterface #57,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+46: pop
+47: goto          205
+50: iload         5
+52: aload_0
+53: getfield      #17                 // Field threshold:I
+56: if_icmpge     99
+59: new           #59                 // class io/netty/handler/codec/DecoderException
+62: dup
+63: new           #61                 // class java/lang/StringBuilder
+66: dup
+67: invokespecial #62                 // Method java/lang/StringBuilder."<init>":()V
+70: ldc           #64                 // String Badly compressed packet - size of
+72: invokevirtual #68                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+75: iload         5
+77: invokevirtual #71                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+80: ldc           #73                 // String  is below server threshold of
+82: invokevirtual #68                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+85: aload_0
+86: getfield      #17                 // Field threshold:I
+89: invokevirtual #71                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+92: invokevirtual #77                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+95: invokespecial #80                 // Method io/netty/handler/codec/DecoderException."<init>":(Ljava/lang/String;)V
+98: athrow
+99: iload         5
+101: ldc           #81                 // int 2097152
+103: if_icmple     144
+106: new           #59                 // class io/netty/handler/codec/DecoderException
+109: dup
+110: new           #61                 // class java/lang/StringBuilder
+113: dup
+114: invokespecial #62                 // Method java/lang/StringBuilder."<init>":()V
+117: ldc           #64                 // String Badly compressed packet - size of
+119: invokevirtual #68                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+122: iload         5
+124: invokevirtual #71                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+127: ldc           #83                 // String  is larger than protocol maximum of
+129: invokevirtual #68                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+132: ldc           #81                 // int 2097152
+134: invokevirtual #71                 // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+137: invokevirtual #77                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+140: invokespecial #80                 // Method io/netty/handler/codec/DecoderException."<init>":(Ljava/lang/String;)V
+143: athrow
+144: aload         4
+146: invokevirtual #49                 // Method net/minecraft/network/FriendlyByteBuf.readableBytes:()I
+149: newarray       byte
+151: astore        6
+153: aload         4
+155: aload         6
+157: invokevirtual #86                 // Method net/minecraft/network/FriendlyByteBuf.readBytes:([B)Lio/netty/buffer/ByteBuf;
+160: pop
+161: aload_0
+162: getfield      #22                 // Field inflater:Ljava/util/zip/Inflater;
+165: aload         6
+167: invokevirtual #90                 // Method java/util/zip/Inflater.setInput:([B)V
+170: iload         5
+172: newarray       byte
+174: astore        7
+176: aload_0
+177: getfield      #22                 // Field inflater:Ljava/util/zip/Inflater;
+180: aload         7
+182: invokevirtual #94                 // Method java/util/zip/Inflater.inflate:([B)I
+185: pop
+186: aload_3
+187: aload         7
+189: invokestatic  #99                 // Method io/netty/buffer/Unpooled.wrappedBuffer:([B)Lio/netty/buffer/ByteBuf;
+192: invokeinterface #57,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+197: pop
+198: aload_0
+199: getfield      #22                 // Field inflater:Ljava/util/zip/Inflater;
+202: invokevirtual #102                // Method java/util/zip/Inflater.reset:()V
+205: return
+
+##   public void setThreshold(int);
+Code:
+0: aload_0
+1: iload_1
+2: putfield      #17                 // Field threshold:I
+5: return
+}
+=== method net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase :: (getFluidState|initCache)[(]
+##   public void initCache();
+Code:
+0: aload_0
+1: invokevirtual #175                // Method getBlock:()Lnet/minecraft/world/level/block/Block;
+4: invokevirtual #179                // Method net/minecraft/world/level/block/Block.hasDynamicShape:()Z
+7: ifne          26
+10: aload_0
+11: new           #11                 // class net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache
+14: dup
+15: aload_0
+16: invokevirtual #81                 // Method asState:()Lnet/minecraft/world/level/block/state/BlockState;
+19: aconst_null
+20: invokespecial #182                // Method net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache."<init>":(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockBehaviour$1;)V
+23: putfield      #184                // Field cache:Lnet/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache;
+26: return
+
+##   public net.minecraft.world.level.material.FluidState getFluidState();
+Code:
+0: aload_0
+1: invokevirtual #175                // Method getBlock:()Lnet/minecraft/world/level/block/Block;
+4: aload_0
+5: invokevirtual #81                 // Method asState:()Lnet/minecraft/world/level/block/state/BlockState;
+8: invokevirtual #619                // Method net/minecraft/world/level/block/Block.getFluidState:(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;
+11: areturn
+
+=== method net.minecraft.world.entity.LivingEntity :: (aiStep|lerpTo)[(]
+##   public void aiStep();
+Code:
+0: aload_0
+1: getfield      #2916               // Field noJumpDelay:I
+4: ifle          17
+7: aload_0
+8: dup
+9: getfield      #2916               // Field noJumpDelay:I
+12: iconst_1
+13: isub
+14: putfield      #2916               // Field noJumpDelay:I
+17: aload_0
+18: invokevirtual #2536               // Method isControlledByLocalInstance:()Z
+21: ifeq          45
+24: aload_0
+25: iconst_0
+26: putfield      #2918               // Field lerpSteps:I
+29: aload_0
+30: aload_0
+31: invokevirtual #511                // Method getX:()D
+34: aload_0
+35: invokevirtual #514                // Method getY:()D
+38: aload_0
+39: invokevirtual #517                // Method getZ:()D
+42: invokevirtual #2921               // Method setPacketCoordinates:(DDD)V
+45: aload_0
+46: getfield      #2918               // Field lerpSteps:I
+49: ifle          210
+52: aload_0
+53: invokevirtual #511                // Method getX:()D
+56: aload_0
+57: getfield      #2923               // Field lerpX:D
+60: aload_0
+61: invokevirtual #511                // Method getX:()D
+64: dsub
+65: aload_0
+66: getfield      #2918               // Field lerpSteps:I
+69: i2d
+70: ddiv
+71: dadd
+72: dstore_1
+73: aload_0
+74: invokevirtual #514                // Method getY:()D
+77: aload_0
+78: getfield      #2925               // Field lerpY:D
+81: aload_0
+82: invokevirtual #514                // Method getY:()D
+85: dsub
+86: aload_0
+87: getfield      #2918               // Field lerpSteps:I
+90: i2d
+91: ddiv
+92: dadd
+93: dstore_3
+94: aload_0
+95: invokevirtual #517                // Method getZ:()D
+98: aload_0
+99: getfield      #2927               // Field lerpZ:D
+102: aload_0
+103: invokevirtual #517                // Method getZ:()D
+106: dsub
+107: aload_0
+108: getfield      #2918               // Field lerpSteps:I
+111: i2d
+112: ddiv
+113: dadd
+114: dstore        5
+116: aload_0
+117: getfield      #2929               // Field lerpYRot:D
+120: aload_0
+121: getfield      #286                // Field yRot:F
+124: f2d
+125: dsub
+126: invokestatic  #2931               // Method net/minecraft/util/Mth.wrapDegrees:(D)D
+129: dstore        7
+131: aload_0
+132: dup
+133: getfield      #286                // Field yRot:F
+136: f2d
+137: dload         7
+139: aload_0
+140: getfield      #2918               // Field lerpSteps:I
+143: i2d
+144: ddiv
+145: dadd
+146: d2f
+147: putfield      #286                // Field yRot:F
+150: aload_0
+151: dup
+152: getfield      #837                // Field xRot:F
+155: f2d
+156: aload_0
+157: getfield      #2933               // Field lerpXRot:D
+160: aload_0
+161: getfield      #837                // Field xRot:F
+164: f2d
+165: dsub
+166: aload_0
+167: getfield      #2918               // Field lerpSteps:I
+170: i2d
+171: ddiv
+172: dadd
+173: d2f
+174: putfield      #837                // Field xRot:F
+177: aload_0
+178: dup
+179: getfield      #2918               // Field lerpSteps:I
+182: iconst_1
+183: isub
+184: putfield      #2918               // Field lerpSteps:I
+187: aload_0
+188: dload_1
+189: dload_3
+190: dload         5
+192: invokevirtual #2936               // Method setPos:(DDD)V
+195: aload_0
+196: aload_0
+197: getfield      #286                // Field yRot:F
+200: aload_0
+201: getfield      #837                // Field xRot:F
+204: invokevirtual #2940               // Method setRot:(FF)V
+207: goto          231
+210: aload_0
+211: invokevirtual #2533               // Method isEffectiveAi:()Z
+214: ifne          231
+217: aload_0
+218: aload_0
+219: invokevirtual #722                // Method getDeltaMovement:()Lnet/minecraft/world/phys/Vec3;
+222: ldc2_w        #2941               // double 0.98d
+225: invokevirtual #2086               // Method net/minecraft/world/phys/Vec3.scale:(D)Lnet/minecraft/world/phys/Vec3;
+228: invokevirtual #2513               // Method setDeltaMovement:(Lnet/minecraft/world/phys/Vec3;)V
+231: aload_0
+232: getfield      #2944               // Field lerpHeadSteps:I
+235: ifle          278
+238: aload_0
+239: dup
+240: getfield      #288                // Field yHeadRot:F
+243: f2d
+244: aload_0
+245: getfield      #2946               // Field lyHeadRot:D
+248: aload_0
+249: getfield      #288                // Field yHeadRot:F
+252: f2d
+253: dsub
+254: invokestatic  #2931               // Method net/minecraft/util/Mth.wrapDegrees:(D)D
+257: aload_0
+258: getfield      #2944               // Field lerpHeadSteps:I
+261: i2d
+262: ddiv
+263: dadd
+264: d2f
+265: putfield      #288                // Field yHeadRot:F
+268: aload_0
+269: dup
+270: getfield      #2944               // Field lerpHeadSteps:I
+273: iconst_1
+274: isub
+275: putfield      #2944               // Field lerpHeadSteps:I
+278: aload_0
+279: invokevirtual #722                // Method getDeltaMovement:()Lnet/minecraft/world/phys/Vec3;
+282: astore_1
+283: aload_1
+284: getfield      #739                // Field net/minecraft/world/phys/Vec3.x:D
+287: dstore_2
+288: aload_1
+289: getfield      #742                // Field net/minecraft/world/phys/Vec3.y:D
+292: dstore        4
+294: aload_1
+295: getfield      #745                // Field net/minecraft/world/phys/Vec3.z:D
+298: dstore        6
+300: aload_1
+301: getfield      #739                // Field net/minecraft/world/phys/Vec3.x:D
+304: invokestatic  #2712               // Method java/lang/Math.abs:(D)D
+307: ldc2_w        #2713               // double 0.003d
+310: dcmpg
+311: ifge          316
+314: dconst_0
+315: dstore_2
+316: aload_1
+317: getfield      #742                // Field net/minecraft/world/phys/Vec3.y:D
+320: invokestatic  #2712               // Method java/lang/Math.abs:(D)D
+323: ldc2_w        #2713               // double 0.003d
+326: dcmpg
+327: ifge          333
+330: dconst_0
+331: dstore        4
+333: aload_1
+334: getfield      #745                // Field net/minecraft/world/phys/Vec3.z:D
+337: invokestatic  #2712               // Method java/lang/Math.abs:(D)D
+340: ldc2_w        #2713               // double 0.003d
+343: dcmpg
+344: ifge          350
+347: dconst_0
+348: dstore        6
+350: aload_0
+351: dload_2
+352: dload         4
+354: dload         6
+356: invokevirtual #2094               // Method setDeltaMovement:(DDD)V
+359: aload_0
+360: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+363: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+366: ldc_w         #2948               // String ai
+369: invokeinterface #608,  2          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.push:(Ljava/lang/String;)V
+374: aload_0
+375: invokevirtual #2950               // Method isImmobile:()Z
+378: ifeq          399
+381: aload_0
+382: iconst_0
+383: putfield      #2707               // Field jumping:Z
+386: aload_0
+387: fconst_0
+388: putfield      #2952               // Field xxa:F
+391: aload_0
+392: fconst_0
+393: putfield      #2954               // Field zza:F
+396: goto          437
+399: aload_0
+400: invokevirtual #2533               // Method isEffectiveAi:()Z
+403: ifeq          437
+406: aload_0
+407: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+410: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+413: ldc_w         #2956               // String newAi
+416: invokeinterface #608,  2          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.push:(Ljava/lang/String;)V
+421: aload_0
+422: invokevirtual #2959               // Method serverAiStep:()V
+425: aload_0
+426: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+429: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+432: invokeinterface #843,  1          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.pop:()V
+437: aload_0
+438: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+441: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+444: invokeinterface #843,  1          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.pop:()V
+449: aload_0
+450: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+453: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+456: ldc_w         #2961               // String jump
+459: invokeinterface #608,  2          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.push:(Ljava/lang/String;)V
+464: aload_0
+465: getfield      #2707               // Field jumping:Z
+468: ifeq          635
+471: aload_0
+472: invokevirtual #2547               // Method isAffectedByFluids:()Z
+475: ifeq          635
+478: aload_0
+479: invokevirtual #2608               // Method isInLava:()Z
+482: ifeq          497
+485: aload_0
+486: getstatic     #2611               // Field net/minecraft/tags/FluidTags.LAVA:Lnet/minecraft/tags/Tag$Named;
+489: invokevirtual #2615               // Method getFluidHeight:(Lnet/minecraft/tags/Tag;)D
+492: dstore        8
+494: goto          506
+497: aload_0
+498: getstatic     #672                // Field net/minecraft/tags/FluidTags.WATER:Lnet/minecraft/tags/Tag$Named;
+501: invokevirtual #2615               // Method getFluidHeight:(Lnet/minecraft/tags/Tag;)D
+504: dstore        8
+506: aload_0
+507: invokevirtual #454                // Method isInWater:()Z
+510: ifeq          524
+513: dload         8
+515: dconst_0
+516: dcmpl
+517: ifle          524
+520: iconst_1
+521: goto          525
+524: iconst_0
+525: istore        10
+527: aload_0
+528: invokevirtual #2618               // Method getFluidJumpThreshold:()D
+531: dstore        11
+533: iload         10
+535: ifeq          563
+538: aload_0
+539: getfield      #2089               // Field onGround:Z
+542: ifeq          553
+545: dload         8
+547: dload         11
+549: dcmpl
+550: ifle          563
+553: aload_0
+554: getstatic     #672                // Field net/minecraft/tags/FluidTags.WATER:Lnet/minecraft/tags/Tag$Named;
+557: invokevirtual #2963               // Method jumpInLiquid:(Lnet/minecraft/tags/Tag;)V
+560: goto          632
+563: aload_0
+564: invokevirtual #2608               // Method isInLava:()Z
+567: ifeq          595
+570: aload_0
+571: getfield      #2089               // Field onGround:Z
+574: ifeq          585
+577: dload         8
+579: dload         11
+581: dcmpl
+582: ifle          595
+585: aload_0
+586: getstatic     #2611               // Field net/minecraft/tags/FluidTags.LAVA:Lnet/minecraft/tags/Tag$Named;
+589: invokevirtual #2963               // Method jumpInLiquid:(Lnet/minecraft/tags/Tag;)V
+592: goto          632
+595: aload_0
+596: getfield      #2089               // Field onGround:Z
+599: ifne          615
+602: iload         10
+604: ifeq          632
+607: dload         8
+609: dload         11
+611: dcmpg
+612: ifgt          632
+615: aload_0
+616: getfield      #2916               // Field noJumpDelay:I
+619: ifne          632
+622: aload_0
+623: invokevirtual #2965               // Method jumpFromGround:()V
+626: aload_0
+627: bipush        10
+629: putfield      #2916               // Field noJumpDelay:I
+632: goto          640
+635: aload_0
+636: iconst_0
+637: putfield      #2916               // Field noJumpDelay:I
+640: aload_0
+641: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+644: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+647: invokeinterface #843,  1          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.pop:()V
+652: aload_0
+653: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+656: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+659: ldc_w         #2966               // String travel
+662: invokeinterface #608,  2          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.push:(Ljava/lang/String;)V
+667: aload_0
+668: dup
+669: getfield      #2952               // Field xxa:F
+672: ldc_w         #2967               // float 0.98f
+675: fmul
+676: putfield      #2952               // Field xxa:F
+679: aload_0
+680: dup
+681: getfield      #2954               // Field zza:F
+684: ldc_w         #2967               // float 0.98f
+687: fmul
+688: putfield      #2954               // Field zza:F
+691: aload_0
+692: invokespecial #2970               // Method updateFallFlying:()V
+695: aload_0
+696: invokevirtual #627                // Method getBoundingBox:()Lnet/minecraft/world/phys/AABB;
+699: astore        8
+701: aload_0
+702: new           #724                // class net/minecraft/world/phys/Vec3
+705: dup
+706: aload_0
+707: getfield      #2952               // Field xxa:F
+710: f2d
+711: aload_0
+712: getfield      #2972               // Field yya:F
+715: f2d
+716: aload_0
+717: getfield      #2954               // Field zza:F
+720: f2d
+721: invokespecial #1832               // Method net/minecraft/world/phys/Vec3."<init>":(DDD)V
+724: invokevirtual #2974               // Method travel:(Lnet/minecraft/world/phys/Vec3;)V
+727: aload_0
+728: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+731: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+734: invokeinterface #843,  1          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.pop:()V
+739: aload_0
+740: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+743: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+746: ldc_w         #2975               // String push
+749: invokeinterface #608,  2          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.push:(Ljava/lang/String;)V
+754: aload_0
+755: getfield      #2977               // Field autoSpinAttackTicks:I
+758: ifle          781
+761: aload_0
+762: dup
+763: getfield      #2977               // Field autoSpinAttackTicks:I
+766: iconst_1
+767: isub
+768: putfield      #2977               // Field autoSpinAttackTicks:I
+771: aload_0
+772: aload         8
+774: aload_0
+775: invokevirtual #627                // Method getBoundingBox:()Lnet/minecraft/world/phys/AABB;
+778: invokevirtual #2981               // Method checkAutoSpinAttack:(Lnet/minecraft/world/phys/AABB;Lnet/minecraft/world/phys/AABB;)V
+781: aload_0
+782: invokevirtual #2984               // Method pushEntities:()V
+785: aload_0
+786: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+789: invokevirtual #600                // Method net/minecraft/world/level/Level.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+792: invokeinterface #843,  1          // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.pop:()V
+797: aload_0
+798: getfield      #459                // Field level:Lnet/minecraft/world/level/Level;
+801: getfield      #464                // Field net/minecraft/world/level/Level.isClientSide:Z
+804: ifne          830
+807: aload_0
+808: invokevirtual #2987               // Method isSensitiveToWater:()Z
+811: ifeq          830
+814: aload_0
+815: invokevirtual #789                // Method isInWaterRainOrBubble:()Z
+818: ifeq          830
+821: aload_0
+822: getstatic     #752                // Field net/minecraft/world/damagesource/DamageSource.DROWN:Lnet/minecraft/world/damagesource/DamageSource;
+825: fconst_1
+826: invokevirtual #367                // Method hurt:(Lnet/minecraft/world/damagesource/DamageSource;F)Z
+829: pop
+830: return
+
+##   public void lerpTo(double, double, double, float, float, int, boolean);
+Code:
+0: aload_0
+1: dload_1
+2: putfield      #2923               // Field lerpX:D
+5: aload_0
+6: dload_3
+7: putfield      #2925               // Field lerpY:D
+10: aload_0
+11: dload         5
+13: putfield      #2927               // Field lerpZ:D
+16: aload_0
+17: fload         7
+19: f2d
+20: putfield      #2929               // Field lerpYRot:D
+23: aload_0
+24: fload         8
+26: f2d
+27: putfield      #2933               // Field lerpXRot:D
+30: aload_0
+31: iload         9
+33: putfield      #2918               // Field lerpSteps:I
+36: return
+
+=== method net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher :: (getRenderer|render|setupAndRender)[(]
+##   public <E extends net.minecraft.world.level.block.entity.BlockEntity> net.minecraft.client.renderer.blockentity.BlockEntityRenderer<E> getRenderer(E);
+Code:
+0: aload_0
+1: getfield      #48                 // Field renderers:Ljava/util/Map;
+4: aload_1
+5: invokevirtual #201                // Method net/minecraft/world/level/block/entity/BlockEntity.getType:()Lnet/minecraft/world/level/block/entity/BlockEntityType;
+8: invokeinterface #205,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+13: checkcast     #207                // class net/minecraft/client/renderer/blockentity/BlockEntityRenderer
+16: areturn
+
+##   public <E extends net.minecraft.world.level.block.entity.BlockEntity> void render(E, float, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource);
+Code:
+0: aload_1
+1: invokevirtual #244                // Method net/minecraft/world/level/block/entity/BlockEntity.getBlockPos:()Lnet/minecraft/core/BlockPos;
+4: invokestatic  #250                // Method net/minecraft/world/phys/Vec3.atCenterOf:(Lnet/minecraft/core/Vec3i;)Lnet/minecraft/world/phys/Vec3;
+7: aload_0
+8: getfield      #230                // Field camera:Lnet/minecraft/client/Camera;
+11: invokevirtual #254                // Method net/minecraft/client/Camera.getPosition:()Lnet/minecraft/world/phys/Vec3;
+14: aload_1
+15: invokevirtual #258                // Method net/minecraft/world/level/block/entity/BlockEntity.getViewDistance:()D
+18: invokevirtual #262                // Method net/minecraft/world/phys/Vec3.closerThan:(Lnet/minecraft/core/Position;D)Z
+21: ifne          25
+24: return
+25: aload_0
+26: aload_1
+27: invokevirtual #264                // Method getRenderer:(Lnet/minecraft/world/level/block/entity/BlockEntity;)Lnet/minecraft/client/renderer/blockentity/BlockEntityRenderer;
+30: astore        5
+32: aload         5
+34: ifnonnull     38
+37: return
+38: aload_1
+39: invokevirtual #270                // Method net/minecraft/world/level/block/entity/BlockEntity.hasLevel:()Z
+42: ifeq          62
+45: aload_1
+46: invokevirtual #201                // Method net/minecraft/world/level/block/entity/BlockEntity.getType:()Lnet/minecraft/world/level/block/entity/BlockEntityType;
+49: aload_1
+50: invokevirtual #274                // Method net/minecraft/world/level/block/entity/BlockEntity.getBlockState:()Lnet/minecraft/world/level/block/state/BlockState;
+53: invokevirtual #280                // Method net/minecraft/world/level/block/state/BlockState.getBlock:()Lnet/minecraft/world/level/block/Block;
+56: invokevirtual #284                // Method net/minecraft/world/level/block/entity/BlockEntityType.isValid:(Lnet/minecraft/world/level/block/Block;)Z
+59: ifne          63
+62: return
+63: aload_1
+64: aload         5
+66: aload_1
+67: fload_2
+68: aload_3
+69: aload         4
+71: invokedynamic #301,  0            // InvokeDynamic #0:run:(Lnet/minecraft/client/renderer/blockentity/BlockEntityRenderer;Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)Ljava/lang/Runnable;
+76: invokestatic  #305                // Method tryRender:(Lnet/minecraft/world/level/block/entity/BlockEntity;Ljava/lang/Runnable;)V
+79: return
+
+##   private static <T extends net.minecraft.world.level.block.entity.BlockEntity> void setupAndRender(net.minecraft.client.renderer.blockentity.BlockEntityRenderer<T>, T, float, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.MultiBufferSource);
+Code:
+0: aload_1
+1: invokevirtual #314                // Method net/minecraft/world/level/block/entity/BlockEntity.getLevel:()Lnet/minecraft/world/level/Level;
+4: astore        6
+6: aload         6
+8: ifnull        25
+11: aload         6
+13: aload_1
+14: invokevirtual #244                // Method net/minecraft/world/level/block/entity/BlockEntity.getBlockPos:()Lnet/minecraft/core/BlockPos;
+17: invokestatic  #320                // Method net/minecraft/client/renderer/LevelRenderer.getLightColor:(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I
+20: istore        5
+22: goto          30
+25: ldc_w         #321                // int 15728880
+28: istore        5
+30: aload_0
+31: aload_1
+32: fload_2
+33: aload_3
+34: aload         4
+36: iload         5
+38: getstatic     #327                // Field net/minecraft/client/renderer/texture/OverlayTexture.NO_OVERLAY:I
+41: invokevirtual #330                // Method net/minecraft/client/renderer/blockentity/BlockEntityRenderer.render:(Lnet/minecraft/world/level/block/entity/BlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V
+44: return
+
+=== method net.minecraft.client.renderer.LevelRenderer :: (renderLevel|allChanged)[(]
+##   public void allChanged();
+Code:
+0: aload_0
+1: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+4: ifnonnull     8
+7: return
+8: invokestatic  #442                // Method net/minecraft/client/Minecraft.useShaderTransparency:()Z
+11: ifeq          21
+14: aload_0
+15: invokespecial #825                // Method initTransparency:()V
+18: goto          25
+21: aload_0
+22: invokespecial #893                // Method deinitTransparency:()V
+25: aload_0
+26: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+29: invokevirtual #1136               // Method net/minecraft/client/multiplayer/ClientLevel.clearTintCaches:()V
+32: aload_0
+33: getfield      #1130               // Field chunkRenderDispatcher:Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;
+36: ifnonnull     75
+39: aload_0
+40: new           #25                 // class net/minecraft/client/renderer/chunk/ChunkRenderDispatcher
+43: dup
+44: aload_0
+45: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+48: aload_0
+49: invokestatic  #1142               // Method net/minecraft/Util.backgroundExecutor:()Ljava/util/concurrent/Executor;
+52: aload_0
+53: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+56: invokevirtual #1145               // Method net/minecraft/client/Minecraft.is64Bit:()Z
+59: aload_0
+60: getfield      #351                // Field renderBuffers:Lnet/minecraft/client/renderer/RenderBuffers;
+63: invokevirtual #1151               // Method net/minecraft/client/renderer/RenderBuffers.fixedBufferPack:()Lnet/minecraft/client/renderer/ChunkBufferBuilderPack;
+66: invokespecial #1154               // Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher."<init>":(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V
+69: putfield      #1130               // Field chunkRenderDispatcher:Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;
+72: goto          86
+75: aload_0
+76: getfield      #1130               // Field chunkRenderDispatcher:Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;
+79: aload_0
+80: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+83: invokevirtual #1155               // Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.setLevel:(Lnet/minecraft/world/level/Level;)V
+86: aload_0
+87: iconst_1
+88: putfield      #335                // Field needsUpdate:Z
+91: aload_0
+92: iconst_1
+93: putfield      #254                // Field generateClouds:Z
+96: invokestatic  #437                // Method net/minecraft/client/Minecraft.useFancyGraphics:()Z
+99: invokestatic  #1160               // Method net/minecraft/client/renderer/ItemBlockRenderTypes.setFancy:(Z)V
+102: aload_0
+103: aload_0
+104: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+107: getfield      #644                // Field net/minecraft/client/Minecraft.options:Lnet/minecraft/client/Options;
+110: getfield      #1163               // Field net/minecraft/client/Options.renderDistance:I
+113: putfield      #322                // Field lastViewDistance:I
+116: aload_0
+117: getfield      #1123               // Field viewArea:Lnet/minecraft/client/renderer/ViewArea;
+120: ifnull        130
+123: aload_0
+124: getfield      #1123               // Field viewArea:Lnet/minecraft/client/renderer/ViewArea;
+127: invokevirtual #1128               // Method net/minecraft/client/renderer/ViewArea.releaseAllBuffers:()V
+130: aload_0
+131: invokevirtual #1166               // Method resetChunksToCompile:()V
+134: aload_0
+135: getfield      #245                // Field globalBlockEntities:Ljava/util/Set;
+138: dup
+139: astore_1
+140: monitorenter
+141: aload_0
+142: getfield      #245                // Field globalBlockEntities:Ljava/util/Set;
+145: invokeinterface #1118,  1         // InterfaceMethod java/util/Set.clear:()V
+150: aload_1
+151: monitorexit
+152: goto          160
+155: astore_2
+156: aload_1
+157: monitorexit
+158: aload_2
+159: athrow
+160: aload_0
+161: new           #1125               // class net/minecraft/client/renderer/ViewArea
+164: dup
+165: aload_0
+166: getfield      #1130               // Field chunkRenderDispatcher:Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;
+169: aload_0
+170: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+173: aload_0
+174: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+177: getfield      #644                // Field net/minecraft/client/Minecraft.options:Lnet/minecraft/client/Options;
+180: getfield      #1163               // Field net/minecraft/client/Options.renderDistance:I
+183: aload_0
+184: invokespecial #1171               // Method net/minecraft/client/renderer/ViewArea."<init>":(Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;Lnet/minecraft/world/level/Level;ILnet/minecraft/client/renderer/LevelRenderer;)V
+187: putfield      #1123               // Field viewArea:Lnet/minecraft/client/renderer/ViewArea;
+190: aload_0
+191: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+194: ifnull        224
+197: aload_0
+198: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+201: invokevirtual #1175               // Method net/minecraft/client/Minecraft.getCameraEntity:()Lnet/minecraft/world/entity/Entity;
+204: astore_1
+205: aload_1
+206: ifnull        224
+209: aload_0
+210: getfield      #1123               // Field viewArea:Lnet/minecraft/client/renderer/ViewArea;
+213: aload_1
+214: invokevirtual #1179               // Method net/minecraft/world/entity/Entity.getX:()D
+217: aload_1
+218: invokevirtual #1181               // Method net/minecraft/world/entity/Entity.getZ:()D
+221: invokevirtual #1185               // Method net/minecraft/client/renderer/ViewArea.repositionCamera:(DD)V
+224: return
+Exception table:
+from    to  target type
+141   152   155   any
+155   158   155   any
+
+##   public void renderLevel(com.mojang.blaze3d.vertex.PoseStack, float, long, boolean, net.minecraft.client.Camera, net.minecraft.client.renderer.GameRenderer, net.minecraft.client.renderer.LightTexture, com.mojang.math.Matrix4f);
+Code:
+0: getstatic     #1580               // Field net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher.instance:Lnet/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher;
+3: aload_0
+4: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+7: aload_0
+8: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+11: invokevirtual #355                // Method net/minecraft/client/Minecraft.getTextureManager:()Lnet/minecraft/client/renderer/texture/TextureManager;
+14: aload_0
+15: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+18: getfield      #1584               // Field net/minecraft/client/Minecraft.font:Lnet/minecraft/client/gui/Font;
+21: aload         6
+23: aload_0
+24: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+27: getfield      #1588               // Field net/minecraft/client/Minecraft.hitResult:Lnet/minecraft/world/phys/HitResult;
+30: invokevirtual #1592               // Method net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher.prepare:(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/texture/TextureManager;Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/Camera;Lnet/minecraft/world/phys/HitResult;)V
+33: aload_0
+34: getfield      #349                // Field entityRenderDispatcher:Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;
+37: aload_0
+38: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+41: aload         6
+43: aload_0
+44: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+47: getfield      #1595               // Field net/minecraft/client/Minecraft.crosshairPickEntity:Lnet/minecraft/world/entity/Entity;
+50: invokevirtual #1598               // Method net/minecraft/client/renderer/entity/EntityRenderDispatcher.prepare:(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/Camera;Lnet/minecraft/world/entity/Entity;)V
+53: aload_0
+54: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+57: invokevirtual #1278               // Method net/minecraft/client/multiplayer/ClientLevel.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+60: astore        10
+62: aload         10
+64: ldc_w         #1600               // String light_updates
+67: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+72: aload_0
+73: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+76: getfield      #387                // Field net/minecraft/client/Minecraft.level:Lnet/minecraft/client/multiplayer/ClientLevel;
+79: invokevirtual #1604               // Method net/minecraft/client/multiplayer/ClientLevel.getChunkSource:()Lnet/minecraft/client/multiplayer/ClientChunkCache;
+82: invokevirtual #1610               // Method net/minecraft/client/multiplayer/ClientChunkCache.getLightEngine:()Lnet/minecraft/world/level/lighting/LevelLightEngine;
+85: ldc_w         #1611               // int 2147483647
+88: iconst_1
+89: iconst_1
+90: invokevirtual #1617               // Method net/minecraft/world/level/lighting/LevelLightEngine.runUpdates:(IZZ)I
+93: pop
+94: aload         6
+96: invokevirtual #636                // Method net/minecraft/client/Camera.getPosition:()Lnet/minecraft/world/phys/Vec3;
+99: astore        11
+101: aload         11
+103: invokevirtual #1619               // Method net/minecraft/world/phys/Vec3.x:()D
+106: dstore        12
+108: aload         11
+110: invokevirtual #1621               // Method net/minecraft/world/phys/Vec3.y:()D
+113: dstore        14
+115: aload         11
+117: invokevirtual #1623               // Method net/minecraft/world/phys/Vec3.z:()D
+120: dstore        16
+122: aload_1
+123: invokevirtual #1627               // Method com/mojang/blaze3d/vertex/PoseStack.last:()Lcom/mojang/blaze3d/vertex/PoseStack$Pose;
+126: invokevirtual #1630               // Method com/mojang/blaze3d/vertex/PoseStack$Pose.pose:()Lcom/mojang/math/Matrix4f;
+129: astore        18
+131: aload         10
+133: ldc_w         #1312               // String culling
+136: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+141: aload_0
+142: getfield      #1543               // Field capturedFrustum:Lnet/minecraft/client/renderer/culling/Frustum;
+145: ifnull        152
+148: iconst_1
+149: goto          153
+152: iconst_0
+153: istore        19
+155: iload         19
+157: ifeq          195
+160: aload_0
+161: getfield      #1543               // Field capturedFrustum:Lnet/minecraft/client/renderer/culling/Frustum;
+164: astore        20
+166: aload         20
+168: aload_0
+169: getfield      #333                // Field frustumPos:Lcom/mojang/math/Vector3d;
+172: getfield      #1557               // Field com/mojang/math/Vector3d.x:D
+175: aload_0
+176: getfield      #333                // Field frustumPos:Lcom/mojang/math/Vector3d;
+179: getfield      #1558               // Field com/mojang/math/Vector3d.y:D
+182: aload_0
+183: getfield      #333                // Field frustumPos:Lcom/mojang/math/Vector3d;
+186: getfield      #1559               // Field com/mojang/math/Vector3d.z:D
+189: invokevirtual #1634               // Method net/minecraft/client/renderer/culling/Frustum.prepare:(DDD)V
+192: goto          219
+195: new           #1338               // class net/minecraft/client/renderer/culling/Frustum
+198: dup
+199: aload         18
+201: aload         9
+203: invokespecial #1637               // Method net/minecraft/client/renderer/culling/Frustum."<init>":(Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix4f;)V
+206: astore        20
+208: aload         20
+210: dload         12
+212: dload         14
+214: dload         16
+216: invokevirtual #1634               // Method net/minecraft/client/renderer/culling/Frustum.prepare:(DDD)V
+219: aload_0
+220: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+223: invokevirtual #1310               // Method net/minecraft/client/Minecraft.getProfiler:()Lnet/minecraft/util/profiling/ProfilerFiller;
+226: ldc_w         #1638               // String captureFrustum
+229: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+234: aload_0
+235: getfield      #1640               // Field captureFrustum:Z
+238: ifeq          290
+241: aload_0
+242: aload         18
+244: aload         9
+246: aload         11
+248: getfield      #1321               // Field net/minecraft/world/phys/Vec3.x:D
+251: aload         11
+253: getfield      #1323               // Field net/minecraft/world/phys/Vec3.y:D
+256: aload         11
+258: getfield      #1325               // Field net/minecraft/world/phys/Vec3.z:D
+261: iload         19
+263: ifeq          280
+266: new           #1338               // class net/minecraft/client/renderer/culling/Frustum
+269: dup
+270: aload         18
+272: aload         9
+274: invokespecial #1637               // Method net/minecraft/client/renderer/culling/Frustum."<init>":(Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix4f;)V
+277: goto          282
+280: aload         20
+282: invokespecial #1642               // Method captureFrustum:(Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix4f;DDDLnet/minecraft/client/renderer/culling/Frustum;)V
+285: aload_0
+286: iconst_0
+287: putfield      #1640               // Field captureFrustum:Z
+290: aload         10
+292: ldc_w         #1643               // String clear
+295: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+300: aload         6
+302: fload_2
+303: aload_0
+304: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+307: getfield      #387                // Field net/minecraft/client/Minecraft.level:Lnet/minecraft/client/multiplayer/ClientLevel;
+310: aload_0
+311: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+314: getfield      #644                // Field net/minecraft/client/Minecraft.options:Lnet/minecraft/client/Options;
+317: getfield      #1163               // Field net/minecraft/client/Options.renderDistance:I
+320: aload         7
+322: fload_2
+323: invokevirtual #1646               // Method net/minecraft/client/renderer/GameRenderer.getDarkenWorldAmount:(F)F
+326: invokestatic  #1650               // Method net/minecraft/client/renderer/FogRenderer.setupColor:(Lnet/minecraft/client/Camera;FLnet/minecraft/client/multiplayer/ClientLevel;IF)V
+329: sipush        16640
+332: getstatic     #1653               // Field net/minecraft/client/Minecraft.ON_OSX:Z
+335: invokestatic  #1656               // Method com/mojang/blaze3d/systems/RenderSystem.clear:(IZ)V
+338: aload         7
+340: invokevirtual #1659               // Method net/minecraft/client/renderer/GameRenderer.getRenderDistance:()F
+343: fstore        21
+345: aload_0
+346: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+349: getfield      #387                // Field net/minecraft/client/Minecraft.level:Lnet/minecraft/client/multiplayer/ClientLevel;
+352: invokevirtual #1663               // Method net/minecraft/client/multiplayer/ClientLevel.effects:()Lnet/minecraft/client/renderer/DimensionSpecialEffects;
+355: dload         12
+357: invokestatic  #399                // Method net/minecraft/util/Mth.floor:(D)I
+360: dload         14
+362: invokestatic  #399                // Method net/minecraft/util/Mth.floor:(D)I
+365: invokevirtual #1667               // Method net/minecraft/client/renderer/DimensionSpecialEffects.isFoggyAt:(II)Z
+368: ifne          387
+371: aload_0
+372: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+375: getfield      #1671               // Field net/minecraft/client/Minecraft.gui:Lnet/minecraft/client/gui/Gui;
+378: invokevirtual #1677               // Method net/minecraft/client/gui/Gui.getBossOverlay:()Lnet/minecraft/client/gui/components/BossHealthOverlay;
+381: invokevirtual #1682               // Method net/minecraft/client/gui/components/BossHealthOverlay.shouldCreateWorldFog:()Z
+384: ifeq          391
+387: iconst_1
+388: goto          392
+391: iconst_0
+392: istore        22
+394: aload_0
+395: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+398: getfield      #644                // Field net/minecraft/client/Minecraft.options:Lnet/minecraft/client/Options;
+401: getfield      #1163               // Field net/minecraft/client/Options.renderDistance:I
+404: iconst_4
+405: if_icmplt     436
+408: aload         6
+410: getstatic     #1686               // Field net/minecraft/client/renderer/FogRenderer$FogMode.FOG_SKY:Lnet/minecraft/client/renderer/FogRenderer$FogMode;
+413: fload         21
+415: iload         22
+417: invokestatic  #1690               // Method net/minecraft/client/renderer/FogRenderer.setupFog:(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/FogRenderer$FogMode;FZ)V
+420: aload         10
+422: ldc_w         #1692               // String sky
+425: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+430: aload_0
+431: aload_1
+432: fload_2
+433: invokevirtual #1696               // Method renderSky:(Lcom/mojang/blaze3d/vertex/PoseStack;F)V
+436: aload         10
+438: ldc_w         #1698               // String fog
+441: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+446: aload         6
+448: getstatic     #1701               // Field net/minecraft/client/renderer/FogRenderer$FogMode.FOG_TERRAIN:Lnet/minecraft/client/renderer/FogRenderer$FogMode;
+451: fload         21
+453: ldc_w         #1075               // float 16.0f
+456: fsub
+457: ldc_w         #516                // float 32.0f
+460: invokestatic  #1704               // Method java/lang/Math.max:(FF)F
+463: iload         22
+465: invokestatic  #1690               // Method net/minecraft/client/renderer/FogRenderer.setupFog:(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/FogRenderer$FogMode;FZ)V
+468: aload         10
+470: ldc_w         #1706               // String terrain_setup
+473: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+478: aload_0
+479: aload         6
+481: aload         20
+483: iload         19
+485: aload_0
+486: dup
+487: getfield      #1708               // Field frameId:I
+490: dup_x1
+491: iconst_1
+492: iadd
+493: putfield      #1708               // Field frameId:I
+496: aload_0
+497: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+500: getfield      #1054               // Field net/minecraft/client/Minecraft.player:Lnet/minecraft/client/player/LocalPlayer;
+503: invokevirtual #1711               // Method net/minecraft/client/player/LocalPlayer.isSpectator:()Z
+506: invokespecial #1713               // Method setupRender:(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/culling/Frustum;ZIZ)V
+509: aload         10
+511: ldc_w         #1715               // String updatechunks
+514: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+519: bipush        30
+521: istore        23
+523: aload_0
+524: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+527: getfield      #644                // Field net/minecraft/client/Minecraft.options:Lnet/minecraft/client/Options;
+530: getfield      #1718               // Field net/minecraft/client/Options.framerateLimit:I
+533: istore        24
+535: ldc2_w        #1719               // long 33333333l
+538: lstore        25
+540: iload         24
+542: i2d
+543: getstatic     #1726               // Field net/minecraft/client/Option.FRAMERATE_LIMIT:Lnet/minecraft/client/ProgressOption;
+546: invokevirtual #1731               // Method net/minecraft/client/ProgressOption.getMaxValue:()D
+549: dcmpl
+550: ifne          559
+553: lconst_0
+554: lstore        27
+556: goto          568
+559: ldc_w         #1732               // int 1000000000
+562: iload         24
+564: idiv
+565: i2l
+566: lstore        27
+568: invokestatic  #1736               // Method net/minecraft/Util.getNanos:()J
+571: lload_3
+572: lsub
+573: lstore        29
+575: aload_0
+576: getfield      #259                // Field frameTimes:Lnet/minecraft/client/renderer/RunningTrimmedMean;
+579: lload         29
+581: invokevirtual #1740               // Method net/minecraft/client/renderer/RunningTrimmedMean.registerValueAndGetMean:(J)J
+584: lstore        31
+586: lload         31
+588: ldc2_w        #1741               // long 3l
+591: lmul
+592: ldc2_w        #1743               // long 2l
+595: ldiv
+596: lstore        33
+598: lload         33
+600: lload         27
+602: ldc2_w        #1719               // long 33333333l
+605: invokestatic  #1747               // Method net/minecraft/util/Mth.clamp:(JJJ)J
+608: lstore        35
+610: aload_0
+611: lload_3
+612: lload         35
+614: ladd
+615: invokespecial #1750               // Method compileChunksUntil:(J)V
+618: aload         10
+620: ldc_w         #1752               // String terrain
+623: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+628: aload_0
+629: invokestatic  #1758               // Method net/minecraft/client/renderer/RenderType.solid:()Lnet/minecraft/client/renderer/RenderType;
+632: aload_1
+633: dload         12
+635: dload         14
+637: dload         16
+639: invokespecial #1762               // Method renderChunkLayer:(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDD)V
+642: aload_0
+643: invokestatic  #1765               // Method net/minecraft/client/renderer/RenderType.cutoutMipped:()Lnet/minecraft/client/renderer/RenderType;
+646: aload_1
+647: dload         12
+649: dload         14
+651: dload         16
+653: invokespecial #1762               // Method renderChunkLayer:(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDD)V
+656: aload_0
+657: invokestatic  #1768               // Method net/minecraft/client/renderer/RenderType.cutout:()Lnet/minecraft/client/renderer/RenderType;
+660: aload_1
+661: dload         12
+663: dload         14
+665: dload         16
+667: invokespecial #1762               // Method renderChunkLayer:(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDD)V
+670: aload_0
+671: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+674: invokevirtual #1663               // Method net/minecraft/client/multiplayer/ClientLevel.effects:()Lnet/minecraft/client/renderer/DimensionSpecialEffects;
+677: invokevirtual #1771               // Method net/minecraft/client/renderer/DimensionSpecialEffects.constantAmbientLight:()Z
+680: ifeq          696
+683: aload_1
+684: invokevirtual #1627               // Method com/mojang/blaze3d/vertex/PoseStack.last:()Lcom/mojang/blaze3d/vertex/PoseStack$Pose;
+687: invokevirtual #1630               // Method com/mojang/blaze3d/vertex/PoseStack$Pose.pose:()Lcom/mojang/math/Matrix4f;
+690: invokestatic  #1776               // Method com/mojang/blaze3d/platform/Lighting.setupNetherLevel:(Lcom/mojang/math/Matrix4f;)V
+693: goto          706
+696: aload_1
+697: invokevirtual #1627               // Method com/mojang/blaze3d/vertex/PoseStack.last:()Lcom/mojang/blaze3d/vertex/PoseStack$Pose;
+700: invokevirtual #1630               // Method com/mojang/blaze3d/vertex/PoseStack$Pose.pose:()Lcom/mojang/math/Matrix4f;
+703: invokestatic  #1779               // Method com/mojang/blaze3d/platform/Lighting.setupLevel:(Lcom/mojang/math/Matrix4f;)V
+706: aload         10
+708: ldc_w         #1781               // String entities
+711: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+716: aload_0
+717: iconst_0
+718: putfield      #1258               // Field renderedEntities:I
+721: aload_0
+722: iconst_0
+723: putfield      #1270               // Field culledEntities:I
+726: aload_0
+727: getfield      #908                // Field itemEntityTarget:Lcom/mojang/blaze3d/pipeline/RenderTarget;
+730: ifnull        768
+733: aload_0
+734: getfield      #908                // Field itemEntityTarget:Lcom/mojang/blaze3d/pipeline/RenderTarget;
+737: getstatic     #1653               // Field net/minecraft/client/Minecraft.ON_OSX:Z
+740: invokevirtual #1783               // Method com/mojang/blaze3d/pipeline/RenderTarget.clear:(Z)V
+743: aload_0
+744: getfield      #908                // Field itemEntityTarget:Lcom/mojang/blaze3d/pipeline/RenderTarget;
+747: aload_0
+748: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+751: invokevirtual #845                // Method net/minecraft/client/Minecraft.getMainRenderTarget:()Lcom/mojang/blaze3d/pipeline/RenderTarget;
+754: invokevirtual #1787               // Method com/mojang/blaze3d/pipeline/RenderTarget.copyDepthFrom:(Lcom/mojang/blaze3d/pipeline/RenderTarget;)V
+757: aload_0
+758: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+761: invokevirtual #845                // Method net/minecraft/client/Minecraft.getMainRenderTarget:()Lcom/mojang/blaze3d/pipeline/RenderTarget;
+764: iconst_0
+765: invokevirtual #1790               // Method com/mojang/blaze3d/pipeline/RenderTarget.bindWrite:(Z)V
+768: aload_0
+769: getfield      #912                // Field weatherTarget:Lcom/mojang/blaze3d/pipeline/RenderTarget;
+772: ifnull        785
+775: aload_0
+776: getfield      #912                // Field weatherTarget:Lcom/mojang/blaze3d/pipeline/RenderTarget;
+779: getstatic     #1653               // Field net/minecraft/client/Minecraft.ON_OSX:Z
+782: invokevirtual #1783               // Method com/mojang/blaze3d/pipeline/RenderTarget.clear:(Z)V
+785: aload_0
+786: invokevirtual #1029               // Method shouldShowEntityOutlines:()Z
+789: ifeq          813
+792: aload_0
+793: getfield      #871                // Field entityTarget:Lcom/mojang/blaze3d/pipeline/RenderTarget;
+796: getstatic     #1653               // Field net/minecraft/client/Minecraft.ON_OSX:Z
+799: invokevirtual #1783               // Method com/mojang/blaze3d/pipeline/RenderTarget.clear:(Z)V
+802: aload_0
+803: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+806: invokevirtual #845                // Method net/minecraft/client/Minecraft.getMainRenderTarget:()Lcom/mojang/blaze3d/pipeline/RenderTarget;
+809: iconst_0
+810: invokevirtual #1790               // Method com/mojang/blaze3d/pipeline/RenderTarget.bindWrite:(Z)V
+813: iconst_0
+814: istore        37
+816: aload_0
+817: getfield      #351                // Field renderBuffers:Lnet/minecraft/client/renderer/RenderBuffers;
+820: invokevirtual #1794               // Method net/minecraft/client/renderer/RenderBuffers.bufferSource:()Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;
+823: astore        38
+825: aload_0
+826: getfield      #1110               // Field level:Lnet/minecraft/client/multiplayer/ClientLevel;
+829: invokevirtual #1798               // Method net/minecraft/client/multiplayer/ClientLevel.entitiesForRendering:()Ljava/lang/Iterable;
+832: invokeinterface #1803,  1         // InterfaceMethod java/lang/Iterable.iterator:()Ljava/util/Iterator;
+837: astore        39
+839: aload         39
+841: invokeinterface #1236,  1         // InterfaceMethod java/util/Iterator.hasNext:()Z
+846: ifeq          1131
+849: aload         39
+851: invokeinterface #1240,  1         // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+856: checkcast     #1177               // class net/minecraft/world/entity/Entity
+859: astore        40
+861: aload_0
+862: getfield      #349                // Field entityRenderDispatcher:Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;
+865: aload         40
+867: aload         20
+869: dload         12
+871: dload         14
+873: dload         16
+875: invokevirtual #1807               // Method net/minecraft/client/renderer/entity/EntityRenderDispatcher.shouldRender:(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/culling/Frustum;DDD)Z
+878: ifne          899
+881: aload         40
+883: aload_0
+884: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+887: getfield      #1054               // Field net/minecraft/client/Minecraft.player:Lnet/minecraft/client/player/LocalPlayer;
+890: invokevirtual #1811               // Method net/minecraft/world/entity/Entity.hasIndirectPassenger:(Lnet/minecraft/world/entity/Entity;)Z
+893: ifne          899
+896: goto          839
+899: aload         40
+901: aload         6
+903: invokevirtual #1814               // Method net/minecraft/client/Camera.getEntity:()Lnet/minecraft/world/entity/Entity;
+906: if_acmpne     945
+909: aload         6
+911: invokevirtual #1817               // Method net/minecraft/client/Camera.isDetached:()Z
+914: ifne          945
+917: aload         6
+919: invokevirtual #1814               // Method net/minecraft/client/Camera.getEntity:()Lnet/minecraft/world/entity/Entity;
+922: instanceof    #1819               // class net/minecraft/world/entity/LivingEntity
+925: ifeq          839
+928: aload         6
+930: invokevirtual #1814               // Method net/minecraft/client/Camera.getEntity:()Lnet/minecraft/world/entity/Entity;
+933: checkcast     #1819               // class net/minecraft/world/entity/LivingEntity
+936: invokevirtual #1822               // Method net/minecraft/world/entity/LivingEntity.isSleeping:()Z
+939: ifne          945
+942: goto          839
+945: aload         40
+947: instanceof    #1286               // class net/minecraft/client/player/LocalPlayer
+950: ifeq          966
+953: aload         6
+955: invokevirtual #1814               // Method net/minecraft/client/Camera.getEntity:()Lnet/minecraft/world/entity/Entity;
+958: aload         40
+960: if_acmpeq     966
+963: goto          839
+966: aload_0
+967: dup
+968: getfield      #1258               // Field renderedEntities:I
+971: iconst_1
+972: iadd
+973: putfield      #1258               // Field renderedEntities:I
+976: aload         40
+978: getfield      #1825               // Field net/minecraft/world/entity/Entity.tickCount:I
+981: ifne          1014
+984: aload         40
+986: aload         40
+988: invokevirtual #1179               // Method net/minecraft/world/entity/Entity.getX:()D
+991: putfield      #1828               // Field net/minecraft/world/entity/Entity.xOld:D
+994: aload         40
+996: aload         40
+998: invokevirtual #1829               // Method net/minecraft/world/entity/Entity.getY:()D
+1001: putfield      #1832               // Field net/minecraft/world/entity/Entity.yOld:D
+1004: aload         40
+1006: aload         40
+1008: invokevirtual #1181               // Method net/minecraft/world/entity/Entity.getZ:()D
+1011: putfield      #1835               // Field net/minecraft/world/entity/Entity.zOld:D
+1014: aload_0
+1015: invokevirtual #1029               // Method shouldShowEntityOutlines:()Z
+1018: ifeq          1108
+1021: aload_0
+1022: getfield      #341                // Field minecraft:Lnet/minecraft/client/Minecraft;
+1025: aload         40
+1027: invokevirtual #1838               // Method net/minecraft/client/Minecraft.shouldEntityAppearGlowing:(Lnet/minecraft/world/entity/Entity;)Z
+1030: ifeq          1108
+1033: iconst_1
+1034: istore        37
+1036: aload_0
+1037: getfield      #351                // Field renderBuffers:Lnet/minecraft/client/renderer/RenderBuffers;
+1040: invokevirtual #1842               // Method net/minecraft/client/renderer/RenderBuffers.outlineBufferSource:()Lnet/minecraft/client/renderer/OutlineBufferSource;
+1043: astore        42
+1045: aload         42
+1047: astore        41
+1049: aload         40
+1051: invokevirtual #1845               // Method net/minecraft/world/entity/Entity.getTeamColor:()I
+1054: istore        43
+1056: sipush        255
+1059: istore        44
+1061: iload         43
+1063: bipush        16
+1065: ishr
+1066: sipush        255
+1069: iand
+1070: istore        45
+1072: iload         43
+1074: bipush        8
+1076: ishr
+1077: sipush        255
+1080: iand
+1081: istore        46
+1083: iload         43
+1085: sipush        255
+1088: iand
+1089: istore        47
+1091: aload         42
+1093: iload         45
+1095: iload         46
+1097: iload         47
+1099: sipush        255
+1102: invokevirtual #1851               // Method net/minecraft/client/renderer/OutlineBufferSource.setColor:(IIII)V
+1105: goto          1112
+1108: aload         38
+1110: astore        41
+1112: aload_0
+1113: aload         40
+1115: dload         12
+1117: dload         14
+1119: dload         16
+1121: fload_2
+1122: aload_1
+1123: aload         41
+1125: invokespecial #1855               // Method renderEntity:(Lnet/minecraft/world/entity/Entity;DDDFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V
+1128: goto          839
+1131: aload_0
+1132: aload_1
+1133: invokespecial #1859               // Method checkPoseStack:(Lcom/mojang/blaze3d/vertex/PoseStack;)V
+1136: aload         38
+1138: getstatic     #1864               // Field net/minecraft/client/renderer/texture/TextureAtlas.LOCATION_BLOCKS:Lnet/minecraft/resources/ResourceLocation;
+1141: invokestatic  #1868               // Method net/minecraft/client/renderer/RenderType.entitySolid:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;
+1144: invokevirtual #1872               // Method net/minecraft/client/renderer/MultiBufferSource$BufferSource.endBatch:(Lnet/minecraft/client/renderer/RenderType;)V
+1147: aload         38
+1149: getstatic     #1864               // Field net/minecraft/client/renderer/texture/TextureAtlas.LOCATION_BLOCKS:Lnet/minecraft/resources/ResourceLocation;
+1152: invokestatic  #1875               // Method net/minecraft/client/renderer/RenderType.entityCutout:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;
+1155: invokevirtual #1872               // Method net/minecraft/client/renderer/MultiBufferSource$BufferSource.endBatch:(Lnet/minecraft/client/renderer/RenderType;)V
+1158: aload         38
+1160: getstatic     #1864               // Field net/minecraft/client/renderer/texture/TextureAtlas.LOCATION_BLOCKS:Lnet/minecraft/resources/ResourceLocation;
+1163: invokestatic  #1878               // Method net/minecraft/client/renderer/RenderType.entityCutoutNoCull:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;
+1166: invokevirtual #1872               // Method net/minecraft/client/renderer/MultiBufferSource$BufferSource.endBatch:(Lnet/minecraft/client/renderer/RenderType;)V
+1169: aload         38
+1171: getstatic     #1864               // Field net/minecraft/client/renderer/texture/TextureAtlas.LOCATION_BLOCKS:Lnet/minecraft/resources/ResourceLocation;
+1174: invokestatic  #1881               // Method net/minecraft/client/renderer/RenderType.entitySmoothCutout:(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;
+1177: invokevirtual #1872               // Method net/minecraft/client/renderer/MultiBufferSource$BufferSource.endBatch:(Lnet/minecraft/client/renderer/RenderType;)V
+1180: aload         10
+1182: ldc_w         #1883               // String blockentities
+1185: invokeinterface #1309,  2         // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.popPush:(Ljava/lang/String;)V
+1190: aload_0
+1191: getfield      #239                // Field renderChunks:Lit/unimi/dsi/fastutil/objects/ObjectList;
+1194: invokeinterface #1229,  1         // InterfaceMethod it/unimi/dsi/fastutil/objects/ObjectList.iterator:()Lit/unimi/dsi/fastutil/objects/ObjectListIterator;
+1199: astore        39
+1201: aload         39
+1203: invokeinterface #1236,  1         // InterfaceMethod java/util/Iterator.hasNext:()Z
+1208: ifeq          1461
+1211: aload         39
+1213: invokeinterface #1240,  1         // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+1218: checkcast     #20                 // class net/minecraft/client/renderer/LevelRenderer$RenderChunkInfo
+1221: astore        40
+1223: aload         40
+1225: invokestatic  #1244               // Method net/minecraft/client/renderer/LevelRenderer$RenderChunkInfo.method_3302:(Lnet/minecraft/client/renderer/LevelRenderer$RenderChunkInfo;)Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;
+1228: invokevirtual #1248               // Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk.getCompiledChunk:()Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$CompiledChunk;
+1231: invokevirtual #1887               // Method net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$CompiledChunk.getRenderableBlockEntities:()Ljava/util/List;
+1234: astore        41
+1236: aload         41
+1238: invokeinterface #1888,  1         // InterfaceMethod java/util/List.isEmpty:()Z
+1243: ifeq          1249
+1246: goto          1201
+1249: aload         41
+1251: invokeinterface #1889,  1         // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+1256: astore        42
+1258: aload         42
+1260: invokeinterface #1236,  1         // InterfaceMethod java/util/Iterator.hasNext:()Z
+1265: ifeq          1458
+1268: aload         42
+1270: invokeinterface #1240,  1         // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+1275: checkcast     #1891               // class net/minecraft/world/level/block/entity/BlockEntity
+1278: astore        43
+1280: aload         43
+1282: invokevirtual #1894               // Method net/minecraft/world/level/block/entity/BlockEntity.getBlockPos:()Lnet/minecraft/core/BlockPos;
+1285: astore        44
+1287: aload         38
+1289: astore        45
+1291: aload_1
+1292: invokevirtual #1897               // Method com/mojang/blaze3d/vertex/PoseStack.pushPose:()V
+1295: aload_1
+1296: aload         44
+1298: invokevirtual #750                // Method net/minecraft/core/BlockPos.getX:()I
+1301: i2d
+1302: dload         12
+1304: dsub
+1305: aload         44
+1307: invokevirtual #485                // Method net/minecraft/core/BlockPos.getY:()I
+1310: i2d
+1311: dload         14
+1313: dsub
+1314: aload         44
+1316: invokevirtual #753                // Method net/minecraft/core/BlockPos.getZ:()I
+1319: i2d
+1320: dload         16
+1322: dsub
+1323: invokevirtual #1900               // Method com/mojang/blaze3d/vertex/PoseStack.translate:(DDD)V
+1326: aload_0
+1327: getfield      #269                // Field destructionProgress:Lit/unimi/dsi/fastutil/longs/Long2ObjectMap;
+1330: aload         44
+1332: invokevirtual #1903               // Method net/minecraft/core/BlockPos.asLong:()J
+1335: invokeinterface #1907,  3         // InterfaceMethod it/unimi/dsi/fastutil/longs/Long2ObjectMap.get:(J)Ljava/lang/Object;
+1340: checkcast     #1909               // class java/util/SortedSet
+1343: astore        46
+1345: aload         46
+1347: ifnull        1439
+1350: aload         46
+1352: invokeinterface #1910,  1         // InterfaceMethod java/util/SortedSet.isEmpty:()Z
+1357: ifne          1439
+1360: aload         46
+1362: invokeinterface #1912,  1         // InterfaceMethod java/util/SortedSet.last:()Ljava/lang/Object;
+1367: checkcast     #1914               // class net/minecraft/server/level/BlockDestructionProgress
+1370: invokevirtual #1917               // Method net/minecraft/server/level/BlockDestructionProgress.getProgress:()I
+1373: istore        47
+1375: iload         47
+1377: iflt          1439
+1380: aload_1
+1381: invokevirtual #1627               // Method com/mojang/blaze3d/vertex/PoseStack.last:()Lcom/mojang/blaze3d/vertex/PoseStack$Pose;
+1384: astore        48
+1386: new           #1919               // class com/mojang/blaze3d/vertex/SheetedDecalTextureGenerator
+1389: dup
+1390: aload_0
+1391: getfield      #351                // Field renderBuffers:Lnet/minecraft/client/renderer/RenderBuffers;
+1394: invokevirtual #1922               // Method net/minecraft/client/renderer/RenderBuffers.crumblingBufferSource:()Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;
+1397: getstatic     #1927               // Field net/minecraft/client/resources/model/ModelBakery.DESTROY_TYPES:Ljava/util/List;
+1400: iload         47
+1402: invokeinterface #1930,  2         // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+1407: checkcast     #1754               // class net/minecraft/client/renderer/RenderType
+1410: invokevirtual #1934               // Method net/minecraft/client/renderer/MultiBufferSource$BufferSource.getBuffer:(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;
+1413: aload         48
+1415: invokevirtual #1630               // Method com/mojang/blaze3d/vertex/PoseStack$Pose.pose:()Lcom/mojang/math/Matrix4f;
+1418: aload         48
+1420: invokevirtual #1938               // Method com/mojang/blaze3d/vertex/PoseStack$Pose.normal:()Lcom/mojang/math/Matrix3f;
+1423: invokespecial #1941               // Method com/mojang/blaze3d/vertex/SheetedDecalTextureGenerator."<init>":(Lcom/mojang/blaze3d/vertex/VertexConsumer;Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix3f;)V
+=== method net.minecraft.world.level.block.ChestBlock :: (getConnectedDirection|combine|opennessCombiner)[(]
+##   public static net.minecraft.core.Direction getConnectedDirection(net.minecraft.world.level.block.state.BlockState);
+Code:
+0: aload_0
+1: getstatic     #84                 // Field FACING:Lnet/minecraft/world/level/block/state/properties/DirectionProperty;
+4: invokevirtual #124                // Method net/minecraft/world/level/block/state/BlockState.getValue:(Lnet/minecraft/world/level/block/state/properties/Property;)Ljava/lang/Comparable;
+7: checkcast     #41                 // class net/minecraft/core/Direction
+10: astore_1
+11: aload_0
+12: getstatic     #94                 // Field TYPE:Lnet/minecraft/world/level/block/state/properties/EnumProperty;
+15: invokevirtual #124                // Method net/minecraft/world/level/block/state/BlockState.getValue:(Lnet/minecraft/world/level/block/state/properties/Property;)Ljava/lang/Comparable;
+18: getstatic     #234                // Field net/minecraft/world/level/block/state/properties/ChestType.LEFT:Lnet/minecraft/world/level/block/state/properties/ChestType;
+21: if_acmpne     31
+24: aload_1
+25: invokevirtual #237                // Method net/minecraft/core/Direction.getClockWise:()Lnet/minecraft/core/Direction;
+28: goto          35
+31: aload_1
+32: invokevirtual #240                // Method net/minecraft/core/Direction.getCounterClockWise:()Lnet/minecraft/core/Direction;
+35: areturn
+
+##   public net.minecraft.world.level.block.DoubleBlockCombiner$NeighborCombineResult<? extends net.minecraft.world.level.block.entity.ChestBlockEntity> combine(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, boolean);
+Code:
+0: iload         4
+2: ifeq          15
+5: invokedynamic #460,  0            // InvokeDynamic #0:test:()Ljava/util/function/BiPredicate;
+10: astore        5
+12: goto          22
+15: invokedynamic #465,  0            // InvokeDynamic #1:test:()Ljava/util/function/BiPredicate;
+20: astore        5
+22: aload_0
+23: getfield      #470                // Field blockEntityType:Ljava/util/function/Supplier;
+26: invokeinterface #475,  1          // InterfaceMethod java/util/function/Supplier.get:()Ljava/lang/Object;
+31: checkcast     #477                // class net/minecraft/world/level/block/entity/BlockEntityType
+34: invokedynamic #485,  0            // InvokeDynamic #2:apply:()Ljava/util/function/Function;
+39: invokedynamic #488,  0            // InvokeDynamic #3:apply:()Ljava/util/function/Function;
+44: getstatic     #84                 // Field FACING:Lnet/minecraft/world/level/block/state/properties/DirectionProperty;
+47: aload_1
+48: aload_2
+49: aload_3
+50: aload         5
+52: invokestatic  #492                // Method net/minecraft/world/level/block/DoubleBlockCombiner.combineWithNeigbour:(Lnet/minecraft/world/level/block/entity/BlockEntityType;Ljava/util/function/Function;Ljava/util/function/Function;Lnet/minecraft/world/level/block/state/properties/DirectionProperty;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Ljava/util/function/BiPredicate;)Lnet/minecraft/world/level/block/DoubleBlockCombiner$NeighborCombineResult;
+55: areturn
+
+##   public static net.minecraft.world.level.block.DoubleBlockCombiner$Combiner<net.minecraft.world.level.block.entity.ChestBlockEntity, it.unimi.dsi.fastutil.floats.Float2FloatFunction> opennessCombiner(net.minecraft.world.level.block.entity.LidBlockEntity);
+Code:
+0: new           #12                 // class net/minecraft/world/level/block/ChestBlock$3
+3: dup
+4: aload_0
+5: invokespecial #510                // Method net/minecraft/world/level/block/ChestBlock$3."<init>":(Lnet/minecraft/world/level/block/entity/LidBlockEntity;)V
+8: areturn
+
+=== method net.minecraft.world.level.block.entity.TrappedChestBlockEntity :: .
+##   public net.minecraft.world.level.block.entity.TrappedChestBlockEntity();
+Code:
+0: aload_0
+1: getstatic     #13                 // Field net/minecraft/world/level/block/entity/BlockEntityType.TRAPPED_CHEST:Lnet/minecraft/world/level/block/entity/BlockEntityType;
+4: invokespecial #16                 // Method net/minecraft/world/level/block/entity/ChestBlockEntity."<init>":(Lnet/minecraft/world/level/block/entity/BlockEntityType;)V
+7: return
+
+##   protected void signalOpenCount();
+Code:
+0: aload_0
+1: invokespecial #21                 // Method net/minecraft/world/level/block/entity/ChestBlockEntity.signalOpenCount:()V
+4: aload_0
+5: getfield      #25                 // Field level:Lnet/minecraft/world/level/Level;
+8: aload_0
+9: getfield      #29                 // Field worldPosition:Lnet/minecraft/core/BlockPos;
+12: invokevirtual #35                 // Method net/minecraft/core/BlockPos.below:()Lnet/minecraft/core/BlockPos;
+15: aload_0
+16: invokevirtual #39                 // Method getBlockState:()Lnet/minecraft/world/level/block/state/BlockState;
+19: invokevirtual #45                 // Method net/minecraft/world/level/block/state/BlockState.getBlock:()Lnet/minecraft/world/level/block/Block;
+22: invokevirtual #51                 // Method net/minecraft/world/level/Level.updateNeighborsAt:(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;)V
+25: return
+}
 === package listing (client.gui.screens, client.input, client, renderer, particle, model.geom, blaze3d)
 net/minecraft/client/particle/HugeExplosionParticle$Provider.class
 net/minecraft/client/renderer/MultiBufferSource$BufferSource.class
