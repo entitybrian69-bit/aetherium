@@ -234,6 +234,11 @@ public final class AutoBench {
                         //~ player.chat("/time set 6000");
                         //~ player.chat("/weather clear");
                         //~ player.chat("/tp @s ~ ~40 ~ 0 0");
+                        //~ // Chests in front of the camera (single, double, ender) for the batched chests check.
+                        //~ player.chat("/setblock ~ ~-1 ~5 minecraft:chest[facing=north]");
+                        //~ player.chat("/setblock ~2 ~-1 ~5 minecraft:chest[facing=north,type=left]");
+                        //~ player.chat("/setblock ~3 ~-1 ~5 minecraft:chest[facing=north,type=right]");
+                        //~ player.chat("/setblock ~-2 ~-1 ~5 minecraft:ender_chest[facing=north]");
                         //~ enter(Phase.SETUP);
                     //~ }
                 //~ }
