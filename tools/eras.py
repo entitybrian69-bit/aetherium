@@ -160,6 +160,8 @@ ERAS = {
     "freelook": [("v16", "..1.21.1"), ("minecart", "1.21.2..1.21.11"), ("align", "26.1..")],
     # 1.5.0 (1.16.5 first): streaming optimizations, fog/sky/particle controls.
     "qol16": [("v16", "..1.16.5"), ("none", "1.17..")],
+    # 1.17.2 performance work (Minecraft 1.16.5 only): the Tuning* mixins, HudCache, ChestBaking.
+    "boost16": [("v16", "..1.16.5"), ("none", "1.17..")],
     # --- Quality of life tab (1.16.x first; one era per hook file so each can be ported alone) --
     # Text components: new TextComponent(...) before 1.19, Component.literal(...) after.
     "chat": [("text", "..1.18.2"), ("literal", "1.19..")],

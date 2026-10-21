@@ -2,6 +2,7 @@ package com.aetherium.client;
 
 import com.aetherium.perf.ArenaAllocator;
 import com.aetherium.perf.DrawRanges;
+import com.aetherium.render.PackedTerrain;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -58,6 +59,14 @@ public final class TerrainRegions {
      */
     static final int MERGE_GAP_VERTICES_DESKTOP = 256;
     private static volatile int mergeGap = MERGE_GAP_VERTICES;
+    /**
+     * Packed terrain (1.17.2): new meshes are stored as {@link PackedTerrain} 20-byte vertices
+     * (pages then carry {@link RegionPage#packed()}); meshes that do not fit the format, and every
+     * mesh while this is off, keep vanilla's 32 bytes.
+     */
+    private static volatile boolean packing;
+    /** Render thread: packed copy of the mesh being stored. */
+    private static ByteBuffer packScratch;
     private static volatile boolean translated = true;
 
     /** Picks the merge gap for the GL in use: {@code translated} = a GL translator (Android). */
@@ -149,22 +158,30 @@ public final class TerrainRegions {
         final Region region;
         final int layer;
         final int capacity;
+        /** Bytes per vertex: {@link #STRIDE}, or {@link PackedTerrain#STRIDE} for a packed page. */
+        final int stride;
         int id;
         final ArenaAllocator alloc;
         final DrawRanges ranges = new DrawRanges();
         boolean queued;
         int slots;
 
-        RegionPage(final Region region, final int layer, final int capacity, final int id) {
+        RegionPage(final Region region, final int layer, final int capacity, final int id, final int stride) {
             this.region = region;
             this.layer = layer;
             this.capacity = capacity;
+            this.stride = stride;
             this.id = id;
             this.alloc = new ArenaAllocator(capacity);
         }
 
         public int id() {
             return this.id;
+        }
+
+        /** Whether the vertices are {@link PackedTerrain} 20-byte vertices. */
+        public boolean packed() {
+            return this.stride == PackedTerrain.STRIDE;
         }
 
         /** Region origin (blocks): the translation every vertex of this page is relative to. */
@@ -220,6 +237,7 @@ public final class TerrainRegions {
     private static volatile boolean enabled;
 
     private static int pageCount;
+    private static int packedPages;
     private static long pageBytes;
     private static long liveBytes;
     private static int drawsLastLayer;
@@ -245,6 +263,22 @@ public final class TerrainRegions {
 
     public static boolean enabled() {
         return enabled;
+    }
+
+    /**
+     * Once per frame: whether new meshes are packed. Returns true when this changed while regions
+     * hold meshes: every section is then rebuilt so all of them use the new format.
+     */
+    public static boolean configurePacking(final boolean wanted) {
+        if (wanted == packing) {
+            return false;
+        }
+        packing = wanted;
+        return !REGIONS.isEmpty();
+    }
+
+    public static boolean packing() {
+        return packing;
     }
 
     public static boolean isEmpty() {
@@ -291,12 +325,32 @@ public final class TerrainRegions {
             region = new Region(key, rx << 7, ry << 6, rz << 7);
             REGIONS.put(key, region);
         }
+        final int dx = (sx & 7) << 4;
+        final int dy = (sy & 3) << 4;
+        final int dz = (sz & 7) << 4;
+        ByteBuffer packed = null;
+        if (packing) {
+            if (packScratch == null) {
+                packScratch = ByteBuffer.allocateDirect(PAGE_MAX_VERTICES * PackedTerrain.STRIDE)
+                        .order(ByteOrder.nativeOrder());
+            }
+            final ByteBuffer out = packScratch.duplicate();
+            out.clear();
+            if (PackedTerrain.pack(data, vertexCount, dx, dy, dz, out)) {
+                out.limit(vertexCount * PackedTerrain.STRIDE);
+                packed = out;
+            }
+        }
+        final int stride = packed != null ? PackedTerrain.STRIDE : STRIDE;
         final ArrayList<RegionPage> pages = region.layers[layer];
         RegionPage page = null;
         int first = -1;
         int largest = 0;
         for (int i = 0, n = pages.size(); i < n; i++) {
             final RegionPage p = pages.get(i);
+            if (p.stride != stride) {
+                continue;
+            }
             largest = Math.max(largest, p.capacity);
             first = p.alloc.allocate(vertexCount);
             if (first >= 0) {
@@ -306,18 +360,25 @@ public final class TerrainRegions {
         }
         if (page == null) {
             final int capacity = pageCapacity(vertexCount, largest);
-            final int id = buffers.create(capacity * STRIDE);
-            page = new RegionPage(region, layer, capacity, id);
+            final int id = buffers.create(capacity * stride);
+            page = new RegionPage(region, layer, capacity, id, stride);
             pages.add(page);
             region.pages++;
             pageCount++;
-            pageBytes += (long) capacity * STRIDE;
+            if (packed != null) {
+                packedPages++;
+            }
+            pageBytes += (long) capacity * stride;
             first = page.alloc.allocate(vertexCount);
         }
-        offsetPositions(data, vertexCount, (sx & 7) << 4, (sy & 3) << 4, (sz & 7) << 4);
-        final ByteBuffer slice = data.duplicate();
-        slice.limit(slice.position() + vertexCount * STRIDE);
-        buffers.upload(page.id, (long) first * STRIDE, slice);
+        if (packed != null) {
+            buffers.upload(page.id, (long) first * stride, packed);
+        } else {
+            offsetPositions(data, vertexCount, dx, dy, dz);
+            final ByteBuffer slice = data.duplicate();
+            slice.limit(slice.position() + vertexCount * STRIDE);
+            buffers.upload(page.id, (long) first * STRIDE, slice);
+        }
         final Slot slot = new Slot();
         slot.page = page;
         slot.first = first;
@@ -326,7 +387,7 @@ public final class TerrainRegions {
         slot.originY = originY;
         slot.originZ = originZ;
         page.slots++;
-        liveBytes += (long) ArenaAllocator.align(vertexCount) * STRIDE;
+        liveBytes += (long) ArenaAllocator.align(vertexCount) * stride;
         return slot;
     }
 
@@ -349,7 +410,7 @@ public final class TerrainRegions {
         slot.released = true;
         final RegionPage page = slot.page;
         page.alloc.free(slot.first, slot.count);
-        liveBytes -= (long) ArenaAllocator.align(slot.count) * STRIDE;
+        liveBytes -= (long) ArenaAllocator.align(slot.count) * page.stride;
         page.slots--;
         if (dropEmpty && page.slots == 0 && !page.queued) {
             dropPage(page);
@@ -364,7 +425,10 @@ public final class TerrainRegions {
         buffers.delete(page.id);
         page.id = 0;
         pageCount--;
-        pageBytes -= (long) page.capacity * STRIDE;
+        if (page.packed()) {
+            packedPages--;
+        }
+        pageBytes -= (long) page.capacity * page.stride;
         if (--region.pages == 0) {
             REGIONS.remove(region.key);
         }
@@ -473,7 +537,8 @@ public final class TerrainRegions {
         if (pageCount == 0) {
             return "";
         }
-        return "; batched: " + pageCount + " buffers, " + (pageBytes >> 20) + " MB (" + (liveBytes >> 20)
+        return "; batched: " + pageCount + " buffers" + (packedPages > 0 ? " (" + packedPages + " packed)" : "") + ", "
+                + (pageBytes >> 20) + " MB (" + (liveBytes >> 20)
                 + " MB used), last layer " + pagesLastLayer + " buffers / " + drawsLastLayer + " draws";
     }
 
@@ -492,7 +557,9 @@ public final class TerrainRegions {
         RELEASES.clear();
         renderThread = null;
         enabled = false;
+        packing = false;
         pageCount = 0;
+        packedPages = 0;
         pageBytes = 0;
         liveBytes = 0;
         drawsLastLayer = 0;

@@ -82,6 +82,19 @@ public final class Tuning {
     public static volatile boolean lightmapRate;
     public static volatile boolean aoCache;
     public static volatile boolean asyncSkins;
+
+    // 1.17.2 (compact block states is start-up only: EarlyFlags; the HUD rate lives in HudRate)
+    public static volatile boolean lazySearch;
+    public static volatile boolean entityTickCulling;
+    public static volatile boolean fastBlockData;
+    public static volatile boolean fastSectionSnapshots;
+    public static volatile boolean fastMobAi;
+    public static volatile boolean fastEntityData;
+    public static volatile boolean fastNetwork;
+    public static volatile boolean multiDraw;
+    public static volatile boolean batchedChests;
+    public static volatile boolean packedTerrain;
+    public static volatile boolean occlusionQueries;
     /** Cloud area in percent of vanilla's (100 = vanilla). */
     public static volatile int cloudDistance = 100;
     public static volatile boolean fastGrass;
@@ -157,6 +170,18 @@ public final class Tuning {
         lightmapRate = active && c.lightmapRate.get().booleanValue();
         aoCache = active && c.aoCache.get().booleanValue();
         asyncSkins = active && c.asyncSkins.get().booleanValue();
+        lazySearch = active && c.lazySearch.get().booleanValue();
+        HudRate.setFps(active ? c.hudFps.get().intValue() : HudRate.OFF);
+        entityTickCulling = active && c.entityTickCulling.get().booleanValue();
+        fastBlockData = active && c.fastBlockData.get().booleanValue();
+        fastSectionSnapshots = active && c.fastSectionSnapshots.get().booleanValue();
+        fastMobAi = active && c.fastMobAi.get().booleanValue();
+        fastEntityData = active && c.fastEntityData.get().booleanValue();
+        fastNetwork = active && c.fastNetwork.get().booleanValue();
+        multiDraw = active && c.multiDraw.get().booleanValue();
+        batchedChests = active && c.batchedChests.get().booleanValue();
+        packedTerrain = active && c.packedTerrain.get().booleanValue();
+        occlusionQueries = active && c.occlusionQueries.get().booleanValue();
         int clouds = c.cloudDistance.get().intValue();
         if (low) {
             clouds = Math.min(clouds, 50);
