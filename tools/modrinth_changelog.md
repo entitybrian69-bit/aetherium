@@ -3,6 +3,25 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.17.2
+**Twelve new performance options (test build for Minecraft 1.16.5 only).** All are on the Performance page, can be switched off one by one, help on computers and phones alike, and change nothing on the server.
+
+- Compact block states: every block keeps one small shared table of its variants instead of a lookup table inside each variant. Saves memory (more with mods); takes effect after a restart.
+- Cached block fluids: each block variant remembers its fluid instead of looking it up every time.
+- Search index on demand: the creative and recipe-book search index is built the first time you search instead of on every resource reload, so loading and resource-pack changes are faster.
+- HUD refresh rate (5 to 60, default 30): the hotbar, hearts and other HUD parts are redrawn at this rate and reused in between; the crosshair, the vignette and anything that moves every frame stay live.
+- Skip unseen entity updates: entities outside your view and more than 8 blocks away skip their client-side update and jump to the position the server sent (players, bosses, projectiles, vehicles, lit TNT and a few others are always updated).
+- Faster chunk snapshots: the block copy handed to the chunk builders reads every block once instead of twice.
+- Faster mob AI (singleplayer): mob goals are checked with less overhead.
+- Lock-free entity data: entity data reads and writes skip a lock that only one thread ever takes.
+- Faster packet decoding: incoming packets are framed and decompressed with fewer copies.
+- Batched chests: closed chests, trapped chests and ender chests are drawn as part of the chunk instead of one by one every frame; a chest that opens or is being broken goes back to normal drawing until it is closed and untouched again.
+- Packed terrain (Aetherium pipeline with batched terrain): chunk vertices take 20 bytes instead of 32, so less memory and bandwidth; turns itself off at the next start if the game crashed while drawing it.
+- Multi-draw terrain (computers): each terrain buffer is drawn with one call; phones keep separate draws automatically.
+- GPU occlusion culling (computers, off by default, experimental): chunk sections hidden behind other terrain are not drawn; a section can appear one frame late when you turn fast.
+
+Test build: these options were built and checked on CI (start-up and mixin checks) but not yet measured in a full game on every device; please report anything that looks or runs wrong.
+
 ## 1.17.1
 **Mouse Tweaks in the Quality of life tab (test build for Minecraft 1.16.5 only).**
 

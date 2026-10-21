@@ -198,6 +198,7 @@ public final class SmokeTest {
             foodOutline = "FAILED: " + error;
         }
         out.append("food outline ").append(foodOutline).append('\n');
+        out.append("compact block states ").append(com.aetherium.perf.CompactNeighbours.created()).append('\n');
         try {
             final File dir = new File(DIR);
             dir.mkdirs();

@@ -26,10 +26,18 @@ public final class CompactNeighbours implements Table {
     private final int at;
     private final Object self;
 
+    /** Tables created so far (start-up self-test; blocks register on one thread). */
+    private static int created;
+
     public CompactNeighbours(final StateIndex index, final int at, final Object self) {
         this.index = index;
         this.at = at;
         this.self = self;
+        created++;
+    }
+
+    public static int created() {
+        return created;
     }
 
     @Override
