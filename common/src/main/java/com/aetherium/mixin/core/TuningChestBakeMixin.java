@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 //~ import com.aetherium.client.ChestBaking;
 //~ import com.aetherium.client.ChestLid;
 //~ import com.aetherium.client.ChestQuads;
-//~ import com.aetherium.core.AetheriumLog;
+//~ import com.aetherium.util.AetheriumLog;
 //~ import com.aetherium.perf.Tuning;
 //~ import com.mojang.blaze3d.vertex.BufferBuilder;
 //~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;

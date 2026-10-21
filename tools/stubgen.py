@@ -29,6 +29,11 @@ JDK_PREFIXES = ("java.", "javax.", "jdk.", "sun.")
 # Hand-written in tools/stubs_lib; never generate (an empty generated class would shadow them).
 LIB_PREFIXES = ("org.slf4j.", "org.apache.logging.", "org.objectweb.", "org.spongepowered.",
                 "net.fabricmc.", "net.neoforged.", "org.lwjgl.")
+# Exact library types hand-written in tools/stubs_lib (Guava pieces the mod implements or calls).
+LIB_TYPES = {"com.google.common.collect.Table", "com.google.common.collect.Table$Cell",
+             "com.google.common.collect.ImmutableTable", "com.google.common.collect.ImmutableTable$Builder",
+             "com.google.common.collect.ImmutableMap", "com.google.common.collect.ImmutableSet",
+             "com.google.common.collect.ImmutableCollection", "com.google.common.collect.Multimap"}
 
 # Unprobed types the mod relies on: superclass + members, from stable Mojang API (not from
 # the probe). The real CI build is the authority for these; keep the list short.
@@ -64,6 +69,20 @@ HINTS = {
     "net.minecraft.world.phys.AABB": (None, ["public final double minX;", "public final double minY;",
                                              "public final double minZ;", "public final double maxX;",
                                              "public final double maxY;", "public final double maxZ;"]),
+    # 1.17.2 (1.16.5 performance mixins): hierarchy of unprobed types.
+    "net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity": ("net.minecraft.world.level.block.entity.BlockEntity", []),
+    "net.minecraft.world.level.block.AbstractChestBlock": ("net.minecraft.world.level.block.Block", []),
+    "net.minecraft.world.level.block.state.properties.DirectionProperty": ("net.minecraft.world.level.block.state.properties.Property", []),
+    "net.minecraft.world.level.block.state.properties.EnumProperty": ("net.minecraft.world.level.block.state.properties.Property", []),
+    "net.minecraft.world.level.chunk.LevelChunk$EntityCreationType": (None, [
+        "public static final net.minecraft.world.level.chunk.LevelChunk$EntityCreationType CHECK;",
+        "public static final net.minecraft.world.level.chunk.LevelChunk$EntityCreationType IMMEDIATE;"]),
+    "net.minecraft.world.entity.LightningBolt": ("net.minecraft.world.entity.Entity", []),
+    "net.minecraft.world.entity.boss.wither.WitherBoss": ("net.minecraft.world.entity.monster.Monster", []),
+    "net.minecraft.world.entity.item.FallingBlockEntity": ("net.minecraft.world.entity.Entity", []),
+    "net.minecraft.world.entity.item.PrimedTnt": ("net.minecraft.world.entity.Entity", []),
+    "net.minecraft.world.entity.projectile.EyeOfEnder": ("net.minecraft.world.entity.Entity", []),
+    "net.minecraft.util.profiling.ProfilerFiller": (None, ["public void push(java.lang.String);", "public void pop();"]),
     "net.minecraft.world.item.Items": (None, ["public static final net.minecraft.world.item.Item LAVA_BUCKET;",
                                              "public static final net.minecraft.world.item.Item TORCH;",
                                              "public static final net.minecraft.world.item.Item GLOWSTONE;"]),
@@ -125,7 +144,7 @@ def jtype(t):
 
 
 def is_jdk(name):
-    return name.startswith(JDK_PREFIXES) or name.startswith(LIB_PREFIXES)
+    return name.startswith(JDK_PREFIXES) or name.startswith(LIB_PREFIXES) or name in LIB_TYPES
 
 
 def default_value(t):

@@ -37,7 +37,7 @@ public final class OcclusionCulling {
     static final int STALE_FRAMES = 6;
     static final float NEAR = 24f;
     /** The box is grown by this much (blocks) on every side so its own surface never hides it. */
-    static final float GROW = 0.5f;
+    public static final float GROW = 0.5f;
     private static final int PRUNE_PERIOD = 128;
 
     /** Per-section state. */
