@@ -1075,6 +1075,225 @@ index b52e5ad..dcc73b2 100644
 +    // @era:autobench-else none
      // @era:autobench-end
  }
+diff --git a/common/src/main/java/com/aetherium/client/ChestQuads.java b/common/src/main/java/com/aetherium/client/ChestQuads.java
+index eaa2e49..2320ae6 100644
+--- a/common/src/main/java/com/aetherium/client/ChestQuads.java
++++ b/common/src/main/java/com/aetherium/client/ChestQuads.java
+@@ -1,116 +1,116 @@
+ package com.aetherium.client;
+ 
+-// @era:boost16-begin none
+-/** Batched chests exist only for Minecraft 1.16.5. */
+-final class ChestQuads {
+-    private ChestQuads() {
+-    }
+-}
+-// @era:boost16-else v16
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.VertexConsumer;
+-//~ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++// @era:boost16-begin v16
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.VertexConsumer;
++import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+ 
+-//~ /**
+- //~ * Batched chests (1.17.2): collects the quads of a chest model (as the model writes them for
+- //~ * block-entity drawing) and, once the whole model went through, writes them into a chunk
+- //~ * section's terrain buffer with the texture moved into the block atlas and block-entity shading
+- //~ * baked into the colour. Nothing reaches the section buffer if the model fails half way. One
+- //~ * instance per bake (mesh worker).
+- //~ */
+-//~ public final class ChestQuads implements VertexConsumer {
+-    //~ private static final int FLOATS = 12;
+-    //~ private final TextureAtlasSprite sprite;
+-    //~ private float[] data = new float[FLOATS * 96];
+-    //~ private int[] lights = new int[96];
+-    //~ private int count;
++/**
++ * Batched chests (1.17.2): collects the quads of a chest model (as the model writes them for
++ * block-entity drawing) and, once the whole model went through, writes them into a chunk
++ * section's terrain buffer with the texture moved into the block atlas and block-entity shading
++ * baked into the colour. Nothing reaches the section buffer if the model fails half way. One
++ * instance per bake (mesh worker).
++ */
++public final class ChestQuads implements VertexConsumer {
++    private static final int FLOATS = 12;
++    private final TextureAtlasSprite sprite;
++    private float[] data = new float[FLOATS * 96];
++    private int[] lights = new int[96];
++    private int count;
+ 
+-    //~ public ChestQuads(final TextureAtlasSprite sprite) {
+-        //~ this.sprite = sprite;
+-    //~ }
++    public ChestQuads(final TextureAtlasSprite sprite) {
++        this.sprite = sprite;
++    }
+ 
+-    //~ @Override
+-    //~ public void vertex(final float x, final float y, final float z, final float red, final float green, final float blue,
+-                       //~ final float alpha, final float u, final float v, final int overlay, final int light,
+-                       //~ final float nx, final float ny, final float nz) {
+-        //~ if (this.count == this.lights.length) {
+-            //~ this.data = java.util.Arrays.copyOf(this.data, this.data.length * 2);
+-            //~ this.lights = java.util.Arrays.copyOf(this.lights, this.lights.length * 2);
+-        //~ }
+-        //~ final int o = this.count * FLOATS;
+-        //~ final float shade = ChestBaking.shade(nx, ny, nz);
+-        //~ this.data[o] = x;
+-        //~ this.data[o + 1] = y;
+-        //~ this.data[o + 2] = z;
+-        //~ this.data[o + 3] = red * shade;
+-        //~ this.data[o + 4] = green * shade;
+-        //~ this.data[o + 5] = blue * shade;
+-        //~ this.data[o + 6] = alpha;
+-        //~ this.data[o + 7] = this.sprite.getU(u * 16.0);
+-        //~ this.data[o + 8] = this.sprite.getV(v * 16.0);
+-        //~ this.data[o + 9] = nx;
+-        //~ this.data[o + 10] = ny;
+-        //~ this.data[o + 11] = nz;
+-        //~ this.lights[this.count] = light;
+-        //~ this.count++;
+-    //~ }
++    @Override
++    public void vertex(final float x, final float y, final float z, final float red, final float green, final float blue,
++                       final float alpha, final float u, final float v, final int overlay, final int light,
++                       final float nx, final float ny, final float nz) {
++        if (this.count == this.lights.length) {
++            this.data = java.util.Arrays.copyOf(this.data, this.data.length * 2);
++            this.lights = java.util.Arrays.copyOf(this.lights, this.lights.length * 2);
++        }
++        final int o = this.count * FLOATS;
++        final float shade = ChestBaking.shade(nx, ny, nz);
++        this.data[o] = x;
++        this.data[o + 1] = y;
++        this.data[o + 2] = z;
++        this.data[o + 3] = red * shade;
++        this.data[o + 4] = green * shade;
++        this.data[o + 5] = blue * shade;
++        this.data[o + 6] = alpha;
++        this.data[o + 7] = this.sprite.getU(u * 16.0);
++        this.data[o + 8] = this.sprite.getV(v * 16.0);
++        this.data[o + 9] = nx;
++        this.data[o + 10] = ny;
++        this.data[o + 11] = nz;
++        this.lights[this.count] = light;
++        this.count++;
++    }
+ 
+-    //~ /**
+-     //~ * Whether the model produced exactly {@code vertices} vertices (all faces of all its boxes; a
+-     //~ * part skipped by mob detail levels on another thread would leave a hole, so then nothing is
+-     //~ * baked).
+-     //~ */
+-    //~ public boolean complete(final int vertices) {
+-        //~ return this.count == vertices;
+-    //~ }
++    /**
++     * Whether the model produced exactly {@code vertices} vertices (all faces of all its boxes; a
++     * part skipped by mob detail levels on another thread would leave a hole, so then nothing is
++     * baked).
++     */
++    public boolean complete(final int vertices) {
++        return this.count == vertices;
++    }
+ 
+-    //~ /** Writes the collected quads into {@code target} (a section buffer in the block format). */
+-    //~ public void flush(final BufferBuilder target) {
+-        //~ for (int i = 0; i < this.count; i++) {
+-            //~ final int o = i * FLOATS;
+-            //~ target.vertex(this.data[o], this.data[o + 1], this.data[o + 2], this.data[o + 3], this.data[o + 4],
+-                    //~ this.data[o + 5], this.data[o + 6], this.data[o + 7], this.data[o + 8], 655360, this.lights[i],
+-                    //~ this.data[o + 9], this.data[o + 10], this.data[o + 11]);
+-        //~ }
+-    //~ }
++    /** Writes the collected quads into {@code target} (a section buffer in the block format). */
++    public void flush(final BufferBuilder target) {
++        for (int i = 0; i < this.count; i++) {
++            final int o = i * FLOATS;
++            target.vertex(this.data[o], this.data[o + 1], this.data[o + 2], this.data[o + 3], this.data[o + 4],
++                    this.data[o + 5], this.data[o + 6], this.data[o + 7], this.data[o + 8], 655360, this.lights[i],
++                    this.data[o + 9], this.data[o + 10], this.data[o + 11]);
++        }
++    }
+ 
+-    //~ private static IllegalStateException unexpected() {
+-        //~ return new IllegalStateException("chest model wrote a vertex element by element");
+-    //~ }
++    private static IllegalStateException unexpected() {
++        return new IllegalStateException("chest model wrote a vertex element by element");
++    }
+ 
+-    //~ @Override
+-    //~ public VertexConsumer vertex(final double x, final double y, final double z) {
+-        //~ throw unexpected();
+-    //~ }
++    @Override
++    public VertexConsumer vertex(final double x, final double y, final double z) {
++        throw unexpected();
++    }
+ 
+-    //~ @Override
+-    //~ public VertexConsumer color(final int red, final int green, final int blue, final int alpha) {
+-        //~ throw unexpected();
+-    //~ }
++    @Override
++    public VertexConsumer color(final int red, final int green, final int blue, final int alpha) {
++        throw unexpected();
++    }
+ 
+-    //~ @Override
+-    //~ public VertexConsumer uv(final float u, final float v) {
+-        //~ throw unexpected();
+-    //~ }
++    @Override
++    public VertexConsumer uv(final float u, final float v) {
++        throw unexpected();
++    }
+ 
+-    //~ @Override
+-    //~ public VertexConsumer overlayCoords(final int u, final int v) {
+-        //~ throw unexpected();
+-    //~ }
++    @Override
++    public VertexConsumer overlayCoords(final int u, final int v) {
++        throw unexpected();
++    }
+ 
+-    //~ @Override
+-    //~ public VertexConsumer uv2(final int u, final int v) {
+-        //~ throw unexpected();
+-    //~ }
++    @Override
++    public VertexConsumer uv2(final int u, final int v) {
++        throw unexpected();
++    }
+ 
+-    //~ @Override
+-    //~ public VertexConsumer normal(final float x, final float y, final float z) {
+-        //~ throw unexpected();
+-    //~ }
++    @Override
++    public VertexConsumer normal(final float x, final float y, final float z) {
++        throw unexpected();
++    }
+ 
+-    //~ @Override
+-    //~ public void endVertex() {
+-        //~ throw unexpected();
++    @Override
++    public void endVertex() {
++        throw unexpected();
++    }
++}
++// @era:boost16-else none
++//~ /** Batched chests exist only for Minecraft 1.16.5. */
++//~ final class ChestQuads {
++    //~ private ChestQuads() {
+     //~ }
+ //~ }
+ // @era:boost16-end
 diff --git a/common/src/main/java/com/aetherium/client/ClientHooks.java b/common/src/main/java/com/aetherium/client/ClientHooks.java
 index 304df5d..f6799ec 100644
 --- a/common/src/main/java/com/aetherium/client/ClientHooks.java
@@ -6544,20 +6763,26 @@ index 59c83cc..3a85d0c 100644
      // @era:qol16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-index 8798f58..58e43c5 100644
+index c4008ef..85a4dfb 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/ChunkRendererMixin.java
-@@ -1,33 +1,33 @@
+@@ -1,39 +1,39 @@
  package com.aetherium.mixin.core;
  
 -// @era:chunk-renderer-begin none
 -// @era:chunk-renderer-else gl16
 -//~ import com.aetherium.client.ChunkInfoOrigin;
+-//~ import com.aetherium.client.ChestBaking;
 -//~ import com.aetherium.client.ChunkRenderer;
+-//~ import com.aetherium.client.MultiDraw;
+-//~ import com.aetherium.client.OcclusionCulling;
 -//~ import com.aetherium.client.TerrainRegions;
 -//~ import com.aetherium.client.VertexBufferAccess;
 -//~ import com.aetherium.perf.RenderToggles;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.aetherium.render.PackedTerrain;
 -//~ import com.aetherium.render.CompactTerrain;
+-//~ import com.mojang.blaze3d.platform.GlStateManager;
 -//~ import com.mojang.blaze3d.systems.RenderSystem;
 -//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 -//~ import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -6580,11 +6805,17 @@ index 8798f58..58e43c5 100644
 -//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 +// @era:chunk-renderer-begin gl16
 +import com.aetherium.client.ChunkInfoOrigin;
++import com.aetherium.client.ChestBaking;
 +import com.aetherium.client.ChunkRenderer;
++import com.aetherium.client.MultiDraw;
++import com.aetherium.client.OcclusionCulling;
 +import com.aetherium.client.TerrainRegions;
 +import com.aetherium.client.VertexBufferAccess;
 +import com.aetherium.perf.RenderToggles;
++import com.aetherium.perf.Tuning;
++import com.aetherium.render.PackedTerrain;
 +import com.aetherium.render.CompactTerrain;
++import com.mojang.blaze3d.platform.GlStateManager;
 +import com.mojang.blaze3d.systems.RenderSystem;
 +import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 +import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -6609,7 +6840,7 @@ index 8798f58..58e43c5 100644
  // @era:chunk-renderer-end
  import net.minecraft.client.renderer.LevelRenderer;
  
-@@ -55,231 +55,231 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -61,364 +61,364 @@ import org.spongepowered.asm.mixin.Mixin;
  @Mixin(LevelRenderer.class)
  public abstract class ChunkRendererMixin {
  
@@ -6638,7 +6869,12 @@ index 8798f58..58e43c5 100644
 -        //~ final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.aetheriumRenderer, false);
 -        //~ final boolean pipelineOn = ChunkRenderer.uploadMode() == ChunkRenderer.MODE_COMPATIBLE;
 -        //~ final boolean regions = TerrainRegions.configure(pipelineOn && RenderToggles.regionBatching, pipelineOn);
--        //~ if (switched || regions) {
+-        //~ // 1.17.2: packed vertices for batched terrain; chests baked into their chunk. Either change
+-        //~ // rebuilds every section so all of them use the new form.
+-        //~ final boolean packing = TerrainRegions.configurePacking(TerrainRegions.enabled() && Tuning.packedTerrain);
+-        //~ final boolean chests = ChestBaking.configure(Tuning.batchedChests);
+-        //~ OcclusionCulling.beginFrame(pipelineOn && Tuning.occlusionQueries && !TerrainRegions.translated());
+-        //~ if (switched || regions || packing || chests) {
 -            //~ ((LevelRenderer) (Object) this).allChanged();
 -        //~ }
 -    //~ }
@@ -6657,7 +6893,12 @@ index 8798f58..58e43c5 100644
 +        final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.aetheriumRenderer, false);
 +        final boolean pipelineOn = ChunkRenderer.uploadMode() == ChunkRenderer.MODE_COMPATIBLE;
 +        final boolean regions = TerrainRegions.configure(pipelineOn && RenderToggles.regionBatching, pipelineOn);
-+        if (switched || regions) {
++        // 1.17.2: packed vertices for batched terrain; chests baked into their chunk. Either change
++        // rebuilds every section so all of them use the new form.
++        final boolean packing = TerrainRegions.configurePacking(TerrainRegions.enabled() && Tuning.packedTerrain);
++        final boolean chests = ChestBaking.configure(Tuning.batchedChests);
++        OcclusionCulling.beginFrame(pipelineOn && Tuning.occlusionQueries && !TerrainRegions.translated());
++        if (switched || regions || packing || chests) {
 +            ((LevelRenderer) (Object) this).allChanged();
 +        }
 +    }
@@ -6834,6 +7075,7 @@ index 8798f58..58e43c5 100644
 -        //~ type.setupRenderState();
 -        //~ ChunkRenderer.beginCompatible(TerrainRegions.enabled());
 -        //~ TerrainRegions.beginLayer();
+-        //~ final boolean occlusion = OcclusionCulling.active();
 -        //~ try {
 -            //~ final ObjectList<?> list = this.renderChunks;
 -            //~ for (int i = 0, n = list.size(); i < n; i++) {
@@ -6841,6 +7083,13 @@ index 8798f58..58e43c5 100644
 -                        //~ (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
 -                //~ if (chunk.getCompiledChunk().isEmpty(type)) {
 -                    //~ continue;
+-                //~ }
+-                //~ if (occlusion) {
+-                    //~ final BlockPos at = chunk.getOrigin();
+-                    //~ if (OcclusionCulling.hidden(chunk, (float) (at.getX() - camX), (float) (at.getY() - camY),
+-                            //~ (float) (at.getZ() - camZ))) {
+-                        //~ continue;
+-                    //~ }
 -                //~ }
 -                //~ final VertexBuffer buffer = chunk.getBuffer(type);
 -                //~ final VertexBufferAccess access = (VertexBufferAccess) buffer;
@@ -6902,24 +7151,51 @@ index 8798f58..58e43c5 100644
 -                //~ ChunkRenderer.compatibleSectionDrawn();
 -            //~ }
 -            //~ // Batched pages: one bind, one set of vertex pointers and one matrix per page.
+-            //~ final boolean multiDraw = MultiDraw.usable(Tuning.multiDraw);
+-            //~ boolean packedPointers = false;
 -            //~ for (int p = 0, pages = TerrainRegions.preparePages(); p < pages; p++) {
 -                //~ final TerrainRegions.RegionPage page = TerrainRegions.page(p);
 -                //~ poseStack.pushPose();
 -                //~ poseStack.translate(page.originX() - camX, page.originY() - camY, page.originZ() - camZ);
 -                //~ GL15.glBindBuffer(0x8892, page.id()); // GL_ARRAY_BUFFER, as VertexBuffer.bind
--                //~ DefaultVertexFormat.BLOCK.setupBufferState(0L);
+-                //~ if (page.packed()) {
+-                    //~ // 1.17.2 packed vertices: shorts scaled back by the model-view and texture matrices.
+-                    //~ aetherium$packedPointers();
+-                    //~ poseStack.translate(PackedTerrain.POSITION_BIAS, PackedTerrain.POSITION_BIAS, PackedTerrain.POSITION_BIAS);
+-                    //~ final float unit = 1.0f / PackedTerrain.POSITION_SCALE;
+-                    //~ poseStack.scale(unit, unit, unit);
+-                    //~ if (!packedPointers) {
+-                        //~ aetherium$uvMatrix(true);
+-                        //~ packedPointers = true;
+-                    //~ }
+-                //~ } else {
+-                    //~ if (packedPointers) {
+-                        //~ aetherium$uvMatrix(false);
+-                        //~ packedPointers = false;
+-                    //~ }
+-                    //~ DefaultVertexFormat.BLOCK.setupBufferState(0L);
+-                //~ }
 -                //~ RenderSystem.pushMatrix();
 -                //~ RenderSystem.loadIdentity();
 -                //~ RenderSystem.multMatrix(poseStack.last().pose());
--                //~ for (int r = 0, n = page.ranges(); r < n; r++) {
--                    //~ RenderSystem.drawArrays(7, page.rangeFirst(r), page.rangeCount(r)); // GL_QUADS
+-                //~ if (!multiDraw || page.ranges() < 2 || !MultiDraw.draw(page)) {
+-                    //~ for (int r = 0, n = page.ranges(); r < n; r++) {
+-                        //~ RenderSystem.drawArrays(7, page.rangeFirst(r), page.rangeCount(r)); // GL_QUADS
+-                    //~ }
 -                //~ }
 -                //~ RenderSystem.popMatrix();
 -                //~ poseStack.popPose();
 -            //~ }
+-            //~ if (packedPointers) {
+-                //~ aetherium$uvMatrix(false);
+-            //~ }
 -            //~ VertexBuffer.unbind();
 -            //~ RenderSystem.clearCurrentColor();
 -            //~ DefaultVertexFormat.BLOCK.clearBufferState();
+-            //~ if (occlusion && type == RenderType.cutout()) {
+-                //~ // The last opaque layer: ask the GPU which sections this depth buffer hides.
+-                //~ this.aetherium$occlusionQueries(poseStack, camX, camY, camZ);
+-            //~ }
 -            //~ ChunkRenderer.endCompatible();
 -        //~ } catch (final RuntimeException | LinkageError error) {
 -            //~ ChunkRenderer.fail("compatible mode: " + error);
@@ -6939,6 +7215,7 @@ index 8798f58..58e43c5 100644
 +        type.setupRenderState();
 +        ChunkRenderer.beginCompatible(TerrainRegions.enabled());
 +        TerrainRegions.beginLayer();
++        final boolean occlusion = OcclusionCulling.active();
 +        try {
 +            final ObjectList<?> list = this.renderChunks;
 +            for (int i = 0, n = list.size(); i < n; i++) {
@@ -6946,6 +7223,13 @@ index 8798f58..58e43c5 100644
 +                        (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
 +                if (chunk.getCompiledChunk().isEmpty(type)) {
 +                    continue;
++                }
++                if (occlusion) {
++                    final BlockPos at = chunk.getOrigin();
++                    if (OcclusionCulling.hidden(chunk, (float) (at.getX() - camX), (float) (at.getY() - camY),
++                            (float) (at.getZ() - camZ))) {
++                        continue;
++                    }
 +                }
 +                final VertexBuffer buffer = chunk.getBuffer(type);
 +                final VertexBufferAccess access = (VertexBufferAccess) buffer;
@@ -7007,30 +7291,240 @@ index 8798f58..58e43c5 100644
 +                ChunkRenderer.compatibleSectionDrawn();
 +            }
 +            // Batched pages: one bind, one set of vertex pointers and one matrix per page.
++            final boolean multiDraw = MultiDraw.usable(Tuning.multiDraw);
++            boolean packedPointers = false;
 +            for (int p = 0, pages = TerrainRegions.preparePages(); p < pages; p++) {
 +                final TerrainRegions.RegionPage page = TerrainRegions.page(p);
 +                poseStack.pushPose();
 +                poseStack.translate(page.originX() - camX, page.originY() - camY, page.originZ() - camZ);
 +                GL15.glBindBuffer(0x8892, page.id()); // GL_ARRAY_BUFFER, as VertexBuffer.bind
-+                DefaultVertexFormat.BLOCK.setupBufferState(0L);
++                if (page.packed()) {
++                    // 1.17.2 packed vertices: shorts scaled back by the model-view and texture matrices.
++                    aetherium$packedPointers();
++                    poseStack.translate(PackedTerrain.POSITION_BIAS, PackedTerrain.POSITION_BIAS, PackedTerrain.POSITION_BIAS);
++                    final float unit = 1.0f / PackedTerrain.POSITION_SCALE;
++                    poseStack.scale(unit, unit, unit);
++                    if (!packedPointers) {
++                        aetherium$uvMatrix(true);
++                        packedPointers = true;
++                    }
++                } else {
++                    if (packedPointers) {
++                        aetherium$uvMatrix(false);
++                        packedPointers = false;
++                    }
++                    DefaultVertexFormat.BLOCK.setupBufferState(0L);
++                }
 +                RenderSystem.pushMatrix();
 +                RenderSystem.loadIdentity();
 +                RenderSystem.multMatrix(poseStack.last().pose());
-+                for (int r = 0, n = page.ranges(); r < n; r++) {
-+                    RenderSystem.drawArrays(7, page.rangeFirst(r), page.rangeCount(r)); // GL_QUADS
++                if (!multiDraw || page.ranges() < 2 || !MultiDraw.draw(page)) {
++                    for (int r = 0, n = page.ranges(); r < n; r++) {
++                        RenderSystem.drawArrays(7, page.rangeFirst(r), page.rangeCount(r)); // GL_QUADS
++                    }
 +                }
 +                RenderSystem.popMatrix();
 +                poseStack.popPose();
 +            }
++            if (packedPointers) {
++                aetherium$uvMatrix(false);
++            }
 +            VertexBuffer.unbind();
 +            RenderSystem.clearCurrentColor();
 +            DefaultVertexFormat.BLOCK.clearBufferState();
++            if (occlusion && type == RenderType.cutout()) {
++                // The last opaque layer: ask the GPU which sections this depth buffer hides.
++                this.aetherium$occlusionQueries(poseStack, camX, camY, camZ);
++            }
 +            ChunkRenderer.endCompatible();
 +        } catch (final RuntimeException | LinkageError error) {
 +            ChunkRenderer.fail("compatible mode: " + error);
 +        } finally {
 +            TerrainRegions.endLayer();
 +            type.clearRenderState();
++        }
++    }
+ 
+-    //~ /**
+-     //~ * Packed terrain (1.17.2): vertex pointers for {@link PackedTerrain} 20-byte vertices, the same
+-     //~ * arrays {@code BLOCK.setupBufferState} enables minus the normals (terrain is unlit).
+-     //~ */
+-    //~ @Unique
+-    //~ private static void aetherium$packedPointers() {
+-        //~ final int stride = PackedTerrain.STRIDE;
+-        //~ GlStateManager._vertexPointer(3, 0x1402, stride, 0L); // GL_SHORT
+-        //~ GlStateManager._enableClientState(0x8074); // GL_VERTEX_ARRAY
+-        //~ GlStateManager._colorPointer(4, 0x1401, stride, PackedTerrain.OFFSET_COLOR); // GL_UNSIGNED_BYTE
+-        //~ GlStateManager._enableClientState(0x8076); // GL_COLOR_ARRAY
+-        //~ GlStateManager._glClientActiveTexture(0x84C0); // GL_TEXTURE0
+-        //~ GlStateManager._texCoordPointer(2, 0x1402, stride, PackedTerrain.OFFSET_UV0);
+-        //~ GlStateManager._enableClientState(0x8078); // GL_TEXTURE_COORD_ARRAY
+-        //~ GlStateManager._glClientActiveTexture(0x84C2); // GL_TEXTURE2: lightmap, as vanilla's UV2
+-        //~ GlStateManager._texCoordPointer(2, 0x1402, stride, PackedTerrain.OFFSET_UV2);
+-        //~ GlStateManager._enableClientState(0x8078);
+-        //~ GlStateManager._glClientActiveTexture(0x84C0);
+-        //~ GlStateManager._disableClientState(0x8075); // GL_NORMAL_ARRAY
+-    //~ }
++    /**
++     * Packed terrain (1.17.2): vertex pointers for {@link PackedTerrain} 20-byte vertices, the same
++     * arrays {@code BLOCK.setupBufferState} enables minus the normals (terrain is unlit).
++     */
++    @Unique
++    private static void aetherium$packedPointers() {
++        final int stride = PackedTerrain.STRIDE;
++        GlStateManager._vertexPointer(3, 0x1402, stride, 0L); // GL_SHORT
++        GlStateManager._enableClientState(0x8074); // GL_VERTEX_ARRAY
++        GlStateManager._colorPointer(4, 0x1401, stride, PackedTerrain.OFFSET_COLOR); // GL_UNSIGNED_BYTE
++        GlStateManager._enableClientState(0x8076); // GL_COLOR_ARRAY
++        GlStateManager._glClientActiveTexture(0x84C0); // GL_TEXTURE0
++        GlStateManager._texCoordPointer(2, 0x1402, stride, PackedTerrain.OFFSET_UV0);
++        GlStateManager._enableClientState(0x8078); // GL_TEXTURE_COORD_ARRAY
++        GlStateManager._glClientActiveTexture(0x84C2); // GL_TEXTURE2: lightmap, as vanilla's UV2
++        GlStateManager._texCoordPointer(2, 0x1402, stride, PackedTerrain.OFFSET_UV2);
++        GlStateManager._enableClientState(0x8078);
++        GlStateManager._glClientActiveTexture(0x84C0);
++        GlStateManager._disableClientState(0x8075); // GL_NORMAL_ARRAY
++    }
+ 
+-    //~ /** Packed terrain: texture unit 0 scales the packed texture coordinates back to 0..1 (or undoes that). */
+-    //~ @Unique
+-    //~ private static void aetherium$uvMatrix(final boolean packed) {
+-        //~ RenderSystem.activeTexture(0x84C0);
+-        //~ RenderSystem.matrixMode(0x1702); // GL_TEXTURE
+-        //~ if (packed) {
+-            //~ RenderSystem.pushMatrix();
+-            //~ final float unit = 1.0f / PackedTerrain.UV_SCALE;
+-            //~ RenderSystem.scalef(unit, unit, 1.0f);
+-        //~ } else {
+-            //~ RenderSystem.popMatrix();
+-        //~ }
+-        //~ RenderSystem.matrixMode(0x1700); // GL_MODELVIEW
+-    //~ }
++    /** Packed terrain: texture unit 0 scales the packed texture coordinates back to 0..1 (or undoes that). */
++    @Unique
++    private static void aetherium$uvMatrix(final boolean packed) {
++        RenderSystem.activeTexture(0x84C0);
++        RenderSystem.matrixMode(0x1702); // GL_TEXTURE
++        if (packed) {
++            RenderSystem.pushMatrix();
++            final float unit = 1.0f / PackedTerrain.UV_SCALE;
++            RenderSystem.scalef(unit, unit, 1.0f);
++        } else {
++            RenderSystem.popMatrix();
++        }
++        RenderSystem.matrixMode(0x1700); // GL_MODELVIEW
++    }
+ 
+-    //~ /**
+-     //~ * GPU occlusion culling (1.17.2): one occlusion query per section in view (box grown by
+-     //~ * {@link OcclusionCulling#GROW}), drawn invisibly against the opaque terrain just drawn.
+-     //~ */
+-    //~ @Unique
+-    //~ private void aetherium$occlusionQueries(final PoseStack poseStack, final double camX, final double camY,
+-                                            //~ final double camZ) {
+-        //~ final ObjectList<?> list = this.renderChunks;
+-        //~ boolean begun = false;
+-        //~ try {
+-            //~ for (int i = 0, n = list.size(); i < n; i++) {
+-                //~ final ChunkRenderDispatcher.RenderChunk chunk =
+-                        //~ (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
+-                //~ if (chunk.getCompiledChunk().hasNoRenderableLayers()) {
+-                    //~ continue;
+-                //~ }
+-                //~ final BlockPos at = chunk.getOrigin();
+-                //~ final double ox = at.getX() - camX;
+-                //~ final double oy = at.getY() - camY;
+-                //~ final double oz = at.getZ() - camZ;
+-                //~ if (!OcclusionCulling.wantQuery(chunk, (float) ox, (float) oy, (float) oz)) {
+-                    //~ continue;
+-                //~ }
+-                //~ if (!begun) {
+-                    //~ RenderSystem.colorMask(false, false, false, false);
+-                    //~ RenderSystem.depthMask(false);
+-                    //~ RenderSystem.disableAlphaTest();
+-                    //~ RenderSystem.disableTexture();
+-                    //~ RenderSystem.disableCull();
+-                    //~ OcclusionCulling.bindBox();
+-                    //~ begun = true;
+-                //~ }
+-                //~ final float grow = OcclusionCulling.GROW;
+-                //~ poseStack.pushPose();
+-                //~ poseStack.translate(ox - grow, oy - grow, oz - grow);
+-                //~ poseStack.scale(16f + 2f * grow, 16f + 2f * grow, 16f + 2f * grow);
+-                //~ RenderSystem.pushMatrix();
+-                //~ RenderSystem.loadIdentity();
+-                //~ RenderSystem.multMatrix(poseStack.last().pose());
+-                //~ OcclusionCulling.beginQuery(chunk);
+-                //~ OcclusionCulling.drawBox();
+-                //~ OcclusionCulling.endQuery();
+-                //~ RenderSystem.popMatrix();
+-                //~ poseStack.popPose();
+-            //~ }
+-        //~ } finally {
+-            //~ if (begun) {
+-                //~ OcclusionCulling.unbindBox();
+-                //~ RenderSystem.enableCull();
+-                //~ RenderSystem.enableTexture();
+-                //~ RenderSystem.enableAlphaTest();
+-                //~ RenderSystem.depthMask(true);
+-                //~ RenderSystem.colorMask(true, true, true, true);
+-            //~ }
+-        //~ }
+-    //~ }
++    /**
++     * GPU occlusion culling (1.17.2): one occlusion query per section in view (box grown by
++     * {@link OcclusionCulling#GROW}), drawn invisibly against the opaque terrain just drawn.
++     */
++    @Unique
++    private void aetherium$occlusionQueries(final PoseStack poseStack, final double camX, final double camY,
++                                            final double camZ) {
++        final ObjectList<?> list = this.renderChunks;
++        boolean begun = false;
++        try {
++            for (int i = 0, n = list.size(); i < n; i++) {
++                final ChunkRenderDispatcher.RenderChunk chunk =
++                        (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
++                if (chunk.getCompiledChunk().hasNoRenderableLayers()) {
++                    continue;
++                }
++                final BlockPos at = chunk.getOrigin();
++                final double ox = at.getX() - camX;
++                final double oy = at.getY() - camY;
++                final double oz = at.getZ() - camZ;
++                if (!OcclusionCulling.wantQuery(chunk, (float) ox, (float) oy, (float) oz)) {
++                    continue;
++                }
++                if (!begun) {
++                    RenderSystem.colorMask(false, false, false, false);
++                    RenderSystem.depthMask(false);
++                    RenderSystem.disableAlphaTest();
++                    RenderSystem.disableTexture();
++                    RenderSystem.disableCull();
++                    OcclusionCulling.bindBox();
++                    begun = true;
++                }
++                final float grow = OcclusionCulling.GROW;
++                poseStack.pushPose();
++                poseStack.translate(ox - grow, oy - grow, oz - grow);
++                poseStack.scale(16f + 2f * grow, 16f + 2f * grow, 16f + 2f * grow);
++                RenderSystem.pushMatrix();
++                RenderSystem.loadIdentity();
++                RenderSystem.multMatrix(poseStack.last().pose());
++                OcclusionCulling.beginQuery(chunk);
++                OcclusionCulling.drawBox();
++                OcclusionCulling.endQuery();
++                RenderSystem.popMatrix();
++                poseStack.popPose();
++            }
++        } finally {
++            if (begun) {
++                OcclusionCulling.unbindBox();
++                RenderSystem.enableCull();
++                RenderSystem.enableTexture();
++                RenderSystem.enableAlphaTest();
++                RenderSystem.depthMask(true);
++                RenderSystem.colorMask(true, true, true, true);
++            }
 +        }
 +    }
  
@@ -10917,6 +11411,709 @@ index 867bb7a..9e710e8 100644
 +    // @era:t-build-order-else none
      // @era:t-build-order-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChestAtlasMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningChestAtlasMixin.java
+index 992bc20..b53124a 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningChestAtlasMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningChestAtlasMixin.java
+@@ -1,15 +1,15 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import java.util.stream.Stream;
+-//~ import net.minecraft.client.renderer.Sheets;
+-//~ import net.minecraft.client.renderer.texture.TextureAtlas;
+-//~ import net.minecraft.resources.ResourceLocation;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.ModifyVariable;
++// @era:boost16-begin v16
++import java.util.stream.Stream;
++import net.minecraft.client.renderer.Sheets;
++import net.minecraft.client.renderer.texture.TextureAtlas;
++import net.minecraft.resources.ResourceLocation;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.ModifyVariable;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -19,22 +19,22 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.texture.TextureAtlas")
+ public abstract class TuningChestAtlasMixin {
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-    //~ @Shadow
+-    //~ public abstract ResourceLocation location();
++// @era:boost16-begin v16
++    @Shadow
++    public abstract ResourceLocation location();
+ 
+-    //~ @ModifyVariable(method = "prepareToStitch", at = @At("HEAD"), argsOnly = true, require = 0)
+-    //~ private Stream<ResourceLocation> aetherium$chestTextures(final Stream<ResourceLocation> textures) {
+-        //~ if (!TextureAtlas.LOCATION_BLOCKS.equals(this.location())) {
+-            //~ return textures;
+-        //~ }
+-        //~ return Stream.concat(textures, Stream.of(
+-                //~ Sheets.CHEST_LOCATION.texture(), Sheets.CHEST_LOCATION_LEFT.texture(), Sheets.CHEST_LOCATION_RIGHT.texture(),
+-                //~ Sheets.CHEST_TRAP_LOCATION.texture(), Sheets.CHEST_TRAP_LOCATION_LEFT.texture(),
+-                //~ Sheets.CHEST_TRAP_LOCATION_RIGHT.texture(), Sheets.CHEST_XMAS_LOCATION.texture(),
+-                //~ Sheets.CHEST_XMAS_LOCATION_LEFT.texture(), Sheets.CHEST_XMAS_LOCATION_RIGHT.texture(),
+-                //~ Sheets.ENDER_CHEST_LOCATION.texture()));
+-    //~ }
++    @ModifyVariable(method = "prepareToStitch", at = @At("HEAD"), argsOnly = true, require = 0)
++    private Stream<ResourceLocation> aetherium$chestTextures(final Stream<ResourceLocation> textures) {
++        if (!TextureAtlas.LOCATION_BLOCKS.equals(this.location())) {
++            return textures;
++        }
++        return Stream.concat(textures, Stream.of(
++                Sheets.CHEST_LOCATION.texture(), Sheets.CHEST_LOCATION_LEFT.texture(), Sheets.CHEST_LOCATION_RIGHT.texture(),
++                Sheets.CHEST_TRAP_LOCATION.texture(), Sheets.CHEST_TRAP_LOCATION_LEFT.texture(),
++                Sheets.CHEST_TRAP_LOCATION_RIGHT.texture(), Sheets.CHEST_XMAS_LOCATION.texture(),
++                Sheets.CHEST_XMAS_LOCATION_LEFT.texture(), Sheets.CHEST_XMAS_LOCATION_RIGHT.texture(),
++                Sheets.ENDER_CHEST_LOCATION.texture()));
++    }
++// @era:boost16-else none
+ // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChestBakeMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningChestBakeMixin.java
+index 0cb0d08..b536dac 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningChestBakeMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningChestBakeMixin.java
+@@ -1,49 +1,49 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.client.ChestBaking;
+-//~ import com.aetherium.client.ChestLid;
+-//~ import com.aetherium.client.ChestQuads;
+-//~ import com.aetherium.util.AetheriumLog;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.math.Vector3f;
+-//~ import java.util.Set;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.model.geom.ModelPart;
+-//~ import net.minecraft.client.renderer.ChunkBufferBuilderPack;
+-//~ import net.minecraft.client.renderer.LevelRenderer;
+-//~ import net.minecraft.client.renderer.LightTexture;
+-//~ import net.minecraft.client.renderer.RenderType;
+-//~ import net.minecraft.client.renderer.Sheets;
+-//~ import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+-//~ import net.minecraft.client.renderer.blockentity.ChestRenderer;
+-//~ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+-//~ import net.minecraft.client.renderer.chunk.RenderChunkRegion;
+-//~ import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
+-//~ import net.minecraft.client.renderer.texture.TextureAtlas;
+-//~ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+-//~ import net.minecraft.client.resources.model.Material;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.core.Direction;
+-//~ import net.minecraft.world.level.block.AbstractChestBlock;
+-//~ import net.minecraft.world.level.block.ChestBlock;
+-//~ import net.minecraft.world.level.block.entity.BlockEntity;
+-//~ import net.minecraft.world.level.block.entity.ChestBlockEntity;
+-//~ import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
+-//~ import net.minecraft.world.level.block.entity.TrappedChestBlockEntity;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import net.minecraft.world.level.block.state.properties.ChestType;
+-//~ import net.minecraft.world.level.chunk.LevelChunk;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-begin v16
++import com.aetherium.client.ChestBaking;
++import com.aetherium.client.ChestLid;
++import com.aetherium.client.ChestQuads;
++import com.aetherium.util.AetheriumLog;
++import com.aetherium.perf.Tuning;
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.DefaultVertexFormat;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.math.Vector3f;
++import java.util.Set;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.model.geom.ModelPart;
++import net.minecraft.client.renderer.ChunkBufferBuilderPack;
++import net.minecraft.client.renderer.LevelRenderer;
++import net.minecraft.client.renderer.LightTexture;
++import net.minecraft.client.renderer.RenderType;
++import net.minecraft.client.renderer.Sheets;
++import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
++import net.minecraft.client.renderer.blockentity.ChestRenderer;
++import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
++import net.minecraft.client.renderer.chunk.RenderChunkRegion;
++import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
++import net.minecraft.client.renderer.texture.TextureAtlas;
++import net.minecraft.client.renderer.texture.TextureAtlasSprite;
++import net.minecraft.client.resources.model.Material;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Direction;
++import net.minecraft.world.level.block.AbstractChestBlock;
++import net.minecraft.world.level.block.ChestBlock;
++import net.minecraft.world.level.block.entity.BlockEntity;
++import net.minecraft.world.level.block.entity.ChestBlockEntity;
++import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
++import net.minecraft.world.level.block.entity.TrappedChestBlockEntity;
++import net.minecraft.world.level.block.state.BlockState;
++import net.minecraft.world.level.block.state.properties.ChestType;
++import net.minecraft.world.level.chunk.LevelChunk;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -61,142 +61,142 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
+ public abstract class TuningChestBakeMixin {
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-    //~ @Unique
+-    //~ private ChunkBufferBuilderPack aetherium$pack;
++// @era:boost16-begin v16
++    @Unique
++    private ChunkBufferBuilderPack aetherium$pack;
+ 
+-    //~ @Unique
+-    //~ private ChunkRenderDispatcher.CompiledChunk aetherium$compiled;
++    @Unique
++    private ChunkRenderDispatcher.CompiledChunk aetherium$compiled;
+ 
+-    //~ @Inject(method = "compile", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$compileStart(final float x, final float y, final float z,
+-                                        //~ final ChunkRenderDispatcher.CompiledChunk compiled,
+-                                        //~ final ChunkBufferBuilderPack pack,
+-                                        //~ final CallbackInfoReturnable<Set<BlockEntity>> cir) {
+-        //~ this.aetherium$pack = pack;
+-        //~ this.aetherium$compiled = compiled;
+-    //~ }
++    @Inject(method = "compile", at = @At("HEAD"), require = 0)
++    private void aetherium$compileStart(final float x, final float y, final float z,
++                                        final ChunkRenderDispatcher.CompiledChunk compiled,
++                                        final ChunkBufferBuilderPack pack,
++                                        final CallbackInfoReturnable<Set<BlockEntity>> cir) {
++        this.aetherium$pack = pack;
++        this.aetherium$compiled = compiled;
++    }
+ 
+-    //~ /**
+-     //~ * The block entity lookup of the meshing loop: a chest that was baked into the section is
+-     //~ * reported as absent, so vanilla does not also list it for drawing on its own.
+-     //~ */
+-    //~ @Redirect(method = "compile", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/RenderChunkRegion;getBlockEntity(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/chunk/LevelChunk$EntityCreationType;)Lnet/minecraft/world/level/block/entity/BlockEntity;"),
+-            //~ require = 0)
+-    //~ private BlockEntity aetherium$bakeChest(final RenderChunkRegion world, final BlockPos pos,
+-                                            //~ final LevelChunk.EntityCreationType creation) {
+-        //~ final BlockEntity entity = world.getBlockEntity(pos, creation);
+-        //~ if (entity != null && Tuning.batchedChests && ChestBaking.enabled() && this.aetherium$pack != null
+-                //~ && this.aetherium$compiled != null && aetherium$candidate(entity)) {
+-            //~ try {
+-                //~ if (this.aetherium$bake(world, this.aetherium$compiled, entity)) {
+-                    //~ return null;
+-                //~ }
+-            //~ } catch (final RuntimeException | LinkageError error) {
+-                //~ ChestBaking.fail();
+-                //~ AetheriumLog.of(ChestBaking.class).warn("Batched chests turned off: " + error);
+-            //~ }
+-        //~ }
+-        //~ return entity;
+-    //~ }
++    /**
++     * The block entity lookup of the meshing loop: a chest that was baked into the section is
++     * reported as absent, so vanilla does not also list it for drawing on its own.
++     */
++    @Redirect(method = "compile", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/renderer/chunk/RenderChunkRegion;getBlockEntity(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/chunk/LevelChunk$EntityCreationType;)Lnet/minecraft/world/level/block/entity/BlockEntity;"),
++            require = 0)
++    private BlockEntity aetherium$bakeChest(final RenderChunkRegion world, final BlockPos pos,
++                                            final LevelChunk.EntityCreationType creation) {
++        final BlockEntity entity = world.getBlockEntity(pos, creation);
++        if (entity != null && Tuning.batchedChests && ChestBaking.enabled() && this.aetherium$pack != null
++                && this.aetherium$compiled != null && aetherium$candidate(entity)) {
++            try {
++                if (this.aetherium$bake(world, this.aetherium$compiled, entity)) {
++                    return null;
++                }
++            } catch (final RuntimeException | LinkageError error) {
++                ChestBaking.fail();
++                AetheriumLog.of(ChestBaking.class).warn("Batched chests turned off: " + error);
++            }
++        }
++        return entity;
++    }
+ 
+-    //~ @Unique
+-    //~ private static boolean aetherium$candidate(final BlockEntity entity) {
+-        //~ final Class<?> type = entity.getClass();
+-        //~ return type == ChestBlockEntity.class || type == TrappedChestBlockEntity.class
+-                //~ || type == EnderChestBlockEntity.class;
+-    //~ }
++    @Unique
++    private static boolean aetherium$candidate(final BlockEntity entity) {
++        final Class<?> type = entity.getClass();
++        return type == ChestBlockEntity.class || type == TrappedChestBlockEntity.class
++                || type == EnderChestBlockEntity.class;
++    }
+ 
+-    //~ @Unique
+-    //~ private static boolean aetherium$closed(final BlockEntity entity) {
+-        //~ if (!(entity instanceof ChestLid) || ChestBaking.destroying(entity.getBlockPos().asLong())) {
+-            //~ return false;
+-        //~ }
+-        //~ final ChestLid lid = (ChestLid) entity;
+-        //~ return ChestBaking.closed(lid.aetherium$openness(), lid.aetherium$previousOpenness(), lid.aetherium$openCount());
+-    //~ }
++    @Unique
++    private static boolean aetherium$closed(final BlockEntity entity) {
++        if (!(entity instanceof ChestLid) || ChestBaking.destroying(entity.getBlockPos().asLong())) {
++            return false;
++        }
++        final ChestLid lid = (ChestLid) entity;
++        return ChestBaking.closed(lid.aetherium$openness(), lid.aetherium$previousOpenness(), lid.aetherium$openCount());
++    }
+ 
+-    //~ @Unique
+-    //~ private boolean aetherium$bake(final RenderChunkRegion world, final ChunkRenderDispatcher.CompiledChunk compiled,
+-                                   //~ final BlockEntity entity) {
+-        //~ if (BlockEntityRenderDispatcher.instance.getRenderer(entity) == null
+-                //~ || BlockEntityRenderDispatcher.instance.getRenderer(entity).getClass() != ChestRenderer.class
+-                //~ || !aetherium$closed(entity)) {
+-            //~ return false;
+-        //~ }
+-        //~ final BlockPos pos = entity.getBlockPos();
+-        //~ final BlockState state = world.getBlockState(pos);
+-        //~ if (!(state.getBlock() instanceof AbstractChestBlock) || !state.hasProperty(ChestBlock.FACING)) {
+-            //~ return false;
+-        //~ }
+-        //~ final Direction facing = state.getValue(ChestBlock.FACING);
+-        //~ final ChestType type = state.hasProperty(ChestBlock.TYPE) ? state.getValue(ChestBlock.TYPE) : ChestType.SINGLE;
+-        //~ int light = LevelRenderer.getLightColor(world, pos);
+-        //~ if (type != ChestType.SINGLE) {
+-            //~ final BlockPos otherPos = pos.relative(ChestBlock.getConnectedDirection(state));
+-            //~ final BlockState other = world.getBlockState(otherPos);
+-            //~ if (other.getBlock() != state.getBlock() || !other.hasProperty(ChestBlock.TYPE)
+-                    //~ || other.getValue(ChestBlock.TYPE) != type.getOpposite()
+-                    //~ || other.getValue(ChestBlock.FACING) != facing) {
+-                //~ return false;
+-            //~ }
+-            //~ final BlockEntity otherEntity = world.getBlockEntity(otherPos, LevelChunk.EntityCreationType.CHECK);
+-            //~ if (otherEntity == null || otherEntity.getClass() != entity.getClass() || !aetherium$closed(otherEntity)) {
+-                //~ return false;
+-            //~ }
+-            //~ final int otherLight = LevelRenderer.getLightColor(world, otherPos);
+-            //~ light = LightTexture.pack(Math.max(LightTexture.block(light), LightTexture.block(otherLight)),
+-                    //~ Math.max(LightTexture.sky(light), LightTexture.sky(otherLight)));
+-        //~ }
+-        //~ Object model = ChestBaking.model();
+-        //~ if (!(model instanceof TuningChestPartsAccessor)) {
+-            //~ model = new ChestRenderer<ChestBlockEntity>(BlockEntityRenderDispatcher.instance);
+-            //~ ChestBaking.setModel(model);
+-        //~ }
+-        //~ final TuningChestPartsAccessor parts = (TuningChestPartsAccessor) model;
+-        //~ final Material material = Sheets.chooseMaterial(entity, type, parts.aetherium$xmasTextures());
+-        //~ final TextureAtlasSprite sprite =
+-                //~ Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(material.texture());
+-        //~ if (sprite == null || MissingTextureAtlasSprite.getLocation().equals(sprite.getName())) {
+-            //~ return false;
+-        //~ }
+-        //~ final ModelPart lid;
+-        //~ final ModelPart lock;
+-        //~ final ModelPart bottom;
+-        //~ if (type == ChestType.LEFT) {
+-            //~ lid = parts.aetherium$doubleRightLid();
+-            //~ lock = parts.aetherium$doubleRightLock();
+-            //~ bottom = parts.aetherium$doubleRightBottom();
+-        //~ } else if (type == ChestType.RIGHT) {
+-            //~ lid = parts.aetherium$doubleLeftLid();
+-            //~ lock = parts.aetherium$doubleLeftLock();
+-            //~ bottom = parts.aetherium$doubleLeftBottom();
+-        //~ } else {
+-            //~ lid = parts.aetherium$lid();
+-            //~ lock = parts.aetherium$lock();
+-            //~ bottom = parts.aetherium$bottom();
+-        //~ }
+-        //~ final PoseStack pose = new PoseStack();
+-        //~ pose.translate((pos.getX() & 15) + 0.5, (pos.getY() & 15) + 0.5, (pos.getZ() & 15) + 0.5);
+-        //~ pose.mulPose(Vector3f.YP.rotationDegrees(-facing.toYRot()));
+-        //~ pose.translate(-0.5, -0.5, -0.5);
+-        //~ final ChestQuads quads = new ChestQuads(sprite);
+-        //~ parts.aetherium$renderParts(pose, quads, lid, lock, bottom, 0f, light, 655360);
+-        //~ if (!quads.complete(72)) { // three boxes of six quads
+-            //~ return false;
+-        //~ }
+-        //~ final RenderType layer = RenderType.cutout();
+-        //~ final BufferBuilder builder = this.aetherium$pack.builder(layer);
+-        //~ final TuningCompiledAccessor sections = (TuningCompiledAccessor) (Object) compiled;
+-        //~ if (sections.aetherium$hasLayer().add(layer)) {
+-            //~ builder.begin(7, DefaultVertexFormat.BLOCK); // GL_QUADS, as RenderChunk.beginLayer
+-        //~ }
+-        //~ quads.flush(builder);
+-        //~ sections.aetherium$hasBlocks().add(layer);
+-        //~ sections.aetherium$setCompletelyEmpty(false);
+-        //~ return true;
+-    //~ }
++    @Unique
++    private boolean aetherium$bake(final RenderChunkRegion world, final ChunkRenderDispatcher.CompiledChunk compiled,
++                                   final BlockEntity entity) {
++        if (BlockEntityRenderDispatcher.instance.getRenderer(entity) == null
++                || BlockEntityRenderDispatcher.instance.getRenderer(entity).getClass() != ChestRenderer.class
++                || !aetherium$closed(entity)) {
++            return false;
++        }
++        final BlockPos pos = entity.getBlockPos();
++        final BlockState state = world.getBlockState(pos);
++        if (!(state.getBlock() instanceof AbstractChestBlock) || !state.hasProperty(ChestBlock.FACING)) {
++            return false;
++        }
++        final Direction facing = state.getValue(ChestBlock.FACING);
++        final ChestType type = state.hasProperty(ChestBlock.TYPE) ? state.getValue(ChestBlock.TYPE) : ChestType.SINGLE;
++        int light = LevelRenderer.getLightColor(world, pos);
++        if (type != ChestType.SINGLE) {
++            final BlockPos otherPos = pos.relative(ChestBlock.getConnectedDirection(state));
++            final BlockState other = world.getBlockState(otherPos);
++            if (other.getBlock() != state.getBlock() || !other.hasProperty(ChestBlock.TYPE)
++                    || other.getValue(ChestBlock.TYPE) != type.getOpposite()
++                    || other.getValue(ChestBlock.FACING) != facing) {
++                return false;
++            }
++            final BlockEntity otherEntity = world.getBlockEntity(otherPos, LevelChunk.EntityCreationType.CHECK);
++            if (otherEntity == null || otherEntity.getClass() != entity.getClass() || !aetherium$closed(otherEntity)) {
++                return false;
++            }
++            final int otherLight = LevelRenderer.getLightColor(world, otherPos);
++            light = LightTexture.pack(Math.max(LightTexture.block(light), LightTexture.block(otherLight)),
++                    Math.max(LightTexture.sky(light), LightTexture.sky(otherLight)));
++        }
++        Object model = ChestBaking.model();
++        if (!(model instanceof TuningChestPartsAccessor)) {
++            model = new ChestRenderer<ChestBlockEntity>(BlockEntityRenderDispatcher.instance);
++            ChestBaking.setModel(model);
++        }
++        final TuningChestPartsAccessor parts = (TuningChestPartsAccessor) model;
++        final Material material = Sheets.chooseMaterial(entity, type, parts.aetherium$xmasTextures());
++        final TextureAtlasSprite sprite =
++                Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(material.texture());
++        if (sprite == null || MissingTextureAtlasSprite.getLocation().equals(sprite.getName())) {
++            return false;
++        }
++        final ModelPart lid;
++        final ModelPart lock;
++        final ModelPart bottom;
++        if (type == ChestType.LEFT) {
++            lid = parts.aetherium$doubleRightLid();
++            lock = parts.aetherium$doubleRightLock();
++            bottom = parts.aetherium$doubleRightBottom();
++        } else if (type == ChestType.RIGHT) {
++            lid = parts.aetherium$doubleLeftLid();
++            lock = parts.aetherium$doubleLeftLock();
++            bottom = parts.aetherium$doubleLeftBottom();
++        } else {
++            lid = parts.aetherium$lid();
++            lock = parts.aetherium$lock();
++            bottom = parts.aetherium$bottom();
++        }
++        final PoseStack pose = new PoseStack();
++        pose.translate((pos.getX() & 15) + 0.5, (pos.getY() & 15) + 0.5, (pos.getZ() & 15) + 0.5);
++        pose.mulPose(Vector3f.YP.rotationDegrees(-facing.toYRot()));
++        pose.translate(-0.5, -0.5, -0.5);
++        final ChestQuads quads = new ChestQuads(sprite);
++        parts.aetherium$renderParts(pose, quads, lid, lock, bottom, 0f, light, 655360);
++        if (!quads.complete(72)) { // three boxes of six quads
++            return false;
++        }
++        final RenderType layer = RenderType.cutout();
++        final BufferBuilder builder = this.aetherium$pack.builder(layer);
++        final TuningCompiledAccessor sections = (TuningCompiledAccessor) (Object) compiled;
++        if (sections.aetherium$hasLayer().add(layer)) {
++            builder.begin(7, DefaultVertexFormat.BLOCK); // GL_QUADS, as RenderChunk.beginLayer
++        }
++        quads.flush(builder);
++        sections.aetherium$hasBlocks().add(layer);
++        sections.aetherium$setCompletelyEmpty(false);
++        return true;
++    }
++// @era:boost16-else none
+ // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChestLidMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningChestLidMixin.java
+index 6ad562f..9305e5c 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningChestLidMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningChestLidMixin.java
+@@ -2,20 +2,20 @@ package com.aetherium.mixin.core;
+ 
+ import com.aetherium.client.ChestLid;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.client.ChestBaking;
+-//~ import com.aetherium.client.ChestSections;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.world.level.Level;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-begin v16
++import com.aetherium.client.ChestBaking;
++import com.aetherium.client.ChestSections;
++import com.aetherium.perf.Tuning;
++import net.minecraft.client.Minecraft;
++import net.minecraft.core.BlockPos;
++import net.minecraft.world.level.Level;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -26,82 +26,82 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.world.level.block.entity.ChestBlockEntity")
+ public abstract class TuningChestLidMixin implements ChestLid {
+-// @era:boost16-begin none
++// @era:boost16-begin v16
++    @Shadow
++    protected float openness;
++
++    @Shadow
++    protected float oOpenness;
++
++    @Shadow
++    protected int openCount;
++
++    @Unique
++    private boolean aetherium$moving;
++
+     @Override
+     public float aetherium$openness() {
+-        return 0f;
++        return this.openness;
+     }
+ 
+     @Override
+     public float aetherium$previousOpenness() {
+-        return 0f;
++        return this.oOpenness;
+     }
+ 
+     @Override
+     public int aetherium$openCount() {
+-        return 0;
++        return this.openCount;
+     }
+-// @era:boost16-else v16
+-    //~ @Shadow
+-    //~ protected float openness;
+ 
+-    //~ @Shadow
+-    //~ protected float oOpenness;
++    @Inject(method = "triggerEvent", at = @At("HEAD"), require = 0)
++    private void aetherium$opening(final int id, final int type, final CallbackInfoReturnable<Boolean> cir) {
++        if (id == 1 && type > 0 && this.openCount <= 0 && this.openness <= 0f) {
++            this.aetherium$changed();
++        }
++    }
+ 
+-    //~ @Shadow
+-    //~ protected int openCount;
++    @Inject(method = "tick", at = @At("HEAD"), require = 0)
++    private void aetherium$tickStart(final CallbackInfo ci) {
++        this.aetherium$moving = this.openness > 0f || this.oOpenness > 0f;
++    }
+ 
+-    //~ @Unique
+-    //~ private boolean aetherium$moving;
++    @Inject(method = "tick", at = @At("TAIL"), require = 0)
++    private void aetherium$tickEnd(final CallbackInfo ci) {
++        if (this.aetherium$moving && ChestBaking.closed(this.openness, this.oOpenness, this.openCount)) {
++            this.aetherium$changed();
++        }
++    }
+ 
++    @Unique
++    private void aetherium$changed() {
++        if (!Tuning.batchedChests || !ChestBaking.enabled()) {
++            return;
++        }
++        final Level level = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getLevel();
++        if (level == null || !level.isClientSide) {
++            return;
++        }
++        final Object renderer = Minecraft.getInstance().levelRenderer;
++        if (renderer instanceof ChestSections) {
++            final BlockPos pos = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getBlockPos();
++            ((ChestSections) renderer).aetherium$chestChanged(pos.getX(), pos.getY(), pos.getZ());
++        }
++    }
++// @era:boost16-else none
+     //~ @Override
+     //~ public float aetherium$openness() {
+-        //~ return this.openness;
++        //~ return 0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public float aetherium$previousOpenness() {
+-        //~ return this.oOpenness;
++        //~ return 0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public int aetherium$openCount() {
+-        //~ return this.openCount;
+-    //~ }
+-
+-    //~ @Inject(method = "triggerEvent", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$opening(final int id, final int type, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ if (id == 1 && type > 0 && this.openCount <= 0 && this.openness <= 0f) {
+-            //~ this.aetherium$changed();
+-        //~ }
+-    //~ }
+-
+-    //~ @Inject(method = "tick", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$tickStart(final CallbackInfo ci) {
+-        //~ this.aetherium$moving = this.openness > 0f || this.oOpenness > 0f;
+-    //~ }
+-
+-    //~ @Inject(method = "tick", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$tickEnd(final CallbackInfo ci) {
+-        //~ if (this.aetherium$moving && ChestBaking.closed(this.openness, this.oOpenness, this.openCount)) {
+-            //~ this.aetherium$changed();
+-        //~ }
+-    //~ }
+-
+-    //~ @Unique
+-    //~ private void aetherium$changed() {
+-        //~ if (!Tuning.batchedChests || !ChestBaking.enabled()) {
+-            //~ return;
+-        //~ }
+-        //~ final Level level = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getLevel();
+-        //~ if (level == null || !level.isClientSide) {
+-            //~ return;
+-        //~ }
+-        //~ final Object renderer = Minecraft.getInstance().levelRenderer;
+-        //~ if (renderer instanceof ChestSections) {
+-            //~ final BlockPos pos = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getBlockPos();
+-            //~ ((ChestSections) renderer).aetherium$chestChanged(pos.getX(), pos.getY(), pos.getZ());
+-        //~ }
++        //~ return 0;
+     //~ }
+ // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChestPartsAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningChestPartsAccessor.java
+index 5ffe7b2..e55732b 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningChestPartsAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningChestPartsAccessor.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.VertexConsumer;
+-//~ import net.minecraft.client.model.geom.ModelPart;
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
+-//~ import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:boost16-begin v16
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.VertexConsumer;
++import net.minecraft.client.model.geom.ModelPart;
++import org.spongepowered.asm.mixin.gen.Accessor;
++import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -16,40 +16,40 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.blockentity.ChestRenderer")
+ public interface TuningChestPartsAccessor {
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-    //~ @Accessor("lid")
+-    //~ ModelPart aetherium$lid();
++// @era:boost16-begin v16
++    @Accessor("lid")
++    ModelPart aetherium$lid();
+ 
+-    //~ @Accessor("bottom")
+-    //~ ModelPart aetherium$bottom();
++    @Accessor("bottom")
++    ModelPart aetherium$bottom();
+ 
+-    //~ @Accessor("lock")
+-    //~ ModelPart aetherium$lock();
++    @Accessor("lock")
++    ModelPart aetherium$lock();
+ 
+-    //~ @Accessor("doubleLeftLid")
+-    //~ ModelPart aetherium$doubleLeftLid();
++    @Accessor("doubleLeftLid")
++    ModelPart aetherium$doubleLeftLid();
+ 
+-    //~ @Accessor("doubleLeftBottom")
+-    //~ ModelPart aetherium$doubleLeftBottom();
++    @Accessor("doubleLeftBottom")
++    ModelPart aetherium$doubleLeftBottom();
+ 
+-    //~ @Accessor("doubleLeftLock")
+-    //~ ModelPart aetherium$doubleLeftLock();
++    @Accessor("doubleLeftLock")
++    ModelPart aetherium$doubleLeftLock();
+ 
+-    //~ @Accessor("doubleRightLid")
+-    //~ ModelPart aetherium$doubleRightLid();
++    @Accessor("doubleRightLid")
++    ModelPart aetherium$doubleRightLid();
+ 
+-    //~ @Accessor("doubleRightBottom")
+-    //~ ModelPart aetherium$doubleRightBottom();
++    @Accessor("doubleRightBottom")
++    ModelPart aetherium$doubleRightBottom();
+ 
+-    //~ @Accessor("doubleRightLock")
+-    //~ ModelPart aetherium$doubleRightLock();
++    @Accessor("doubleRightLock")
++    ModelPart aetherium$doubleRightLock();
+ 
+-    //~ @Accessor("xmasTextures")
+-    //~ boolean aetherium$xmasTextures();
++    @Accessor("xmasTextures")
++    boolean aetherium$xmasTextures();
+ 
+-    //~ @Invoker("render")
+-    //~ void aetherium$renderParts(PoseStack poseStack, VertexConsumer consumer, ModelPart lid, ModelPart lock,
+-                               //~ ModelPart bottom, float openness, int light, int overlay);
++    @Invoker("render")
++    void aetherium$renderParts(PoseStack poseStack, VertexConsumer consumer, ModelPart lid, ModelPart lock,
++                               ModelPart bottom, float openness, int light, int overlay);
++// @era:boost16-else none
+ // @era:boost16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
 index 018e37c..2e89aaf 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningChunkSaveMixin.java
@@ -11023,6 +12220,51 @@ index 018e37c..2e89aaf 100644
      // @era:t-chunk-save-else c214
      //~ @Unique
      //~ private static final int AETHERIUM$PER_TICK = 16;
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCompiledAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningCompiledAccessor.java
+index fce6d0f..929f906 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningCompiledAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningCompiledAccessor.java
+@@ -1,11 +1,11 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import java.util.Set;
+-//~ import net.minecraft.client.renderer.RenderType;
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:boost16-begin v16
++import java.util.Set;
++import net.minecraft.client.renderer.RenderType;
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -14,15 +14,15 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$CompiledChunk")
+ public interface TuningCompiledAccessor {
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-    //~ @Accessor("hasLayer")
+-    //~ Set<RenderType> aetherium$hasLayer();
++// @era:boost16-begin v16
++    @Accessor("hasLayer")
++    Set<RenderType> aetherium$hasLayer();
+ 
+-    //~ @Accessor("hasBlocks")
+-    //~ Set<RenderType> aetherium$hasBlocks();
++    @Accessor("hasBlocks")
++    Set<RenderType> aetherium$hasBlocks();
+ 
+-    //~ @Accessor("isCompletelyEmpty")
+-    //~ void aetherium$setCompletelyEmpty(boolean empty);
++    @Accessor("isCompletelyEmpty")
++    void aetherium$setCompletelyEmpty(boolean empty);
++// @era:boost16-else none
+ // @era:boost16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningCrowdMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningCrowdMixin.java
 index 5050292..6b752dd 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningCrowdMixin.java
@@ -11339,6 +12581,681 @@ index 3457c55..08e38db 100644
 +    // @era:t-cull-else none
      // @era:t-cull-end
  }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningDestroyMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningDestroyMixin.java
+index 6be6db5..bb89e11 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningDestroyMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningDestroyMixin.java
+@@ -2,23 +2,23 @@ package com.aetherium.mixin.core;
+ 
+ import com.aetherium.client.ChestSections;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.client.ChestBaking;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.client.multiplayer.ClientLevel;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.world.level.block.ChestBlock;
+-//~ import net.minecraft.world.level.block.entity.BlockEntity;
+-//~ import net.minecraft.world.level.block.entity.ChestBlockEntity;
+-//~ import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import net.minecraft.world.level.block.state.properties.ChestType;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.client.ChestBaking;
++import com.aetherium.perf.Tuning;
++import net.minecraft.client.multiplayer.ClientLevel;
++import net.minecraft.core.BlockPos;
++import net.minecraft.world.level.block.ChestBlock;
++import net.minecraft.world.level.block.entity.BlockEntity;
++import net.minecraft.world.level.block.entity.ChestBlockEntity;
++import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
++import net.minecraft.world.level.block.state.BlockState;
++import net.minecraft.world.level.block.state.properties.ChestType;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -28,66 +28,66 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
+ public abstract class TuningDestroyMixin implements ChestSections {
+-// @era:boost16-begin none
++// @era:boost16-begin v16
++    @Shadow
++    private ClientLevel level;
++
++    @Shadow
++    protected abstract void setSectionDirty(int x, int y, int z, boolean playerChanged);
++
+     @Override
+     public void aetherium$chestChanged(final int x, final int y, final int z) {
++        this.setSectionDirty(x >> 4, y >> 4, z >> 4, false);
++        final ClientLevel world = this.level;
++        if (world == null) {
++            return;
++        }
++        final BlockPos pos = new BlockPos(x, y, z);
++        final BlockState state = world.getBlockState(pos);
++        if (state.hasProperty(ChestBlock.TYPE) && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE
++                && state.hasProperty(ChestBlock.FACING)) {
++            final BlockPos other = pos.relative(ChestBlock.getConnectedDirection(state));
++            if (other.getX() >> 4 != x >> 4 || other.getZ() >> 4 != z >> 4) {
++                this.setSectionDirty(other.getX() >> 4, other.getY() >> 4, other.getZ() >> 4, false);
++            }
++        }
++    }
++
++    @Inject(method = "destroyBlockProgress", at = @At("HEAD"), require = 0)
++    private void aetherium$breaking(final int breaker, final BlockPos pos, final int progress, final CallbackInfo ci) {
++        final long at = pos.asLong();
++        final boolean wasBreaking = ChestBaking.destroying(at);
++        final long released = ChestBaking.destroyProgress(breaker, at, progress);
++        if (!Tuning.batchedChests || !ChestBaking.enabled()) {
++            return;
++        }
++        if (released != Long.MIN_VALUE) {
++            this.aetherium$chestAt(BlockPos.of(released));
++        }
++        if (!wasBreaking && progress >= 0 && progress < 10) {
++            this.aetherium$chestAt(pos);
++        }
+     }
+-// @era:boost16-else v16
+-    //~ @Shadow
+-    //~ private ClientLevel level;
+ 
+-    //~ @Shadow
+-    //~ protected abstract void setSectionDirty(int x, int y, int z, boolean playerChanged);
++    @Unique
++    private void aetherium$chestAt(final BlockPos pos) {
++        final ClientLevel world = this.level;
++        if (world == null) {
++            return;
++        }
++        final BlockEntity entity = world.getBlockEntity(pos);
++        if (entity instanceof ChestBlockEntity || entity instanceof EnderChestBlockEntity) {
++            this.aetherium$chestChanged(pos.getX(), pos.getY(), pos.getZ());
++        }
++    }
+ 
++    @Inject(method = "setLevel", at = @At("HEAD"), require = 0)
++    private void aetherium$newWorld(final ClientLevel world, final CallbackInfo ci) {
++        ChestBaking.clearDestroying();
++    }
++// @era:boost16-else none
+     //~ @Override
+     //~ public void aetherium$chestChanged(final int x, final int y, final int z) {
+-        //~ this.setSectionDirty(x >> 4, y >> 4, z >> 4, false);
+-        //~ final ClientLevel world = this.level;
+-        //~ if (world == null) {
+-            //~ return;
+-        //~ }
+-        //~ final BlockPos pos = new BlockPos(x, y, z);
+-        //~ final BlockState state = world.getBlockState(pos);
+-        //~ if (state.hasProperty(ChestBlock.TYPE) && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE
+-                //~ && state.hasProperty(ChestBlock.FACING)) {
+-            //~ final BlockPos other = pos.relative(ChestBlock.getConnectedDirection(state));
+-            //~ if (other.getX() >> 4 != x >> 4 || other.getZ() >> 4 != z >> 4) {
+-                //~ this.setSectionDirty(other.getX() >> 4, other.getY() >> 4, other.getZ() >> 4, false);
+-            //~ }
+-        //~ }
+-    //~ }
+-
+-    //~ @Inject(method = "destroyBlockProgress", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$breaking(final int breaker, final BlockPos pos, final int progress, final CallbackInfo ci) {
+-        //~ final long at = pos.asLong();
+-        //~ final boolean wasBreaking = ChestBaking.destroying(at);
+-        //~ final long released = ChestBaking.destroyProgress(breaker, at, progress);
+-        //~ if (!Tuning.batchedChests || !ChestBaking.enabled()) {
+-            //~ return;
+-        //~ }
+-        //~ if (released != Long.MIN_VALUE) {
+-            //~ this.aetherium$chestAt(BlockPos.of(released));
+-        //~ }
+-        //~ if (!wasBreaking && progress >= 0 && progress < 10) {
+-            //~ this.aetherium$chestAt(pos);
+-        //~ }
+-    //~ }
+-
+-    //~ @Unique
+-    //~ private void aetherium$chestAt(final BlockPos pos) {
+-        //~ final ClientLevel world = this.level;
+-        //~ if (world == null) {
+-            //~ return;
+-        //~ }
+-        //~ final BlockEntity entity = world.getBlockEntity(pos);
+-        //~ if (entity instanceof ChestBlockEntity || entity instanceof EnderChestBlockEntity) {
+-            //~ this.aetherium$chestChanged(pos.getX(), pos.getY(), pos.getZ());
+-        //~ }
+-    //~ }
+-
+-    //~ @Inject(method = "setLevel", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$newWorld(final ClientLevel world, final CallbackInfo ci) {
+-        //~ ChestBaking.clearDestroying();
+     //~ }
+ // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningEnderLidMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningEnderLidMixin.java
+index cabb178..afc3e12 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningEnderLidMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningEnderLidMixin.java
+@@ -2,20 +2,20 @@ package com.aetherium.mixin.core;
+ 
+ import com.aetherium.client.ChestLid;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.client.ChestBaking;
+-//~ import com.aetherium.client.ChestSections;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.world.level.Level;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-begin v16
++import com.aetherium.client.ChestBaking;
++import com.aetherium.client.ChestSections;
++import com.aetherium.perf.Tuning;
++import net.minecraft.client.Minecraft;
++import net.minecraft.core.BlockPos;
++import net.minecraft.world.level.Level;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -26,82 +26,82 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.world.level.block.entity.EnderChestBlockEntity")
+ public abstract class TuningEnderLidMixin implements ChestLid {
+-// @era:boost16-begin none
++// @era:boost16-begin v16
++    @Shadow
++    public float openness;
++
++    @Shadow
++    public float oOpenness;
++
++    @Shadow
++    public int openCount;
++
++    @Unique
++    private boolean aetherium$moving;
++
+     @Override
+     public float aetherium$openness() {
+-        return 0f;
++        return this.openness;
+     }
+ 
+     @Override
+     public float aetherium$previousOpenness() {
+-        return 0f;
++        return this.oOpenness;
+     }
+ 
+     @Override
+     public int aetherium$openCount() {
+-        return 0;
++        return this.openCount;
+     }
+-// @era:boost16-else v16
+-    //~ @Shadow
+-    //~ public float openness;
+ 
+-    //~ @Shadow
+-    //~ public float oOpenness;
++    @Inject(method = "triggerEvent", at = @At("HEAD"), require = 0)
++    private void aetherium$opening(final int id, final int type, final CallbackInfoReturnable<Boolean> cir) {
++        if (id == 1 && type > 0 && this.openCount <= 0 && this.openness <= 0f) {
++            this.aetherium$changed();
++        }
++    }
+ 
+-    //~ @Shadow
+-    //~ public int openCount;
++    @Inject(method = "tick", at = @At("HEAD"), require = 0)
++    private void aetherium$tickStart(final CallbackInfo ci) {
++        this.aetherium$moving = this.openness > 0f || this.oOpenness > 0f;
++    }
+ 
+-    //~ @Unique
+-    //~ private boolean aetherium$moving;
++    @Inject(method = "tick", at = @At("TAIL"), require = 0)
++    private void aetherium$tickEnd(final CallbackInfo ci) {
++        if (this.aetherium$moving && ChestBaking.closed(this.openness, this.oOpenness, this.openCount)) {
++            this.aetherium$changed();
++        }
++    }
+ 
++    @Unique
++    private void aetherium$changed() {
++        if (!Tuning.batchedChests || !ChestBaking.enabled()) {
++            return;
++        }
++        final Level level = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getLevel();
++        if (level == null || !level.isClientSide) {
++            return;
++        }
++        final Object renderer = Minecraft.getInstance().levelRenderer;
++        if (renderer instanceof ChestSections) {
++            final BlockPos pos = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getBlockPos();
++            ((ChestSections) renderer).aetherium$chestChanged(pos.getX(), pos.getY(), pos.getZ());
++        }
++    }
++// @era:boost16-else none
+     //~ @Override
+     //~ public float aetherium$openness() {
+-        //~ return this.openness;
++        //~ return 0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public float aetherium$previousOpenness() {
+-        //~ return this.oOpenness;
++        //~ return 0f;
+     //~ }
+ 
+     //~ @Override
+     //~ public int aetherium$openCount() {
+-        //~ return this.openCount;
+-    //~ }
+-
+-    //~ @Inject(method = "triggerEvent", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$opening(final int id, final int type, final CallbackInfoReturnable<Boolean> cir) {
+-        //~ if (id == 1 && type > 0 && this.openCount <= 0 && this.openness <= 0f) {
+-            //~ this.aetherium$changed();
+-        //~ }
+-    //~ }
+-
+-    //~ @Inject(method = "tick", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$tickStart(final CallbackInfo ci) {
+-        //~ this.aetherium$moving = this.openness > 0f || this.oOpenness > 0f;
+-    //~ }
+-
+-    //~ @Inject(method = "tick", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$tickEnd(final CallbackInfo ci) {
+-        //~ if (this.aetherium$moving && ChestBaking.closed(this.openness, this.oOpenness, this.openCount)) {
+-            //~ this.aetherium$changed();
+-        //~ }
+-    //~ }
+-
+-    //~ @Unique
+-    //~ private void aetherium$changed() {
+-        //~ if (!Tuning.batchedChests || !ChestBaking.enabled()) {
+-            //~ return;
+-        //~ }
+-        //~ final Level level = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getLevel();
+-        //~ if (level == null || !level.isClientSide) {
+-            //~ return;
+-        //~ }
+-        //~ final Object renderer = Minecraft.getInstance().levelRenderer;
+-        //~ if (renderer instanceof ChestSections) {
+-            //~ final BlockPos pos = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getBlockPos();
+-            //~ ((ChestSections) renderer).aetherium$chestChanged(pos.getX(), pos.getY(), pos.getZ());
+-        //~ }
++        //~ return 0;
+     //~ }
+ // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningEntityDataMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningEntityDataMixin.java
+index 1613614..3dc772e 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningEntityDataMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningEntityDataMixin.java
+@@ -1,23 +1,23 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.NoLock;
+-//~ import com.aetherium.perf.Tuning;
+-//~ import java.util.Map;
+-//~ import java.util.concurrent.locks.ReadWriteLock;
+-//~ import net.minecraft.network.syncher.EntityDataAccessor;
+-//~ import net.minecraft.network.syncher.SynchedEntityData;
+-//~ import net.minecraft.world.entity.Entity;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Mutable;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.perf.NoLock;
++import com.aetherium.perf.Tuning;
++import java.util.Map;
++import java.util.concurrent.locks.ReadWriteLock;
++import net.minecraft.network.syncher.EntityDataAccessor;
++import net.minecraft.network.syncher.SynchedEntityData;
++import net.minecraft.world.entity.Entity;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Mutable;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -30,58 +30,58 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.network.syncher.SynchedEntityData")
+ public abstract class TuningEntityDataMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ @Mutable
+-    //~ private ReadWriteLock lock;
++    // @era:boost16-begin v16
++    @Shadow
++    @Final
++    @Mutable
++    private ReadWriteLock lock;
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private Map<Integer, SynchedEntityData.DataItem<?>> itemsById;
++    @Shadow
++    @Final
++    private Map<Integer, SynchedEntityData.DataItem<?>> itemsById;
+ 
+-    //~ /** Items by id; replaced (never changed in place) when an item is defined. */
+-    //~ @Unique
+-    //~ private SynchedEntityData.DataItem<?>[] aetherium$byId;
++    /** Items by id; replaced (never changed in place) when an item is defined. */
++    @Unique
++    private SynchedEntityData.DataItem<?>[] aetherium$byId;
+ 
+-    //~ @Inject(method = "<init>", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$noLock(final Entity entity, final CallbackInfo ci) {
+-        //~ if (Tuning.fastEntityData) {
+-            //~ this.lock = NoLock.INSTANCE;
+-        //~ }
+-    //~ }
++    @Inject(method = "<init>", at = @At("TAIL"), require = 0)
++    private void aetherium$noLock(final Entity entity, final CallbackInfo ci) {
++        if (Tuning.fastEntityData) {
++            this.lock = NoLock.INSTANCE;
++        }
++    }
+ 
+-    //~ @Inject(method = "createDataItem", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$index(final EntityDataAccessor<?> accessor, final Object value, final CallbackInfo ci) {
+-        //~ final int id = accessor.getId();
+-        //~ final SynchedEntityData.DataItem<?> item = this.itemsById.get(Integer.valueOf(id));
+-        //~ if (id < 0 || id > 255 || item == null) {
+-            //~ return;
+-        //~ }
+-        //~ final SynchedEntityData.DataItem<?>[] old = this.aetherium$byId;
+-        //~ final SynchedEntityData.DataItem<?>[] grown = new SynchedEntityData.DataItem<?>[Math.max(id + 1, old == null ? 0 : old.length)];
+-        //~ if (old != null) {
+-            //~ System.arraycopy(old, 0, grown, 0, old.length);
+-        //~ }
+-        //~ grown[id] = item;
+-        //~ this.aetherium$byId = grown;
+-    //~ }
++    @Inject(method = "createDataItem", at = @At("TAIL"), require = 0)
++    private void aetherium$index(final EntityDataAccessor<?> accessor, final Object value, final CallbackInfo ci) {
++        final int id = accessor.getId();
++        final SynchedEntityData.DataItem<?> item = this.itemsById.get(Integer.valueOf(id));
++        if (id < 0 || id > 255 || item == null) {
++            return;
++        }
++        final SynchedEntityData.DataItem<?>[] old = this.aetherium$byId;
++        final SynchedEntityData.DataItem<?>[] grown = new SynchedEntityData.DataItem<?>[Math.max(id + 1, old == null ? 0 : old.length)];
++        if (old != null) {
++            System.arraycopy(old, 0, grown, 0, old.length);
++        }
++        grown[id] = item;
++        this.aetherium$byId = grown;
++    }
+ 
+-    //~ @Redirect(method = "getItem", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"),
+-            //~ require = 0)
+-    //~ private Object aetherium$lookup(final Map<Integer, ?> map, final Object key) {
+-        //~ final SynchedEntityData.DataItem<?>[] byId = this.aetherium$byId;
+-        //~ if (Tuning.fastEntityData && byId != null && key instanceof Integer) {
+-            //~ final int id = ((Integer) key).intValue();
+-            //~ if (id >= 0 && id < byId.length) {
+-                //~ final Object item = byId[id];
+-                //~ if (item != null) {
+-                    //~ return item;
+-                //~ }
+-            //~ }
+-        //~ }
+-        //~ return map.get(key);
+-    //~ }
++    @Redirect(method = "getItem", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"),
++            require = 0)
++    private Object aetherium$lookup(final Map<Integer, ?> map, final Object key) {
++        final SynchedEntityData.DataItem<?>[] byId = this.aetherium$byId;
++        if (Tuning.fastEntityData && byId != null && key instanceof Integer) {
++            final int id = ((Integer) key).intValue();
++            if (id >= 0 && id < byId.length) {
++                final Object item = byId[id];
++                if (item != null) {
++                    return item;
++                }
++            }
++        }
++        return map.get(key);
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningEntityTickMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningEntityTickMixin.java
+index d9e5378..816b0d1 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningEntityTickMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningEntityTickMixin.java
+@@ -1,29 +1,29 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import com.aetherium.perf.ViewFrustum;
+-//~ import net.minecraft.client.Camera;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.util.Mth;
+-//~ import net.minecraft.world.entity.Entity;
+-//~ import net.minecraft.world.entity.LightningBolt;
+-//~ import net.minecraft.world.entity.LivingEntity;
+-//~ import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+-//~ import net.minecraft.world.entity.boss.wither.WitherBoss;
+-//~ import net.minecraft.world.entity.item.FallingBlockEntity;
+-//~ import net.minecraft.world.entity.item.PrimedTnt;
+-//~ import net.minecraft.world.entity.player.Player;
+-//~ import net.minecraft.world.entity.projectile.EyeOfEnder;
+-//~ import net.minecraft.world.entity.projectile.Projectile;
+-//~ import net.minecraft.world.entity.vehicle.AbstractMinecart;
+-//~ import net.minecraft.world.entity.vehicle.Boat;
+-//~ import net.minecraft.world.phys.Vec3;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:boost16-begin v16
++import com.aetherium.perf.Tuning;
++import com.aetherium.perf.ViewFrustum;
++import net.minecraft.client.Camera;
++import net.minecraft.client.Minecraft;
++import net.minecraft.util.Mth;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.LightningBolt;
++import net.minecraft.world.entity.LivingEntity;
++import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
++import net.minecraft.world.entity.boss.wither.WitherBoss;
++import net.minecraft.world.entity.item.FallingBlockEntity;
++import net.minecraft.world.entity.item.PrimedTnt;
++import net.minecraft.world.entity.player.Player;
++import net.minecraft.world.entity.projectile.EyeOfEnder;
++import net.minecraft.world.entity.projectile.Projectile;
++import net.minecraft.world.entity.vehicle.AbstractMinecart;
++import net.minecraft.world.entity.vehicle.Boat;
++import net.minecraft.world.phys.Vec3;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -40,67 +40,67 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.multiplayer.ClientLevel")
+ public abstract class TuningEntityTickMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Redirect(method = "tickNonPassenger",
+-            //~ at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;tick()V"), require = 0)
+-    //~ private void aetherium$tickIfSeen(final Entity entity) {
+-        //~ if (Tuning.entityTickCulling && aetherium$skip(entity)) {
+-            //~ if (entity instanceof TuningLerpAccessor) {
+-                //~ aetherium$snap(entity, (TuningLerpAccessor) entity);
+-            //~ }
+-            //~ return;
+-        //~ }
+-        //~ entity.tick();
+-    //~ }
++    // @era:boost16-begin v16
++    @Redirect(method = "tickNonPassenger",
++            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;tick()V"), require = 0)
++    private void aetherium$tickIfSeen(final Entity entity) {
++        if (Tuning.entityTickCulling && aetherium$skip(entity)) {
++            if (entity instanceof TuningLerpAccessor) {
++                aetherium$snap(entity, (TuningLerpAccessor) entity);
++            }
++            return;
++        }
++        entity.tick();
++    }
+ 
+-    //~ @Unique
+-    //~ private static boolean aetherium$skip(final Entity entity) {
+-        //~ final ViewFrustum frustum = ViewFrustum.FRAME;
+-        //~ if (!frustum.valid() || entity instanceof Player || entity.isVehicle() || entity instanceof Projectile
+-                //~ || entity instanceof AbstractMinecart || entity instanceof Boat || entity instanceof EnderDragon
+-                //~ || entity instanceof WitherBoss || entity instanceof FallingBlockEntity || entity instanceof PrimedTnt
+-                //~ || entity instanceof LightningBolt || entity instanceof EyeOfEnder) {
+-            //~ return false;
+-        //~ }
+-        //~ final Minecraft minecraft = Minecraft.getInstance();
+-        //~ if (entity == minecraft.getCameraEntity()) {
+-            //~ return false;
+-        //~ }
+-        //~ final Camera camera = minecraft.gameRenderer.getMainCamera();
+-        //~ if (camera == null || !camera.isInitialized()) {
+-            //~ return false;
+-        //~ }
+-        //~ final Vec3 eye = camera.getPosition();
+-        //~ final float height = entity.getBbHeight();
+-        //~ final float width = entity.getBbWidth();
+-        //~ final double dx = entity.getX() - eye.x;
+-        //~ final double dy = entity.getY() + height * 0.5 - eye.y;
+-        //~ final double dz = entity.getZ() - eye.z;
+-        //~ if (dx * dx + dy * dy + dz * dz <= 64.0) {
+-            //~ return false;
+-        //~ }
+-        //~ // Half diagonal of the box, plus room for limbs, held items and smoothing.
+-        //~ final float radius = 0.5f * (float) Math.sqrt(2.0f * width * width + height * height) + 3.0f;
+-        //~ return !frustum.sphereVisible((float) dx, (float) dy, (float) dz, radius);
+-    //~ }
++    @Unique
++    private static boolean aetherium$skip(final Entity entity) {
++        final ViewFrustum frustum = ViewFrustum.FRAME;
++        if (!frustum.valid() || entity instanceof Player || entity.isVehicle() || entity instanceof Projectile
++                || entity instanceof AbstractMinecart || entity instanceof Boat || entity instanceof EnderDragon
++                || entity instanceof WitherBoss || entity instanceof FallingBlockEntity || entity instanceof PrimedTnt
++                || entity instanceof LightningBolt || entity instanceof EyeOfEnder) {
++            return false;
++        }
++        final Minecraft minecraft = Minecraft.getInstance();
++        if (entity == minecraft.getCameraEntity()) {
++            return false;
++        }
++        final Camera camera = minecraft.gameRenderer.getMainCamera();
++        if (camera == null || !camera.isInitialized()) {
++            return false;
++        }
++        final Vec3 eye = camera.getPosition();
++        final float height = entity.getBbHeight();
++        final float width = entity.getBbWidth();
++        final double dx = entity.getX() - eye.x;
++        final double dy = entity.getY() + height * 0.5 - eye.y;
++        final double dz = entity.getZ() - eye.z;
++        if (dx * dx + dy * dy + dz * dz <= 64.0) {
++            return false;
++        }
++        // Half diagonal of the box, plus room for limbs, held items and smoothing.
++        final float radius = 0.5f * (float) Math.sqrt(2.0f * width * width + height * height) + 3.0f;
++        return !frustum.sphereVisible((float) dx, (float) dy, (float) dz, radius);
++    }
+ 
+-    //~ /** What the skipped smoothing steps would have reached: the server's last position and rotation. */
+-    //~ @Unique
+-    //~ private static void aetherium$snap(final Entity entity, final TuningLerpAccessor lerp) {
+-        //~ if (lerp.aetherium$lerpSteps() > 0) {
+-            //~ final float yRot = (float) (entity.yRot + Mth.wrapDegrees(lerp.aetherium$lerpYRot() - entity.yRot));
+-            //~ final float xRot = (float) lerp.aetherium$lerpXRot();
+-            //~ lerp.aetherium$setLerpSteps(0);
+-            //~ entity.setPos(lerp.aetherium$lerpX(), lerp.aetherium$lerpY(), lerp.aetherium$lerpZ());
+-            //~ entity.yRot = yRot % 360.0f;
+-            //~ entity.xRot = xRot % 360.0f;
+-        //~ }
+-        //~ if (lerp.aetherium$lerpHeadSteps() > 0 && entity instanceof LivingEntity) {
+-            //~ final LivingEntity living = (LivingEntity) entity;
+-            //~ living.yHeadRot = (float) (living.yHeadRot + Mth.wrapDegrees(lerp.aetherium$lerpHeadRot() - living.yHeadRot));
+-            //~ lerp.aetherium$setLerpHeadSteps(0);
+-        //~ }
+-    //~ }
++    /** What the skipped smoothing steps would have reached: the server's last position and rotation. */
++    @Unique
++    private static void aetherium$snap(final Entity entity, final TuningLerpAccessor lerp) {
++        if (lerp.aetherium$lerpSteps() > 0) {
++            final float yRot = (float) (entity.yRot + Mth.wrapDegrees(lerp.aetherium$lerpYRot() - entity.yRot));
++            final float xRot = (float) lerp.aetherium$lerpXRot();
++            lerp.aetherium$setLerpSteps(0);
++            entity.setPos(lerp.aetherium$lerpX(), lerp.aetherium$lerpY(), lerp.aetherium$lerpZ());
++            entity.yRot = yRot % 360.0f;
++            entity.xRot = xRot % 360.0f;
++        }
++        if (lerp.aetherium$lerpHeadSteps() > 0 && entity instanceof LivingEntity) {
++            final LivingEntity living = (LivingEntity) entity;
++            living.yHeadRot = (float) (living.yHeadRot + Mth.wrapDegrees(lerp.aetherium$lerpHeadRot() - living.yHeadRot));
++            lerp.aetherium$setLerpHeadSteps(0);
++        }
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java
 index 852237b..251cf99 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningFarDrawMixin.java
@@ -11409,6 +13326,196 @@ index 852237b..251cf99 100644
      //~ }
 -    // @era:t-far-draw-else v16|none
      // @era:t-far-draw-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningFluidCacheMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningFluidCacheMixin.java
+index 46b9859..2546d61 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningFluidCacheMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningFluidCacheMixin.java
+@@ -1,18 +1,18 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.world.level.block.Block;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import net.minecraft.world.level.material.FluidState;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.perf.Tuning;
++import net.minecraft.world.level.block.Block;
++import net.minecraft.world.level.block.state.BlockState;
++import net.minecraft.world.level.material.FluidState;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -25,34 +25,34 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase")
+ public abstract class TuningFluidCacheMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Unique
+-    //~ private FluidState aetherium$fluid;
++    // @era:boost16-begin v16
++    @Unique
++    private FluidState aetherium$fluid;
+ 
+-    //~ @Shadow
+-    //~ public abstract Block getBlock();
++    @Shadow
++    public abstract Block getBlock();
+ 
+-    //~ @Shadow
+-    //~ protected abstract BlockState asState();
++    @Shadow
++    protected abstract BlockState asState();
+ 
+-    //~ @Inject(method = "initCache", at = @At("TAIL"), require = 0)
+-    //~ private void aetherium$cacheFluid(final CallbackInfo ci) {
+-        //~ final Block block = this.getBlock();
+-        //~ if (block != null && block.getClass().getName().startsWith("net.minecraft.")) {
+-            //~ this.aetherium$fluid = block.getFluidState(this.asState());
+-        //~ }
+-    //~ }
++    @Inject(method = "initCache", at = @At("TAIL"), require = 0)
++    private void aetherium$cacheFluid(final CallbackInfo ci) {
++        final Block block = this.getBlock();
++        if (block != null && block.getClass().getName().startsWith("net.minecraft.")) {
++            this.aetherium$fluid = block.getFluidState(this.asState());
++        }
++    }
+ 
+-    //~ @Redirect(method = "getFluidState", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/world/level/block/Block;getFluidState(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;"),
+-            //~ require = 0)
+-    //~ private FluidState aetherium$cachedFluid(final Block block, final BlockState state) {
+-        //~ final FluidState cached = this.aetherium$fluid;
+-        //~ if (cached != null && Tuning.fastBlockData) {
+-            //~ return cached;
+-        //~ }
+-        //~ return block.getFluidState(state);
+-    //~ }
++    @Redirect(method = "getFluidState", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/world/level/block/Block;getFluidState(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;"),
++            require = 0)
++    private FluidState aetherium$cachedFluid(final Block block, final BlockState state) {
++        final FluidState cached = this.aetherium$fluid;
++        if (cached != null && Tuning.fastBlockData) {
++            return cached;
++        }
++        return block.getFluidState(state);
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningFrameDecoderMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningFrameDecoderMixin.java
+index 1a90c44..6e345b9 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningFrameDecoderMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningFrameDecoderMixin.java
+@@ -1,16 +1,16 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import io.netty.buffer.ByteBuf;
+-//~ import io.netty.channel.ChannelHandlerContext;
+-//~ import io.netty.handler.codec.CorruptedFrameException;
+-//~ import java.util.List;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.perf.Tuning;
++import io.netty.buffer.ByteBuf;
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.handler.codec.CorruptedFrameException;
++import java.util.List;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -25,34 +25,34 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.network.Varint21FrameDecoder")
+ public abstract class TuningFrameDecoderMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Inject(method = "decode", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out,
+-                                  //~ final CallbackInfo ci) {
+-        //~ if (!Tuning.fastNetwork) {
+-            //~ return;
+-        //~ }
+-        //~ ci.cancel();
+-        //~ in.markReaderIndex();
+-        //~ int length = 0;
+-        //~ for (int i = 0; i < 3; i++) {
+-            //~ if (!in.isReadable()) {
+-                //~ in.resetReaderIndex();
+-                //~ return;
+-            //~ }
+-            //~ final byte b = in.readByte();
+-            //~ length |= (b & 0x7F) << (7 * i);
+-            //~ if (b >= 0) {
+-                //~ if (in.readableBytes() < length) {
+-                    //~ in.resetReaderIndex();
+-                    //~ return;
+-                //~ }
+-                //~ out.add(in.readRetainedSlice(length));
+-                //~ return;
+-            //~ }
+-        //~ }
+-        //~ throw new CorruptedFrameException("length wider than 21-bit");
+-    //~ }
++    // @era:boost16-begin v16
++    @Inject(method = "decode", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out,
++                                  final CallbackInfo ci) {
++        if (!Tuning.fastNetwork) {
++            return;
++        }
++        ci.cancel();
++        in.markReaderIndex();
++        int length = 0;
++        for (int i = 0; i < 3; i++) {
++            if (!in.isReadable()) {
++                in.resetReaderIndex();
++                return;
++            }
++            final byte b = in.readByte();
++            length |= (b & 0x7F) << (7 * i);
++            if (b >= 0) {
++                if (in.readableBytes() < length) {
++                    in.resetReaderIndex();
++                    return;
++                }
++                out.add(in.readRetainedSlice(length));
++                return;
++            }
++        }
++        throw new CorruptedFrameException("length wider than 21-bit");
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningFrameItemMixin.java
 index efd19a7..69ab8d5 100644
@@ -11831,6 +13938,236 @@ index c4a5001..688b9e5 100644
      // @era:t-glint-else g219
      //~ @ModifyVariable(method = {"getFoilBuffer", "getFoilRenderTypes"}, at = @At("HEAD"),
              //~ argsOnly = true, ordinal = 1, require = 0)
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGoalMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGoalMixin.java
+index 5d4f57e..c00e326 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningGoalMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningGoalMixin.java
+@@ -1,22 +1,22 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import java.util.EnumSet;
+-//~ import java.util.Iterator;
+-//~ import java.util.Map;
+-//~ import java.util.Set;
+-//~ import java.util.function.Supplier;
+-//~ import net.minecraft.util.profiling.ProfilerFiller;
+-//~ import net.minecraft.world.entity.ai.goal.Goal;
+-//~ import net.minecraft.world.entity.ai.goal.WrappedGoal;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.perf.Tuning;
++import java.util.EnumSet;
++import java.util.Iterator;
++import java.util.Map;
++import java.util.Set;
++import java.util.function.Supplier;
++import net.minecraft.util.profiling.ProfilerFiller;
++import net.minecraft.world.entity.ai.goal.Goal;
++import net.minecraft.world.entity.ai.goal.WrappedGoal;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -39,100 +39,100 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.world.entity.ai.goal.GoalSelector")
+ public abstract class TuningGoalMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private static WrappedGoal NO_GOAL;
++    // @era:boost16-begin v16
++    @Shadow
++    @Final
++    private static WrappedGoal NO_GOAL;
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private Map<Goal.Flag, WrappedGoal> lockedFlags;
++    @Shadow
++    @Final
++    private Map<Goal.Flag, WrappedGoal> lockedFlags;
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private Set<WrappedGoal> availableGoals;
++    @Shadow
++    @Final
++    private Set<WrappedGoal> availableGoals;
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private Supplier<ProfilerFiller> profiler;
++    @Shadow
++    @Final
++    private Supplier<ProfilerFiller> profiler;
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private EnumSet<Goal.Flag> disabledFlags;
++    @Shadow
++    @Final
++    private EnumSet<Goal.Flag> disabledFlags;
+ 
+-    //~ @Inject(method = "tick", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$tick(final CallbackInfo ci) {
+-        //~ if (!Tuning.fastMobAi) {
+-            //~ return;
+-        //~ }
+-        //~ ci.cancel();
+-        //~ final ProfilerFiller profilerFiller = this.profiler.get();
+-        //~ final Map<Goal.Flag, WrappedGoal> locked = this.lockedFlags;
+-        //~ final EnumSet<Goal.Flag> disabled = this.disabledFlags;
+-        //~ final WrappedGoal none = NO_GOAL;
++    @Inject(method = "tick", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$tick(final CallbackInfo ci) {
++        if (!Tuning.fastMobAi) {
++            return;
++        }
++        ci.cancel();
++        final ProfilerFiller profilerFiller = this.profiler.get();
++        final Map<Goal.Flag, WrappedGoal> locked = this.lockedFlags;
++        final EnumSet<Goal.Flag> disabled = this.disabledFlags;
++        final WrappedGoal none = NO_GOAL;
+ 
+-        //~ profilerFiller.push("goalCleanup");
+-        //~ for (final WrappedGoal goal : this.availableGoals) {
+-            //~ if (goal.isRunning() && (aetherium$usesAny(goal.getFlags(), disabled) || !goal.canContinueToUse())) {
+-                //~ goal.stop();
+-            //~ }
+-        //~ }
+-        //~ final Iterator<Map.Entry<Goal.Flag, WrappedGoal>> held = locked.entrySet().iterator();
+-        //~ while (held.hasNext()) {
+-            //~ if (!held.next().getValue().isRunning()) {
+-                //~ held.remove();
+-            //~ }
+-        //~ }
+-        //~ profilerFiller.pop();
++        profilerFiller.push("goalCleanup");
++        for (final WrappedGoal goal : this.availableGoals) {
++            if (goal.isRunning() && (aetherium$usesAny(goal.getFlags(), disabled) || !goal.canContinueToUse())) {
++                goal.stop();
++            }
++        }
++        final Iterator<Map.Entry<Goal.Flag, WrappedGoal>> held = locked.entrySet().iterator();
++        while (held.hasNext()) {
++            if (!held.next().getValue().isRunning()) {
++                held.remove();
++            }
++        }
++        profilerFiller.pop();
+ 
+-        //~ profilerFiller.push("goalUpdate");
+-        //~ for (final WrappedGoal goal : this.availableGoals) {
+-            //~ if (goal.isRunning()) {
+-                //~ continue;
+-            //~ }
+-            //~ final EnumSet<Goal.Flag> flags = goal.getFlags();
+-            //~ if (aetherium$usesAny(flags, disabled)) {
+-                //~ continue;
+-            //~ }
+-            //~ boolean replaceable = true;
+-            //~ for (final Goal.Flag flag : flags) {
+-                //~ if (!locked.getOrDefault(flag, none).canBeReplacedBy(goal)) {
+-                    //~ replaceable = false;
+-                    //~ break;
+-                //~ }
+-            //~ }
+-            //~ if (!replaceable || !goal.canUse()) {
+-                //~ continue;
+-            //~ }
+-            //~ for (final Goal.Flag flag : flags) {
+-                //~ locked.getOrDefault(flag, none).stop();
+-                //~ locked.put(flag, goal);
+-            //~ }
+-            //~ goal.start();
+-        //~ }
+-        //~ profilerFiller.pop();
++        profilerFiller.push("goalUpdate");
++        for (final WrappedGoal goal : this.availableGoals) {
++            if (goal.isRunning()) {
++                continue;
++            }
++            final EnumSet<Goal.Flag> flags = goal.getFlags();
++            if (aetherium$usesAny(flags, disabled)) {
++                continue;
++            }
++            boolean replaceable = true;
++            for (final Goal.Flag flag : flags) {
++                if (!locked.getOrDefault(flag, none).canBeReplacedBy(goal)) {
++                    replaceable = false;
++                    break;
++                }
++            }
++            if (!replaceable || !goal.canUse()) {
++                continue;
++            }
++            for (final Goal.Flag flag : flags) {
++                locked.getOrDefault(flag, none).stop();
++                locked.put(flag, goal);
++            }
++            goal.start();
++        }
++        profilerFiller.pop();
+ 
+-        //~ profilerFiller.push("goalTick");
+-        //~ for (final WrappedGoal goal : this.availableGoals) {
+-            //~ if (goal.isRunning()) {
+-                //~ goal.tick();
+-            //~ }
+-        //~ }
+-        //~ profilerFiller.pop();
+-    //~ }
++        profilerFiller.push("goalTick");
++        for (final WrappedGoal goal : this.availableGoals) {
++            if (goal.isRunning()) {
++                goal.tick();
++            }
++        }
++        profilerFiller.pop();
++    }
+ 
+-    //~ @org.spongepowered.asm.mixin.Unique
+-    //~ private static boolean aetherium$usesAny(final EnumSet<Goal.Flag> flags, final EnumSet<Goal.Flag> disabled) {
+-        //~ if (disabled.isEmpty() || flags.isEmpty()) {
+-            //~ return false;
+-        //~ }
+-        //~ for (final Goal.Flag flag : flags) {
+-            //~ if (disabled.contains(flag)) {
+-                //~ return true;
+-            //~ }
+-        //~ }
+-        //~ return false;
+-    //~ }
++    @org.spongepowered.asm.mixin.Unique
++    private static boolean aetherium$usesAny(final EnumSet<Goal.Flag> flags, final EnumSet<Goal.Flag> disabled) {
++        if (disabled.isEmpty() || flags.isEmpty()) {
++            return false;
++        }
++        for (final Goal.Flag flag : flags) {
++            if (disabled.contains(flag)) {
++                return true;
++            }
++        }
++        return false;
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java
 index 2762fb3..ad1cf55 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningGrassMixin.java
@@ -11899,6 +14236,721 @@ index 2762fb3..ad1cf55 100644
      // @era:t-grass-else g215
      //~ // 1.21.5+: a block model is a list of parts; the block state is the tesselate method's argument.
      //~ @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningHudBlendMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningHudBlendMixin.java
+index 34a6d1c..662e328 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningHudBlendMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningHudBlendMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.HudRate;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.perf.HudRate;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -18,34 +18,34 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager")
+ public abstract class TuningHudBlendMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Shadow
+-    //~ public static void _blendFuncSeparate(final int srcRgb, final int dstRgb, final int srcAlpha, final int dstAlpha) {
+-        //~ throw new AssertionError();
+-    //~ }
++    // @era:boost16-begin v16
++    @Shadow
++    public static void _blendFuncSeparate(final int srcRgb, final int dstRgb, final int srcAlpha, final int dstAlpha) {
++        throw new AssertionError();
++    }
+ 
+-    //~ @Inject(method = "_blendFunc", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private static void aetherium$captureBlend(final int srcRgb, final int dstRgb, final CallbackInfo ci) {
+-        //~ if (HudRate.capturing()) {
+-            //~ ci.cancel();
+-            //~ final int alpha = HudRate.alphaFactorsFor(dstRgb);
+-            //~ _blendFuncSeparate(srcRgb, dstRgb, alpha >>> 16, alpha & 0xFFFF);
+-        //~ }
+-    //~ }
++    @Inject(method = "_blendFunc", at = @At("HEAD"), cancellable = true, require = 0)
++    private static void aetherium$captureBlend(final int srcRgb, final int dstRgb, final CallbackInfo ci) {
++        if (HudRate.capturing()) {
++            ci.cancel();
++            final int alpha = HudRate.alphaFactorsFor(dstRgb);
++            _blendFuncSeparate(srcRgb, dstRgb, alpha >>> 16, alpha & 0xFFFF);
++        }
++    }
+ 
+-    //~ @Inject(method = "_blendFuncSeparate", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private static void aetherium$captureBlendSeparate(final int srcRgb, final int dstRgb, final int srcAlpha,
+-                                                       //~ final int dstAlpha, final CallbackInfo ci) {
+-        //~ if (HudRate.capturing()) {
+-            //~ final int alpha = HudRate.alphaFactorsFor(dstRgb);
+-            //~ final int wantSrc = alpha >>> 16;
+-            //~ final int wantDst = alpha & 0xFFFF;
+-            //~ if (srcAlpha != wantSrc || dstAlpha != wantDst) {
+-                //~ ci.cancel();
+-                //~ _blendFuncSeparate(srcRgb, dstRgb, wantSrc, wantDst);
+-            //~ }
+-        //~ }
+-    //~ }
++    @Inject(method = "_blendFuncSeparate", at = @At("HEAD"), cancellable = true, require = 0)
++    private static void aetherium$captureBlendSeparate(final int srcRgb, final int dstRgb, final int srcAlpha,
++                                                       final int dstAlpha, final CallbackInfo ci) {
++        if (HudRate.capturing()) {
++            final int alpha = HudRate.alphaFactorsFor(dstRgb);
++            final int wantSrc = alpha >>> 16;
++            final int wantDst = alpha & 0xFFFF;
++            if (srcAlpha != wantSrc || dstAlpha != wantDst) {
++                ci.cancel();
++                _blendFuncSeparate(srcRgb, dstRgb, wantSrc, wantDst);
++            }
++        }
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningHudFrameMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningHudFrameMixin.java
+index 0f592f2..05ab0ff 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningHudFrameMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningHudFrameMixin.java
+@@ -1,26 +1,26 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.client.McCanvas;
+-//~ import com.aetherium.perf.HudRate;
+-//~ import com.aetherium.client.QolOverlay;
+-//~ import com.aetherium.util.AetheriumLog;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+-//~ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+-//~ import com.mojang.blaze3d.pipeline.RenderTarget;
+-//~ import com.mojang.blaze3d.platform.Window;
+-//~ import com.mojang.blaze3d.systems.RenderSystem;
+-//~ import com.mojang.blaze3d.vertex.BufferBuilder;
+-//~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import com.mojang.blaze3d.vertex.Tesselator;
+-//~ import net.minecraft.client.Minecraft;
+-//~ import net.minecraft.client.gui.Gui;
+-//~ import net.minecraft.client.gui.GuiComponent;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
++// @era:boost16-begin v16
++import com.aetherium.client.McCanvas;
++import com.aetherium.perf.HudRate;
++import com.aetherium.client.QolOverlay;
++import com.aetherium.util.AetheriumLog;
++import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
++import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
++import com.mojang.blaze3d.pipeline.RenderTarget;
++import com.mojang.blaze3d.platform.Window;
++import com.mojang.blaze3d.systems.RenderSystem;
++import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.DefaultVertexFormat;
++import com.mojang.blaze3d.vertex.PoseStack;
++import com.mojang.blaze3d.vertex.Tesselator;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.gui.Gui;
++import net.minecraft.client.gui.GuiComponent;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -40,139 +40,139 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.GameRenderer")
+ public abstract class TuningHudFrameMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Unique
+-    //~ private RenderTarget aetherium$hud;
++    // @era:boost16-begin v16
++    @Unique
++    private RenderTarget aetherium$hud;
+ 
+-    //~ @Unique
+-    //~ private boolean aetherium$broken;
++    @Unique
++    private boolean aetherium$broken;
+ 
+-    //~ @WrapOperation(method = "render(FJZ)V", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/gui/Gui;render(Lcom/mojang/blaze3d/vertex/PoseStack;F)V"), require = 0)
+-    //~ private void aetherium$hudRate(final Gui gui, final PoseStack pose, final float partialTick,
+-                                   //~ final Operation<Void> original) {
+-        //~ final Minecraft minecraft = Minecraft.getInstance();
+-        //~ if (HudRate.fps() == HudRate.OFF || this.aetherium$broken || minecraft.player == null) {
+-            //~ original.call(gui, pose, partialTick);
+-            //~ return;
+-        //~ }
+-        //~ final Window window = minecraft.getWindow();
+-        //~ final int w = window.getWidth();
+-        //~ final int h = window.getHeight();
+-        //~ final boolean live = minecraft.options.renderDebugCharts || minecraft.options.renderFpsChart || w <= 0 || h <= 0;
+-        //~ final int mode = HudRate.decide(System.nanoTime(), w, h, aetherium$stateKey(minecraft, window), live);
+-        //~ if (mode == HudRate.DIRECT) {
+-            //~ original.call(gui, pose, partialTick);
+-            //~ return;
+-        //~ }
+-        //~ if (mode == HudRate.REFRESH && !this.aetherium$capture(minecraft, gui, pose, partialTick, original, w, h)) {
+-            //~ return; // drawn directly instead
+-        //~ }
+-        //~ this.aetherium$present(minecraft, gui, pose, window);
+-    //~ }
++    @WrapOperation(method = "render(FJZ)V", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/gui/Gui;render(Lcom/mojang/blaze3d/vertex/PoseStack;F)V"), require = 0)
++    private void aetherium$hudRate(final Gui gui, final PoseStack pose, final float partialTick,
++                                   final Operation<Void> original) {
++        final Minecraft minecraft = Minecraft.getInstance();
++        if (HudRate.fps() == HudRate.OFF || this.aetherium$broken || minecraft.player == null) {
++            original.call(gui, pose, partialTick);
++            return;
++        }
++        final Window window = minecraft.getWindow();
++        final int w = window.getWidth();
++        final int h = window.getHeight();
++        final boolean live = minecraft.options.renderDebugCharts || minecraft.options.renderFpsChart || w <= 0 || h <= 0;
++        final int mode = HudRate.decide(System.nanoTime(), w, h, aetherium$stateKey(minecraft, window), live);
++        if (mode == HudRate.DIRECT) {
++            original.call(gui, pose, partialTick);
++            return;
++        }
++        if (mode == HudRate.REFRESH && !this.aetherium$capture(minecraft, gui, pose, partialTick, original, w, h)) {
++            return; // drawn directly instead
++        }
++        this.aetherium$present(minecraft, gui, pose, window);
++    }
+ 
+-    //~ /** Draws the HUD into the picture; false when it was drawn directly instead. */
+-    //~ @Unique
+-    //~ private boolean aetherium$capture(final Minecraft minecraft, final Gui gui, final PoseStack pose, final float partialTick,
+-                                      //~ final Operation<Void> original, final int w, final int h) {
+-        //~ RenderTarget target = this.aetherium$hud;
+-        //~ try {
+-            //~ if (target == null) {
+-                //~ target = new RenderTarget(w, h, true, Minecraft.ON_OSX);
+-                //~ target.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+-                //~ this.aetherium$hud = target;
+-            //~ } else if (target.width != w || target.height != h) {
+-                //~ target.resize(w, h, Minecraft.ON_OSX);
+-            //~ }
+-            //~ target.clear(Minecraft.ON_OSX);
+-            //~ target.bindWrite(true);
+-        //~ } catch (final RuntimeException error) {
+-            //~ this.aetherium$disable(minecraft, error);
+-            //~ original.call(gui, pose, partialTick);
+-            //~ return false;
+-        //~ }
+-        //~ HudRate.setCapturing(true);
+-        //~ try {
+-            //~ original.call(gui, pose, partialTick);
+-        //~ } finally {
+-            //~ HudRate.setCapturing(false);
+-            //~ RenderSystem.defaultBlendFunc(); // the capture's alpha factors stay inside it
+-            //~ minecraft.getMainRenderTarget().bindWrite(true);
+-        //~ }
+-        //~ return true;
+-    //~ }
++    /** Draws the HUD into the picture; false when it was drawn directly instead. */
++    @Unique
++    private boolean aetherium$capture(final Minecraft minecraft, final Gui gui, final PoseStack pose, final float partialTick,
++                                      final Operation<Void> original, final int w, final int h) {
++        RenderTarget target = this.aetherium$hud;
++        try {
++            if (target == null) {
++                target = new RenderTarget(w, h, true, Minecraft.ON_OSX);
++                target.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
++                this.aetherium$hud = target;
++            } else if (target.width != w || target.height != h) {
++                target.resize(w, h, Minecraft.ON_OSX);
++            }
++            target.clear(Minecraft.ON_OSX);
++            target.bindWrite(true);
++        } catch (final RuntimeException error) {
++            this.aetherium$disable(minecraft, error);
++            original.call(gui, pose, partialTick);
++            return false;
++        }
++        HudRate.setCapturing(true);
++        try {
++            original.call(gui, pose, partialTick);
++        } finally {
++            HudRate.setCapturing(false);
++            RenderSystem.defaultBlendFunc(); // the capture's alpha factors stay inside it
++            minecraft.getMainRenderTarget().bindWrite(true);
++        }
++        return true;
++    }
+ 
+-    //~ @Unique
+-    //~ private void aetherium$present(final Minecraft minecraft, final Gui gui, final PoseStack pose, final Window window) {
+-        //~ final RenderTarget target = this.aetherium$hud;
+-        //~ if (target == null) {
+-            //~ HudRate.refreshFailed();
+-            //~ return;
+-        //~ }
+-        //~ final TuningHudInvoker live = (TuningHudInvoker) (Object) gui;
+-        //~ RenderSystem.enableBlend();
+-        //~ if (Minecraft.useFancyGraphics()) {
+-            //~ live.aetherium$renderVignette(minecraft.getCameraEntity());
+-        //~ }
+-        //~ final float guiW = (float) (window.getWidth() / window.getGuiScale());
+-        //~ final float guiH = (float) (window.getHeight() / window.getGuiScale());
+-        //~ RenderSystem.disableDepthTest();
+-        //~ RenderSystem.depthMask(false);
+-        //~ RenderSystem.enableBlend();
+-        //~ RenderSystem.blendFuncSeparate(HudRate.GL_ONE, HudRate.GL_ONE_MINUS_SRC_ALPHA, HudRate.GL_ONE,
+-                //~ HudRate.GL_ONE_MINUS_SRC_ALPHA);
+-        //~ RenderSystem.disableAlphaTest();
+-        //~ RenderSystem.enableTexture();
+-        //~ RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
+-        //~ RenderSystem.bindTexture(target.getColorTextureId());
+-        //~ final Tesselator tesselator = Tesselator.getInstance();
+-        //~ final BufferBuilder buffer = tesselator.getBuilder();
+-        //~ buffer.begin(7, DefaultVertexFormat.POSITION_TEX);
+-        //~ buffer.vertex(0.0, guiH, 0.0).uv(0.0f, 0.0f).endVertex();
+-        //~ buffer.vertex(guiW, guiH, 0.0).uv(1.0f, 0.0f).endVertex();
+-        //~ buffer.vertex(guiW, 0.0, 0.0).uv(1.0f, 1.0f).endVertex();
+-        //~ buffer.vertex(0.0, 0.0, 0.0).uv(0.0f, 1.0f).endVertex();
+-        //~ tesselator.end();
+-        //~ RenderSystem.enableAlphaTest();
+-        //~ RenderSystem.defaultBlendFunc();
+-        //~ RenderSystem.depthMask(true);
+-        //~ RenderSystem.enableDepthTest();
+-        //~ if (!minecraft.options.hideGui) {
+-            //~ // As vanilla sets up the crosshair draw (icons texture, blend, alpha test).
+-            //~ RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
+-            //~ minecraft.getTextureManager().bind(GuiComponent.GUI_ICONS_LOCATION);
+-            //~ RenderSystem.enableBlend();
+-            //~ RenderSystem.enableAlphaTest();
+-            //~ live.aetherium$renderCrosshair(pose);
+-            //~ RenderSystem.defaultBlendFunc();
+-        //~ }
+-        //~ QolOverlay.render(McCanvas.INSTANCE.begin(pose));
+-    //~ }
++    @Unique
++    private void aetherium$present(final Minecraft minecraft, final Gui gui, final PoseStack pose, final Window window) {
++        final RenderTarget target = this.aetherium$hud;
++        if (target == null) {
++            HudRate.refreshFailed();
++            return;
++        }
++        final TuningHudInvoker live = (TuningHudInvoker) (Object) gui;
++        RenderSystem.enableBlend();
++        if (Minecraft.useFancyGraphics()) {
++            live.aetherium$renderVignette(minecraft.getCameraEntity());
++        }
++        final float guiW = (float) (window.getWidth() / window.getGuiScale());
++        final float guiH = (float) (window.getHeight() / window.getGuiScale());
++        RenderSystem.disableDepthTest();
++        RenderSystem.depthMask(false);
++        RenderSystem.enableBlend();
++        RenderSystem.blendFuncSeparate(HudRate.GL_ONE, HudRate.GL_ONE_MINUS_SRC_ALPHA, HudRate.GL_ONE,
++                HudRate.GL_ONE_MINUS_SRC_ALPHA);
++        RenderSystem.disableAlphaTest();
++        RenderSystem.enableTexture();
++        RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
++        RenderSystem.bindTexture(target.getColorTextureId());
++        final Tesselator tesselator = Tesselator.getInstance();
++        final BufferBuilder buffer = tesselator.getBuilder();
++        buffer.begin(7, DefaultVertexFormat.POSITION_TEX);
++        buffer.vertex(0.0, guiH, 0.0).uv(0.0f, 0.0f).endVertex();
++        buffer.vertex(guiW, guiH, 0.0).uv(1.0f, 0.0f).endVertex();
++        buffer.vertex(guiW, 0.0, 0.0).uv(1.0f, 1.0f).endVertex();
++        buffer.vertex(0.0, 0.0, 0.0).uv(0.0f, 1.0f).endVertex();
++        tesselator.end();
++        RenderSystem.enableAlphaTest();
++        RenderSystem.defaultBlendFunc();
++        RenderSystem.depthMask(true);
++        RenderSystem.enableDepthTest();
++        if (!minecraft.options.hideGui) {
++            // As vanilla sets up the crosshair draw (icons texture, blend, alpha test).
++            RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
++            minecraft.getTextureManager().bind(GuiComponent.GUI_ICONS_LOCATION);
++            RenderSystem.enableBlend();
++            RenderSystem.enableAlphaTest();
++            live.aetherium$renderCrosshair(pose);
++            RenderSystem.defaultBlendFunc();
++        }
++        QolOverlay.render(McCanvas.INSTANCE.begin(pose));
++    }
+ 
+-    //~ /** Everything that must redraw the picture at once when it changes. */
+-    //~ @Unique
+-    //~ private static long aetherium$stateKey(final Minecraft minecraft, final Window window) {
+-        //~ long key = minecraft.player.inventory.selected & 0xF;
+-        //~ key |= ((long) window.getGuiScale() & 0xFF) << 4;
+-        //~ key |= (minecraft.options.renderDebug ? 1L : 0L) << 12;
+-        //~ key |= (minecraft.options.hideGui ? 1L : 0L) << 13;
+-        //~ key |= (minecraft.options.keyPlayerList.isDown() ? 1L : 0L) << 14;
+-        //~ key |= (long) (minecraft.options.getCameraType().ordinal() & 3) << 15;
+-        //~ key |= (long) System.identityHashCode(minecraft.screen) << 32;
+-        //~ return key;
+-    //~ }
++    /** Everything that must redraw the picture at once when it changes. */
++    @Unique
++    private static long aetherium$stateKey(final Minecraft minecraft, final Window window) {
++        long key = minecraft.player.inventory.selected & 0xF;
++        key |= ((long) window.getGuiScale() & 0xFF) << 4;
++        key |= (minecraft.options.renderDebug ? 1L : 0L) << 12;
++        key |= (minecraft.options.hideGui ? 1L : 0L) << 13;
++        key |= (minecraft.options.keyPlayerList.isDown() ? 1L : 0L) << 14;
++        key |= (long) (minecraft.options.getCameraType().ordinal() & 3) << 15;
++        key |= (long) System.identityHashCode(minecraft.screen) << 32;
++        return key;
++    }
+ 
+-    //~ @Unique
+-    //~ private void aetherium$disable(final Minecraft minecraft, final RuntimeException error) {
+-        //~ this.aetherium$broken = true;
+-        //~ HudRate.refreshFailed();
+-        //~ AetheriumLog.of(HudRate.class).warn("HUD refresh rate: off-screen HUD picture unavailable, drawing the HUD every frame", error);
+-        //~ try {
+-            //~ minecraft.getMainRenderTarget().bindWrite(true);
+-        //~ } catch (final RuntimeException ignored) {
+-            //~ // nothing more to restore
+-        //~ }
+-    //~ }
++    @Unique
++    private void aetherium$disable(final Minecraft minecraft, final RuntimeException error) {
++        this.aetherium$broken = true;
++        HudRate.refreshFailed();
++        AetheriumLog.of(HudRate.class).warn("HUD refresh rate: off-screen HUD picture unavailable, drawing the HUD every frame", error);
++        try {
++            minecraft.getMainRenderTarget().bindWrite(true);
++        } catch (final RuntimeException ignored) {
++            // nothing more to restore
++        }
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningHudInvoker.java b/common/src/main/java/com/aetherium/mixin/core/TuningHudInvoker.java
+index 3875d19..d5dca90 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningHudInvoker.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningHudInvoker.java
+@@ -1,22 +1,22 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.mojang.blaze3d.vertex.PoseStack;
+-//~ import net.minecraft.world.entity.Entity;
+-//~ import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:boost16-begin v16
++import com.mojang.blaze3d.vertex.PoseStack;
++import net.minecraft.world.entity.Entity;
++import org.spongepowered.asm.mixin.gen.Invoker;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /** HUD refresh rate (1.17.2, Minecraft 1.16.5): the HUD parts that are drawn live every frame. */
+ @Mixin(targets = "net.minecraft.client.gui.Gui")
+ public interface TuningHudInvoker {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Invoker("renderVignette")
+-    //~ void aetherium$renderVignette(Entity entity);
++    // @era:boost16-begin v16
++    @Invoker("renderVignette")
++    void aetherium$renderVignette(Entity entity);
+ 
+-    //~ @Invoker("renderCrosshair")
+-    //~ void aetherium$renderCrosshair(PoseStack pose);
++    @Invoker("renderCrosshair")
++    void aetherium$renderCrosshair(PoseStack pose);
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningHudMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningHudMixin.java
+index 27d7bf0..3f4ba09 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningHudMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningHudMixin.java
+@@ -1,12 +1,12 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.HudRate;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.perf.HudRate;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -16,20 +16,20 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.gui.Gui")
+ public abstract class TuningHudMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Inject(method = "renderVignette", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$vignetteLive(final CallbackInfo ci) {
+-        //~ if (HudRate.capturing()) {
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
++    // @era:boost16-begin v16
++    @Inject(method = "renderVignette", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$vignetteLive(final CallbackInfo ci) {
++        if (HudRate.capturing()) {
++            ci.cancel();
++        }
++    }
+ 
+-    //~ @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$crosshairLive(final CallbackInfo ci) {
+-        //~ if (HudRate.capturing()) {
+-            //~ ci.cancel();
+-        //~ }
+-    //~ }
++    @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$crosshairLive(final CallbackInfo ci) {
++        if (HudRate.capturing()) {
++            ci.cancel();
++        }
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningInflateMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningInflateMixin.java
+index 487c11a..9c0bd55 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningInflateMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningInflateMixin.java
+@@ -1,21 +1,21 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import io.netty.buffer.ByteBuf;
+-//~ import io.netty.channel.ChannelHandlerContext;
+-//~ import io.netty.handler.codec.DecoderException;
+-//~ import java.util.List;
+-//~ import java.util.zip.DataFormatException;
+-//~ import java.util.zip.Inflater;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.perf.Tuning;
++import io.netty.buffer.ByteBuf;
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.handler.codec.DecoderException;
++import java.util.List;
++import java.util.zip.DataFormatException;
++import java.util.zip.Inflater;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -29,90 +29,90 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.network.CompressionDecoder")
+ public abstract class TuningInflateMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private Inflater inflater;
++    // @era:boost16-begin v16
++    @Shadow
++    @Final
++    private Inflater inflater;
+ 
+-    //~ @Shadow
+-    //~ private int threshold;
++    @Shadow
++    private int threshold;
+ 
+-    //~ /** Compressed bytes of the current packet; kept between packets up to 256 KiB. */
+-    //~ @Unique
+-    //~ private byte[] aetherium$input;
++    /** Compressed bytes of the current packet; kept between packets up to 256 KiB. */
++    @Unique
++    private byte[] aetherium$input;
+ 
+-    //~ @Inject(method = "decode", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out,
+-                                  //~ final CallbackInfo ci) throws DataFormatException {
+-        //~ if (!Tuning.fastNetwork) {
+-            //~ return;
+-        //~ }
+-        //~ ci.cancel();
+-        //~ if (in.readableBytes() == 0) {
+-            //~ return;
+-        //~ }
+-        //~ final int size = aetherium$readVarInt(in);
+-        //~ if (size == 0) {
+-            //~ out.add(in.readRetainedSlice(in.readableBytes()));
+-            //~ return;
+-        //~ }
+-        //~ if (size < this.threshold) {
+-            //~ throw new DecoderException("Badly compressed packet - size of " + size + " is below server threshold of " + this.threshold);
+-        //~ }
+-        //~ if (size > 2097152) {
+-            //~ throw new DecoderException("Badly compressed packet - size of " + size + " is larger than protocol maximum of " + 2097152);
+-        //~ }
+-        //~ final int length = in.readableBytes();
+-        //~ byte[] input = this.aetherium$input;
+-        //~ if (input == null || input.length < length) {
+-            //~ input = new byte[Math.max(length, 8192)];
+-            //~ if (input.length <= 262144) {
+-                //~ this.aetherium$input = input;
+-            //~ }
+-        //~ }
+-        //~ in.readBytes(input, 0, length);
+-        //~ final Inflater inflate = this.inflater;
+-        //~ inflate.setInput(input, 0, length);
+-        //~ final ByteBuf output = ctx.alloc().heapBuffer(size, size);
+-        //~ boolean handedOn = false;
+-        //~ try {
+-            //~ final int written;
+-            //~ if (output.hasArray()) {
+-                //~ written = inflate.inflate(output.array(), output.arrayOffset(), size);
+-                //~ output.writerIndex(size);
+-            //~ } else {
+-                //~ final byte[] unpacked = new byte[size];
+-                //~ written = inflate.inflate(unpacked);
+-                //~ output.writeBytes(unpacked);
+-            //~ }
+-            //~ if (written < size) {
+-                //~ output.setZero(written, size - written); // vanilla's array is zero beyond what was unpacked
+-            //~ }
+-            //~ out.add(output);
+-            //~ handedOn = true;
+-        //~ } finally {
+-            //~ if (!handedOn) {
+-                //~ output.release();
+-            //~ }
+-            //~ inflate.reset();
+-        //~ }
+-    //~ }
++    @Inject(method = "decode", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out,
++                                  final CallbackInfo ci) throws DataFormatException {
++        if (!Tuning.fastNetwork) {
++            return;
++        }
++        ci.cancel();
++        if (in.readableBytes() == 0) {
++            return;
++        }
++        final int size = aetherium$readVarInt(in);
++        if (size == 0) {
++            out.add(in.readRetainedSlice(in.readableBytes()));
++            return;
++        }
++        if (size < this.threshold) {
++            throw new DecoderException("Badly compressed packet - size of " + size + " is below server threshold of " + this.threshold);
++        }
++        if (size > 2097152) {
++            throw new DecoderException("Badly compressed packet - size of " + size + " is larger than protocol maximum of " + 2097152);
++        }
++        final int length = in.readableBytes();
++        byte[] input = this.aetherium$input;
++        if (input == null || input.length < length) {
++            input = new byte[Math.max(length, 8192)];
++            if (input.length <= 262144) {
++                this.aetherium$input = input;
++            }
++        }
++        in.readBytes(input, 0, length);
++        final Inflater inflate = this.inflater;
++        inflate.setInput(input, 0, length);
++        final ByteBuf output = ctx.alloc().heapBuffer(size, size);
++        boolean handedOn = false;
++        try {
++            final int written;
++            if (output.hasArray()) {
++                written = inflate.inflate(output.array(), output.arrayOffset(), size);
++                output.writerIndex(size);
++            } else {
++                final byte[] unpacked = new byte[size];
++                written = inflate.inflate(unpacked);
++                output.writeBytes(unpacked);
++            }
++            if (written < size) {
++                output.setZero(written, size - written); // vanilla's array is zero beyond what was unpacked
++            }
++            out.add(output);
++            handedOn = true;
++        } finally {
++            if (!handedOn) {
++                output.release();
++            }
++            inflate.reset();
++        }
++    }
+ 
+-    //~ /** {@code FriendlyByteBuf.readVarInt}, without the wrapper object. */
+-    //~ @Unique
+-    //~ private static int aetherium$readVarInt(final ByteBuf in) {
+-        //~ int value = 0;
+-        //~ int bytes = 0;
+-        //~ byte b;
+-        //~ do {
+-            //~ b = in.readByte();
+-            //~ value |= (b & 127) << bytes++ * 7;
+-            //~ if (bytes > 5) {
+-                //~ throw new RuntimeException("VarInt too big");
+-            //~ }
+-        //~ } while ((b & 128) == 128);
+-        //~ return value;
+-    //~ }
++    /** {@code FriendlyByteBuf.readVarInt}, without the wrapper object. */
++    @Unique
++    private static int aetherium$readVarInt(final ByteBuf in) {
++        int value = 0;
++        int bytes = 0;
++        byte b;
++        do {
++            b = in.readByte();
++            value |= (b & 127) << bytes++ * 7;
++            if (bytes > 5) {
++                throw new RuntimeException("VarInt too big");
++            }
++        } while ((b & 128) == 128);
++        return value;
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java
 index 02dbae1..22af92c 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLeafCullMixin.java
@@ -11956,6 +15008,82 @@ index 02dbae1..22af92c 100644
      // @era:t-leaf-cull-else f212
      //~ @Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, at = @At(value = "INVOKE",
              //~ target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"),
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLerpAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningLerpAccessor.java
+index edfc046..61489d0 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningLerpAccessor.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningLerpAccessor.java
+@@ -1,9 +1,9 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:boost16-begin v16
++import org.spongepowered.asm.mixin.gen.Accessor;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -12,36 +12,36 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.world.entity.LivingEntity")
+ public interface TuningLerpAccessor {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Accessor("lerpSteps")
+-    //~ int aetherium$lerpSteps();
++    // @era:boost16-begin v16
++    @Accessor("lerpSteps")
++    int aetherium$lerpSteps();
+ 
+-    //~ @Accessor("lerpSteps")
+-    //~ void aetherium$setLerpSteps(int steps);
++    @Accessor("lerpSteps")
++    void aetherium$setLerpSteps(int steps);
+ 
+-    //~ @Accessor("lerpX")
+-    //~ double aetherium$lerpX();
++    @Accessor("lerpX")
++    double aetherium$lerpX();
+ 
+-    //~ @Accessor("lerpY")
+-    //~ double aetherium$lerpY();
++    @Accessor("lerpY")
++    double aetherium$lerpY();
+ 
+-    //~ @Accessor("lerpZ")
+-    //~ double aetherium$lerpZ();
++    @Accessor("lerpZ")
++    double aetherium$lerpZ();
+ 
+-    //~ @Accessor("lerpYRot")
+-    //~ double aetherium$lerpYRot();
++    @Accessor("lerpYRot")
++    double aetherium$lerpYRot();
+ 
+-    //~ @Accessor("lerpXRot")
+-    //~ double aetherium$lerpXRot();
++    @Accessor("lerpXRot")
++    double aetherium$lerpXRot();
+ 
+-    //~ @Accessor("lyHeadRot")
+-    //~ double aetherium$lerpHeadRot();
++    @Accessor("lyHeadRot")
++    double aetherium$lerpHeadRot();
+ 
+-    //~ @Accessor("lerpHeadSteps")
+-    //~ int aetherium$lerpHeadSteps();
++    @Accessor("lerpHeadSteps")
++    int aetherium$lerpHeadSteps();
+ 
+-    //~ @Accessor("lerpHeadSteps")
+-    //~ void aetherium$setLerpHeadSteps(int steps);
++    @Accessor("lerpHeadSteps")
++    void aetherium$setLerpHeadSteps(int steps);
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
 index d8deaa3..c2dcba3 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningLevelAccessor.java
@@ -12708,6 +15836,199 @@ index 2853beb..f1dc1a1 100644
      // @era:t-portal-else p215
      //~ @Shadow
      //~ public Level level;
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSearchMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSearchMixin.java
+index 1d02a8b..9820483 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningSearchMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningSearchMixin.java
+@@ -2,18 +2,18 @@ package com.aetherium.mixin.core;
+ 
+ import com.aetherium.perf.LazySearch;
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import java.util.List;
+-//~ import net.minecraft.client.searchtree.ReloadableIdSearchTree;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.Unique;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-begin v16
++import com.aetherium.perf.Tuning;
++import java.util.List;
++import net.minecraft.client.searchtree.ReloadableIdSearchTree;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.Unique;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.Redirect;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -29,60 +29,60 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.searchtree.ReloadableIdSearchTree")
+ public abstract class TuningSearchMixin implements LazySearch {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ /** Items were added or a rebuild was requested since the index was last built. */
+-    //~ @Unique
+-    //~ private boolean aetherium$dirty;
++    // @era:boost16-begin v16
++    /** Items were added or a rebuild was requested since the index was last built. */
++    @Unique
++    private boolean aetherium$dirty;
+ 
+-    //~ /** Inside {@link #aetherium$ensureBuilt}: let vanilla's rebuild run. */
+-    //~ @Unique
+-    //~ private boolean aetherium$building;
++    /** Inside {@link #aetherium$ensureBuilt}: let vanilla's rebuild run. */
++    @Unique
++    private boolean aetherium$building;
+ 
+-    //~ @Shadow
+-    //~ public abstract void refresh();
++    @Shadow
++    public abstract void refresh();
+ 
+-    //~ @Inject(method = "refresh", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$deferRefresh(final CallbackInfo ci) {
+-        //~ if (Tuning.lazySearch && !this.aetherium$building) {
+-            //~ this.aetherium$dirty = true;
+-            //~ ci.cancel();
+-            //~ return;
+-        //~ }
+-        //~ this.aetherium$dirty = false; // vanilla's full rebuild runs now
+-    //~ }
++    @Inject(method = "refresh", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$deferRefresh(final CallbackInfo ci) {
++        if (Tuning.lazySearch && !this.aetherium$building) {
++            this.aetherium$dirty = true;
++            ci.cancel();
++            return;
++        }
++        this.aetherium$dirty = false; // vanilla's full rebuild runs now
++    }
+ 
+-    //~ @Redirect(method = "add", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/searchtree/ReloadableIdSearchTree;index(Ljava/lang/Object;)V"), require = 0)
+-    //~ private void aetherium$deferIndex(final ReloadableIdSearchTree<?> self, final Object item) {
+-        //~ if (Tuning.lazySearch || this.aetherium$dirty) {
+-            //~ // A full rebuild is pending anyway (or will be): it indexes this item with the rest.
+-            //~ this.aetherium$dirty = true;
+-            //~ return;
+-        //~ }
+-        //~ this.index(item);
+-    //~ }
++    @Redirect(method = "add", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/client/searchtree/ReloadableIdSearchTree;index(Ljava/lang/Object;)V"), require = 0)
++    private void aetherium$deferIndex(final ReloadableIdSearchTree<?> self, final Object item) {
++        if (Tuning.lazySearch || this.aetherium$dirty) {
++            // A full rebuild is pending anyway (or will be): it indexes this item with the rest.
++            this.aetherium$dirty = true;
++            return;
++        }
++        this.index(item);
++    }
+ 
+-    //~ @Shadow
+-    //~ protected abstract void index(Object item);
++    @Shadow
++    protected abstract void index(Object item);
+ 
+-    //~ @Inject(method = "search", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$buildBeforeSearch(final String query, final CallbackInfoReturnable<List<?>> cir) {
+-        //~ this.aetherium$ensureBuilt();
+-    //~ }
++    @Inject(method = "search", at = @At("HEAD"), require = 0)
++    private void aetherium$buildBeforeSearch(final String query, final CallbackInfoReturnable<List<?>> cir) {
++        this.aetherium$ensureBuilt();
++    }
+ 
+-    //~ @Override
+-    //~ public void aetherium$ensureBuilt() {
+-        //~ if (!this.aetherium$dirty || this.aetherium$building) {
+-            //~ return;
+-        //~ }
+-        //~ this.aetherium$building = true;
+-        //~ try {
+-            //~ this.refresh(); // virtual: a subclass rebuilds its own tree too
+-            //~ this.aetherium$dirty = false;
+-        //~ } finally {
+-            //~ this.aetherium$building = false;
+-        //~ }
+-    //~ }
++    @Override
++    public void aetherium$ensureBuilt() {
++        if (!this.aetherium$dirty || this.aetherium$building) {
++            return;
++        }
++        this.aetherium$building = true;
++        try {
++            this.refresh(); // virtual: a subclass rebuilds its own tree too
++            this.aetherium$dirty = false;
++        } finally {
++            this.aetherium$building = false;
++        }
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSearchTreeMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSearchTreeMixin.java
+index 6911b18..8f8962d 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningSearchTreeMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningSearchTreeMixin.java
+@@ -1,13 +1,13 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.LazySearch;
+-//~ import java.util.List;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-begin v16
++import com.aetherium.perf.LazySearch;
++import java.util.List;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -17,14 +17,14 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.searchtree.ReloadableSearchTree")
+ public abstract class TuningSearchTreeMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Inject(method = "search", at = @At("HEAD"), require = 0)
+-    //~ private void aetherium$buildBeforeSearch(final String query, final CallbackInfoReturnable<List<?>> cir) {
+-        //~ final Object self = this;
+-        //~ if (self instanceof LazySearch) {
+-            //~ ((LazySearch) self).aetherium$ensureBuilt();
+-        //~ }
+-    //~ }
++    // @era:boost16-begin v16
++    @Inject(method = "search", at = @At("HEAD"), require = 0)
++    private void aetherium$buildBeforeSearch(final String query, final CallbackInfoReturnable<List<?>> cir) {
++        final Object self = this;
++        if (self instanceof LazySearch) {
++            ((LazySearch) self).aetherium$ensureBuilt();
++        }
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java
 index c43de0b..433ae48 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningServerLightMixin.java
@@ -13291,6 +16612,189 @@ index 55b0a54..71f0b60 100644
      // @era:t-sky-else e17
      //~ @Shadow
      //~ private boolean generateClouds;
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningSnapshotMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningSnapshotMixin.java
+index 770fbd4..1e8a6d7 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningSnapshotMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningSnapshotMixin.java
+@@ -1,18 +1,18 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.Tuning;
+-//~ import net.minecraft.core.BlockPos;
+-//~ import net.minecraft.world.level.Level;
+-//~ import net.minecraft.world.level.block.state.BlockState;
+-//~ import net.minecraft.world.level.chunk.LevelChunk;
+-//~ import net.minecraft.world.level.material.FluidState;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:boost16-begin v16
++import com.aetherium.perf.Tuning;
++import net.minecraft.core.BlockPos;
++import net.minecraft.world.level.Level;
++import net.minecraft.world.level.block.state.BlockState;
++import net.minecraft.world.level.chunk.LevelChunk;
++import net.minecraft.world.level.material.FluidState;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Redirect;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -25,30 +25,30 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.client.renderer.chunk.RenderChunkRegion")
+ public abstract class TuningSnapshotMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ protected BlockState[] blockStates;
++    // @era:boost16-begin v16
++    @Shadow
++    @Final
++    protected BlockState[] blockStates;
+ 
+-    //~ @Shadow
+-    //~ @Final
+-    //~ protected Level level;
++    @Shadow
++    @Final
++    protected Level level;
+ 
+-    //~ @Shadow
+-    //~ protected abstract int index(BlockPos pos);
++    @Shadow
++    protected abstract int index(BlockPos pos);
+ 
+-    //~ @Redirect(method = "<init>", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/world/level/chunk/LevelChunk;getFluidState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/material/FluidState;"),
+-            //~ require = 0)
+-    //~ private FluidState aetherium$fluidFromBlock(final LevelChunk chunk, final BlockPos pos) {
+-        //~ if (Tuning.fastSectionSnapshots && chunk != null && chunk.getClass() == LevelChunk.class && !this.level.isDebug()) {
+-            //~ final BlockState state = this.blockStates[this.index(pos)];
+-            //~ if (state != null) {
+-                //~ return state.getFluidState();
+-            //~ }
+-        //~ }
+-        //~ return chunk.getFluidState(pos);
+-    //~ }
++    @Redirect(method = "<init>", at = @At(value = "INVOKE",
++            target = "Lnet/minecraft/world/level/chunk/LevelChunk;getFluidState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/material/FluidState;"),
++            require = 0)
++    private FluidState aetherium$fluidFromBlock(final LevelChunk chunk, final BlockPos pos) {
++        if (Tuning.fastSectionSnapshots && chunk != null && chunk.getClass() == LevelChunk.class && !this.level.isDebug()) {
++            final BlockState state = this.blockStates[this.index(pos)];
++            if (state != null) {
++                return state.getFluidState();
++            }
++        }
++        return chunk.getFluidState(pos);
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
+diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningStateMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningStateMixin.java
+index d860c4e..e6d57df 100644
+--- a/common/src/main/java/com/aetherium/mixin/core/TuningStateMixin.java
++++ b/common/src/main/java/com/aetherium/mixin/core/TuningStateMixin.java
+@@ -1,20 +1,20 @@
+ package com.aetherium.mixin.core;
+ 
+ import org.spongepowered.asm.mixin.Mixin;
+-// @era:boost16-begin none
+-// @era:boost16-else v16
+-//~ import com.aetherium.perf.CompactNeighbours;
+-//~ import com.aetherium.perf.EarlyFlags;
+-//~ import com.aetherium.perf.StateIndex;
+-//~ import com.google.common.collect.ImmutableMap;
+-//~ import com.google.common.collect.Table;
+-//~ import java.util.Map;
+-//~ import net.minecraft.world.level.block.state.properties.Property;
+-//~ import org.spongepowered.asm.mixin.Final;
+-//~ import org.spongepowered.asm.mixin.Shadow;
+-//~ import org.spongepowered.asm.mixin.injection.At;
+-//~ import org.spongepowered.asm.mixin.injection.Inject;
+-//~ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-begin v16
++import com.aetherium.perf.CompactNeighbours;
++import com.aetherium.perf.EarlyFlags;
++import com.aetherium.perf.StateIndex;
++import com.google.common.collect.ImmutableMap;
++import com.google.common.collect.Table;
++import java.util.Map;
++import net.minecraft.world.level.block.state.properties.Property;
++import org.spongepowered.asm.mixin.Final;
++import org.spongepowered.asm.mixin.Shadow;
++import org.spongepowered.asm.mixin.injection.At;
++import org.spongepowered.asm.mixin.injection.Inject;
++import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
++// @era:boost16-else none
+ // @era:boost16-end
+ 
+ /**
+@@ -30,31 +30,31 @@ import org.spongepowered.asm.mixin.Mixin;
+  */
+ @Mixin(targets = "net.minecraft.world.level.block.state.StateHolder")
+ public abstract class TuningStateMixin {
+-    // @era:boost16-begin none
+-    // @era:boost16-else v16
+-    //~ @Shadow
+-    //~ @Final
+-    //~ private ImmutableMap<Property<?>, Comparable<?>> values;
++    // @era:boost16-begin v16
++    @Shadow
++    @Final
++    private ImmutableMap<Property<?>, Comparable<?>> values;
+ 
+-    //~ @Shadow
+-    //~ private Table<Property<?>, Comparable<?>, Object> neighbours;
++    @Shadow
++    private Table<Property<?>, Comparable<?>, Object> neighbours;
+ 
+-    //~ @Inject(method = "populateNeighbours", at = @At("HEAD"), cancellable = true, require = 0)
+-    //~ private void aetherium$compact(final Map<Map<Property<?>, Comparable<?>>, Object> byValues, final CallbackInfo ci) {
+-        //~ if (this.neighbours != null || byValues == null || !EarlyFlags.compactBlockStates()) {
+-            //~ return; // vanilla (and its "populated twice" error)
+-        //~ }
+-        //~ final StateIndex index = StateIndex.forBlock(byValues, this.values,
+-                //~ property -> ((Property<?>) property).getPossibleValues());
+-        //~ if (index == null) {
+-            //~ return;
+-        //~ }
+-        //~ final int at = index.indexOf(this.values);
+-        //~ if (at < 0 || index.state(at) != (Object) this) {
+-            //~ return;
+-        //~ }
+-        //~ this.neighbours = new CompactNeighbours(index, at, this);
+-        //~ ci.cancel();
+-    //~ }
++    @Inject(method = "populateNeighbours", at = @At("HEAD"), cancellable = true, require = 0)
++    private void aetherium$compact(final Map<Map<Property<?>, Comparable<?>>, Object> byValues, final CallbackInfo ci) {
++        if (this.neighbours != null || byValues == null || !EarlyFlags.compactBlockStates()) {
++            return; // vanilla (and its "populated twice" error)
++        }
++        final StateIndex index = StateIndex.forBlock(byValues, this.values,
++                property -> ((Property<?>) property).getPossibleValues());
++        if (index == null) {
++            return;
++        }
++        final int at = index.indexOf(this.values);
++        if (at < 0 || index.state(at) != (Object) this) {
++            return;
++        }
++        this.neighbours = new CompactNeighbours(index, at, this);
++        ci.cancel();
++    }
++    // @era:boost16-else none
+     // @era:boost16-end
+ }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java b/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
 index 11cb0ee..1f6e260 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningViewAreaAccessor.java
@@ -14387,7 +17891,7 @@ index 3ccd445..f069e2d 100644
      // @era:options-end
  
 diff --git a/common/src/main/java/com/aetherium/perf/TuningSupport.java b/common/src/main/java/com/aetherium/perf/TuningSupport.java
-index 6d8b564..8436628 100644
+index 76e6ad7..ca87397 100644
 --- a/common/src/main/java/com/aetherium/perf/TuningSupport.java
 +++ b/common/src/main/java/com/aetherium/perf/TuningSupport.java
 @@ -105,10 +105,10 @@ public final class TuningSupport {
@@ -14475,7 +17979,22 @@ index 6d8b564..8436628 100644
      // @era:t-server-light-end
  
      // @era:t-shadow-begin s17|s212|s219|v16
-@@ -298,16 +298,16 @@ public final class TuningSupport {
+@@ -293,10 +293,10 @@ public final class TuningSupport {
+     // @era:t-sign-end
+ 
+     // 1.17.2 performance work (Minecraft 1.16.5 only).
+-    // @era:boost16-begin none
+-    public static final boolean BOOST = false;
+-    // @era:boost16-else v16
+-    //~ public static final boolean BOOST = true;
++    // @era:boost16-begin v16
++    public static final boolean BOOST = true;
++    // @era:boost16-else none
++    //~ public static final boolean BOOST = false;
+     // @era:boost16-end
+ 
+     // @era:t-skin-begin v16
+@@ -305,16 +305,16 @@ public final class TuningSupport {
      //~ public static final boolean SKIN = false;
      // @era:t-skin-end
  
@@ -14500,7 +18019,7 @@ index 6d8b564..8436628 100644
      // @era:t-skull-lookup-end
  
      // @era:t-sky-begin e17|e21|v16
-@@ -316,10 +316,10 @@ public final class TuningSupport {
+@@ -323,10 +323,10 @@ public final class TuningSupport {
      //~ public static final boolean SKY = false;
      // @era:t-sky-end
  
@@ -14573,7 +18092,7 @@ index 8e1185d..9bed01b 100644
      }
  
 diff --git a/common/src/main/resources/aetherium-common.mixins.json b/common/src/main/resources/aetherium-common.mixins.json
-index 74345cd..0e71e20 100644
+index bef6a9a..896f274 100644
 --- a/common/src/main/resources/aetherium-common.mixins.json
 +++ b/common/src/main/resources/aetherium-common.mixins.json
 @@ -3,7 +3,7 @@

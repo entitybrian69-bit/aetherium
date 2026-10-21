@@ -24,6 +24,7 @@ neoforge_version=21.5.81
 - `anim=none`
 - `atlas-tick=none`
 - `bg-threads=property`
+- `boost16=none`
 - `chunk-renderer=none`
 - `chunk-upload=srd`
 - `clouds=renderer`

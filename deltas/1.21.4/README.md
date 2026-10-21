@@ -22,6 +22,7 @@ neoforge_version=21.4.158
 ### Era transforms applied by the generated patch
 
 - `anim=on`
+- `boost16=none`
 - `clouds=renderer`
 - `fog=params`
 - `freelook=minecart`

@@ -27,6 +27,7 @@ neoforge_version=26.1.2.115
 - `be-render=extract`
 - `bg-threads=property`
 - `block-particles=level`
+- `boost16=none`
 - `cam-pos=position`
 - `camera-entity=record`
 - `camera-get=getter`

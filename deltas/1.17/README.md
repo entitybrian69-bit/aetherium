@@ -25,6 +25,7 @@ neoforge_version=unavailable (module disabled)
 - `atlas-tick=tickable`
 - `background=none`
 - `bg-threads=clamp`
+- `boost16=none`
 - `cam-pos=getter`
 - `camera-entity=getter`
 - `camera-get=getter`

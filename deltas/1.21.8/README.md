@@ -24,6 +24,7 @@ neoforge_version=21.8.22
 - `anim=none`
 - `atlas-tick=none`
 - `bg-threads=property`
+- `boost16=none`
 - `cam-pos=position`
 - `camera-entity=getter`
 - `camera-get=getter`

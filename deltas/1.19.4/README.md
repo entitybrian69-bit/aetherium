@@ -24,6 +24,7 @@ neoforge_version=unavailable (module disabled)
 - `anim=on`
 - `background=none`
 - `bg-threads=property`
+- `boost16=none`
 - `cam-pos=getter`
 - `camera-entity=getter`
 - `camera-get=getter`
