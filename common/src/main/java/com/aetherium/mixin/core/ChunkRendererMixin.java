@@ -3,11 +3,17 @@ package com.aetherium.mixin.core;
 // @era:chunk-renderer-begin none
 // @era:chunk-renderer-else gl16
 //~ import com.aetherium.client.ChunkInfoOrigin;
+//~ import com.aetherium.client.ChestBaking;
 //~ import com.aetherium.client.ChunkRenderer;
+//~ import com.aetherium.client.MultiDraw;
+//~ import com.aetherium.client.OcclusionCulling;
 //~ import com.aetherium.client.TerrainRegions;
 //~ import com.aetherium.client.VertexBufferAccess;
 //~ import com.aetherium.perf.RenderToggles;
+//~ import com.aetherium.perf.Tuning;
+//~ import com.aetherium.render.PackedTerrain;
 //~ import com.aetherium.render.CompactTerrain;
+//~ import com.mojang.blaze3d.platform.GlStateManager;
 //~ import com.mojang.blaze3d.systems.RenderSystem;
 //~ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 //~ import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -76,7 +82,12 @@ public abstract class ChunkRendererMixin {
         //~ final boolean switched = ChunkRenderer.updatePipeline(RenderToggles.aetheriumRenderer, false);
         //~ final boolean pipelineOn = ChunkRenderer.uploadMode() == ChunkRenderer.MODE_COMPATIBLE;
         //~ final boolean regions = TerrainRegions.configure(pipelineOn && RenderToggles.regionBatching, pipelineOn);
-        //~ if (switched || regions) {
+        //~ // 1.17.2: packed vertices for batched terrain; chests baked into their chunk. Either change
+        //~ // rebuilds every section so all of them use the new form.
+        //~ final boolean packing = TerrainRegions.configurePacking(TerrainRegions.enabled() && Tuning.packedTerrain);
+        //~ final boolean chests = ChestBaking.configure(Tuning.batchedChests);
+        //~ OcclusionCulling.beginFrame(pipelineOn && Tuning.occlusionQueries && !TerrainRegions.translated());
+        //~ if (switched || regions || packing || chests) {
             //~ ((LevelRenderer) (Object) this).allChanged();
         //~ }
     //~ }
@@ -173,6 +184,7 @@ public abstract class ChunkRendererMixin {
         //~ type.setupRenderState();
         //~ ChunkRenderer.beginCompatible(TerrainRegions.enabled());
         //~ TerrainRegions.beginLayer();
+        //~ final boolean occlusion = OcclusionCulling.active();
         //~ try {
             //~ final ObjectList<?> list = this.renderChunks;
             //~ for (int i = 0, n = list.size(); i < n; i++) {
@@ -180,6 +192,13 @@ public abstract class ChunkRendererMixin {
                         //~ (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
                 //~ if (chunk.getCompiledChunk().isEmpty(type)) {
                     //~ continue;
+                //~ }
+                //~ if (occlusion) {
+                    //~ final BlockPos at = chunk.getOrigin();
+                    //~ if (OcclusionCulling.hidden(chunk, (float) (at.getX() - camX), (float) (at.getY() - camY),
+                            //~ (float) (at.getZ() - camZ))) {
+                        //~ continue;
+                    //~ }
                 //~ }
                 //~ final VertexBuffer buffer = chunk.getBuffer(type);
                 //~ final VertexBufferAccess access = (VertexBufferAccess) buffer;
@@ -241,30 +260,150 @@ public abstract class ChunkRendererMixin {
                 //~ ChunkRenderer.compatibleSectionDrawn();
             //~ }
             //~ // Batched pages: one bind, one set of vertex pointers and one matrix per page.
+            //~ final boolean multiDraw = MultiDraw.usable(Tuning.multiDraw);
+            //~ boolean packedPointers = false;
             //~ for (int p = 0, pages = TerrainRegions.preparePages(); p < pages; p++) {
                 //~ final TerrainRegions.RegionPage page = TerrainRegions.page(p);
                 //~ poseStack.pushPose();
                 //~ poseStack.translate(page.originX() - camX, page.originY() - camY, page.originZ() - camZ);
                 //~ GL15.glBindBuffer(0x8892, page.id()); // GL_ARRAY_BUFFER, as VertexBuffer.bind
-                //~ DefaultVertexFormat.BLOCK.setupBufferState(0L);
+                //~ if (page.packed()) {
+                    //~ // 1.17.2 packed vertices: shorts scaled back by the model-view and texture matrices.
+                    //~ aetherium$packedPointers();
+                    //~ poseStack.translate(PackedTerrain.POSITION_BIAS, PackedTerrain.POSITION_BIAS, PackedTerrain.POSITION_BIAS);
+                    //~ final float unit = 1.0f / PackedTerrain.POSITION_SCALE;
+                    //~ poseStack.scale(unit, unit, unit);
+                    //~ if (!packedPointers) {
+                        //~ aetherium$uvMatrix(true);
+                        //~ packedPointers = true;
+                    //~ }
+                //~ } else {
+                    //~ if (packedPointers) {
+                        //~ aetherium$uvMatrix(false);
+                        //~ packedPointers = false;
+                    //~ }
+                    //~ DefaultVertexFormat.BLOCK.setupBufferState(0L);
+                //~ }
                 //~ RenderSystem.pushMatrix();
                 //~ RenderSystem.loadIdentity();
                 //~ RenderSystem.multMatrix(poseStack.last().pose());
-                //~ for (int r = 0, n = page.ranges(); r < n; r++) {
-                    //~ RenderSystem.drawArrays(7, page.rangeFirst(r), page.rangeCount(r)); // GL_QUADS
+                //~ if (!multiDraw || page.ranges() < 2 || !MultiDraw.draw(page)) {
+                    //~ for (int r = 0, n = page.ranges(); r < n; r++) {
+                        //~ RenderSystem.drawArrays(7, page.rangeFirst(r), page.rangeCount(r)); // GL_QUADS
+                    //~ }
                 //~ }
                 //~ RenderSystem.popMatrix();
                 //~ poseStack.popPose();
             //~ }
+            //~ if (packedPointers) {
+                //~ aetherium$uvMatrix(false);
+            //~ }
             //~ VertexBuffer.unbind();
             //~ RenderSystem.clearCurrentColor();
             //~ DefaultVertexFormat.BLOCK.clearBufferState();
+            //~ if (occlusion && type == RenderType.cutout()) {
+                //~ // The last opaque layer: ask the GPU which sections this depth buffer hides.
+                //~ this.aetherium$occlusionQueries(poseStack, camX, camY, camZ);
+            //~ }
             //~ ChunkRenderer.endCompatible();
         //~ } catch (final RuntimeException | LinkageError error) {
             //~ ChunkRenderer.fail("compatible mode: " + error);
         //~ } finally {
             //~ TerrainRegions.endLayer();
             //~ type.clearRenderState();
+        //~ }
+    //~ }
+
+    //~ /**
+     //~ * Packed terrain (1.17.2): vertex pointers for {@link PackedTerrain} 20-byte vertices, the same
+     //~ * arrays {@code BLOCK.setupBufferState} enables minus the normals (terrain is unlit).
+     //~ */
+    //~ @Unique
+    //~ private static void aetherium$packedPointers() {
+        //~ final int stride = PackedTerrain.STRIDE;
+        //~ GlStateManager._vertexPointer(3, 0x1402, stride, 0L); // GL_SHORT
+        //~ GlStateManager._enableClientState(0x8074); // GL_VERTEX_ARRAY
+        //~ GlStateManager._colorPointer(4, 0x1401, stride, PackedTerrain.OFFSET_COLOR); // GL_UNSIGNED_BYTE
+        //~ GlStateManager._enableClientState(0x8076); // GL_COLOR_ARRAY
+        //~ GlStateManager._glClientActiveTexture(0x84C0); // GL_TEXTURE0
+        //~ GlStateManager._texCoordPointer(2, 0x1402, stride, PackedTerrain.OFFSET_UV0);
+        //~ GlStateManager._enableClientState(0x8078); // GL_TEXTURE_COORD_ARRAY
+        //~ GlStateManager._glClientActiveTexture(0x84C2); // GL_TEXTURE2: lightmap, as vanilla's UV2
+        //~ GlStateManager._texCoordPointer(2, 0x1402, stride, PackedTerrain.OFFSET_UV2);
+        //~ GlStateManager._enableClientState(0x8078);
+        //~ GlStateManager._glClientActiveTexture(0x84C0);
+        //~ GlStateManager._disableClientState(0x8075); // GL_NORMAL_ARRAY
+    //~ }
+
+    //~ /** Packed terrain: texture unit 0 scales the packed texture coordinates back to 0..1 (or undoes that). */
+    //~ @Unique
+    //~ private static void aetherium$uvMatrix(final boolean packed) {
+        //~ RenderSystem.activeTexture(0x84C0);
+        //~ RenderSystem.matrixMode(0x1702); // GL_TEXTURE
+        //~ if (packed) {
+            //~ RenderSystem.pushMatrix();
+            //~ final float unit = 1.0f / PackedTerrain.UV_SCALE;
+            //~ RenderSystem.scalef(unit, unit, 1.0f);
+        //~ } else {
+            //~ RenderSystem.popMatrix();
+        //~ }
+        //~ RenderSystem.matrixMode(0x1700); // GL_MODELVIEW
+    //~ }
+
+    //~ /**
+     //~ * GPU occlusion culling (1.17.2): one occlusion query per section in view (box grown by
+     //~ * {@link OcclusionCulling#GROW}), drawn invisibly against the opaque terrain just drawn.
+     //~ */
+    //~ @Unique
+    //~ private void aetherium$occlusionQueries(final PoseStack poseStack, final double camX, final double camY,
+                                            //~ final double camZ) {
+        //~ final ObjectList<?> list = this.renderChunks;
+        //~ boolean begun = false;
+        //~ try {
+            //~ for (int i = 0, n = list.size(); i < n; i++) {
+                //~ final ChunkRenderDispatcher.RenderChunk chunk =
+                        //~ (ChunkRenderDispatcher.RenderChunk) ((ChunkInfoOrigin) list.get(i)).aetheriumChunk();
+                //~ if (chunk.getCompiledChunk().hasNoRenderableLayers()) {
+                    //~ continue;
+                //~ }
+                //~ final BlockPos at = chunk.getOrigin();
+                //~ final double ox = at.getX() - camX;
+                //~ final double oy = at.getY() - camY;
+                //~ final double oz = at.getZ() - camZ;
+                //~ if (!OcclusionCulling.wantQuery(chunk, (float) ox, (float) oy, (float) oz)) {
+                    //~ continue;
+                //~ }
+                //~ if (!begun) {
+                    //~ RenderSystem.colorMask(false, false, false, false);
+                    //~ RenderSystem.depthMask(false);
+                    //~ RenderSystem.disableAlphaTest();
+                    //~ RenderSystem.disableTexture();
+                    //~ RenderSystem.disableCull();
+                    //~ OcclusionCulling.bindBox();
+                    //~ begun = true;
+                //~ }
+                //~ final float grow = OcclusionCulling.GROW;
+                //~ poseStack.pushPose();
+                //~ poseStack.translate(ox - grow, oy - grow, oz - grow);
+                //~ poseStack.scale(16f + 2f * grow, 16f + 2f * grow, 16f + 2f * grow);
+                //~ RenderSystem.pushMatrix();
+                //~ RenderSystem.loadIdentity();
+                //~ RenderSystem.multMatrix(poseStack.last().pose());
+                //~ OcclusionCulling.beginQuery(chunk);
+                //~ OcclusionCulling.drawBox();
+                //~ OcclusionCulling.endQuery();
+                //~ RenderSystem.popMatrix();
+                //~ poseStack.popPose();
+            //~ }
+        //~ } finally {
+            //~ if (begun) {
+                //~ OcclusionCulling.unbindBox();
+                //~ RenderSystem.enableCull();
+                //~ RenderSystem.enableTexture();
+                //~ RenderSystem.enableAlphaTest();
+                //~ RenderSystem.depthMask(true);
+                //~ RenderSystem.colorMask(true, true, true, true);
+            //~ }
         //~ }
     //~ }
 

@@ -349,6 +349,8 @@ public final class ChunkRenderer {
                 why = "; shader mode failed: " + shaderFailure;
             } else if (PipelineCrashGuard.wasBatchingTurnedOff()) {
                 why = "; batched terrain turned off: the game closed while drawing it last time";
+            } else if (PipelineCrashGuard.wasPackedTurnedOff()) {
+                why = "; packed terrain turned off: the game closed while drawing it last time";
             }
             final String frameStats = compatible
                     ? "; last frame " + shownSections + " section layers in " + shownDraws + " draws, vanilla: "
@@ -659,7 +661,8 @@ public final class ChunkRenderer {
         if (!loggedGlInfo) {
             logGlInfo();
         }
-        PipelineCrashGuard.arm(regions ? PipelineCrashGuard.MODE_REGIONS : PipelineCrashGuard.MODE_COMPATIBLE);
+        PipelineCrashGuard.arm(!regions ? PipelineCrashGuard.MODE_COMPATIBLE
+                : TerrainRegions.hasPackedPages() ? PipelineCrashGuard.MODE_PACKED : PipelineCrashGuard.MODE_REGIONS);
         if (statsFrame != frame) {
             shownSections = frameSections;
             shownDraws = frameDraws;

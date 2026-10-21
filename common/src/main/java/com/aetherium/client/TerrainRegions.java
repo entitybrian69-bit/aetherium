@@ -281,6 +281,11 @@ public final class TerrainRegions {
         return packing;
     }
 
+    /** Whether any buffer holds packed vertices (render thread). */
+    public static boolean hasPackedPages() {
+        return packedPages > 0;
+    }
+
     public static boolean isEmpty() {
         return REGIONS.isEmpty();
     }

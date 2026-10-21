@@ -6,4 +6,5 @@ public class GL14 {
     public static final int GL_DEPTH_COMPONENT24 = 0x81A6;
     public static final int GL_TEXTURE_COMPARE_FUNC = 0x884D;
     public static final int GL_TEXTURE_COMPARE_MODE = 0x884C;
+    public static void glMultiDrawArrays(int mode, java.nio.IntBuffer first, java.nio.IntBuffer count) { }
 }

@@ -423,6 +423,7 @@ public final class TuningSupport {
             case "TuningHudMixin":
             case "TuningHudFrameMixin":
             case "TuningHudBlendMixin":
+            case "TuningHudInvoker":
             case "TuningEntityTickMixin":
             case "TuningLerpAccessor":
             case "TuningSnapshotMixin":

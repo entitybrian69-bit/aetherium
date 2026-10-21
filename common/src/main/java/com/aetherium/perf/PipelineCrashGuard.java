@@ -20,7 +20,8 @@ import java.nio.file.Path;
  * <p>The marker records which mode was drawing. Shader mode was removed in 1.5.5 (it kept crashing
  * GL4ES), so a shader-mode marker (or one without a mode, from 1.3.1/1.3.2) left by an older version
  * is ignored; a crash in compatible mode turns the pipeline off. A crash while drawing batched
- * terrain (1.6.0, {@link #MODE_REGIONS}) first turns only batching off.</p>
+ * terrain (1.6.0, {@link #MODE_REGIONS}) first turns only batching off, and a crash while drawing
+ * packed batched terrain (1.17.2, {@link #MODE_PACKED}) first turns only packing off.</p>
  *
  * <p>Closing the app from the task switcher also skips the normal exit, so it can trip the guard.
  * Turning the option back on clears it.</p>
@@ -35,6 +36,7 @@ public final class PipelineCrashGuard {
     private static volatile boolean armed;
     private static volatile boolean tripped;
     private static volatile boolean batchingOff;
+    private static volatile boolean packedOff;
     private static volatile String armedMode = "";
 
     /** Marker modes. */
@@ -42,6 +44,8 @@ public final class PipelineCrashGuard {
     public static final String MODE_COMPATIBLE = "compatible";
     /** Compatible mode with batched terrain (TerrainRegions). */
     public static final String MODE_REGIONS = "regions";
+    /** Batched terrain with packed (20-byte) vertices in at least one buffer. */
+    public static final String MODE_PACKED = "packed";
 
     private PipelineCrashGuard() {
     }
@@ -56,6 +60,7 @@ public final class PipelineCrashGuard {
         armedMode = "";
         tripped = false;
         batchingOff = false;
+        packedOff = false;
         if (!Files.exists(marker)) {
             return false;
         }
@@ -64,7 +69,16 @@ public final class PipelineCrashGuard {
         if (!config.aetheriumRenderer.get().booleanValue()) {
             return false;
         }
-        if (content.contains("mode=" + MODE_REGIONS) && config.regionBatching.get().booleanValue()) {
+        if (content.contains("mode=" + MODE_PACKED) && config.packedTerrain.get().booleanValue()) {
+            config.packedTerrain.set(Boolean.FALSE);
+            packedOff = true;
+            LOG.warn("The last session ended while the Aetherium pipeline was drawing packed terrain (most likely a "
+                    + "crash in the graphics driver or GL translator). Packed terrain has been turned off; batched "
+                    + "terrain and the pipeline stay on. Turn it back on in Video Settings > Performance to try again.");
+            return true;
+        }
+        final boolean regionsCrash = content.contains("mode=" + MODE_REGIONS) || content.contains("mode=" + MODE_PACKED);
+        if (regionsCrash && config.regionBatching.get().booleanValue()) {
             config.regionBatching.set(Boolean.FALSE);
             batchingOff = true;
             LOG.warn("The last session ended while the Aetherium pipeline was drawing batched terrain (most likely a "
@@ -72,7 +86,7 @@ public final class PipelineCrashGuard {
                     + "pipeline stays on. Turn it back on in Video Settings > Backend to try again.");
             return true;
         }
-        if (content.contains("mode=" + MODE_REGIONS)) {
+        if (regionsCrash) {
             // Batching already off (the user turned it off since): treat as a compatible-mode crash.
             config.aetheriumRenderer.set(Boolean.FALSE);
             tripped = true;
@@ -107,8 +121,11 @@ public final class PipelineCrashGuard {
         armed = true;
         armedMode = mode;
         tripped = false;
-        if (MODE_REGIONS.equals(mode)) {
+        if (MODE_REGIONS.equals(mode) || MODE_PACKED.equals(mode)) {
             batchingOff = false;
+        }
+        if (MODE_PACKED.equals(mode)) {
+            packedOff = false;
         }
         try {
             Files.write(file, ("mode=" + mode + "\npipeline drawing since " + System.currentTimeMillis() + "\n")
@@ -141,6 +158,11 @@ public final class PipelineCrashGuard {
     /** True when this session started with batched terrain switched off by the guard. */
     public static boolean wasBatchingTurnedOff() {
         return batchingOff;
+    }
+
+    /** True when this session started with packed terrain switched off by the guard. */
+    public static boolean wasPackedTurnedOff() {
+        return packedOff;
     }
 
     private static String readQuietly(final Path file) {

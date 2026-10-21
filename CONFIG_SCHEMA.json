@@ -336,6 +336,12 @@
               "description": "Minecraft 1.16.5: player heads look up their owner's skin on a background thread. Vanilla asks Mojang's servers on the main thread, which freezes the game for every new head that comes into view.",
               "x-java-field": "asyncSkulls"
             },
+            "performance.batched_chests": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: closed chests, trapped chests and ender chests become part of the chunk they stand in, so a storage room costs almost nothing to draw. A chest switches back to its animated form the moment it starts to open or is being mined, and back again once it has closed.",
+              "x-java-field": "batchedChests"
+            },
             "performance.block_entity_distance": {
               "type": "integer",
               "default": 64,
@@ -363,6 +369,12 @@
               "default": true,
               "description": "While terrain loads, every chunk section is marked for rebuilding again each time a neighbouring chunk or its light arrives. Wait until a far or new section has been quiet for a moment, then build it once instead of up to ten times. Sections you edit, and built sections within 28 blocks, are never delayed.",
               "x-java-field": "coalesceRebuilds"
+            },
+            "performance.compact_block_states": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: every block keeps one small shared table of its variants instead of a separate lookup table inside each of its tens of thousands of variants. Saves tens of megabytes of memory (more with mods) and makes block changes slightly faster. Takes effect after a restart.",
+              "x-java-field": "compactBlockStates"
             },
             "performance.crowd_culling": {
               "type": "boolean",
@@ -416,6 +428,12 @@
               "description": "Minecraft 1.16.5: mobs, armor stands and item frames farther than this many blocks are drawn without their small details: shadows, armor, held items, elytra, heads worn on the head, stuck arrows, items in item frames and blocks in minecarts. Sign text is not drawn beyond this distance either. Players always keep everything. 64 = vanilla.",
               "x-java-field": "entityDetailDistance"
             },
+            "performance.entity_tick_culling": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: mobs, items and other entities that are out of view and more than 8 blocks away skip their client-side animation update; they still follow the server's position updates and catch up the moment they come into view. Players, vehicles, bosses, projectiles and anything you ride are always updated.",
+              "x-java-field": "entityTickCulling"
+            },
             "performance.explosion_particles": {
               "type": "integer",
               "default": 4,
@@ -424,11 +442,29 @@
               "description": "Minecraft 1.16.5: at most this many big explosion clouds per game tick; the rest of a TNT chain shows the small puff instead. Prevents the frame-rate collapse of large TNT blasts. 0 = small puffs only, 32 = unlimited (vanilla).",
               "x-java-field": "explosionParticles"
             },
+            "performance.fast_block_data": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: the fluid inside every block variant (water in a waterlogged stair, for example) is looked up once at start-up and then read from memory, instead of being worked out again on each of the millions of checks per second that physics, mobs and chunk building make.",
+              "x-java-field": "fastBlockData"
+            },
+            "performance.fast_entity_data": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: an entity's synced values (health, pose, flags) are read from a direct table without locking. Entities read these values many times per tick on both the client and the built-in server. Applies to entities created after the change.",
+              "x-java-field": "fastEntityData"
+            },
             "performance.fast_loading": {
               "type": "boolean",
               "default": true,
               "description": "Minecraft 1.16.5: loading screens get the computer to themselves. The world is not drawn behind the Loading terrain screen of a join or dimension change (it is fully hidden there anyway), and while a singleplayer world is being prepared the progress screen is redrawn about 20 times a second instead of about 60, so the built-in server has more CPU to prepare the world. Faster world joins, dimension changes and portal trips on phones.",
               "x-java-field": "fastLoading"
+            },
+            "performance.fast_mob_ai": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5, singleplayer: the built-in server picks and runs each mob's goals with plain loops instead of building several temporary lists per mob per tick. Same decisions in the same order, less work and much less garbage with many mobs.",
+              "x-java-field": "fastMobAi"
             },
             "performance.fast_models": {
               "type": "boolean",
@@ -436,11 +472,23 @@
               "description": "Minecraft 1.16.5 to 1.20.6: mob, player and block-entity models are written straight into the vertex buffer, without the temporary vector vanilla creates for every vertex and the per-vertex buffer calls. Same bytes as vanilla; outlines, enchantment glint and unusual buffers keep the vanilla path.",
               "x-java-field": "fastModels"
             },
+            "performance.fast_network": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: incoming packets are cut out of the network stream without being copied, and compressed packets are unpacked through reused buffers instead of new ones for each packet. Less garbage and less work while chunks stream in on servers.",
+              "x-java-field": "fastNetwork"
+            },
             "performance.fast_particles": {
               "type": "boolean",
               "default": true,
               "description": "Minecraft 1.16.5 to 1.21.8: particles behind you or off screen are skipped, and the rest are written to the particle batch without the temporary vectors and quaternion copies vanilla creates for every particle every frame. Looks identical.",
               "x-java-field": "fastParticles"
+            },
+            "performance.fast_section_snapshots": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: when a chunk section is handed to the chunk builders, its block and fluid copy reads every block once instead of twice. That copy runs on the main thread, so chunk updates cost less frame time.",
+              "x-java-field": "fastSectionSnapshots"
             },
             "performance.flight_preload": {
               "type": "boolean",
@@ -466,11 +514,25 @@
               "description": "Minecraft 1.16.5: after a frame that took much longer than usual (a garbage collection, a save, a burst of chunks), chunk uploads and light updates slow down for the next 20 frames, so the work waiting behind it does not cause a second hitch right away.",
               "x-java-field": "hitchGuard"
             },
+            "performance.hud_fps": {
+              "type": "integer",
+              "default": 30,
+              "minimum": 0,
+              "maximum": 60,
+              "description": "Minecraft 1.16.5: the HUD (hotbar, hearts, chat, F3 screen, boss bars) is redrawn this many times a second and reused in between, which saves hundreds of small draws per frame. The crosshair and the screen-edge shadow stay live, and switching slots or resizing redraws at once. Only used while the game runs clearly faster than this rate. 0 = redraw every frame (vanilla).",
+              "x-java-field": "hudFps"
+            },
             "performance.lazy_far_rebuilds": {
               "type": "boolean",
               "default": true,
               "description": "Minecraft 1.16.5, with Merge chunk rebuilds on: chunk sections more than 80 blocks away that are already built keep their old look for up to a second after they change, so light flicker, crops and arriving neighbours far away cost one rebuild per second at most. Your own block changes are always instant.",
               "x-java-field": "lazyFarRebuilds"
+            },
+            "performance.lazy_search": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5: the search index of the creative inventory and the recipe book is built the first time you actually search, instead of while the game starts and every time you join a world. Faster start-up and world joins, less memory; the first search takes a moment longer.",
+              "x-java-field": "lazySearch"
             },
             "performance.light_updates": {
               "type": "boolean",
@@ -522,17 +584,35 @@
               "description": "Minecraft 1.16.5: beyond the Entity detail distance, the tiny parts of mob models (ears, noses, beaks, whiskers, horns: at most 2 pixels across) are not drawn, and beyond twice that distance parts up to 3 pixels across are skipped too. They are a few screen pixels at that range. Players and armor stands are never changed.",
               "x-java-field": "modelLod"
             },
+            "performance.multi_draw": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5, Aetherium pipeline with Batched terrain, computers only: all visible pieces of one terrain buffer are drawn with a single call instead of one call each. Not used through GL translators on phones, where that call is not available; those keep the separate draws.",
+              "x-java-field": "multiDraw"
+            },
             "performance.occlusion_culling": {
               "type": "boolean",
               "default": true,
               "description": "Skip entities hidden behind terrain, using the chunk visibility vanilla already computes for blocks. Players, named and glowing entities are never hidden.",
               "x-java-field": "occlusionCulling"
             },
+            "performance.occlusion_queries": {
+              "type": "boolean",
+              "default": false,
+              "description": "Minecraft 1.16.5, Aetherium pipeline, computers only, experimental: the graphics card reports which chunk sections were completely hidden behind other terrain last frame, and those are not drawn until they could be visible again. Big gains in mountains and cities on strong graphics cards; a hidden section can appear one frame late when you turn fast, which is why this is off by default.",
+              "x-java-field": "occlusionQueries"
+            },
             "performance.ocean_floor_culling": {
               "type": "boolean",
               "default": false,
               "description": "Minecraft 1.16.5, experimental: while you are above the water, chunk sections more than 8 blocks below the floor of an ocean are not drawn. Caves under the sea are not visible from up there anyway; a rare opening in the sea floor can show a gap, which is why this is off by default.",
               "x-java-field": "oceanFloorCulling"
+            },
+            "performance.packed_terrain": {
+              "type": "boolean",
+              "default": true,
+              "description": "Minecraft 1.16.5, Aetherium pipeline with Batched terrain: solid and cutout terrain is stored with 20 bytes per vertex instead of 32. A third less graphics memory and memory bandwidth for the world; positions stay accurate to 1/256 of a block. Turned off automatically after a crash while drawing it.",
+              "x-java-field": "packedTerrain"
             },
             "performance.particle_density": {
               "type": "integer",
@@ -871,13 +951,13 @@
             "qol.inventory.scroll_transfer": {
               "type": "boolean",
               "default": false,
-              "description": "In inventories and chests, scroll over a stack: scroll down moves one item to the other side (between the chest and your inventory, or your hotbar and the rest of your inventory), scroll up pulls one matching item back. Done with normal inventory clicks, so it works on any server.",
+              "description": "Mouse Tweaks wheel tweak: in inventories and chests, scroll over a stack. Scroll down pushes items to the other inventory (between the chest and your inventory), one per notch; scroll up pulls matching items into the stack. Over a crafting or furnace output, each notch moves one crafted batch. Done with normal inventory clicks, so it works on any server.",
               "x-java-field": "scrollTransfer"
             },
             "qol.inventory.shift_drag": {
               "type": "boolean",
               "default": false,
-              "description": "Hold Shift and drag with the left mouse button over slots: every stack you pass over is moved as if you shift-clicked it.",
+              "description": "Mouse Tweaks drag tweaks. Right-drag with a stack: one item goes in every slot you pass over, again each time you come back. Left-drag with a stack over the same item: those stacks are picked up onto the mouse (with Shift: moved to the other inventory). Shift + left-drag with an empty mouse: every stack you pass over is shift-clicked. Done with normal inventory clicks, so it works on any server.",
               "x-java-field": "shiftDrag"
             },
             "qol.inventory.sort_button": {
