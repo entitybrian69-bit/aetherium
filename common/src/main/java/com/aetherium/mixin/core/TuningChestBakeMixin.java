@@ -92,6 +92,7 @@ public abstract class TuningChestBakeMixin {
                 //~ && this.aetherium$compiled != null && aetherium$candidate(entity)) {
             //~ try {
                 //~ if (this.aetherium$bake(world, this.aetherium$compiled, entity)) {
+                    //~ ChestBaking.countBake();
                     //~ return null;
                 //~ }
             //~ } catch (final RuntimeException | LinkageError error) {

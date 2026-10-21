@@ -312,7 +312,7 @@ index bf639c3..a9861d9 100644
      // @era:scroll-end
  
 diff --git a/common/src/main/java/com/aetherium/client/AutoBench.java b/common/src/main/java/com/aetherium/client/AutoBench.java
-index d8ee855..e9b1221 100644
+index e43d233..3564c62 100644
 --- a/common/src/main/java/com/aetherium/client/AutoBench.java
 +++ b/common/src/main/java/com/aetherium/client/AutoBench.java
 @@ -1,34 +1,34 @@
@@ -607,7 +607,7 @@ index d8ee855..e9b1221 100644
          // @era:autobench-end
      }
  
-@@ -174,271 +174,271 @@ public final class AutoBench {
+@@ -174,272 +174,272 @@ public final class AutoBench {
          if (!ACTIVE) {
              return;
          }
@@ -1036,9 +1036,10 @@ index d8ee855..e9b1221 100644
 -        //~ }
 -        //~ ROWS.add(stats.markdownRow(s.label));
 -        //~ JSON.add(stats.json(s.id));
--        //~ NOTES.add(String.format(Locale.ROOT, "%s: %d GC collections, %d ms in GC; renderer: %s; regions: %s; render scale: %d%%",
+-        //~ NOTES.add(String.format(Locale.ROOT, "%s: %d GC collections, %d ms in GC; renderer: %s; regions: %s; render scale: %d%%; chests baked so far: %d%s",
 -                //~ s.id, gcCount() - gcCountStart, gcMillis() - gcMillisStart, ChunkRenderer.statusText(),
--                //~ TerrainRegions.status(), RenderScale.lastPercent()));
+-                //~ TerrainRegions.status(), RenderScale.lastPercent(), Long.valueOf(ChestBaking.baked()),
+-                //~ ChestBaking.failed() ? " (failed, turned off)" : ""));
 -    //~ }
 +    private static void finishMeasure(final Minecraft mc, final Scenario s) {
 +        final BenchStats stats = BenchStats.of(frames, frameCount);
@@ -1048,9 +1049,10 @@ index d8ee855..e9b1221 100644
 +        }
 +        ROWS.add(stats.markdownRow(s.label));
 +        JSON.add(stats.json(s.id));
-+        NOTES.add(String.format(Locale.ROOT, "%s: %d GC collections, %d ms in GC; renderer: %s; regions: %s; render scale: %d%%",
++        NOTES.add(String.format(Locale.ROOT, "%s: %d GC collections, %d ms in GC; renderer: %s; regions: %s; render scale: %d%%; chests baked so far: %d%s",
 +                s.id, gcCount() - gcCountStart, gcMillis() - gcMillisStart, ChunkRenderer.statusText(),
-+                TerrainRegions.status(), RenderScale.lastPercent()));
++                TerrainRegions.status(), RenderScale.lastPercent(), Long.valueOf(ChestBaking.baked()),
++                ChestBaking.failed() ? " (failed, turned off)" : ""));
 +    }
  
 -    //~ private static long gcCount() {
@@ -11539,7 +11541,7 @@ index 992bc20..b53124a 100644
  // @era:boost16-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/TuningChestBakeMixin.java b/common/src/main/java/com/aetherium/mixin/core/TuningChestBakeMixin.java
-index 0cb0d08..b536dac 100644
+index 1e3a3ce..2c651dc 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/TuningChestBakeMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/TuningChestBakeMixin.java
 @@ -1,49 +1,49 @@
@@ -11635,7 +11637,7 @@ index 0cb0d08..b536dac 100644
  // @era:boost16-end
  
  /**
-@@ -61,142 +61,142 @@ import org.spongepowered.asm.mixin.Mixin;
+@@ -61,143 +61,143 @@ import org.spongepowered.asm.mixin.Mixin;
   */
  @Mixin(targets = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$RenderChunk$RebuildTask")
  public abstract class TuningChestBakeMixin {
@@ -11683,6 +11685,7 @@ index 0cb0d08..b536dac 100644
 -                //~ && this.aetherium$compiled != null && aetherium$candidate(entity)) {
 -            //~ try {
 -                //~ if (this.aetherium$bake(world, this.aetherium$compiled, entity)) {
+-                    //~ ChestBaking.countBake();
 -                    //~ return null;
 -                //~ }
 -            //~ } catch (final RuntimeException | LinkageError error) {
@@ -11706,6 +11709,7 @@ index 0cb0d08..b536dac 100644
 +                && this.aetherium$compiled != null && aetherium$candidate(entity)) {
 +            try {
 +                if (this.aetherium$bake(world, this.aetherium$compiled, entity)) {
++                    ChestBaking.countBake();
 +                    return null;
 +                }
 +            } catch (final RuntimeException | LinkageError error) {

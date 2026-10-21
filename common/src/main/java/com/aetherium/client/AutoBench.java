@@ -395,9 +395,10 @@ public final class AutoBench {
         //~ }
         //~ ROWS.add(stats.markdownRow(s.label));
         //~ JSON.add(stats.json(s.id));
-        //~ NOTES.add(String.format(Locale.ROOT, "%s: %d GC collections, %d ms in GC; renderer: %s; regions: %s; render scale: %d%%",
+        //~ NOTES.add(String.format(Locale.ROOT, "%s: %d GC collections, %d ms in GC; renderer: %s; regions: %s; render scale: %d%%; chests baked so far: %d%s",
                 //~ s.id, gcCount() - gcCountStart, gcMillis() - gcMillisStart, ChunkRenderer.statusText(),
-                //~ TerrainRegions.status(), RenderScale.lastPercent()));
+                //~ TerrainRegions.status(), RenderScale.lastPercent(), Long.valueOf(ChestBaking.baked()),
+                //~ ChestBaking.failed() ? " (failed, turned off)" : ""));
     //~ }
 
     //~ private static long gcCount() {

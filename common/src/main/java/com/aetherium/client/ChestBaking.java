@@ -3,6 +3,7 @@ package com.aetherium.client;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Batched chests (1.17.2, Minecraft 1.16.5): a closed chest, trapped chest or ender chest is
@@ -67,6 +68,18 @@ public final class ChestBaking {
     /** Mesh workers: whether chests are baked into sections. */
     public static boolean enabled() {
         return enabled;
+    }
+
+    private static final AtomicLong BAKED = new AtomicLong();
+
+    /** Counts a chest drawn into its section's mesh (shown by the benchmark). */
+    public static void countBake() {
+        BAKED.incrementAndGet();
+    }
+
+    /** Chests drawn into section meshes since the game started. */
+    public static long baked() {
+        return BAKED.get();
     }
 
     /** A bake threw: chests are drawn the normal way for the rest of the session. */
