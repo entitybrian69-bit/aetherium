@@ -67,7 +67,7 @@ public final class AutoBench {
         //~ final int fly;
         //~ final int seconds;
         //~ final boolean reported;
-        //~ /** 1.12.0 options switched off for this scenario (all others at their defaults). */
+        //~ /** Options switched off ("+key": on) for this scenario (all others at their defaults). */
         //~ final String[] off;
 
         //~ Scenario(final String id, final String label, final boolean aetherium, final int scale, final int fly,
@@ -91,6 +91,14 @@ public final class AutoBench {
         //~ "performance.lightmap_rate", "performance.ao_cache", "performance.async_skins",
     //~ };
 
+    //~ /** The 1.17.2 performance options that are on by default (HUD refresh rate goes to 0 = vanilla). */
+    //~ private static final String[] BOOST_OPTIONS = {
+        //~ "performance.compact_block_states", "performance.fast_block_data", "performance.lazy_search",
+        //~ "performance.hud_fps", "performance.entity_tick_culling", "performance.fast_section_snapshots",
+        //~ "performance.fast_mob_ai", "performance.fast_entity_data", "performance.fast_network",
+        //~ "performance.batched_chests", "performance.packed_terrain", "performance.multi_draw",
+    //~ };
+
     //~ private static final Scenario[] SCENARIOS = {
         //~ new Scenario("warmup", "Warm-up", true, 100, 0, 15, false),
         //~ new Scenario("vanilla", "Vanilla (Aetherium off)", false, 100, 0, 20, true),
@@ -100,16 +108,15 @@ public final class AutoBench {
                 //~ "performance.directional_culling", "performance.view_first_building"),
         //~ new Scenario("no-gl", "Aetherium, GL call trimming + cheap damage tint off", true, 100, 0, 20, true,
                 //~ "performance.gl_state_cache", "performance.cheap_damage_tint"),
-        //~ new Scenario("no-server", "Aetherium, server lighting + server idle off", true, 100, 0, 20, true,
-                //~ "performance.server_lighting", "performance.server_idle"),
-        //~ new Scenario("no-light", "Aetherium, light table rate + AO cache off", true, 100, 0, 20, true,
-                //~ "performance.lightmap_rate", "performance.ao_cache"),
+        //~ new Scenario("boost-off", "Aetherium, all 1.17.2 options off", true, 100, 0, 20, true, BOOST_OPTIONS),
+        //~ new Scenario("occlusion", "Aetherium + GPU occlusion culling", true, 100, 0, 20, true,
+                //~ "+performance.occlusion_queries"),
         //~ new Scenario("aetherium-again", "Aetherium (defaults), measured again", true, 100, 0, 20, true),
         //~ new Scenario("scale70", "Aetherium + render scale 70%", true, 70, 0, 20, true),
         //~ new Scenario("fly-vanilla", "Flying into new terrain (+X), Aetherium off", false, 100, 1, 20, true),
         //~ new Scenario("fly-aetherium", "Flying into new terrain (-X), Aetherium defaults", true, 100, -1, 20, true),
-        //~ new Scenario("fly-new-off", "Flying into new terrain (+Z), all 1.12.0 options off", true, 100, 2, 20, true,
-                //~ NEW_OPTIONS),
+        //~ new Scenario("fly-boost-off", "Flying into new terrain (+Z), all 1.17.2 options off", true, 100, 2, 20, true,
+                //~ BOOST_OPTIONS),
         //~ new Scenario("fly-aetherium-z", "Flying into new terrain (-Z), Aetherium defaults", true, 100, -2, 20, true),
     //~ };
 
@@ -323,8 +330,18 @@ public final class AutoBench {
         //~ for (final String key : NEW_OPTIONS) {
             //~ config.byKey(key).reset();
         //~ }
+        //~ for (final String key : BOOST_OPTIONS) {
+            //~ config.byKey(key).reset();
+        //~ }
+        //~ config.byKey("performance.occlusion_queries").reset();
         //~ for (final String key : s.off) {
-            //~ config.byKey(key).accept(Boolean.FALSE);
+            //~ if (key.startsWith("+")) {
+                //~ config.byKey(key.substring(1)).accept(Boolean.TRUE);
+            //~ } else if (key.endsWith(".hud_fps")) {
+                //~ config.byKey(key).accept(Integer.valueOf(0));
+            //~ } else {
+                //~ config.byKey(key).accept(Boolean.FALSE);
+            //~ }
         //~ }
         //~ Aetherium.refreshState();
         //~ // Republish every flag (Tuning and friends follow "enabled" and the options above only here).
