@@ -218,24 +218,6 @@ def main() -> int:
             problems.append(f"{rel(root, config_path)}: injectors.defaultRequire/Expect must be 0 "
                             "(see the file's own _comment for why)")
 
-    # -- bundled shader packs: files.txt is the only listing a jar has ----------------
-    packs_dir = os.path.join(root, "common", "src", "main", "resources", "assets", "aetherium", "shaderpacks")
-    if os.path.isdir(packs_dir):
-        for pack in sorted(os.listdir(packs_dir)):
-            shaders = os.path.join(packs_dir, pack, "shaders")
-            index = os.path.join(packs_dir, pack, "files.txt")
-            if not os.path.isdir(shaders) or not os.path.exists(index):
-                continue
-            listed = {line.strip() for line in open(index, encoding="utf-8") if line.strip()}
-            actual = {os.path.relpath(os.path.join(dp, f), shaders).replace(os.sep, "/")
-                      for dp, _, fs in os.walk(shaders) for f in fs}
-            if actual - listed:
-                problems.append(f"shaderpacks/{pack}/files.txt is missing (the pack cannot load them): "
-                                + ", ".join(sorted(actual - listed)))
-            if listed - actual:
-                problems.append(f"shaderpacks/{pack}/files.txt lists files that do not exist: "
-                                + ", ".join(sorted(listed - actual)))
-
     # -- gradle properties declared vs. used --------------------------------------
     props_path = os.path.join(root, "gradle.properties")
     declared: set[str] = set()

@@ -131,14 +131,7 @@ public final class SmokeTest {
 
     /** Client tick (title screen included): run once, a few seconds after start-up. */
     public static void tick() {
-        if (!ENABLED) {
-            return;
-        }
-        if (done) {
-            com.aetherium.shader.ShaderSmoke.tick();
-            return;
-        }
-        if (++ticks < 200) {
+        if (!ENABLED || done || ++ticks < 200) {
             return;
         }
         done = true;
@@ -205,15 +198,6 @@ public final class SmokeTest {
             foodOutline = "FAILED: " + error;
         }
         out.append("food outline ").append(foodOutline).append('\n');
-        if (com.aetherium.Capabilities.SHADERS) {
-            String shaders;
-            try {
-                shaders = com.aetherium.shader.ShaderSmoke.compileReport(new File(DIR));
-            } catch (final Throwable error) {
-                shaders = "FAILED: " + error;
-            }
-            out.append("shaders ").append(shaders).append('\n');
-        }
         try {
             final File dir = new File(DIR);
             dir.mkdirs();
@@ -225,14 +209,6 @@ public final class SmokeTest {
             System.out.println("[Aetherium smoke] could not write the report: " + error);
         }
         System.out.println("[Aetherium smoke] report\n" + out);
-        try {
-            // 1.16.5: then a world drawn with every shader pack (ShaderSmoke halts when done)
-            if (com.aetherium.Capabilities.SHADERS && com.aetherium.shader.ShaderSmoke.startWorld(new File(DIR))) {
-                return;
-            }
-        } catch (final Throwable error) {
-            System.out.println("[Aetherium smoke] shader world test could not start: " + error);
-        }
         Runtime.getRuntime().halt(0);
     }
 

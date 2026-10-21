@@ -70,9 +70,6 @@ ERAS = {
     # ScaledRenderTarget constructor / resize / bindWrite inside the r17|r212|r215 class body
     "rs-api": [("none", "..1.16.5"), ("r17", "1.17..1.21.1"), ("r212", "1.21.2..1.21.4"),
                ("r215", "1.21.5..26.1"), ("g262", "26.2"), ("g263", "26.3..")],
-    # 1.18.0, 1.16.5 only for testing: the OptiFine-format shader pack engine (com.aetherium.shader,
-    # Shader*Mixin). The fixed-function GL 2.1 path it drives exists until 1.16.5 only.
-    "shader": [("v16", "..1.16.5"), ("none", "1.17..")],
     # 1.9.0, 1.16.5 only: the self-driving CI benchmark (Minecraft.createLevel(String, LevelSettings, ...))
     "autobench": [("create", "..1.16.5"), ("none", "1.17..")],
     # Zume-style zoom (ZoomKeys + Zoom*Mixin, KeyMappingAccessor, OptionsMixin key list): every version.

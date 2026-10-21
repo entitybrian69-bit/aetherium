@@ -338,12 +338,6 @@ public final class AetheriumConfig {
     public final ConfigValue<Integer> thermalCeilingC = ConfigValue.intRange("android.thermal_ceiling_c", 75, 40, 95, false, "Hottest CPU/GPU temperature at which the thermal guard engages.");
     public final ConfigValue<Boolean> touchMode = ConfigValue.bool("android.touch_mode", false, "Taller rows and larger hit targets in the Aetherium screen.");
 
-    // ----------------------------------------------------------------- shaders
-    public final ConfigValue<String> shaderPack = ConfigValue.string(
-            "shaders.pack", "", "Shader pack to use: empty = off, \"Aetherium Lite\" = the built-in pack, otherwise a folder or .zip in .minecraft/shaderpacks (OptiFine format).");
-    public final ConfigValue<String> shaderCompat = ConfigValue.string(
-            "shaders.compat", "auto", "Android compatibility mode for GL translators (gl4es, Krypton Wrapper, ANGLE): auto = when one is detected, on = always, off = never.");
-
     // ---------------------------------------------------------------- advanced
     public final ConfigValue<Boolean> debugLogging = ConfigValue.bool("advanced.debug_logging", false, "Enable dev-level logging (hot-path cost: near zero when off).");
     public final ConfigValue<Boolean> stutterLog = ConfigValue.bool(

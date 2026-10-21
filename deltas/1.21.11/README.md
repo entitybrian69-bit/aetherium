@@ -75,7 +75,6 @@ neoforge_version=21.11.45
 - `section-compile=none`
 - `section-cull=none`
 - `section-vis=render-origin`
-- `shader=none`
 - `simdist=sim`
 - `sky=renderer`
 - `slot-find=hovered`
@@ -255,7 +254,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.11.
 - `common/src/main/java/com/aetherium/mixin/core/WeatherMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
-- `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
 
 ## Verifying this row before shipping it
 

@@ -35,15 +35,6 @@ public interface ScreenHost {
         return false;
     }
 
-    /** True when the header shows the External Shaders button (the shader engine exists here). */
-    default boolean shaderPageAvailable() {
-        return false;
-    }
-
-    /** Opens the Iris-style shader pack page. */
-    default void openShaderPage() {
-    }
-
     /** Called at the start of every frame, before the view draws. */
     default void beforeFrame() {
     }

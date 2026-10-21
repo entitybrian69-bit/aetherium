@@ -86,7 +86,6 @@ neoforge_version=26.3.0.64-beta
 - `section-compile=none`
 - `section-cull=none`
 - `section-vis=render-origin`
-- `shader=none`
 - `simdist=sim`
 - `sky=renderer`
 - `slot-find=hovered`
@@ -294,7 +293,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/26.3.txt
 - `common/src/main/java/com/aetherium/mixin/core/ZoomFovMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
 - `common/src/main/java/com/aetherium/qol/QolSupport.java`
-- `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
 
 ## Verifying this row before shipping it
 

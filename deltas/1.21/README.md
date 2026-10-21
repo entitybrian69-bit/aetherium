@@ -21,7 +21,7 @@ neoforge_version=21.0.167
 
 ### Era transforms applied by the generated patch
 
-- `shader=none`
+- none: this row's era facts equal the reference (pin-only delta)
 
 ### Where the per-version Java comes from
 
@@ -49,7 +49,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.21.txt
 ## Files the generated patch touches
 
 - `gradle.properties`
-- `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
 
 ## Verifying this row before shipping it
 

@@ -3,79 +3,11 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
-## 1.18.7
-**Shader self-test for phones: another fix for flat, untextured blocks on Krypton (test build for Minecraft 1.16.5 only).**
+## 1.17.1
+**Mouse Tweaks in the Quality of life tab (test build for Minecraft 1.16.5 only).**
 
-- Shader packs no longer depend on the translator's texture matrices: on Krypton and other GL translators, Aetherium passes Minecraft's texture and lightmap matrices to the pack itself (the enchantment glint keeps its scrolling). This was the remaining difference between the full-screen passes, which looked right, and blocks, items and the hand, which came out as flat colors.
-- New self-test when a shader pack loads on a phone: Aetherium draws one hidden test quad the way Minecraft draws chunks and checks what the shader really received (vertex colors, texture and light coordinates, normals, texture matrices, texture units). It picks the vertex input numbering that works on your device instead of guessing, and writes every result to the game log (lines starting with "Shader self-test").
-
-## 1.18.6
-**Fixes the flat, untextured blocks and still plants with shaders on Krypton (test build for Minecraft 1.16.5 only).**
-
-- Fixed blocks, items and the hand drawing as flat single colors (and everything drowning in grey fog) with shaders on Krypton. Krypton numbers a shader's inputs in the order they are written, but feeds Minecraft's vertex data (position, color, texture coordinates, normal) to fixed slots, so packs read their texture coordinates from the block normals. 1.18.4 only looked right because Minecraft's alpha test was sending every draw down a slower path; the 1.18.5 crash fix turned that off and exposed it. Aetherium now places each input in exactly the slot Krypton fills, for every shader pack.
-- The same mix-up fed the plant, leaf and water ids from the wrong slot, so waving plants and leaves should finally move on phones.
-- Values passed from a pack's vertex to its fragment shader are now declared in the same order in both, so packs that declare them differently per stage no longer get them crossed on Krypton.
-- The Shaders tab has all its settings back: Off, Aetherium Lite, and the full settings of the active pack (profiles, every option page) right on the tab.
-- The External Shaders screen lists only shader packs you downloaded; Aetherium Lite stays on the Shaders tab, and Disabled on that screen no longer turns Lite off.
+- Mouse Tweaks now works like the Mouse Tweaks mod: right-drag with a stack puts one item in every slot you pass over, left-drag with a stack collects the same item (Shift moves those stacks to the other inventory), Shift + left-drag with an empty hand shift-clicks everything you pass over, and the wheel pushes (down) or pulls (up) items, including crafted batches. Both are in the Quality of life tab ("Mouse Tweaks: drag" and "Mouse Tweaks: wheel"), off by default, and work on any server.
 - The log and the screen footer show the real Aetherium version (the Fabric build could pick up another mod's version).
-
-## 1.18.5
-**Shader crash and vegetation fixes for phones, a new shader pack screen, a better looking Aetherium Lite and real Mouse Tweaks (test build for Minecraft 1.16.5 only).**
-
-- Should fix the crash when loading or using shader packs on Krypton (and other gl4es-based translators): Minecraft's old alpha test stays off while a shader pack draws (Aetherium does the alpha test inside the pack's shaders), so the translator no longer rebuilds the pack's shaders mid-frame. That rebuild was also where the plant, leaf and water ids got lost, the most likely reason waving plants did not move on phones.
-- Packs that need more textures than a phone allows (Krypton gives 4) keep the important ones: the shadow map and the pack's own buffers come first, and nothing samples the block atlas by mistake any more. This should fix the atlas pattern on the ground with shadows.
-- Packs whose first lines are code, and packs that declare outputs with layout(location = N), now compile on Krypton.
-- Aetherium Lite rewritten to look like a shader: a real sky gradient with sun glow and horizon haze, fog that melts into that sky instead of ending at a hard band (no longer relies on the translator's fog, which Krypton never fills in), richer colors and cleaner clouds.
-- New External Shaders button at the top of the Aetherium screen, next to the theme switcher. It opens a shader pack screen laid out like Iris: your packs in a list over the world, Shaders Enabled/Disabled, Open Shader Pack Folder, Shader Pack Settings (pages, sliders, profiles; click for next, right-click for previous, Shift-click for default) and Done / Apply / Cancel. The Shaders tab is less crowded and links to it.
-- Mouse Tweaks now works like the Mouse Tweaks mod: right-drag with a stack puts one item in every slot you pass over, left-drag with a stack collects the same item (Shift moves those stacks to the other inventory), Shift + left-drag with an empty hand shift-clicks everything you pass over, and the wheel pushes (down) or pulls (up) items, including crafted batches.
-- The log and the screen footer show the real Aetherium version again.
-
-## 1.18.4
-**Shader fixes for phones and an Iris-style shader screen (test build for Minecraft 1.16.5 only).**
-
-- Fixed scrambled block textures and patchy lighting with shaders on Android GL translators (Krypton, gl4es): the extra vertex data shader packs need no longer goes through texture coordinate slots that these translators mix up. Plant, leaf and water ids now travel in a part of the vertex that is always unused for blocks, so waving plants and water effects can work on phones too.
-- Iris-style Shaders tab: your shader packs are listed at the top; tap Use on one and it switches right away. The selected pack's settings appear right below, even from the title screen (no need to enter a world and reopen the screen first), and changed values show immediately.
-- Aetherium Lite has many more settings, grouped into Plants, Water, Sky and sun, Lighting and Color: waving strength and leaves on/off, ripple size, a moving water surface, reflections, water opacity, sun glint and water color, horizon glow, sun glow, god ray strength, cloud brightness, sunlight and torchlight warmth, shadow quality and distance, filmic colors, contrast and vignette strength.
-- The Aetherium Diagnostic pack is no longer listed.
-- The game's textures are always handed back after the shader frame, so menu text and hotbar items cannot vanish.
-
-## 1.18.3
-**Better looking Aetherium Lite and shader fixes for Android (test build for Minecraft 1.16.5 only).**
-
-- Cutout blocks (leaves, grass, flowers) no longer draw black or dotted on Android GL translators: OpenGL ES has no alpha test, so Aetherium now adds one to every shader pack, driven by Minecraft's own alpha settings.
-- Shadow maps are sampled the way OpenGL ES allows (nearest filtering without hardware compare), so they no longer read as fully shadowed on translators.
-- Aetherium Lite reworked so every profile looks different from vanilla: a filmic tone curve, warm sunlight and torchlight with cool shadows on all profiles (new Warmth slider); Medium adds a sky glow (brighter horizon, soft halo around the sun) plus water effects and bloom; High adds god rays and shadows.
-- Bloom only catches real highlights now, and god rays stay narrow and subtle: the sky and clouds no longer wash out on High.
-- Plants sway a bit more, and water effects also find water by its biome tint.
-- New bundled pack Aetherium Diagnostic: it shows what your device actually delivers to shaders (waving plants and leaves red, water blue, other blocks coloured by their facing; Shadow View shows the shadow map). Useful for bug reports.
-
-## 1.18.2
-**Finding your shader packs (test build for Minecraft 1.16.5 only).**
-
-- Packs in .minecraft/shaderpacks now show up even when your launcher gives each version its own game folder (common on Android launchers): Aetherium looks in the game folder's shaderpacks and in every shaderpacks folder above it, up to .minecraft.
-- The shaderpacks folder is created for you if it does not exist yet.
-- Unzipped packs with an extra folder level (BSL/BSL/shaders) now load.
-- The Pack folder row in the Shaders tab shows every folder Aetherium searches and how many packs it found there. New packs appear in the list after you reopen the settings screen.
-
-## 1.18.1
-**Shader fixes for Android GL translators (test build for Minecraft 1.16.5 only).**
-
-- Fixed the world drawing as flat fog colour with a black hand on Krypton and gl4es: these translators accept fewer texture units than they report, so pack textures landed on Minecraft's block atlas and lightmap. Aetherium now tests how many units really work and keeps everything inside that limit.
-- Fixed all text disappearing after switching a pack, profile or option: Minecraft is now told to re-bind its own textures after a pack loads and after every full-screen pass.
-- Full-screen passes can use 3 more texture units, and sampler names that point to the same texture share one unit, so packs fit better on 8-unit devices. A pack that still needs more lists what was dropped under Problems in the Shaders tab.
-- The device line in the Shaders tab (and logs/aetherium-shaders.log) now shows the usable texture units.
-
-## 1.18.0
-**Shader packs (test build for Minecraft 1.16.5 only).** Aetherium now loads OptiFine/Iris-format shader packs by itself, without OptiFine, Iris or Sodium.
-
-- Put a pack (folder or .zip) into the shaderpacks folder and pick it in the new Shaders tab. Aetherium Lite, a light built-in pack made for phones, is always there.
-- The Shaders tab shows the pack's own option screens, sliders and profiles, a status line with problems, your device, Reload and Reset. Options are saved per pack.
-- Full pipeline: shadow map, gbuffers, deferred, composite and final passes, colortex0-15 with formats, clears and ping-pong, custom noise texture, block and item IDs (block.properties, item.properties), mc_Entity, mc_midTexCoord and at_tangent, OptiFine uniforms and custom uniforms, world folders (world-1, world1).
-- Modern OpenGL mode on PC: packs compile as GLSL up to 4.50 compatibility, and packs written for lenient drivers (GLSL 1.30 code under version 120, late extension lines, missing DRAWBUFFERS) are fixed up so they also run on strict drivers.
-- Compatibility mode for Android GL translators (gl4es, Krypton): automatic, or forced on or off in the Shaders tab. It targets GLSL 1.20 and halves the shadow map.
-- Tested in CI on Mesa llvmpipe: BSL 10.1.8, Complementary Reimagined r5.9.3, MakeUp Ultra Fast 9.6, Sildur's Vibrant 2.02 and Aetherium Lite all compile with no errors in both modes and render the world.
-- While a pack is on, the Aetherium renderer, render scale, far terrain, shader presets and the GL state cache step aside.
-- Not supported yet: shadowcomp passes, normal and specular maps, resource-pack textures in packs, buffer scale and flip overrides, custom blend and alpha overrides.
 
 ## 1.17.0
 **Quality of life on every version.** The QoL tab, tested on Minecraft 1.16.5 in the 1.16.x GitHub test builds, now works on every version from 1.16.5 to 26.3. Every feature is off by default, runs only on your client, and works on any server, including servers without Aetherium.

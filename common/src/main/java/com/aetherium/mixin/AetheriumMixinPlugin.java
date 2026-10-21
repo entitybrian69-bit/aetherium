@@ -98,9 +98,6 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         if (simpleName.startsWith("Tuning")) {
             return com.aetherium.perf.TuningSupport.mixin(simpleName);
         }
-        if (simpleName.startsWith("Shader")) {
-            return Capabilities.SHADERS;
-        }
         if (simpleName.startsWith("Qol")) {
             return com.aetherium.qol.QolSupport.mixin(simpleName);
         }

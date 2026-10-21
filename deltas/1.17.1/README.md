@@ -72,7 +72,6 @@ neoforge_version=unavailable (module disabled)
 - `section-compile=param17`
 - `section-cull=pop17`
 - `section-vis=list17`
-- `shader=none`
 - `simdist=none`
 - `sky=end17`
 - `slot-find=find`
@@ -241,7 +240,6 @@ Minecraft signatures CI extracted from this version's jar (`tools/probe/1.17.1.t
 - `common/src/main/java/com/aetherium/mixin/core/ZoomCameraMixin.java`
 - `common/src/main/java/com/aetherium/mixin/core/ZoomMouseMixin.java`
 - `common/src/main/java/com/aetherium/perf/TuningSupport.java`
-- `common/src/main/java/com/aetherium/shader/ShaderRuntime.java`
 - `common/src/main/java/com/aetherium/util/AetheriumLog.java`
 
 ## Verifying this row before shipping it

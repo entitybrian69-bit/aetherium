@@ -142,11 +142,8 @@ public final class Tuning {
         RebuildCoalescer.setLazyFar(active && c.lazyFarRebuilds.get().booleanValue());
         modelLod = active && c.modelLod.get().booleanValue();
         menuWorldCache = active && c.menuWorldCache.get().booleanValue();
-        // a shader pack draws the world itself: far terrain, the colour filter and the GL state
-        // cache (its framebuffer/viewport skipping would miss the pack's own binds) step aside
-        final boolean pack = com.aetherium.shader.ShaderBridge.wantsPack();
-        farTerrain = active && !low && !pack ? c.farTerrain.get().intValue() : 0;
-        shaderPreset = active && !low && !pack ? c.shaderPreset.get().ordinal() : 0;
+        farTerrain = active && !low ? c.farTerrain.get().intValue() : 0;
+        shaderPreset = active && !low ? c.shaderPreset.get().ordinal() : 0;
         serverLighting = active && c.serverLighting.get().booleanValue();
         directionalCulling = active && c.directionalCulling.get().booleanValue();
         viewFirstBuilding = active && c.viewFirstBuilding.get().booleanValue();
@@ -155,7 +152,7 @@ public final class Tuning {
         serverIdle = active && c.serverIdle.get().booleanValue();
         oceanFloorCulling = active && c.oceanFloorCulling.get().booleanValue();
         endOptimizations = active && c.endOptimizations.get().booleanValue();
-        glStateCache = active && !pack && c.glStateCache.get().booleanValue();
+        glStateCache = active && c.glStateCache.get().booleanValue();
         cheapDamageTint = active && c.cheapDamageTint.get().booleanValue();
         lightmapRate = active && c.lightmapRate.get().booleanValue();
         aoCache = active && c.aoCache.get().booleanValue();
