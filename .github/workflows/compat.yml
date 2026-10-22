@@ -68,6 +68,8 @@ jobs:
           if [ -f tools/dev/compat_mods.txt ]; then
             python3 tools/dev/fetch_test_mods.py tools/dev/compat_mods.txt 1.16.5 "$mc/mods" | tee -a "$out/mods.txt"
           fi
+          ( cd "$RUNNER_TEMP" && rm -rf jx && mkdir jx && cd jx && unzip -q -o "$mc"/mods/aetherium-*.jar 'com/aetherium/mixin/core/*' \
+            && for c in MeshExecutorMixin TuningServerIdleMixin; do echo "== $c"; javap -v -p "com/aetherium/mixin/core/$c.class" | grep -E "Utf8 .*(;|class_|method_|<init>)" ; done ) > "$out/annotations.txt" 2>&1 || true
           python3 -m pip install -q portablemc==4.4.1
           loader=$(sed -n 's/^loader *//p' tools/dev/compat_mods.txt 2>/dev/null | head -1)
           loader=${loader:-0.18.4}

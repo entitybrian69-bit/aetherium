@@ -62,6 +62,7 @@ public final class Overlap {
         {"TuningChestBakeMixin", "batched_chests", REPLACED, "aetherium$bakeChest", "aetherium$compileStart"},
         {"TuningHudBlendMixin", "hud_fps", ANY, "aetherium$captureBlend", "aetherium$captureBlendSeparate"},
         {"TuningHudFrameMixin", "hud_fps", REPLACED, "aetherium$hudRate"},
+        {"TuningServerIdleMixin", "server_idle", ANY, "aetherium$park"},
     };
 
     private static final String OWN_PACKAGE = "com.aetherium.";
@@ -154,6 +155,7 @@ public final class Overlap {
         for (final IMixinInfo mine : ours) {
             final String[] row = row(simpleName(mine.getClassName()));
             if (row == null) {
+                stepped += guard(mine, target, others);
                 continue;
             }
             final Set<String> owned = ownedTargets(mine, row);
@@ -198,6 +200,31 @@ public final class Overlap {
         }
     }
 
+    /**
+     * Safety net for the Aetherium mixins without an option row: an injector into a method another
+     * mod replaces wholesale cannot apply ("merged by"), so such a mixin is taken out beforehand.
+     */
+    private static int guard(final IMixinInfo mine, final String target, final List<IMixinInfo> others) {
+        try {
+            final Set<String> owned = ownedTargets(mine, null);
+            if (owned.isEmpty()) {
+                return 0;
+            }
+            for (final IMixinInfo other : others) {
+                final String hit = firstShared(other, target, owned, true);
+                if (hit != null) {
+                    final boolean dropped = drop(mine, target);
+                    NOTES.add(simpleName(mine.getClassName()) + " steps aside, " + other.getClassName()
+                            + " replaces " + target + "." + hit + (dropped ? "" : " (hooks left inert)"));
+                    return 1;
+                }
+            }
+        } catch (final Throwable error) {
+            note(error);
+        }
+        return 0;
+    }
+
     // ------------------------------------------------------------------ the other mixins
 
     /** The method of {@code owned} the other mixin replaces or hooks, or null. */
@@ -232,10 +259,10 @@ public final class Overlap {
         return null;
     }
 
-    /** The game methods the listed handlers of an Aetherium mixin hook (runtime names). */
+    /** The game methods the listed handlers (all injectors when row is null) of an Aetherium mixin hook (runtime names). */
     private static Set<String> ownedTargets(final IMixinInfo mine, final String[] row) {
         final Set<String> handlers = new HashSet<String>();
-        for (int i = 3; i < row.length; i++) {
+        for (int i = 3; row != null && i < row.length; i++) {
             handlers.add(row[i]);
         }
         final Set<String> owned = new HashSet<String>();
@@ -244,7 +271,7 @@ public final class Overlap {
             return owned;
         }
         for (final MethodNode method : node.methods) {
-            if (!handlers.contains(method.name)) {
+            if (row != null && !handlers.contains(method.name)) {
                 continue;
             }
             for (final List<AnnotationNode> list : java.util.Arrays.asList(method.visibleAnnotations,
