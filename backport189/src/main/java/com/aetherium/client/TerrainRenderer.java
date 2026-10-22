@@ -7,7 +7,9 @@ import com.aetherium.render.CompactTerrain;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.minecraft.util.EnumWorldBlockLayer;
@@ -15,7 +17,7 @@ import net.minecraft.util.BlockPos;
 import org.lwjgl.opengl.GL11;
 
 /**
- * The Aetherium terrain renderer on Minecraft 1.12.2 (VBO path).
+ * The Aetherium terrain renderer on Minecraft 1.8.9 (VBO path, which it switches on).
  *
  * <p>Vanilla keeps building, uploading, ordering and drawing every chunk with its own state. Three
  * things change:</p>
@@ -78,6 +80,7 @@ public final class TerrainRenderer {
     // ------------------------------------------------------------------ frame
 
     public static void onFrame() {
+        ensureVbo();
         drewLastFrame = drewThisFrame;
         drewThisFrame = false;
         fogCulledShown = fogCulledFrame;
@@ -87,6 +90,28 @@ public final class TerrainRenderer {
             // Just switched on: meshes already on the GPU are unsorted until rebuilt.
             VanillaOptions.reloadChunks();
         }
+    }
+
+    /**
+     * The renderer works on vanilla's VBO path, and 1.8.9 ships with "Use VBOs" off (display lists).
+     * While the renderer is on and the GPU has VBOs, vanilla's own option is switched on once (as if
+     * the player ticked it) and the chunks are rebuilt. Without VBO support nothing changes and the
+     * status says so.
+     */
+    private static void ensureVbo() {
+        if (!enabled() || !Aetherium.isActive()) {
+            return;
+        }
+        final Minecraft mc = Minecraft.getMinecraft();
+        if (mc.gameSettings == null || mc.gameSettings.useVbo || !OpenGlHelper.vboSupported) {
+            return;
+        }
+        mc.gameSettings.useVbo = true;
+        if (mc.renderGlobal != null && mc.theWorld != null) {
+            mc.renderGlobal.loadRenderers();
+        }
+        mc.gameSettings.saveOptions();
+        com.aetherium.util.AetheriumLog.of(TerrainRenderer.class).info("Aetherium: turned on VBOs for the Aetherium terrain renderer");
     }
 
     /** From the fog events: the terrain pass uses linear fog ending at {@code end} (or not). */
@@ -284,6 +309,9 @@ public final class TerrainRenderer {
         }
         if (!Aetherium.isActive()) {
             return "Vanilla (Aetherium paused)";
+        }
+        if (!OpenGlHelper.vboSupported) {
+            return "Vanilla (this GPU has no vertex buffers)";
         }
         final String base = SectionCull.statusText();
         return fogCulledShown > 0 ? base + ", " + fogCulledShown + " fogged chunk draws skipped" : base;
