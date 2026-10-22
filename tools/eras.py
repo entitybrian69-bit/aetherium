@@ -274,7 +274,7 @@ ERAS = {
     "registry": [("static", "..1.19.2"), ("builtin", "1.19.3..")],
     "camera-entity": [("getter", "..1.21.10"), ("record", "1.21.11..")],
     "camera-get": [("getter", "..26.1"), ("record", "26.2..")],
-    "mesh-exec": [("crd", "..1.20.1"), ("srd", "1.20.2..1.21.1"), ("tracing", "1.21.2..")],
+    "mesh-exec": [("crd16", "..1.16.5"), ("crd", "1.17..1.20.1"), ("srd", "1.20.2..1.21.1"), ("tracing", "1.21.2..")],
     # vanilla allocates a BitSet per block and a MutableBlockPos per AO face up to 1.21.4 only.
     "mesh-alloc": [("v16", "..1.21.4"), ("none", "1.21.5..")],
     # Render sections: class, origin getter and "compiled" check (rebuild coalescing).

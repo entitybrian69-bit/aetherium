@@ -4869,25 +4869,25 @@ index afd9371..7bd7123 100644
      // @era:mesh-alloc-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
-index 1544ef9..d04d9a6 100644
+index 00170ec..234545d 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
 @@ -5,10 +5,10 @@ import java.util.concurrent.Executor;
  import org.spongepowered.asm.mixin.Mixin;
  import org.spongepowered.asm.mixin.injection.At;
  import org.spongepowered.asm.mixin.injection.ModifyArg;
--// @era:mesh-exec-begin crd|srd
+-// @era:mesh-exec-begin crd16|crd|srd
 -// @era:mesh-exec-else tracing
 -//~ import java.util.concurrent.ExecutorService;
 -//~ import net.minecraft.TracingExecutor;
 +// @era:mesh-exec-begin tracing
 +import java.util.concurrent.ExecutorService;
 +import net.minecraft.TracingExecutor;
-+// @era:mesh-exec-else crd|srd
++// @era:mesh-exec-else crd16|crd|srd
  // @era:mesh-exec-end
  
  /**
-@@ -26,24 +26,24 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
+@@ -26,12 +26,19 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class MeshExecutorMixin {
@@ -4908,9 +4908,10 @@ index 1544ef9..d04d9a6 100644
 +    //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
 +        //~ return QolHooks.meshExecutor(vanilla);
 +    //~ }
-     // @era:mesh-exec-else crd
+     // @era:mesh-exec-else crd16
+     //~ // Release jars carry no refmap: the call is only renamed for them with its full descriptor.
      //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
-             //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>"), require = 0)
+@@ -45,12 +52,5 @@ public abstract class MeshExecutorMixin {
      //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
          //~ return QolHooks.meshExecutor(vanilla);
      //~ }

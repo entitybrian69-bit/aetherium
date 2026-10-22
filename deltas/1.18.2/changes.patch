@@ -3104,10 +3104,10 @@ index b06d54a..2c5ff92 100644
      // @era:model-fast-end
  }
 diff --git a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
-index 1544ef9..4238395 100644
+index 00170ec..8fb8bb7 100644
 --- a/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
 +++ b/common/src/main/java/com/aetherium/mixin/core/MeshExecutorMixin.java
-@@ -26,15 +26,15 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
+@@ -26,22 +26,22 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
   */
  @Mixin(targets = "net.minecraft.client.renderer.LevelRenderer")
  public abstract class MeshExecutorMixin {
@@ -3119,11 +3119,21 @@ index 1544ef9..4238395 100644
      private Executor aetherium$meshExecutor(final Executor vanilla) {
          return QolHooks.meshExecutor(vanilla);
      }
--    // @era:mesh-exec-else crd
+-    // @era:mesh-exec-else crd16
+-    //~ // Release jars carry no refmap: the call is only renamed for them with its full descriptor.
 +    // @era:mesh-exec-else srd
      //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
--            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>"), require = 0)
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V"), require = 0)
 +            //~ target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher;<init>"), require = 0)
+     //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
+         //~ return QolHooks.meshExecutor(vanilla);
+     //~ }
+-    // @era:mesh-exec-else crd
++    // @era:mesh-exec-else crd16
++    //~ // Release jars carry no refmap: the call is only renamed for them with its full descriptor.
+     //~ @ModifyArg(method = "allChanged", at = @At(value = "INVOKE",
+-            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>"), require = 0)
++            //~ target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher;<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/client/renderer/LevelRenderer;Ljava/util/concurrent/Executor;ZLnet/minecraft/client/renderer/ChunkBufferBuilderPack;)V"), require = 0)
      //~ private Executor aetherium$meshExecutor(final Executor vanilla) {
          //~ return QolHooks.meshExecutor(vanilla);
      //~ }
