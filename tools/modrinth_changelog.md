@@ -3,6 +3,13 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.17.3
+**Works next to other performance mods (test build for Minecraft 1.16.5 only).**
+
+- Fixed: the game crashed at start-up, and the log showed failed Aetherium mixins, when another installed mod already rewrites the same parts of the game as some of the 1.17.2 performance options.
+- Aetherium now checks this by itself at start-up: when another installed mod already changes the same game method as one of its performance options, Aetherium leaves that method to the other mod and switches its own option off for that launch. The Performance page shows the option as turned off, with the reason in its description. Nothing needs to be set by hand, and the option comes back by itself when the other mod is removed.
+- The check reads what the other mods change, so it does not depend on a list of mod names.
+
 ## 1.17.2
 **Twelve new performance options (test build for Minecraft 1.16.5 only).** All are on the Performance page, can be switched off one by one, help on computers and phones alike, and change nothing on the server.
 
