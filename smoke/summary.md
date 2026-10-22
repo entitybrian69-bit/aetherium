@@ -1,2 +1,2 @@
-# Smoke test for 50e7c4a
-- 1.16.5: NO REPORT (exit 1)
+# Smoke test for 2b3f092
+- 1.16.5: targets 72, failed 0, unused injectors 0, render scale ok, far terrain fixed-function (1.16.5)
