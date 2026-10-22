@@ -333,9 +333,7 @@ public final class Overlap {
             if (info == null) {
                 return Collections.emptyList();
             }
-            final Method getMixins = classInfo.getDeclaredMethod("getMixins");
-            getMixins.setAccessible(true);
-            final Object mixins = getMixins.invoke(info);
+            final Object mixins = allMixins(classInfo, info);
             final List<IMixinInfo> out = new ArrayList<IMixinInfo>();
             if (mixins instanceof Collection) {
                 for (final Object mixin : (Collection<Object>) mixins) {
@@ -349,6 +347,34 @@ public final class Overlap {
             note(error);
             return Collections.emptyList();
         }
+    }
+
+    /** ClassInfo's set of every mixin targeting it (method or field, whichever this library has). */
+    private static Object allMixins(final Class<?> classInfo, final Object info) throws Exception {
+        try {
+            final Method getter = classInfo.getDeclaredMethod("getMixins");
+            getter.setAccessible(true);
+            return getter.invoke(info);
+        } catch (final NoSuchMethodException missing) {
+            // fall through to the field
+        }
+        try {
+            final Field field = classInfo.getDeclaredField("mixins");
+            field.setAccessible(true);
+            return field.get(info);
+        } catch (final NoSuchFieldException missing) {
+            // fall through to the search
+        }
+        final StringBuilder seen = new StringBuilder();
+        for (final Field field : classInfo.getDeclaredFields()) {
+            seen.append(' ').append(field.getName());
+            if (Set.class.isAssignableFrom(field.getType()) && field.getName().toLowerCase(java.util.Locale.ROOT).contains("mixin")
+                    && !field.getName().toLowerCase(java.util.Locale.ROOT).contains("applied")) {
+                field.setAccessible(true);
+                return field.get(info);
+            }
+        }
+        throw new NoSuchFieldException("no mixin set in ClassInfo; fields:" + seen);
     }
 
     /** Takes one Aetherium mixin out of one target, so it is never applied there. */
