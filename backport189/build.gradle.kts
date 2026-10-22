@@ -153,7 +153,7 @@ tasks.shadowJar {
 
 tasks.assemble.get().dependsOn(tasks.remapJar)
 
-// CI smoke test (AETHERIUM_SMOKE=<dir> ./gradlew runClient). Inert otherwise.
+// CI smoke test (AETHERIUM_SMOKE=<dir> ./gradlew smokeClient). Inert otherwise.
 // Loom 0.10's own runClient fails Gradle 8's task validation (its getMain() override has no input
 // annotation), so the smoke test launches through a plain JavaExec that copies what loom resolved
 // for runClient: classpath, main class, JVM arguments (dev launch config) and program arguments.
