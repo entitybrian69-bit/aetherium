@@ -6,6 +6,7 @@ Usage: publish.py <dir-with-jars>
   aetherium-fabric-<mod>+<mc>.jar        -> project "fabric"    (Aetherium)
   aetherium-neoforge-<mod>+<mc>.jar      -> project "neoforge"  (Aetherium NeoForge)
   aetherium-backport-<mod>+1.12.2.jar    -> project "backport"  (Aetherium Backport, MixinBooter required)
+  aetherium-backport-<mod>+1.8.9.jar     -> project "backport"  (same project; Mixin is bundled, no dependency)
 
 Project IDs come from tools/curseforge/projects.json (null = skipped). Every successful upload is
 recorded in tools/curseforge/uploaded.json, so a re-run never uploads the same jar twice (the
@@ -35,6 +36,11 @@ TITLE = {'fabric': 'Aetherium', 'neoforge': 'Aetherium NeoForge', 'backport': 'A
 NEWEST_RELEASE = (1, 21, 4)
 JAVA = [((1, 17), 'Java 8'), ((1, 18), 'Java 16'), ((1, 20, 5), 'Java 17'), ((26,), 'Java 21'), ((999,), 'Java 25')]
 RELATIONS = {'backport': [{'slug': 'mixin-booter', 'type': 'requiredDependency'}]}
+# Minecraft versions whose backport jar needs the RELATIONS above (1.8.9 bundles Mixin itself).
+RELATION_MC = {'backport': {'1.12.2'}}
+# Backport changelogs per Minecraft version.
+BACKPORT_CHANGELOG = {'1.12.2': ('backport', 'ci', 'modrinth', 'backport_changelog.md'),
+                      '1.8.9': ('backport189', 'ci', 'backport_changelog.md')}
 
 note = mp.note
 
@@ -142,7 +148,11 @@ def main():
         if java:
             ids.append(java)
         if kind == 'backport':
-            log = open(os.path.join(ROOT, 'backport', 'ci', 'modrinth', 'backport_changelog.md'), encoding='utf-8').read().strip()
+            path = BACKPORT_CHANGELOG.get(mc)
+            if not path:
+                problems.append('%s (no backport changelog for Minecraft %s)' % (name, mc))
+                continue
+            log = open(os.path.join(ROOT, *path), encoding='utf-8').read().strip()
         else:
             log = changelogs.setdefault(mod, mp.changelog_for(mod))
         meta = {
@@ -152,7 +162,7 @@ def main():
             'gameVersions': ids,
             'releaseType': 'beta' if (kind != 'backport' and key > NEWEST_RELEASE) else 'release',
         }
-        if kind in RELATIONS:
+        if kind in RELATIONS and mc in RELATION_MC.get(kind, {mc}):
             meta['relations'] = {'projects': RELATIONS[kind]}
         plan.append((kind, pid, name, meta))
 

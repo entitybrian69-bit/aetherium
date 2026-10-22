@@ -1,5 +1,5 @@
 # Publishes the latest jars to CurseForge (three projects, like on Modrinth):
-#   Fabric -> "Aetherium", NeoForge -> "Aetherium NeoForge", 1.12.2 Forge -> "Aetherium Backport".
+#   Fabric -> "Aetherium", NeoForge -> "Aetherium NeoForge", 1.12.2 and 1.8.9 Forge -> "Aetherium Backport".
 # Project IDs: tools/curseforge/projects.json (null = skipped). Token: CURSEFORGE_TOKEN secret.
 # Runs when the CurseForge files change, and after every ship.yml release. The jars come from the
 # GitHub releases that already exist; tools/curseforge/uploaded.json records what went up, so a
@@ -36,13 +36,25 @@ jobs:
           set -euo pipefail
           mod=$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')
           mkdir -p dist
-          for ver in $(python3 -c "import json; print(' '.join(r['version'] for r in json.load(open('tools/porting_pins.json'))['rows']))"); do
-            gh release download "v$mod+$ver" --repo "$GITHUB_REPOSITORY" -p 'aetherium-*.jar' -D dist --clobber \
-              || echo "::warning::no release v$mod+$ver yet, skipped"
-          done
+          # .github/ship-only lists versions while the main mod is on a GitHub-only test build: those
+          # jars never go to CurseForge (same rule as ship.yml), only the backport jars below do.
+          gh_only=$( (sed 's/#.*//' .github/ship-only 2>/dev/null || true) | tr -d '[:space:]')
+          if [ -n "$gh_only" ]; then
+            echo "::notice::main mod $mod is a GitHub-only test build (.github/ship-only): its jars are not uploaded"
+          else
+            for ver in $(python3 -c "import json; print(' '.join(r['version'] for r in json.load(open('tools/porting_pins.json'))['rows']))"); do
+              gh release download "v$mod+$ver" --repo "$GITHUB_REPOSITORY" -p 'aetherium-*.jar' -D dist --clobber \
+                || echo "::warning::no release v$mod+$ver yet, skipped"
+            done
+          fi
           bp=$(sed -n 's/^mod_version *= *//p' backport/gradle.properties | tr -d '[:space:]')
           gh release download "backport-v$bp+1.12.2" --repo "$GITHUB_REPOSITORY" -p 'aetherium-backport-*.jar' -D dist --clobber \
             || echo "::warning::no backport release backport-v$bp+1.12.2 yet, skipped"
+          bp189=$( (sed -n 's/^modVersion *= *//p' backport189/gradle.properties 2>/dev/null || true) | tr -d '[:space:]')
+          if [ -n "$bp189" ]; then
+            gh release download "backport-v$bp189+1.8.9" --repo "$GITHUB_REPOSITORY" -p 'aetherium-backport-*.jar' -D dist --clobber \
+              || echo "::warning::no backport release backport-v$bp189+1.8.9 yet, skipped"
+          fi
           ls dist | wc -l
       - name: upload
         env:

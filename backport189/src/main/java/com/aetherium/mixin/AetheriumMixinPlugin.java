@@ -36,7 +36,7 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
 
     private static final Set<String> APPLIED = ConcurrentHashMap.newKeySet();
     private static volatile boolean mixinActive = true;
-    private static volatile String minecraftVersion = "1.12.2";
+    private static volatile String minecraftVersion = "1.8.9";
     private static volatile String rendererOwner;
 
     // ------------------------------------------------------------------ public API

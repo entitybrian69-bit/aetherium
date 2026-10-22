@@ -316,7 +316,7 @@ public final class VanillaOptions {
         final File file = entityDistanceFile();
         file.getParentFile().mkdirs();
         try (OutputStream out = new FileOutputStream(file)) {
-            p.store(out, "Aetherium Backport: vanilla options 1.12.2 does not have");
+            p.store(out, "Aetherium Backport: vanilla options 1.8.9 does not have");
         } catch (final IOException error) {
             // A missed write only loses the setting for the next launch.
         }

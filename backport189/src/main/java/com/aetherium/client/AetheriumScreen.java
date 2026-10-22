@@ -211,7 +211,7 @@ public final class AetheriumScreen extends GuiScreen implements ScreenHost, Aeth
 
     @Override
     public String footerLeft() {
-        return "Aetherium Backport v" + AetheriumBackport.VERSION + " \u00b7 Minecraft 1.12.2";
+        return "Aetherium Backport v" + AetheriumBackport.VERSION + " \u00b7 Minecraft 1.8.9";
     }
 
     @Override

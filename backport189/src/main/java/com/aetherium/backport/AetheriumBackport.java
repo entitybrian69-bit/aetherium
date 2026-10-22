@@ -10,16 +10,17 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 /**
- * Aetherium Backport: Aetherium for Minecraft 1.12.2 (Forge). Client only.
+ * Aetherium Backport: Aetherium for Minecraft 1.8.9 (Forge). Client only. Mixin 0.7.11 is bundled
+ * in the jar and started by its tweaker (manifest TweakClass), so nothing else is required.
  */
 @Mod(modid = AetheriumBackport.MOD_ID, name = AetheriumBackport.NAME, version = AetheriumBackport.VERSION,
-        clientSideOnly = true, acceptedMinecraftVersions = "[1.12.2]",
-        dependencies = "required-after:mixinbooter@[8.0,)")
+        clientSideOnly = true, acceptedMinecraftVersions = "[1.8.9]",
+        acceptableRemoteVersions = "*")
 public final class AetheriumBackport {
 
     public static final String MOD_ID = "aetherium";
     public static final String NAME = "Aetherium Backport";
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.1.0";
 
     @Mod.EventHandler
     public void preInit(final FMLPreInitializationEvent event) {

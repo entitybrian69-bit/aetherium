@@ -478,8 +478,13 @@ public final class AetheriumPages {
 
         page.add(qolRow(intSlider("qol.fire_overlay", "Fire overlay height", config.fireOverlay, 5,
                 v -> v == 100 ? "Vanilla" : v == 0 ? "Hidden" : v + "%"), QolSupport.FIRE));
-        page.add(qolRow(intSlider("qol.shield_offset", "Lower raised shield", config.shieldOffset, 5,
-                v -> v == 0 ? "Vanilla" : v + "%"), QolSupport.HAND));
+        // 1.8.9 has no shield: the same option lowers the sword while you block with it.
+        page.add(qolRow(Setting.slider("qol.shield_offset", "Lower sword block",
+                        "How far your sword is lowered in first person while you block with it, in percent, so it covers less of the screen. 0 = vanilla.",
+                        0, 100, 5, v -> v == 0 ? "Vanilla" : v + "%",
+                        () -> config.shieldOffset.get().intValue(),
+                        v -> config.shieldOffset.set(Integer.valueOf(v)))
+                .withDefault(config.shieldOffset.getDefault().intValue()), QolSupport.HAND));
 
         page.add(qolRow(bool("qol.damage_numbers", "Damage numbers", config.damageNumbers), QolSupport.WORLD));
         page.add(qolRow(bool("qol.damage_numbers.heals", "Show healing too", config.damageNumbersHeals), QolSupport.WORLD));
@@ -519,8 +524,9 @@ public final class AetheriumPages {
         page.add(handRow(intSlider("qol.hand.yaw", "Hand turn", config.handYaw, 1, v -> v + "\u00b0")));
         page.add(handRow(intSlider("qol.hand.roll", "Hand roll", config.handRoll, 1, v -> v + "\u00b0")));
         page.add(handRow(intSlider("qol.hand.scale", "Hand size", config.handScale, 5, v -> v + "%")));
-        page.add(qolRow(bool("qol.hand.mirror", "Same for off hand", config.handMirror), QolSupport.HAND).livePreview());
-        page.add(armRow(bool("qol.arm.both", "Show both hands", config.armBoth)));
+        // 1.8.9 has one hand only: there is no off hand to mirror or to show.
+        page.add(qolRow(bool("qol.hand.mirror", "Same for off hand", config.handMirror), false));
+        page.add(qolRow(bool("qol.arm.both", "Show both hands", config.armBoth), false));
         page.add(armRow(intSlider("qol.arm.x", "Arms sideways", config.armX, 1, AetheriumPages::hundredths)));
         page.add(armRow(intSlider("qol.arm.y", "Arms height", config.armY, 1, AetheriumPages::hundredths)));
         page.add(armRow(intSlider("qol.arm.z", "Arms distance", config.armZ, 1, AetheriumPages::hundredths)));
@@ -557,7 +563,7 @@ public final class AetheriumPages {
     private Setting armRow(final Setting setting) {
         return qolRow(setting, QolSupport.HAND).livePreview().onPick(v -> {
             if (this.view != null) {
-                stageOn("qol.hand.visible", "qol.arm.both");
+                stageOn("qol.hand.visible");
             }
         });
     }

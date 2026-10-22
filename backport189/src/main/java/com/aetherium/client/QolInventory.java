@@ -236,7 +236,7 @@ public final class QolInventory {
 
     // ------------------------------------------------------------------ sort
 
-    /** True when the menu has a container part the Sort button can sort (chests, shulker boxes, hoppers, dispensers). */
+    /** True when the menu has a container part the Sort button can sort (chests, hoppers, dispensers). */
     public static boolean sortableContainer(final Container menu) {
         return menu instanceof ContainerChest || menu instanceof ContainerDispenser
                 || menu instanceof ContainerHopper;
