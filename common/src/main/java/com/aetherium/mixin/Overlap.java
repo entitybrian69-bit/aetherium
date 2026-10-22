@@ -87,19 +87,43 @@ public final class Overlap {
         }
     }
 
+    /** One summary line of the last check (log and smoke report). */
+    private static volatile String summary = "not run";
+    private static int scanned;
+    private static int shared;
+    private static String firstError;
+
+    public static String summary() {
+        return summary;
+    }
+
     /** Called from {@code acceptTargets}: every config is prepared, nothing is applied yet. */
     static void resolve(final Set<String> myTargets) {
-        try {
-            for (final String target : new ArrayList<String>(myTargets)) {
+        scanned = 0;
+        shared = 0;
+        firstError = null;
+        for (final String target : new ArrayList<String>(myTargets)) {
+            try {
                 resolveTarget(myTargets, target);
+            } catch (final Throwable error) {
+                // The mixin library changed shape: this class keeps the old behaviour.
+                note(error);
             }
-        } catch (final Throwable error) {
-            // The mixin library changed shape: keep the old behaviour.
+        }
+        summary = scanned + " classes, " + shared + " also changed by other mods, " + YIELDED.size()
+                + " options stepped aside" + (firstError == null ? "" : ", first error: " + firstError);
+    }
+
+    private static void note(final Throwable error) {
+        if (firstError == null) {
+            final StackTraceElement[] trace = error.getStackTrace();
+            firstError = error + (trace.length > 0 ? " at " + trace[0] : "");
         }
     }
 
     private static void resolveTarget(final Set<String> myTargets, final String target) {
         final Collection<IMixinInfo> all = mixinsFor(target);
+        scanned++;
         if (all.isEmpty()) {
             return;
         }
@@ -111,6 +135,7 @@ public final class Overlap {
         if (others.isEmpty()) {
             return;
         }
+        shared++;
         int stepped = 0;
         for (final IMixinInfo mine : ours) {
             final String[] row = row(simpleName(mine.getClassName()));
@@ -126,7 +151,13 @@ public final class Overlap {
             }
             final boolean replacedOnly = REPLACED.equals(row[2]);
             for (final IMixinInfo other : others) {
-                final String hit = firstShared(other, owned, replacedOnly);
+                String hit;
+                try {
+                    hit = firstShared(other, owned, replacedOnly);
+                } catch (final Throwable error) {
+                    note(error);
+                    hit = null;
+                }
                 if (hit == null) {
                     continue;
                 }
@@ -315,6 +346,7 @@ public final class Overlap {
             }
             return out;
         } catch (final Throwable error) {
+            note(error);
             return Collections.emptyList();
         }
     }
