@@ -3,6 +3,15 @@
 One `## <mod_version>` section per release. tools/modrinth_publish.py uses the section matching
 `mod_version` in gradle.properties as the changelog of every Modrinth version it uploads.
 
+## 1.17.4
+**Really works next to other performance mods now (test build for Minecraft 1.16.5 only).**
+
+- Fixed: 1.17.3 still crashed at start-up next to other performance mods. Its start-up check worked in the development build but not in the released jar, because it looked for Aetherium's own game methods under their development names, which the released jar does not use. The check now reads the method names straight from Aetherium's own code, so it finds the same methods in the released jar.
+- Tested this time with the released jar in a normal game install next to the mods from the crash log: the game starts, no Aetherium mixin fails, and the options that overlap with another mod switch themselves off (Compact block states, Cached block fluids, Lock-free entity data, Faster mob AI, Skip unseen entity updates, Calmer built-in server). The Performance page shows them as turned off, with the reason in the description.
+- Calmer built-in server now also steps aside when another mod already changes the same server wait.
+- New safety net: any other Aetherium hook into a game method that another mod replaces completely is now left out at start-up instead of failing.
+- Fixed: the mesh worker threads option was never applied in the released 1.16.5 jar.
+
 ## 1.17.3
 **Works next to other performance mods (test build for Minecraft 1.16.5 only).**
 
