@@ -154,10 +154,27 @@ tasks.shadowJar {
 tasks.assemble.get().dependsOn(tasks.remapJar)
 
 // CI smoke test (AETHERIUM_SMOKE=<dir> ./gradlew runClient). Inert otherwise.
-tasks.matching { it.name == "runClient" }.configureEach {
-    val task = this as JavaExec
+// Loom 0.10's own runClient fails Gradle 8's task validation (its getMain() override has no input
+// annotation), so the smoke test launches through a plain JavaExec that copies what loom resolved
+// for runClient: classpath, main class, JVM arguments (dev launch config) and program arguments.
+tasks.register<JavaExec>("smokeClient") {
+    val rc = tasks.getByName("runClient") as JavaExec
+    dependsOn(rc.taskDependencies)
+    classpath = rc.classpath
+    mainClass.set(rc.javaClass.getMethod("getMain").invoke(rc) as String)
+    jvmArgs(rc.jvmArgs ?: emptyList<String>())
+    args(rc.args ?: emptyList<String>())
+    environment(rc.environment)
+    workingDir = file("run")
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(8)) })
     if (smokeDir != null) {
-        task.jvmArgs("-Daetherium.smoke=$smokeDir", "-Dmixin.debug.countInjections=true")
-        task.args("--width", "1280", "--height", "720")
+        jvmArgs("-Daetherium.smoke=$smokeDir", "-Dmixin.debug.countInjections=true")
+        args("--width", "1280", "--height", "720")
+    }
+    doFirst {
+        file("run").mkdirs()
+        println("smokeClient main=${mainClass.get()}")
+        println("smokeClient jvm=${allJvmArgs}")
+        println("smokeClient args=${args}")
     }
 }

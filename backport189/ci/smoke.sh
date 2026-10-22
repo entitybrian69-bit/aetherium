@@ -7,7 +7,7 @@ OUT="$PWD/ci/out/smoke"
 rm -rf "$OUT" && mkdir -p "$OUT"
 export AETHERIUM_SMOKE="$OUT"
 export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=3.3COMPAT
-timeout 1200 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew --no-daemon runClient > "$OUT/client.log" 2>&1
+timeout 1200 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew --no-daemon smokeClient > "$OUT/client.log" 2>&1
 echo "$?" > "$OUT/status.txt"
 grep -nE "Aetherium|aetherium|Mixin|mixin|ERROR|FATAL|Exception|Caused by|OpenGL|GL_RENDERER|LWJGL" "$OUT/client.log" \
   | grep -v "Download" | head -300 > "$OUT/client-report.txt"
