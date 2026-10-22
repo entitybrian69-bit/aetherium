@@ -98,6 +98,10 @@ jobs:
           sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri libglu1-mesa >/dev/null
           out="$GITHUB_WORKSPACE/smoke/${{ matrix.version }}"
           rm -rf "$out" && mkdir -p "$out"
+          if [ -f tools/dev/test_mods.txt ]; then
+            python3 tools/dev/fetch_test_mods.py tools/dev/test_mods.txt "${{ matrix.version }}" \
+              "$RUNNER_TEMP/tree/fabric/run/mods" | tee "$out/test-mods.txt"
+          fi
           cd "$RUNNER_TEMP/tree"
           export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5COMPAT
           export JAVA_TOOL_OPTIONS="-Daetherium.smoke=$out"

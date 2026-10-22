@@ -18,8 +18,8 @@ public final class EarlyFlags {
     public static boolean compactBlockStates() {
         Boolean value = compactBlockStates;
         if (value == null) {
-            value = Boolean.valueOf(decide(EarlyConfig.read(WorkerThreads.defaultConfigFile()),
-                    "compact_block_states", true));
+            value = Boolean.valueOf(!com.aetherium.mixin.Overlap.yielded("compact_block_states")
+                    && decide(EarlyConfig.read(WorkerThreads.defaultConfigFile()), "compact_block_states", true));
             compactBlockStates = value;
         }
         return value.booleanValue();

@@ -527,6 +527,9 @@ public final class TuningSupport {
 
     /** Whether the tuning option with this settings key does anything on this version. */
     public static boolean option(final String key) {
+        if (key.startsWith("perf.") && com.aetherium.mixin.Overlap.yielded(key.substring(5))) {
+            return false; // another installed mod already changes this part of the game
+        }
         switch (key) {
             case "perf.low_end_mode":
             case "perf.hitch_guard":

@@ -199,6 +199,10 @@ public final class SmokeTest {
         }
         out.append("food outline ").append(foodOutline).append('\n');
         out.append("compact block states ").append(com.aetherium.perf.CompactNeighbours.created()).append('\n');
+        out.append("stepped aside ").append(Overlap.yieldedOptions().size()).append('\n');
+        for (final String note : Overlap.notes()) {
+            out.append("STEPPED ").append(note).append('\n');
+        }
         try {
             final File dir = new File(DIR);
             dir.mkdirs();

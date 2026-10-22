@@ -49,6 +49,7 @@ public final class AetheriumPages {
     }
 
     static final String NOT_ON_THIS_VERSION = "Not available on this version";
+    static final String STEPPED_ASIDE = "Turned off: another installed mod already changes this part of the game, so Aetherium leaves it to that mod.";
 
     private static final String[] GRAPHICS = {"Fast", "Fancy", "Fabulous"};
     private static final String[] CLOUDS = {"Off", "Fast", "Fancy"};
@@ -386,7 +387,8 @@ public final class AetheriumPages {
 
     private static Setting tuningRow(final Setting setting) {
         final String key = setting.id;
-        return setting.availableWhen(() -> TuningSupport.option(key), NOT_ON_THIS_VERSION);
+        final boolean stepped = key.startsWith("perf.") && com.aetherium.mixin.Overlap.yielded(key.substring(5));
+        return setting.availableWhen(() -> TuningSupport.option(key), stepped ? STEPPED_ASIDE : NOT_ON_THIS_VERSION);
     }
 
     // ------------------------------------------------------------------ Backend

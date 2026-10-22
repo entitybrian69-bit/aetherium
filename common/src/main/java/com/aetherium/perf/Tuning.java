@@ -105,6 +105,11 @@ public final class Tuning {
     private Tuning() {
     }
 
+    /** False when another installed mod already changes what the option changes (see Overlap). */
+    private static boolean free(final String option) {
+        return !com.aetherium.mixin.Overlap.yielded(option);
+    }
+
     public static void configure(final AetheriumConfig c, final boolean active) {
         final boolean low = active && c.lowEndMode.get().booleanValue();
         lowEnd = low;
@@ -170,16 +175,16 @@ public final class Tuning {
         lightmapRate = active && c.lightmapRate.get().booleanValue();
         aoCache = active && c.aoCache.get().booleanValue();
         asyncSkins = active && c.asyncSkins.get().booleanValue();
-        lazySearch = active && c.lazySearch.get().booleanValue();
-        HudRate.setFps(active ? c.hudFps.get().intValue() : HudRate.OFF);
-        entityTickCulling = active && c.entityTickCulling.get().booleanValue();
-        fastBlockData = active && c.fastBlockData.get().booleanValue();
-        fastSectionSnapshots = active && c.fastSectionSnapshots.get().booleanValue();
-        fastMobAi = active && c.fastMobAi.get().booleanValue();
-        fastEntityData = active && c.fastEntityData.get().booleanValue();
-        fastNetwork = active && c.fastNetwork.get().booleanValue();
+        lazySearch = active && c.lazySearch.get().booleanValue() && free("lazy_search");
+        HudRate.setFps(active && free("hud_fps") ? c.hudFps.get().intValue() : HudRate.OFF);
+        entityTickCulling = active && c.entityTickCulling.get().booleanValue() && free("entity_tick_culling");
+        fastBlockData = active && c.fastBlockData.get().booleanValue() && free("fast_block_data");
+        fastSectionSnapshots = active && c.fastSectionSnapshots.get().booleanValue() && free("fast_section_snapshots");
+        fastMobAi = active && c.fastMobAi.get().booleanValue() && free("fast_mob_ai");
+        fastEntityData = active && c.fastEntityData.get().booleanValue() && free("fast_entity_data");
+        fastNetwork = active && c.fastNetwork.get().booleanValue() && free("fast_network");
         multiDraw = active && c.multiDraw.get().booleanValue();
-        batchedChests = active && c.batchedChests.get().booleanValue();
+        batchedChests = active && c.batchedChests.get().booleanValue() && free("batched_chests");
         packedTerrain = active && c.packedTerrain.get().booleanValue();
         occlusionQueries = active && c.occlusionQueries.get().booleanValue();
         int clouds = c.cloudDistance.get().intValue();

@@ -73,6 +73,10 @@ jobs:
           sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri libglu1-mesa imagemagick >/dev/null
           out="$GITHUB_WORKSPACE/bench/1.16.5"
           rm -rf "$out" && mkdir -p "$out"
+          if [ -f tools/dev/bench_mods.txt ]; then
+            python3 tools/dev/fetch_test_mods.py tools/dev/bench_mods.txt 1.16.5 \
+              "$RUNNER_TEMP/tree/fabric/run/mods" | tee "$out/test-mods.txt"
+          fi
           cd "$RUNNER_TEMP/tree"
           export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=3.3COMPAT
           # The 1.16.5 row pins Fabric Loader 0.14.24, but the nested MixinExtras 0.5.3 requires >= 0.14.25
