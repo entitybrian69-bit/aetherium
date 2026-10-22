@@ -97,6 +97,15 @@ public final class Overlap {
         return summary;
     }
 
+    /** What the check compared, per Aetherium mixin that shares a class (for diagnosing a miss). */
+    private static final List<String> DETAILS = Collections.synchronizedList(new ArrayList<String>());
+
+    public static List<String> details() {
+        synchronized (DETAILS) {
+            return new ArrayList<String>(DETAILS);
+        }
+    }
+
     /** Called from {@code acceptTargets}: every config is prepared, nothing is applied yet. */
     static void resolve(final Set<String> myTargets) {
         scanned = 0;
@@ -150,6 +159,11 @@ public final class Overlap {
                 }
             }
             final boolean replacedOnly = REPLACED.equals(row[2]);
+            final StringBuilder detail = new StringBuilder(simpleName(mine.getClassName())).append(" owns ").append(owned);
+            for (final IMixinInfo other : others) {
+                detail.append("; ").append(simpleName(other.getClassName())).append(' ').append(describe(other));
+            }
+            DETAILS.add(detail.toString());
             for (final IMixinInfo other : others) {
                 String hit;
                 try {
@@ -205,6 +219,38 @@ public final class Overlap {
             }
         }
         return null;
+    }
+
+    /** The methods another mixin replaces (=name) and hooks (name), for the details list. */
+    private static String describe(final IMixinInfo other) {
+        try {
+            final ClassNode node = other.getClassNode(0);
+            final StringBuilder out = new StringBuilder("[");
+            if (node != null && node.methods != null) {
+                for (final MethodNode method : node.methods) {
+                    if (has(method.invisibleAnnotations, OVERWRITE) || has(method.visibleAnnotations, OVERWRITE)) {
+                        out.append(" =").append(method.name);
+                    }
+                    for (final List<AnnotationNode> list : java.util.Arrays.asList(method.visibleAnnotations,
+                            method.invisibleAnnotations)) {
+                        if (list == null) {
+                            continue;
+                        }
+                        for (final AnnotationNode annotation : list) {
+                            if (annotation.desc != null && (annotation.desc.startsWith(INJECTORS)
+                                    || annotation.desc.contains(EXTRA_INJECTORS))) {
+                                for (final String selector : strings(annotation, "method")) {
+                                    out.append(' ').append(methodName(remap(other, selector)));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return out.append(" ]").toString();
+        } catch (final Throwable error) {
+            return "[" + error + "]";
+        }
     }
 
     private static String injectorHit(final IMixinInfo other, final List<AnnotationNode> annotations,

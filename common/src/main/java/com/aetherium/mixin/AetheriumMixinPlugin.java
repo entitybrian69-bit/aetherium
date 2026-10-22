@@ -264,6 +264,9 @@ public final class AetheriumMixinPlugin implements IMixinConfigPlugin {
         // mod already changes the same method as one of the performance options.
         Overlap.resolve(myTargets);
         com.aetherium.util.AetheriumLog.of(Overlap.class).info("Aetherium overlap check: {}", Overlap.summary());
+        for (final String detail : Overlap.details()) {
+            com.aetherium.util.AetheriumLog.of(Overlap.class).info("Aetherium overlap check: {}", detail);
+        }
         for (final String note : Overlap.notes()) {
             com.aetherium.util.AetheriumLog.of(Overlap.class).info("Another mod already changes this, option {}", note);
         }
