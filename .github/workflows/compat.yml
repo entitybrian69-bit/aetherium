@@ -72,7 +72,7 @@ jobs:
           loader=$(sed -n 's/^loader *//p' tools/dev/compat_mods.txt 2>/dev/null | head -1)
           loader=${loader:-0.18.4}
           export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5COMPAT
-          timeout 1200 xvfb-run -a -s "-screen 0 1280x720x24" \
+          timeout 600 xvfb-run -a -s "-screen 0 1280x720x24" \
             python3 -m portablemc --main-dir "$mc" --work-dir "$mc" start "fabric:1.16.5:$loader" -u Tester \
               --jvm-args="-Xmx2G -Daetherium.smoke=$out" > "$RUNNER_TEMP/client.log" 2>&1
           echo "exit $?" > "$out/status.txt"
