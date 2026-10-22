@@ -1,0 +1,101 @@
+name: compat
+
+# Production compatibility run for Minecraft 1.16.5: builds the release jar (remapped, exactly what
+# ship publishes), installs it with Fabric Loader into a normal game directory next to the mods in
+# tools/dev/compat_mods.txt, and starts the real game (no development environment) with
+# -Daetherium.smoke=<dir>, so com.aetherium.mixin.SmokeTest loads every class Aetherium hooks and
+# writes its report. Results are committed to compat/1.16.5/. Only runs on "[compat]".
+
+on:
+  push:
+    branches: [arena/46f241da-aetherium]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: compat-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.caching=true
+
+jobs:
+  compat:
+    if: contains(github.event.head_commit.message, '[compat]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.4.1
+          cache-read-only: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 8
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: build the release jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/tree"
+          mkdir -p "$work"
+          git ls-files -z | xargs -0 -I{} cp --parents {} "$work"/
+          cd "$work"
+          git apply --whitespace=nowarn deltas/1.16.5/changes.patch
+          gradle --no-daemon --console=plain :fabric:remapJar -Penabled_platforms=fabric > "$RUNNER_TEMP/build.log" 2>&1 \
+            || { tail -60 "$RUNNER_TEMP/build.log"; exit 1; }
+          ls -l fabric/build/libs
+      - name: run the game
+        shell: bash
+        run: |
+          set +e -u -o pipefail
+          sudo apt-get update -q >/dev/null
+          sudo apt-get install -y -q xvfb x11-xserver-utils libgl1-mesa-dri libglu1-mesa >/dev/null
+          out="$GITHUB_WORKSPACE/compat/1.16.5"
+          rm -rf "$out" && mkdir -p "$out"
+          mc="$RUNNER_TEMP/mc"
+          mkdir -p "$mc/mods"
+          for jar in "$RUNNER_TEMP"/tree/fabric/build/libs/*.jar; do
+            case "$(basename "$jar")" in *-sources.jar|*-dev.jar|*dev-shadow*) continue ;; esac
+            cp "$jar" "$mc/mods/" && echo "aetherium: $(basename "$jar")" | tee "$out/mods.txt"
+          done
+          if [ -f tools/dev/compat_mods.txt ]; then
+            python3 tools/dev/fetch_test_mods.py tools/dev/compat_mods.txt 1.16.5 "$mc/mods" | tee -a "$out/mods.txt"
+          fi
+          python3 -m pip install -q portablemc==4.4.1
+          loader=$(sed -n 's/^loader *//p' tools/dev/compat_mods.txt 2>/dev/null | head -1)
+          loader=${loader:-0.18.4}
+          export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5COMPAT
+          timeout 1200 xvfb-run -a -s "-screen 0 1280x720x24" \
+            python3 -m portablemc --main-dir "$mc" --work-dir "$mc" start "fabric:1.16.5:$loader" -u Tester \
+              --jvm-args="-Xmx2G -Daetherium.smoke=$out" > "$RUNNER_TEMP/client.log" 2>&1
+          echo "exit $?" > "$out/status.txt"
+          log="$mc/logs/latest.log"
+          [ -f "$log" ] && cp "$log" "$out/latest.log"
+          grep -nE "Aetherium|aetherium|ERROR|FATAL|Exception|Caused by|Mixin apply|InvalidInjection|InvalidMixin|Critical injection|crashed" \
+            "$RUNNER_TEMP/client.log" | grep -v Download | head -300 > "$out/client-report.txt" || true
+          tail -80 "$RUNNER_TEMP/client.log" > "$out/client-tail.txt"
+          for f in "$mc"/crash-reports/*.txt; do [ -f "$f" ] && head -c 40000 "$f" > "$out/crash-$(basename "$f")"; done
+          if [ -f "$out/report.txt" ]; then
+            echo "::notice::compat: $(grep -m1 '^targets' "$out/report.txt"), $(grep -m1 '^stepped aside' "$out/report.txt")"
+          else
+            echo "::error::compat: no report (see compat/1.16.5/client-tail.txt)"
+          fi
+      - name: commit results
+        if: always()
+        shell: bash
+        run: |
+          set -u
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f compat 2>/dev/null || true
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -q -m "compat: results for ${GITHUB_SHA::7} [skip ci]"
+          for i in 1 2 3 4 5; do git pull -q --rebase origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && exit 0; sleep $((i*5)); done
+          exit 1

@@ -31,6 +31,8 @@ def main():
         if not line:
             continue
         parts = line.split()
+        if parts[0] == "loader":
+            continue  # "loader <version>": read by the workflow, not a mod
         project, wanted = parts[0], (parts[1] if len(parts) > 1 else None)
         try:
             query = urllib.parse.urlencode({"loaders": json.dumps(["fabric"]), "game_versions": json.dumps([mc])})

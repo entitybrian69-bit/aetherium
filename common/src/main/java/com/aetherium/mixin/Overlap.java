@@ -41,22 +41,27 @@ public final class Overlap {
     private static final String REPLACED = "replaced";
 
     /**
-     * Mixin simple name, option it belongs to, what counts, then the methods it owns, written
-     * exactly as in the mixin's annotations (so they resolve through Aetherium's refmap).
+     * Mixin simple name, option it belongs to, what counts, then the names of the handler methods
+     * whose targets the option owns. The targets are read from those handlers' own annotations,
+     * so they come out in whatever names the running game uses: a release jar carries the
+     * rewritten (intermediary) names in the annotations and has no refmap, a development run
+     * carries the source names.
      */
     private static final String[][] TABLE = {
-        {"TuningStateMixin", "compact_block_states", ANY, "populateNeighbours"},
-        {"TuningFluidCacheMixin", "fast_block_data", ANY, "getFluidState"},
-        {"TuningEntityDataMixin", "fast_entity_data", ANY, "getItem"},
-        {"TuningGoalMixin", "fast_mob_ai", ANY, "tick"},
-        {"TuningFrameDecoderMixin", "fast_network", ANY, "decode"},
-        {"TuningInflateMixin", "fast_network", ANY, "decode"},
-        {"TuningSearchMixin", "lazy_search", ANY, "refresh", "add"},
-        {"TuningEntityTickMixin", "entity_tick_culling", ANY, "tickNonPassenger"},
-        {"TuningSnapshotMixin", "fast_section_snapshots", ANY, "<init>"},
-        {"TuningChestBakeMixin", "batched_chests", ANY, "compile"},
-        {"TuningHudBlendMixin", "hud_fps", ANY, "_blendFunc", "_blendFuncSeparate"},
-        {"TuningHudFrameMixin", "hud_fps", REPLACED, "render(FJZ)V"},
+        {"TuningStateMixin", "compact_block_states", ANY, "aetherium$compact"},
+        {"TuningFluidCacheMixin", "fast_block_data", ANY, "aetherium$cachedFluid"},
+        {"TuningEntityDataMixin", "fast_entity_data", ANY, "aetherium$lookup"},
+        {"TuningGoalMixin", "fast_mob_ai", ANY, "aetherium$tick"},
+        {"TuningFrameDecoderMixin", "fast_network", ANY, "aetherium$decode"},
+        {"TuningInflateMixin", "fast_network", ANY, "aetherium$decode"},
+        {"TuningSearchMixin", "lazy_search", ANY, "aetherium$deferRefresh", "aetherium$deferIndex"},
+        {"TuningEntityTickMixin", "entity_tick_culling", ANY, "aetherium$tickIfSeen"},
+        // These hook one call inside a method other mods commonly hook too (the game's own
+        // rendering API among them); that composes, only a mod replacing the whole method clashes.
+        {"TuningSnapshotMixin", "fast_section_snapshots", REPLACED, "aetherium$fluidFromBlock"},
+        {"TuningChestBakeMixin", "batched_chests", REPLACED, "aetherium$bakeChest", "aetherium$compileStart"},
+        {"TuningHudBlendMixin", "hud_fps", ANY, "aetherium$captureBlend", "aetherium$captureBlendSeparate"},
+        {"TuningHudFrameMixin", "hud_fps", REPLACED, "aetherium$hudRate"},
     };
 
     private static final String OWN_PACKAGE = "com.aetherium.";
@@ -151,12 +156,16 @@ public final class Overlap {
             if (row == null) {
                 continue;
             }
-            final Set<String> owned = new HashSet<String>();
-            for (int i = 3; i < row.length; i++) {
-                final String name = methodName(remap(mine, row[i]));
-                if (name != null) {
-                    owned.add(name);
-                }
+            final Set<String> owned = ownedTargets(mine, row);
+            if (owned.isEmpty() && ANY.equals(row[2])) {
+                // The handler's targets could not be read: with another mod on the same class,
+                // stepping aside is the safe side.
+                YIELDED.add(row[1]);
+                stepped++;
+                final boolean dropped = drop(mine, target);
+                NOTES.add(row[1] + ": " + simpleName(mine.getClassName()) + " steps aside, " + others.size()
+                        + " other mixins change " + target + " (targets unreadable)" + (dropped ? "" : " (hooks left inert)"));
+                continue;
             }
             final boolean replacedOnly = REPLACED.equals(row[2]);
             final StringBuilder detail = new StringBuilder(simpleName(mine.getClassName())).append(" owns ").append(owned);
@@ -221,6 +230,42 @@ public final class Overlap {
             }
         }
         return null;
+    }
+
+    /** The game methods the listed handlers of an Aetherium mixin hook (runtime names). */
+    private static Set<String> ownedTargets(final IMixinInfo mine, final String[] row) {
+        final Set<String> handlers = new HashSet<String>();
+        for (int i = 3; i < row.length; i++) {
+            handlers.add(row[i]);
+        }
+        final Set<String> owned = new HashSet<String>();
+        final ClassNode node = mine.getClassNode(0);
+        if (node == null || node.methods == null) {
+            return owned;
+        }
+        for (final MethodNode method : node.methods) {
+            if (!handlers.contains(method.name)) {
+                continue;
+            }
+            for (final List<AnnotationNode> list : java.util.Arrays.asList(method.visibleAnnotations,
+                    method.invisibleAnnotations)) {
+                if (list == null) {
+                    continue;
+                }
+                for (final AnnotationNode annotation : list) {
+                    if (annotation.desc != null && (annotation.desc.startsWith(INJECTORS)
+                            || annotation.desc.contains(EXTRA_INJECTORS))) {
+                        for (final String selector : strings(annotation, "method")) {
+                            final String name = methodName(remap(mine, selector));
+                            if (name != null) {
+                                owned.add(name);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return owned;
     }
 
     /** The methods another mixin replaces (=name) and hooks (name), for the details list. */
