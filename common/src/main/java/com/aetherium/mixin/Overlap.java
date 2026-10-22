@@ -161,13 +161,13 @@ public final class Overlap {
             final boolean replacedOnly = REPLACED.equals(row[2]);
             final StringBuilder detail = new StringBuilder(simpleName(mine.getClassName())).append(" owns ").append(owned);
             for (final IMixinInfo other : others) {
-                detail.append("; ").append(simpleName(other.getClassName())).append(' ').append(describe(other));
+                detail.append("; ").append(simpleName(other.getClassName())).append(' ').append(describe(other, target));
             }
             DETAILS.add(detail.toString());
             for (final IMixinInfo other : others) {
                 String hit;
                 try {
-                    hit = firstShared(other, owned, replacedOnly);
+                    hit = firstShared(other, target, owned, replacedOnly);
                 } catch (final Throwable error) {
                     note(error);
                     hit = null;
@@ -192,7 +192,8 @@ public final class Overlap {
     // ------------------------------------------------------------------ the other mixins
 
     /** The method of {@code owned} the other mixin replaces or hooks, or null. */
-    private static String firstShared(final IMixinInfo other, final Set<String> owned, final boolean replacedOnly) {
+    private static String firstShared(final IMixinInfo other, final String target, final Set<String> owned,
+                                      final boolean replacedOnly) {
         if (owned.isEmpty()) {
             return null;
         }
@@ -202,8 +203,9 @@ public final class Overlap {
         }
         for (final MethodNode method : node.methods) {
             if (has(method.invisibleAnnotations, OVERWRITE) || has(method.visibleAnnotations, OVERWRITE)) {
-                if (owned.contains(method.name)) {
-                    return method.name;
+                final String name = runtimeName(target, method);
+                if (owned.contains(name)) {
+                    return name;
                 }
             }
             if (replacedOnly) {
@@ -222,14 +224,14 @@ public final class Overlap {
     }
 
     /** The methods another mixin replaces (=name) and hooks (name), for the details list. */
-    private static String describe(final IMixinInfo other) {
+    private static String describe(final IMixinInfo other, final String target) {
         try {
             final ClassNode node = other.getClassNode(0);
             final StringBuilder out = new StringBuilder("[");
             if (node != null && node.methods != null) {
                 for (final MethodNode method : node.methods) {
                     if (has(method.invisibleAnnotations, OVERWRITE) || has(method.visibleAnnotations, OVERWRITE)) {
-                        out.append(" =").append(method.name);
+                        out.append(" =").append(runtimeName(target, method));
                     }
                     for (final List<AnnotationNode> list : java.util.Arrays.asList(method.visibleAnnotations,
                             method.invisibleAnnotations)) {
@@ -352,6 +354,28 @@ public final class Overlap {
             // No refmap: the selector is already in runtime names (development) or unmapped.
         }
         return selector;
+    }
+
+    /**
+     * The name a replacing method has in the running game: the mixin library maps it through the
+     * environment's remappers (identity in a normal game, intermediary to development names in a
+     * development run) before it looks the method up, so the same is done here.
+     */
+    private static String runtimeName(final String target, final MethodNode method) {
+        try {
+            final Class<?> environment = Class.forName("org.spongepowered.asm.mixin.MixinEnvironment");
+            final Object current = environment.getMethod("getCurrentEnvironment").invoke(null);
+            final Object remappers = environment.getMethod("getRemappers").invoke(current);
+            final Method map = remappers.getClass().getMethod("mapMethodName", String.class, String.class, String.class);
+            map.setAccessible(true);
+            final Object mapped = map.invoke(remappers, target.replace('.', '/'), method.name, method.desc);
+            if (mapped instanceof String) {
+                return (String) mapped;
+            }
+        } catch (final Throwable ignored) {
+            // No remappers: the name is already the running game's.
+        }
+        return method.name;
     }
 
     private static String[] row(final String simpleName) {
